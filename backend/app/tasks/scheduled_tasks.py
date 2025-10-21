@@ -6,6 +6,7 @@ from sqlalchemy.orm import Session
 from ..core.database import SessionLocal
 from ..models.user import User
 from ..models.job import Job
+from ..models.application import Application
 from ..services.job_scraper import JobScraperService
 from ..services.recommendation_engine import RecommendationEngine
 from ..services.notification_service import NotificationService
@@ -109,22 +110,51 @@ def send_morning_briefing():
     """Morning recommendation task - Run at 8 AM"""
     db = SessionLocal()
     try:
-        notification_service = NotificationService(
-            smtp_host=os.getenv("SMTP_HOST"),
-            smtp_port=int(os.getenv("SMTP_PORT", 587)),
-            smtp_user=os.getenv("SMTP_USER"),
-            smtp_password=os.getenv("SMTP_PASSWORD")
-        )
+        from ..core.config import get_settings
+        settings = get_settings()
         
+        # Initialize notification service with settings
+        notification_service = NotificationService(db=db, settings=settings)
+        
+        # Query all users
         users = db.query(User).all()
         
+        total_sent = 0
+        total_failed = 0
+        
         for user in users:
-            recommendations = RecommendationEngine.get_recommendations(db, user, limit=5)
-            
-            if recommendations:
-                notification_service.send_morning_briefing(user.email, recommendations)
-                print(f"Sent morning briefing to {user.email}")
+            try:
+                # Skip users without email
+                if not user.email:
+                    logger.warning(f"User {user.username} has no email. Skipping morning briefing.")
+                    continue
+                
+                # Get top 5 recommendations using RecommendationEngine
+                recommendation_engine = RecommendationEngine(db)
+                recommendations = recommendation_engine.get_recommendations(user, limit=5)
+                
+                # Send email via NotificationService
+                success = notification_service.send_morning_briefing(user, recommendations)
+                
+                if success:
+                    total_sent += 1
+                    logger.info(f"Morning briefing sent successfully to {user.email}")
+                else:
+                    total_failed += 1
+                    logger.error(f"Failed to send morning briefing to {user.email}")
+                    
+            except Exception as e:
+                total_failed += 1
+                logger.error(f"Error sending morning briefing to user {user.username}: {str(e)}")
+                continue
+        
+        # Log overall results
+        logger.info(f"Morning briefing task completed. Sent: {total_sent}, Failed: {total_failed}")
+        print(f"Morning briefing task completed. Sent: {total_sent}, Failed: {total_failed}")
     
+    except Exception as e:
+        logger.error(f"Error in morning briefing task: {str(e)}")
+        print(f"Error in morning briefing task: {str(e)}")
     finally:
         db.close()
 
@@ -133,36 +163,63 @@ def send_evening_summary():
     """Evening summary task - Run at 8 PM"""
     db = SessionLocal()
     try:
-        notification_service = NotificationService(
-            smtp_host=os.getenv("SMTP_HOST"),
-            smtp_port=int(os.getenv("SMTP_PORT", 587)),
-            smtp_user=os.getenv("SMTP_USER"),
-            smtp_password=os.getenv("SMTP_PASSWORD")
-        )
+        from ..core.config import get_settings
+        from ..services.job_analytics_service import JobAnalyticsService
+        settings = get_settings()
         
+        # Initialize notification service with settings
+        notification_service = NotificationService(db=db, settings=settings)
+        
+        # Query all users
         users = db.query(User).all()
         today = datetime.now().date()
         
+        total_sent = 0
+        total_failed = 0
+        
         for user in users:
-            # Calculate today's stats
-            jobs_today = db.query(Job).filter(
-                Job.user_id == user.id,
-                Job.date_applied >= datetime.combine(today, datetime.min.time())
-            ).count()
-            
-            total_jobs = db.query(Job).filter(
-                Job.user_id == user.id,
-                Job.status == "applied"
-            ).count()
-            
-            stats = {
-                "applications_today": jobs_today,
-                "total_applications": total_jobs,
-                "jobs_saved": db.query(Job).filter(Job.user_id == user.id).count()
-            }
-            
-            notification_service.send_evening_summary(user.email, stats)
-            print(f"Sent evening summary to {user.email}")
+            try:
+                # Skip users without email
+                if not user.email:
+                    logger.warning(f"User {user.username} has no email. Skipping evening summary.")
+                    continue
+                
+                # Calculate daily statistics using JobAnalyticsService
+                analytics_service = JobAnalyticsService(db)
+                analytics_summary = analytics_service.get_summary_metrics(user)
+                
+                # Add applications_today count (applications created today)
+                from ..models.application import Application
+                applications_today = db.query(Application).filter(
+                    Application.user_id == user.id,
+                    Application.applied_date >= datetime.combine(today, datetime.min.time())
+                ).count()
+                
+                # Update analytics summary with today's data
+                analytics_summary["applications_today"] = applications_today
+                analytics_summary["jobs_saved"] = analytics_summary["total_jobs"]
+                
+                # Send email via NotificationService
+                success = notification_service.send_evening_summary(user, analytics_summary)
+                
+                if success:
+                    total_sent += 1
+                    logger.info(f"Evening summary sent successfully to {user.email}")
+                else:
+                    total_failed += 1
+                    logger.error(f"Failed to send evening summary to {user.email}")
+                    
+            except Exception as e:
+                total_failed += 1
+                logger.error(f"Error sending evening summary to user {user.username}: {str(e)}")
+                continue
+        
+        # Log overall results
+        logger.info(f"Evening summary task completed. Sent: {total_sent}, Failed: {total_failed}")
+        print(f"Evening summary task completed. Sent: {total_sent}, Failed: {total_failed}")
     
+    except Exception as e:
+        logger.error(f"Error in evening summary task: {str(e)}")
+        print(f"Error in evening summary task: {str(e)}")
     finally:
         db.close()

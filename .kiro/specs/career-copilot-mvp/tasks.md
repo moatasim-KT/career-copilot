@@ -178,8 +178,8 @@ This implementation plan covers the complete Career Co-Pilot MVP across all four
   - Mock external API calls
   - _Requirements: 5.2, 5.3_
 
-- [ ] 10. Implement notification service
-- [ ] 10.1 Create NotificationService class
+- [-] 10. Implement notification service
+- [x] 10.1 Create NotificationService class
 
   - Implement send_morning_briefing method
   - Implement send_evening_summary method
@@ -188,7 +188,7 @@ This implementation plan covers the complete Career Co-Pilot MVP across all four
   - Add graceful degradation when SMTP not configured
   - _Requirements: 6.3, 6.4, 7.3, 7.4_
 
-- [ ] 10.2 Implement morning briefing logic
+- [x] 10.2 Implement morning briefing logic
 
   - Create send_morning_briefing function in scheduled_tasks
   - Query all users
