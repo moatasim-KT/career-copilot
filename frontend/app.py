@@ -720,7 +720,27 @@ def render_applications_page():
                     
                     # Update status
                     new_status = st.selectbox(
-                    ader
+                        "Update Status",
+                        ["interested", "applied", "interview", "offer", "rejected", "accepted", "declined"],
+                        index=["interested", "applied", "interview", "offer", "rejected", "accepted", "declined"].index(app.get('status', 'interested')),
+                        key=f"status_{app.get('id')}"
+                    )
+                    
+                    if st.button("Update", key=f"update_{app.get('id')}"):
+                        update_data = {"status": new_status}
+                        response = api_client.update_application(app.get('id'), update_data)
+                        if "error" not in response:
+                            st.success("Status updated!")
+                            st.rerun()
+                        else:
+                            st.error(f"Failed to update: {response.get('error')}")
+        else:
+            st.info("No applications yet. Start by applying to jobs!")
+
+
+def secure_file_upload():
+	"""Perform secure file upload with enhanced progress tracking and user feedback."""
+	# File upload header
 	st.markdown("""
 	<div class="upload-section">
 		<div class="upload-header">
@@ -2566,93 +2586,58 @@ def main():
 		st.error(f"Header rendering issue: {str(e)}")
 
 	# Add navigation tabs with responsive design
-    tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8 = st.tabs(["📄 Contract Analysis", "👤 Profile", "✨ Recommendations", "🧠 Skill Gap", "📊 Progress Dashboard", "📈 Analytics", "🔍 Observability", "⚙️ Settings"])
+	tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8 = st.tabs(["📄 Contract Analysis", "👤 Profile", "✨ Recommendations", "🧠 Skill Gap", "📊 Progress Dashboard", "📈 Analytics", "🔍 Observability", "⚙️ Settings"])
 
-    with tab1:
-        if PRODUCTION_FEATURES_AVAILABLE:
-            try:
-                track_user_event('tab_view', {'tab': 'analysis'})
-            except:
-                pass
-        render_analysis_interface()
+	with tab1:
+		if PRODUCTION_FEATURES_AVAILABLE:
+			try:
+				track_user_event('tab_view', {'tab': 'analysis'})
+			except:
+				pass
+		render_analysis_interface()
 
-    with tab2:
-        render_profile_page()
-
-    with tab3:
-        render_recommendations_page()
-
-    with tab4:
-        render_skill_gap_page()
-
-    with tab5:
-	
-	    with tab3:		else:
-			# Show general dashboard information
-			st.info("💡 **How to use the Progress Dashboard:**")
-			col1, col2 = st.columns(2)
-			
-			with col1:
-				st.markdown("""
-				**🎯 Monitor Active Analysis:**
-				- Enter an analysis ID above to track specific analysis
-				- View real-time agent progress
-				- See estimated completion times
-				- Monitor current operations
-				""")
-			
-			with col2:
-				st.markdown("""
-				**🔄 Real-time Features:**
-				- Live WebSocket updates
-				- Agent-by-agent progress visualization
-				- Error tracking and recovery
-				- Analysis cancellation controls
-				""")
-			
-			# Show current session analysis if available
-			if st.session_state.get("task_id") and st.session_state.get("is_polling"):
-				st.markdown("---")
-				st.markdown("### 🔄 Current Session Analysis")
-				st.info(f"**Active Analysis ID:** `{st.session_state.task_id}`")
-				
-				if st.button("📊 Monitor Current Analysis", type="primary"):
-					user_id = st.session_state.get("user_info", {}).get("username", "user")
-					try:
-						show_analysis_dashboard(api_client, st.session_state.task_id, user_id)
-					except Exception as e:
-						st.error(f"Error loading current analysis dashboard: {e}")
+	with tab2:
+		render_profile_page()
 
 	with tab3:
+		render_recommendations_page()
+
+	with tab4:
+		render_skill_gap_page()
+
+	with tab5:
+		render_dashboard()
+
+	with tab6:
 		if PRODUCTION_FEATURES_AVAILABLE:
 			try:
 				track_user_event('tab_view', {'tab': 'analytics'})
 				if analytics:
 					analytics.render_full_dashboard()
 				else:
-					render_analytics_dashboard()
+					st.info("Analytics dashboard not available")
 			except:
-				render_analytics_dashboard()
+				st.info("Analytics dashboard not available")
 		else:
-			render_analytics_dashboard()
+			st.info("Analytics dashboard not available")
 
-	with tab4:
+	with tab7:
 		if PRODUCTION_FEATURES_AVAILABLE:
 			try:
 				track_user_event('tab_view', {'tab': 'observability'})
 			except:
 				pass
-		render_observability_dashboard()
+		st.info("Observability dashboard not available")
 
-	with tab5:
+	with tab8:
 		if PRODUCTION_FEATURES_AVAILABLE:
 			try:
 				track_user_event('tab_view', {'tab': 'settings'})
-				render_production_settings()
+				st.info("Production settings not available")
 			except:
-				render_settings_interface()
+				st.info("Settings interface not available")
 		else:
-			render_settings_interface()
+			st.info("Settings interface not available")
 		
 	# Render enhanced sidebar
 	if PRODUCTION_FEATURES_AVAILABLE:
