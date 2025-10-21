@@ -278,7 +278,7 @@ This implementation plan covers the complete Career Co-Pilot MVP across all four
   - Show match score if available
   - _Requirements: 12.4, 2.1, 2.2_
 
-- [-] 13. Implement configuration management
+- [x] 13. Implement configuration management
 - [x] 13.1 Create environment configuration
 
   - Define all required environment variables in env example
@@ -288,7 +288,7 @@ This implementation plan covers the complete Career Co-Pilot MVP across all four
   - Document each variable with comments
   - _Requirements: 13.1, 13.2, 13.3, 13.4_
 
-- [-] 13.2 Implement configuration loading
+- [x] 13.2 Implement configuration loading
 
   - Create config module to load environment variables
   - Add validation for required variables

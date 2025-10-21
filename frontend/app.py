@@ -1826,7 +1826,8 @@ def render_profile_page():
     Update your skills, preferred locations, and experience level.
     """)
 
-    user_profile = api_client.get_user_profile()
+    with st.spinner("Loading profile..."):
+        user_profile = api_client.get_user_profile()
 
     if "error" in user_profile:
         st.error(f"Error loading profile: {user_profile['error']}")
@@ -1903,7 +1904,10 @@ def render_profile_page():
                     response = api_client.update_user_profile(profile_data)
                     if "error" not in response:
                         st.success("✅ Profile updated successfully!")
-                        st.session_state.user_info = response
+                        # Update session state with new profile data
+                        st.session_state.user_info["skills"] = selected_skills
+                        st.session_state.user_info["preferred_locations"] = selected_locations
+                        st.session_state.user_info["experience_level"] = selected_experience
                         st.balloons()
                         st.rerun()
                     else:

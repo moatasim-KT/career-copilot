@@ -6,7 +6,7 @@ Provides functions to validate and check configuration at runtime.
 
 import logging
 from typing import Dict, List, Tuple
-from backend.app.core.config import Settings
+from ..core.config import Settings
 
 logger = logging.getLogger(__name__)
 
