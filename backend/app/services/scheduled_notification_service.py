@@ -13,7 +13,7 @@ from ..core.database import get_db
 from ..core.logging import get_logger
 from ..models.user import User
 from ..models.job import Job
-from ..models.application import JobApplication
+from ..models.application import Application
 from ..services.email_service import EmailService
 from ..services.recommendation_service import RecommendationService
 from ..services.job_service import JobService
@@ -498,22 +498,22 @@ class ScheduledNotificationService:
         try:
             # Get this week's applications
             week_start = datetime.now() - timedelta(days=datetime.now().weekday())
-            applications_this_week = db.query(JobApplication).filter(
+            applications_this_week = db.query(Application).filter(
                 and_(
-                    JobApplication.user_id == user_id,
-                    JobApplication.applied_date >= week_start.date()
+                    Application.user_id == user_id,
+                    Application.applied_date >= week_start.date()
                 )
             ).count()
             
             # Get response rate (simplified calculation)
-            total_applications = db.query(JobApplication).filter(
-                JobApplication.user_id == user_id
+            total_applications = db.query(Application).filter(
+                Application.user_id == user_id
             ).count()
             
-            responses = db.query(JobApplication).filter(
+            responses = db.query(Application).filter(
                 and_(
-                    JobApplication.user_id == user_id,
-                    JobApplication.status.in_(["interview", "offer", "rejected"])
+                    Application.user_id == user_id,
+                    Application.status.in_(["interview", "offer", "rejected"])
                 )
             ).count()
             
@@ -538,10 +538,10 @@ class ScheduledNotificationService:
         """Get daily goals for user"""
         try:
             # Get user's current application rate to suggest realistic goals
-            recent_applications = db.query(JobApplication).filter(
+            recent_applications = db.query(Application).filter(
                 and_(
-                    JobApplication.user_id == user_id,
-                    JobApplication.applied_date >= (datetime.now() - timedelta(days=7)).date()
+                    Application.user_id == user_id,
+                    Application.applied_date >= (datetime.now() - timedelta(days=7)).date()
                 )
             ).count()
             
@@ -587,10 +587,10 @@ class ScheduledNotificationService:
             today = datetime.now().date()
             
             # Get today's applications
-            applications_today = db.query(JobApplication).filter(
+            applications_today = db.query(Application).filter(
                 and_(
-                    JobApplication.user_id == user_id,
-                    JobApplication.applied_date == today
+                    Application.user_id == user_id,
+                    Application.applied_date == today
                 )
             ).all()
             
@@ -617,10 +617,10 @@ class ScheduledNotificationService:
             
             # Calculate weekly progress
             week_start = datetime.now() - timedelta(days=datetime.now().weekday())
-            weekly_applications = db.query(JobApplication).filter(
+            weekly_applications = db.query(Application).filter(
                 and_(
-                    JobApplication.user_id == user_id,
-                    JobApplication.applied_date >= week_start.date()
+                    Application.user_id == user_id,
+                    Application.applied_date >= week_start.date()
                 )
             ).count()
             
@@ -659,10 +659,10 @@ class ScheduledNotificationService:
             today = datetime.now().date()
             
             # Check for application milestones
-            applications_today = db.query(JobApplication).filter(
+            applications_today = db.query(Application).filter(
                 and_(
-                    JobApplication.user_id == user_id,
-                    JobApplication.applied_date == today
+                    Application.user_id == user_id,
+                    Application.applied_date == today
                 )
             ).count()
             
@@ -675,10 +675,10 @@ class ScheduledNotificationService:
             
             # Check for weekly milestones
             week_start = datetime.now() - timedelta(days=datetime.now().weekday())
-            weekly_applications = db.query(JobApplication).filter(
+            weekly_applications = db.query(Application).filter(
                 and_(
-                    JobApplication.user_id == user_id,
-                    JobApplication.applied_date >= week_start.date()
+                    Application.user_id == user_id,
+                    Application.applied_date >= week_start.date()
                 )
             ).count()
             
@@ -699,11 +699,11 @@ class ScheduledNotificationService:
         """Get tomorrow's action plan for user"""
         try:
             # Get pending applications that need follow-up
-            pending_apps = db.query(JobApplication).filter(
+            pending_apps = db.query(Application).filter(
                 and_(
-                    JobApplication.user_id == user_id,
-                    JobApplication.status == "applied",
-                    JobApplication.applied_date <= (datetime.now() - timedelta(days=7)).date()
+                    Application.user_id == user_id,
+                    Application.status == "applied",
+                    Application.applied_date <= (datetime.now() - timedelta(days=7)).date()
                 )
             ).limit(3).all()
             

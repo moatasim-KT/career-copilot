@@ -208,8 +208,8 @@ This implementation plan covers the complete Career Co-Pilot MVP across all four
   - Log success or failure
   - _Requirements: 7.1, 7.2, 7.3_
 
-- [ ] 11. Implement task scheduler
-- [ ] 11.1 Set up APScheduler
+- [x] 11. Implement task scheduler
+- [x] 11.1 Set up APScheduler
 
   - Create scheduler module
   - Initialize APScheduler with BackgroundScheduler
@@ -217,7 +217,7 @@ This implementation plan covers the complete Career Co-Pilot MVP across all four
   - Add startup and shutdown handlers
   - _Requirements: 10.1_
 
-- [ ] 11.2 Register scheduled tasks
+- [x] 11.2 Register scheduled tasks
 
   - Register ingest_jobs task with cron trigger 0 4 \* \* \*
   - Register send_morning_briefing task with cron trigger 0 8 \* \* \*
