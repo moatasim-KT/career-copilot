@@ -1,469 +1,726 @@
 """
-Career Copilot - Production-Ready Streamlit Frontend
-A comprehensive interface for analyzing contract documents with advanced security measures,
-production optimizations, real-time updates, and mobile support.
+Career Copilot - Job Application Tracking Frontend
+A streamlined interface for tracking job applications and managing your job search.
 """
 
 import logging
 import os
 import requests
 from datetime import datetime
-from pathlib import Path
+from typing import Optional, Dict, Any
 
 import streamlit as st
+import pandas as pd
+import plotly.express as px
 
-# Define ConnectionError for local APIClient
-class ConnectionError(Exception):
-    """Connection-related errors"""
-    pass
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
-# Import production features
-try:
-    from config import get_config
-    from components.production_optimizations import initialize_production_optimizations
-    from components.websocket_manager import initialize_websocket_features
-    from components.error_display import error_display
-    from components.production_optimizations import ErrorHandler
-    from components.responsive_ui import initialize_responsive_ui
-    from components.production_analytics import initialize_production_analytics, track_user_event
-    PRODUCTION_FEATURES_AVAILABLE = True
-except ImportError:
-    PRODUCTION_FEATURES_AVAILABLE = False
-    print("Production features not available, running in basic mode")
 
-# Import components
-try:
-    from .components.analytics_dashboard import render_analytics_dashboard
-    from .components.error_display import error_display
-    from .components.file_upload import file_upload_component
-    from .components.observability_dashboard import render_observability_dashboard
-    from .components.progress_indicator import progress_indicator
-    from .components.progress_dashboard import render_progress_dashboard, show_analysis_dashboard
-    from .components.results_display import AnalysisResultsDisplay
-    from .utils.api_client import APIClient
-    from .components.connection_status import display_connection_status_sidebar, display_connection_dashboard
-except ImportError:
-    # Fallback for when running as main module
-    try:
-        from components.analytics_dashboard import render_analytics_dashboard
-        from components.error_display import error_display
-        from components.file_upload import file_upload_component
-        from components.observability_dashboard import render_observability_dashboard
-        from components.progress_indicator import progress_indicator
-        from components.progress_dashboard import render_progress_dashboard, show_analysis_dashboard
-        from components.results_display import AnalysisResultsDisplay
-        from components.connection_status import display_connection_status_sidebar, display_connection_dashboard
-        # from app.utils.api_client import APIClient  # Not needed - APIClient defined locally
-    except ImportError:
-        # Create stub functions if components don't exist
-        def render_analytics_dashboard():
-            st.info("Analytics dashboard component not available")
-        
-        def error_display(message):
-            st.error(message)
-        
-        def file_upload_component():
-            return st.file_uploader("Upload a contract file", type=["pdf", "docx", "txt"])
-        
-        def render_observability_dashboard():
-            st.info("Observability dashboard component not available")
-        
-        def progress_indicator(message, progress):
-            st.progress(progress / 100.0)
-            st.info(message)
-        
-        def render_progress_dashboard(api_client, analysis_id, user_id="user"):
-            st.info("Real-time progress dashboard not available - using fallback")
-            return None
-        
-        def show_analysis_dashboard(api_client, analysis_id, user_id="user"):
-            st.info("Analysis dashboard not available - using fallback")
-            return None
-        
-        class AnalysisResultsDisplay:
-            def __init__(self, results, contract_text, filename):
-                st.subheader("Analysis Results")
-                st.json(results)
-        
-        class APIClient:
-            def __init__(self, base_url):
-                self.base_url = base_url.rstrip('/')
-                self.token = None
-                self.session = requests.Session()
-            
-            def set_token(self, token):
-                self.token = token
-            
-            def clear_token(self):
-                self.token = None
-            
-            def _get_headers(self):
-                headers = {"Content-Type": "application/json"}
-                if self.token:
-                    headers["Authorization"] = f"Bearer {self.token}"
-                return headers
-            
-            def analyze_contract_async(self, file):
-                """Upload and analyze contract file."""
-                try:
-                    # Use the upload endpoint
-                    files = {"file": (file.name, file.getvalue(), file.type)}
-                    response = self.session.post(
-                        f"{self.base_url}/api/v1/contracts/upload",
-                        files=files,
-                        timeout=30
-                    )
-                    
-                    if response.status_code == 200:
-                        result = response.json()
-                        if result.get("success"):
-                            # Return the file_id as task_id for compatibility
-                            return {
-                                "task_id": result["data"]["file_id"],
-                                "status": "completed",
-                                "result": result["data"]
-                            }
-                        else:
-                            return {"error": result.get("message", "Upload failed")}
-                    else:
-                        return {"error": f"HTTP {response.status_code}: {response.text}"}
-                        
-                except requests.exceptions.ConnectionError as e:
-                    raise ConnectionError(f"Connection failed: {str(e)}")
-                except requests.exceptions.RequestException as e:
-                    return {"error": f"Request error: {str(e)}"}
-                except Exception as e:
-                    return {"error": f"Unexpected error: {str(e)}"}
-            
-            def get_analysis_status(self, task_id):
-                """Get analysis status by file_id."""
-                try:
-                    response = self.session.get(
-                        f"{self.base_url}/api/v1/contracts/{task_id}/status",
-                        headers=self._get_headers(),
-                        timeout=10
-                    )
-                    
-                    if response.status_code == 200:
-                        result = response.json()
-                        if result.get("success"):
-                            data = result["data"]
-                            # Map file status to analysis status
-                            if data.get("ready_for_analysis"):
-                                return {"status": "completed", "progress": 100}
-                            else:
-                                return {"status": "processing", "progress": 50}
-                        else:
-                            return {"error": result.get("message", "Status check failed")}
-                    else:
-                        return {"error": f"HTTP {response.status_code}: {response.text}"}
-                        
-                except requests.exceptions.ConnectionError as e:
-                    raise ConnectionError(f"Connection failed: {str(e)}")
-                except requests.exceptions.RequestException as e:
-                    return {"error": f"Request error: {str(e)}"}
-                except Exception as e:
-                    return {"error": f"Unexpected error: {str(e)}"}
-            
-            def get_analysis_results(self, task_id):
-                """Get analysis results by file_id."""
-                try:
-                    response = self.session.get(
-                        f"{self.base_url}/api/v1/contracts/{task_id}/status",
-                        headers=self._get_headers(),
-                        timeout=10
-                    )
-                    
-                    if response.status_code == 200:
-                        result = response.json()
-                        if result.get("success"):
-                            # Return mock analysis results for now
-                            return {
-                                "analysis_id": task_id,
-                                "filename": "contract.pdf",
-                                "risk_score": 0.65,
-                                "risk_level": "Medium",
-                                "summary": "This contract contains several clauses that require attention.",
-                                "risky_clauses": [
-                                    {
-                                        "clause": "Limitation of Liability",
-                                        "risk_level": "High",
-                                        "description": "Broad liability limitations may not be enforceable",
-                                        "suggestion": "Consider narrowing the scope of liability limitations"
-                                    }
-                                ],
-                                "recommendations": [
-                                    "Review liability clauses with legal counsel",
-                                    "Consider adding specific performance guarantees"
-                                ],
-                                "processing_time": 2.5
-                            }
-                        else:
-                            return {"error": result.get("message", "Results not available")}
-                    else:
-                        return {"error": f"HTTP {response.status_code}: {response.text}"}
-                        
-                except requests.exceptions.ConnectionError as e:
-                    raise ConnectionError(f"Connection failed: {str(e)}")
-                except requests.exceptions.RequestException as e:
-                    return {"error": f"Request error: {str(e)}"}
-                except Exception as e:
-                    return {"error": f"Unexpected error: {str(e)}"}
-            
-            def login(self, username, password):
-                """Login to get authentication token."""
-                try:
-                    # Skip login in development mode
-                    if os.getenv("DISABLE_AUTH", "false").lower() == "true":
-                        return {
-                            "access_token": "dev-token",
-                            "user": {"username": username, "email": username}
-                        }
-                    
-                    response = self.session.post(
-                        f"{self.base_url}/api/v1/auth/login",
-                        json={"username": username, "password": password},
-                        headers={"Content-Type": "application/json"},
-                        timeout=10
-                    )
-                    
-                    if response.status_code == 200:
-                        return response.json()
-                    else:
-                        return {"error": f"HTTP {response.status_code}: {response.text}"}
-                        
-                except requests.exceptions.RequestException as e:
-                    return {"error": f"Connection error: {str(e)}"}
-                except Exception as e:
-                    return {"error": f"Unexpected error: {str(e)}"}
+class APIClient:
+    """Simple API client for backend communication"""
+    
+    def __init__(self, base_url: str):
+        self.base_url = base_url.rstrip('/')
+        self.token = None
+        self.session = requests.Session()
+    
+    def set_token(self, token: str):
+        """Set authentication token"""
+        self.token = token
+    
+    def clear_token(self):
+        """Clear authentication token"""
+        self.token = None
+    
+    def _get_headers(self) -> Dict[str, str]:
+        """Get request headers with authentication"""
+        headers = {"Content-Type": "application/json"}
+        if self.token:
+            headers["Authorization"] = f"Bearer {self.token}"
+        return headers
+    
+    def _handle_response(self, response: requests.Response) -> Dict[str, Any]:
+        """Handle API response"""
+        try:
+            if response.status_code == 200:
+                return response.json()
+            else:
+                return {"error": f"HTTP {response.status_code}: {response.text}"}
+        except Exception as e:
+            return {"error": f"Response error: {str(e)}"}
+    
+    def login(self, username: str, password: str) -> Dict[str, Any]:
+        """Login to get authentication token"""
+        try:
+            response = self.session.post(
+                f"{self.base_url}/api/v1/auth/login",
+                json={"username": username, "password": password},
+                headers={"Content-Type": "application/json"},
+                timeout=10
+            )
+            return self._handle_response(response)
+        except requests.exceptions.RequestException as e:
+            return {"error": f"Connection error: {str(e)}"}
+    
+    def register(self, username: str, email: str, password: str) -> Dict[str, Any]:
+        """Register a new user"""
+        try:
+            response = self.session.post(
+                f"{self.base_url}/api/v1/auth/register",
+                json={"username": username, "email": email, "password": password},
+                headers={"Content-Type": "application/json"},
+                timeout=10
+            )
+            return self._handle_response(response)
+        except requests.exceptions.RequestException as e:
+            return {"error": f"Connection error: {str(e)}"}
+    
+    def get_jobs(self, skip: int = 0, limit: int = 100) -> Dict[str, Any]:
+        """Get list of jobs"""
+        try:
+            response = self.session.get(
+                f"{self.base_url}/api/v1/jobs",
+                params={"skip": skip, "limit": limit},
+                headers=self._get_headers(),
+                timeout=10
+            )
+            return self._handle_response(response)
+        except requests.exceptions.RequestException as e:
+            return {"error": f"Connection error: {str(e)}"}
+    
+    def create_job(self, job_data: Dict[str, Any]) -> Dict[str, Any]:
+        """Create a new job"""
+        try:
+            response = self.session.post(
+                f"{self.base_url}/api/v1/jobs",
+                json=job_data,
+                headers=self._get_headers(),
+                timeout=10
+            )
+            return self._handle_response(response)
+        except requests.exceptions.RequestException as e:
+            return {"error": f"Connection error: {str(e)}"}
+    
+    def update_job(self, job_id: int, job_data: Dict[str, Any]) -> Dict[str, Any]:
+        """Update an existing job"""
+        try:
+            response = self.session.put(
+                f"{self.base_url}/api/v1/jobs/{job_id}",
+                json=job_data,
+                headers=self._get_headers(),
+                timeout=10
+            )
+            return self._handle_response(response)
+        except requests.exceptions.RequestException as e:
+            return {"error": f"Connection error: {str(e)}"}
+    
+    def delete_job(self, job_id: int) -> Dict[str, Any]:
+        """Delete a job"""
+        try:
+            response = self.session.delete(
+                f"{self.base_url}/api/v1/jobs/{job_id}",
+                headers=self._get_headers(),
+                timeout=10
+            )
+            return self._handle_response(response)
+        except requests.exceptions.RequestException as e:
+            return {"error": f"Connection error: {str(e)}"}
+    
+    def get_applications(self, skip: int = 0, limit: int = 100) -> Dict[str, Any]:
+        """Get list of applications"""
+        try:
+            response = self.session.get(
+                f"{self.base_url}/api/v1/applications",
+                params={"skip": skip, "limit": limit},
+                headers=self._get_headers(),
+                timeout=10
+            )
+            return self._handle_response(response)
+        except requests.exceptions.RequestException as e:
+            return {"error": f"Connection error: {str(e)}"}
+    
+    def create_application(self, application_data: Dict[str, Any]) -> Dict[str, Any]:
+        """Create a new application"""
+        try:
+            response = self.session.post(
+                f"{self.base_url}/api/v1/applications",
+                json=application_data,
+                headers=self._get_headers(),
+                timeout=10
+            )
+            return self._handle_response(response)
+        except requests.exceptions.RequestException as e:
+            return {"error": f"Connection error: {str(e)}"}
+    
+    def update_application(self, application_id: int, application_data: Dict[str, Any]) -> Dict[str, Any]:
+        """Update an existing application"""
+        try:
+            response = self.session.put(
+                f"{self.base_url}/api/v1/applications/{application_id}",
+                json=application_data,
+                headers=self._get_headers(),
+                timeout=10
+            )
+            return self._handle_response(response)
+        except requests.exceptions.RequestException as e:
+            return {"error": f"Connection error: {str(e)}"}
+    
+    def get_analytics_summary(self) -> Dict[str, Any]:
+        """Get analytics summary"""
+        try:
+            response = self.session.get(
+                f"{self.base_url}/api/v1/analytics/summary",
+                headers=self._get_headers(),
+                timeout=10
+            )
+            return self._handle_response(response)
+        except requests.exceptions.RequestException as e:
+            return {"error": f"Connection error: {str(e)}"}
+    
+    def health_check(self) -> Dict[str, Any]:
+        """Check backend health"""
+        try:
+            response = self.session.get(
+                f"{self.base_url}/api/v1/health",
+                timeout=5
+            )
+            return self._handle_response(response)
+        except requests.exceptions.RequestException as e:
+            return {"error": f"Connection error: {str(e)}"}
+
+    def get_user_profile(self) -> Dict[str, Any]:
+        """Get the current user's profile"""
+        try:
+            response = self.session.get(
+                f"{self.base_url}/api/v1/profile",
+                headers=self._get_headers(),
+                timeout=10
+            )
+            return self._handle_response(response)
+        except requests.exceptions.RequestException as e:
+            return {"error": f"Connection error: {str(e)}"}
+
+    def update_user_profile(self, profile_data: Dict[str, Any]) -> Dict[str, Any]:
+        """Update the current user's profile"""
+        try:
+            response = self.session.put(
+                f"{self.base_url}/api/v1/profile",
+                json=profile_data,
+                headers=self._get_headers(),
+                timeout=10
+            )
+            return self._handle_response(response)
+        except requests.exceptions.RequestException as e:
+            return {"error": f"Connection error: {str(e)}"}
+
+    def get_recommendations(self, skip: int = 0, limit: int = 10) -> Dict[str, Any]:
+        """Get personalized job recommendations"""
+        try:
+            response = self.session.get(
+                f"{self.base_url}/api/v1/recommendations",
+                params={"skip": skip, "limit": limit},
+                headers=self._get_headers(),
+                timeout=10
+            )
+            return self._handle_response(response)
+        except requests.exceptions.RequestException as e:
+            return {"error": f"Connection error: {str(e)}"}
+
+    def get_skill_gap_analysis(self) -> Dict[str, Any]:
+        """Get skill gap analysis for the current user"""
+        try:
+            response = self.session.get(
+                f"{self.base_url}/api/v1/skill-gap",
+                headers=self._get_headers(),
+                timeout=10
+            )
+            return self._handle_response(response)
+        except requests.exceptions.RequestException as e:
+            return {"error": f"Connection error: {str(e)}"}
+
 
 # Initialize API client
-# Use localhost for browser access, backend for container-to-container communication
 backend_url = os.getenv("BACKEND_URL", "http://localhost:8002")
 api_client = APIClient(backend_url)
 
 
-# Simple security implementations
-class APISecurityManager:
-	pass
-
-
-class AuditLogger:
-	def log_security_event(self, *args, **kwargs):
-		pass
-
-	def get_recent_events(self, count=5):
-		return []
-
-
-class SecurityEventType:
-	SYSTEM_ERROR = "system_error"
-	API_REQUEST = "api_request"
-	API_RESPONSE = "api_response"
-
-
-class SecurityLevel:
-	LOW = "low"
-	MEDIUM = "medium"
-	HIGH = "high"
-	CRITICAL = "critical"
-
-
-class FileSecurityValidator:
-	def validate_file_security(self, file):
-		return {"is_secure": True, "file_hash": "test", "threats_detected": []}
-
-
-class SecureFileHandler:
-	def quarantine_file(self, *args, **kwargs):
-		return "/tmp/quarantine"
-
-
-class InputSanitizer:
-	def sanitize_api_input(self, data):
-		return data
-
-
-class MemoryManager:
-	def __init__(self, max_memory_mb=1024):
-		self.max_memory_mb = max_memory_mb
-
-	def create_secure_temp_file(self, content, ext, session_id):
-		return "temp_file_id", "/tmp/temp_file"
-
-	def get_memory_usage(self):
-		return {"rss_mb": 100}
-
-	def get_temp_file_stats(self):
-		return {"total_files": 0}
-
-
-def create_security_directories():
-	pass
-
-
-# Security headers are now handled by the consolidated config
-
-
-# Use consolidated configuration
-from config import config
-
-security_config = config.security
-
-
-# Simple utility classes
-class FileValidator:
-	pass
-
-
-class Config:
-	PAGE_TITLE = "Career Copilot"
-	PAGE_ICON = "🔒"
-	LAYOUT = "wide"
-
-
-config = Config()
-
-
-def setup_security():
-	"""Initialize security components and configuration."""
-	# Create security directories
-	create_security_directories()
-
-	# Initialize security components
-	file_security_validator = FileSecurityValidator()
-	secure_file_handler = SecureFileHandler()
-	input_sanitizer = InputSanitizer()
-	audit_logger = AuditLogger()
-	api_security_manager = APISecurityManager()
-	memory_manager = MemoryManager(max_memory_mb=security_config.max_memory_mb)
-
-	# Store in session state
-	st.session_state.security = {
-		"file_validator": file_security_validator,
-		"file_handler": secure_file_handler,
-		"input_sanitizer": input_sanitizer,
-		"audit_logger": audit_logger,
-		"api_security": api_security_manager,
-		"memory_manager": memory_manager,
-	}
-
-	# Log security initialization
-	audit_logger.log_security_event(
-		event_type=SecurityEventType.SYSTEM_ERROR,
-		level=SecurityLevel.LOW,
-		message="Security system initialized",
-		details={"config": security_config.__dict__},
-	)
-
-
 def setup_page_config():
-	"""Configure Streamlit page with security headers."""
-	st.set_page_config(page_title=config.PAGE_TITLE, page_icon=config.PAGE_ICON, layout=config.LAYOUT, initial_sidebar_state="expanded")
-
-	# Add security headers via custom CSS
-	security_headers = config.get_security_headers()
-	csp = security_headers.get("Content-Security-Policy", "")
-
-	st.markdown(
-		f"""
-    <meta http-equiv="Content-Security-Policy" content="{csp}">
-    <meta http-equiv="X-Frame-Options" content="DENY">
-    <meta http-equiv="X-Content-Type-Options" content="nosniff">
-    <meta http-equiv="X-XSS-Protection" content="1; mode=block">
-    """,
-		unsafe_allow_html=True,
-	)
+    """Configure Streamlit page"""
+    st.set_page_config(
+        page_title="Career Copilot",
+        page_icon="💼",
+        layout="wide",
+        initial_sidebar_state="expanded"
+    )
 
 
 def initialize_session_state():
-	"""Initialize session state with security considerations."""
-	if "analysis_results" not in st.session_state:
-		st.session_state.analysis_results = None
-	if "is_processing" not in st.session_state:
-		st.session_state.is_processing = False
-	if "is_polling" not in st.session_state:
-		st.session_state.is_polling = False
-	if "task_id" not in st.session_state:
-		st.session_state.task_id = None
-	if "error_message" not in st.session_state:
-		st.session_state.error_message = None
-	if "uploaded_file" not in st.session_state:
-		st.session_state.uploaded_file = None
-	if "security" not in st.session_state:
-		st.session_state.security = None
-	if "session_id" not in st.session_state:
-		st.session_state.session_id = f"session_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
-	if "auth_token" not in st.session_state:
-		st.session_state.auth_token = None
-	if "user_info" not in st.session_state:
-		st.session_state.user_info = None
+    """Initialize session state variables"""
+    if "auth_token" not in st.session_state:
+        st.session_state.auth_token = None
+    if "user_info" not in st.session_state:
+        st.session_state.user_info = None
+    if "current_page" not in st.session_state:
+        st.session_state.current_page = "dashboard"
 
 
-def get_client_info():
-	"""Get client information for security logging."""
-	# Note: In a real deployment, you'd get actual client IP
-	return {
-		"ip_address": "127.0.0.1",  # Placeholder
-		"user_agent": "Streamlit-Client/1.0",
-		"session_id": st.session_state.get("session_id", "unknown"),
-	}
+def render_login_form():
+    """Render the login/register form"""
+    st.title("💼 Career Copilot")
+    st.subheader("Track Your Job Applications")
+    
+    tab1, tab2 = st.tabs(["Login", "Register"])
+    
+    with tab1:
+        with st.form("login_form"):
+            st.subheader("Login")
+            username = st.text_input("Username or Email")
+            password = st.text_input("Password", type="password")
+            submitted = st.form_submit_button("Login", use_container_width=True)
+            
+            if submitted:
+                if not username or not password:
+                    st.error("Please enter both username and password")
+                else:
+                    with st.spinner("Authenticating..."):
+                        response = api_client.login(username, password)
+                        if "error" not in response and "access_token" in response:
+                            st.session_state.auth_token = response["access_token"]
+                            st.session_state.user_info = response.get("user", {})
+                            api_client.set_token(response["access_token"])
+                            st.success("Login successful!")
+                            st.rerun()
+                        else:
+                            st.error(f"Login failed: {response.get('error', 'Unknown error')}")
+    
+    with tab2:
+        with st.form("register_form"):
+            st.subheader("Create Account")
+            new_username = st.text_input("Username")
+            new_email = st.text_input("Email")
+            new_password = st.text_input("Password", type="password")
+            confirm_password = st.text_input("Confirm Password", type="password")
+            register_submitted = st.form_submit_button("Register", use_container_width=True)
+            
+            if register_submitted:
+                if not new_username or not new_email or not new_password:
+                    st.error("Please fill in all fields")
+                elif new_password != confirm_password:
+                    st.error("Passwords do not match")
+                else:
+                    with st.spinner("Creating account..."):
+                        response = api_client.register(new_username, new_email, new_password)
+                        if "error" not in response:
+                            st.success("Account created! Please login.")
+                        else:
+                            st.error(f"Registration failed: {response.get('error', 'Unknown error')}")
 
 
-def secure_file_upload():
-	"""Handle secure file upload with comprehensive validation and enhanced UX."""
-	
-	# Enhanced file upload section with better styling
-	st.markdown("""
-	<style>
-	.upload-section {
-		background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-		border-radius: 12px;
-		padding: 24px;
-		margin: 20px 0;
-		border: 1px solid #dee2e6;
-	}
-	.upload-header {
-		text-align: center;
-		margin-bottom: 20px;
-	}
-	.upload-title {
-		font-size: 24px;
-		font-weight: 700;
-		color: #333;
-		margin-bottom: 8px;
-	}
-	.upload-subtitle {
-		font-size: 16px;
-		color: #666;
-		margin-bottom: 20px;
-	}
-	.file-info-card {
-		background: white;
-		border-radius: 8px;
-		padding: 16px;
-		margin: 12px 0;
-		box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-		border-left: 4px solid #28a745;
-	}
-	.validation-success {
-		background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
-		border: 1px solid #c3e6cb;
-		border-radius: 8px;
-		padding: 16px;
-		margin: 16px 0;
-	}
-	.validation-error {
-		background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%);
-		border: 1px solid #f5c6cb;
-		border-radius: 8px;
-		padding: 16px;
-		margin: 16px 0;
-	}
-	</style>
-	""", unsafe_allow_html=True)
-	
-	# Upload section header
+def render_dashboard():
+    """Render the analytics dashboard - Task 12.4"""
+    st.title("📊 Analytics Dashboard")
+    
+    st.markdown("""
+    Track your job search progress with comprehensive analytics and insights.
+    """)
+    
+    # Get analytics summary
+    with st.spinner("Loading analytics..."):
+        analytics = api_client.get_analytics_summary()
+    
+    if "error" in analytics:
+        st.warning("Unable to load analytics. Backend may not be running.")
+        st.info("Make sure the backend server is running and you're authenticated.")
+        # Show placeholder metrics
+        col1, col2, col3, col4 = st.columns(4)
+        with col1:
+            st.metric("Total Jobs", "0")
+        with col2:
+            st.metric("Applications", "0")
+        with col3:
+            st.metric("Interviews", "0")
+        with col4:
+            st.metric("Offers", "0")
+        return
+    
+    # Display key metrics in cards
+    st.subheader("📈 Key Metrics")
+    col1, col2, col3, col4 = st.columns(4)
+    
+    with col1:
+        total_jobs = analytics.get("total_jobs", 0)
+        st.metric("Total Jobs", total_jobs, help="Total number of jobs you're tracking")
+    
+    with col2:
+        total_apps = analytics.get("total_applications", 0)
+        st.metric("Applications", total_apps, help="Total applications submitted")
+    
+    with col3:
+        interviews = analytics.get("interviews", 0)
+        st.metric("Interviews", interviews, help="Applications that reached interview stage")
+    
+    with col4:
+        offers = analytics.get("offers", 0)
+        st.metric("Offers", offers, help="Job offers received")
+
+    st.divider()
+    
+    # Status Breakdown Pie Chart
+    st.subheader("📊 Application Status Breakdown")
+    status_breakdown = analytics.get("status_breakdown", {})
+    
+    if status_breakdown and sum(status_breakdown.values()) > 0:
+        df_status = pd.DataFrame(list(status_breakdown.items()), columns=['Status', 'Count'])
+        
+        # Create a more colorful pie chart
+        colors = {
+            'interested': '#FFA726',
+            'applied': '#42A5F5',
+            'interview': '#66BB6A',
+            'offer': '#26A69A',
+            'accepted': '#4CAF50',
+            'rejected': '#EF5350',
+            'declined': '#BDBDBD'
+        }
+        
+        fig = px.pie(
+            df_status, 
+            values='Count', 
+            names='Status', 
+            title='Application Status Distribution',
+            color='Status',
+            color_discrete_map=colors
+        )
+        fig.update_traces(textposition='inside', textinfo='percent+label')
+        st.plotly_chart(fig, use_container_width=True)
+        
+        # Show status counts in a table
+        with st.expander("📋 Detailed Status Counts"):
+            st.dataframe(df_status, use_container_width=True, hide_index=True)
+    else:
+        st.info("No application data yet. Start applying to jobs to see your status breakdown!")
+
+    st.divider()
+    
+    # Recent Activity
+    st.subheader("🕐 Recent Activity")
+    applications = api_client.get_applications(limit=5)
+    
+    if "error" in applications:
+        st.info("No recent activity to display")
+    else:
+        if applications and len(applications) > 0:
+            for idx, app in enumerate(applications, 1):
+                job = app.get('job', {})
+                status = app.get('status', 'Unknown')
+                
+                # Status emoji mapping
+                status_emoji = {
+                    'interested': '👀',
+                    'applied': '📝',
+                    'interview': '🎤',
+                    'offer': '🎉',
+                    'accepted': '✅',
+                    'rejected': '❌',
+                    'declined': '🚫'
+                }
+                
+                with st.container():
+                    col1, col2, col3 = st.columns([3, 2, 1])
+                    with col1:
+                        st.markdown(f"**{idx}. {job.get('title', 'Unknown')}**")
+                        st.caption(f"🏢 {job.get('company', 'Unknown Company')}")
+                    with col2:
+                        emoji = status_emoji.get(status, '📌')
+                        st.markdown(f"{emoji} **{status.capitalize()}**")
+                    with col3:
+                        applied_date = app.get('applied_date', 'N/A')
+                        if applied_date != 'N/A':
+                            st.caption(applied_date)
+                    
+                    if idx < len(applications):
+                        st.divider()
+        else:
+            st.info("No applications yet. Start by adding jobs and applying!")
+            
+            col1, col2 = st.columns(2)
+            with col1:
+                if st.button("➕ Add Jobs", use_container_width=True):
+                    st.session_state.current_page = "jobs"
+                    st.rerun()
+            with col2:
+                if st.button("✨ View Recommendations", use_container_width=True):
+                    st.session_state.current_page = "recommendations"
+                    st.rerun()
+
+
+def render_jobs_page():
+    """Render the jobs management page - Task 12.5"""
+    st.title("💼 Job Management")
+    
+    st.markdown("""
+    Track and manage job opportunities. Add tech stack, responsibilities, and other details
+    to get better recommendations and skill gap analysis.
+    """)
+    
+    # Add new job button
+    if st.button("➕ Add New Job", type="primary"):
+        st.session_state.show_add_job_form = True
+    
+    # Add job form
+    if st.session_state.get("show_add_job_form", False):
+        with st.form("add_job_form"):
+            st.subheader("Add New Job")
+            
+            col1, col2 = st.columns(2)
+            with col1:
+                company = st.text_input("Company *", help="Company name")
+                title = st.text_input("Job Title *", help="Position title")
+                location = st.text_input("Location", help="Job location or 'Remote'")
+                source_input = st.text_input("Source", value="manual", help="Where you found this job (e.g., LinkedIn, Indeed)")
+            with col2:
+                url = st.text_input("Job URL", help="Link to the job posting")
+                salary_range = st.text_input("Salary Range", help="e.g., $80k-$120k")
+                job_type = st.selectbox("Job Type", ["full-time", "part-time", "contract", "internship"])
+                remote = st.checkbox("Remote Position")
+            
+            # Tech Stack field - Task 12.5
+            all_possible_skills = [
+                "Python", "Java", "JavaScript", "TypeScript", "React", "Angular", "Vue.js", 
+                "Node.js", "Docker", "Kubernetes", "AWS", "Azure", "GCP", "SQL", "NoSQL", 
+                "PostgreSQL", "MongoDB", "Redis", "Machine Learning", "Data Science", 
+                "FastAPI", "Django", "Flask", "Spring Boot", "Go", "Rust", "C++", "C#",
+                ".NET", "Ruby", "PHP", "Swift", "Kotlin", "Flutter", "React Native",
+                "GraphQL", "REST API", "Microservices", "CI/CD", "Git", "Linux"
+            ]
+            selected_tech_stack = st.multiselect(
+                "Tech Stack *", 
+                options=sorted(all_possible_skills), 
+                default=[],
+                help="Select all technologies required for this job"
+            )
+            
+            # Responsibilities field - Task 12.5
+            responsibilities_input = st.text_area(
+                "Responsibilities", 
+                help="Key responsibilities for this role",
+                placeholder="e.g., Design and implement scalable APIs, Lead technical discussions, Mentor junior developers"
+            )
+            
+            description = st.text_area(
+                "Description", 
+                help="Full job description",
+                placeholder="Paste the full job description here..."
+            )
+            
+            col1, col2 = st.columns(2)
+            with col1:
+                submit = st.form_submit_button("💾 Add Job", use_container_width=True, type="primary")
+            with col2:
+                cancel = st.form_submit_button("Cancel", use_container_width=True)
+            
+            if submit:
+                if not company or not title:
+                    st.error("Company and Job Title are required")
+                elif not selected_tech_stack:
+                    st.warning("Consider adding tech stack for better recommendations")
+                    job_data = {
+                        "company": company,
+                        "title": title,
+                        "location": location,
+                        "url": url,
+                        "salary_range": salary_range,
+                        "job_type": job_type,
+                        "description": description,
+                        "remote": remote,
+                        "tech_stack": selected_tech_stack,
+                        "responsibilities": responsibilities_input,
+                        "source": source_input,
+                    }
+                    response = api_client.create_job(job_data)
+                    if "error" not in response:
+                        st.success("✅ Job added successfully!")
+                        st.session_state.show_add_job_form = False
+                        st.rerun()
+                    else:
+                        st.error(f"Failed to add job: {response.get('error')}")
+                else:
+                    job_data = {
+                        "company": company,
+                        "title": title,
+                        "location": location,
+                        "url": url,
+                        "salary_range": salary_range,
+                        "job_type": job_type,
+                        "description": description,
+                        "remote": remote,
+                        "tech_stack": selected_tech_stack,
+                        "responsibilities": responsibilities_input,
+                        "source": source_input,
+                    }
+                    with st.spinner("Adding job..."):
+                        response = api_client.create_job(job_data)
+                        if "error" not in response:
+                            st.success("✅ Job added successfully!")
+                            st.session_state.show_add_job_form = False
+                            st.balloons()
+                            st.rerun()
+                        else:
+                            st.error(f"Failed to add job: {response.get('error')}")
+            
+            if cancel:
+                st.session_state.show_add_job_form = False
+                st.rerun()
+    
+    st.divider()
+    
+    # List jobs
+    st.subheader("Your Jobs")
+    jobs = api_client.get_jobs()
+    
+    if "error" in jobs:
+        st.warning("Unable to load jobs. Backend may not be running.")
+        st.info("Make sure the backend server is running and you're authenticated.")
+    else:
+        if jobs and len(jobs) > 0:
+            st.success(f"You have {len(jobs)} job(s) tracked")
+            
+            for idx, job in enumerate(jobs, 1):
+                # Source badge - Task 12.5
+                source = job.get('source', 'manual')
+                source_colors = {
+                    'manual': '#9E9E9E',
+                    'scraped': '#2196F3',
+                    'linkedin': '#0077B5',
+                    'indeed': '#2164F3',
+                    'glassdoor': '#0CAA41'
+                }
+                source_color = source_colors.get(source.lower(), '#9E9E9E')
+                
+                # Match score badge - Task 12.5
+                match_score = job.get('match_score')
+                match_badge = ""
+                if match_score is not None:
+                    if match_score >= 80:
+                        match_badge = f"🟢 {match_score:.0f}% Match"
+                    elif match_score >= 60:
+                        match_badge = f"🟡 {match_score:.0f}% Match"
+                    else:
+                        match_badge = f"🟠 {match_score:.0f}% Match"
+                
+                title_display = f"#{idx} - {job.get('title')} at {job.get('company')}"
+                if match_badge:
+                    title_display += f" | {match_badge}"
+                
+                with st.expander(title_display):
+                    col1, col2 = st.columns(2)
+                    with col1:
+                        st.markdown(f"**📍 Location:** {job.get('location', 'N/A')}")
+                        st.markdown(f"**💼 Type:** {job.get('job_type', 'N/A')}")
+                        st.markdown(f"**🏠 Remote:** {'✅ Yes' if job.get('remote') else '❌ No'}")
+                        # Source badge display - Task 12.5
+                        st.markdown(f"**📌 Source:** <span style='background-color: {source_color}; color: white; padding: 3px 8px; border-radius: 5px; font-size: 0.85em;'>{source.upper()}</span>", unsafe_allow_html=True)
+                    with col2:
+                        st.markdown(f"**💰 Salary:** {job.get('salary_range', 'N/A')}")
+                        if job.get('url'):
+                            st.markdown(f"**🔗 URL:** [View Job]({job.get('url')})")
+                        if match_score is not None:
+                            st.metric("Match Score", f"{match_score:.0f}%")
+                    
+                    # Tech Stack display - Task 12.5
+                    if job.get('tech_stack'):
+                        st.markdown("**🛠️ Tech Stack:**")
+                        tech_html = " ".join([f'<span style="background-color: #2196F3; color: white; padding: 3px 8px; border-radius: 5px; margin: 2px; display: inline-block; font-size: 0.85em;">{tech}</span>' for tech in job.get('tech_stack')])
+                        st.markdown(tech_html, unsafe_allow_html=True)
+                    
+                    # Responsibilities display - Task 12.5
+                    if job.get('responsibilities'):
+                        with st.expander("📋 Responsibilities"):
+                            st.write(job.get('responsibilities'))
+                    
+                    if job.get('description'):
+                        with st.expander("📄 Full Description"):
+                            st.write(job.get('description'))
+                    
+                    # Action buttons
+                    col1, col2, col3 = st.columns(3)
+                    with col1:
+                        if st.button("📝 Apply", key=f"apply_{job.get('id')}", use_container_width=True):
+                            # Create application
+                            app_data = {
+                                "job_id": job.get('id'),
+                                "status": "interested",
+                                "notes": "Applied via job management"
+                            }
+                            response = api_client.create_application(app_data)
+                            if "error" not in response:
+                                st.success(f"✅ Application created!")
+                                st.rerun()
+                            else:
+                                st.error(f"Failed: {response.get('error')}")
+                    with col2:
+                        if st.button("✏️ Edit", key=f"edit_{job.get('id')}", use_container_width=True):
+                            st.info("Edit functionality coming soon")
+                    with col3:
+                        if st.button("🗑️ Delete", key=f"delete_{job.get('id')}", use_container_width=True):
+                            response = api_client.delete_job(job.get('id'))
+                            if "error" not in response:
+                                st.success("Job deleted")
+                                st.rerun()
+                            else:
+                                st.error(f"Failed to delete: {response.get('error')}")
+        else:
+            st.info("No jobs added yet. Click 'Add New Job' to get started!")
+            st.markdown("""
+            **Tips for adding jobs:**
+            - Include tech stack for better recommendations
+            - Add responsibilities to understand role requirements
+            - Set source to track where you found the job
+            """)
+
+
+def render_applications_page():
+    """Render the applications management page"""
+    st.title("📝 Applications")
+    
+    # Get applications
+    applications = api_client.get_applications()
+    
+    if "error" in applications:
+        st.warning("Unable to load applications. Backend may not be running.")
+    else:
+        if applications:
+            # Filter by status
+            status_filter = st.selectbox(
+                "Filter by Status",
+                ["All", "interested", "applied", "interview", "offer", "rejected", "accepted", "declined"]
+            )
+            
+            filtered_apps = applications if status_filter == "All" else [
+                app for app in applications if app.get('status') == status_filter
+            ]
+            
+            st.write(f"Showing {len(filtered_apps)} application(s)")
+            
+            for app in filtered_apps:
+                with st.expander(f"{app.get('job', {}).get('title', 'Unknown')} - {app.get('status', 'Unknown')}"):
+                    col1, col2 = st.columns(2)
+                    with col1:
+                        st.write(f"**Company:** {app.get('job', {}).get('company', 'Unknown')}")
+                        st.write(f"**Status:** {app.get('status', 'Unknown')}")
+                        st.write(f"**Applied:** {app.get('applied_date', 'N/A')}")
+                    with col2:
+                        st.write(f"**Interview:** {app.get('interview_date', 'N/A')}")
+                        st.write(f"**Response:** {app.get('response_date', 'N/A')}")
+                    
+                    if app.get('notes'):
+                        st.write(f"**Notes:** {app.get('notes')}")
+                    
+                    # Update status
+                    new_status = st.selectbox(
+                    ader
 	st.markdown("""
 	<div class="upload-section">
 		<div class="upload-header">
@@ -1540,6 +1797,353 @@ def render_analysis_interface():
 	st.markdown('</div>', unsafe_allow_html=True)
 
 
+def render_profile_page():
+    """Render the profile management page - Task 12.1"""
+    st.title("👤 User Profile")
+    
+    st.markdown("""
+    Manage your professional profile to get personalized job recommendations.
+    Update your skills, preferred locations, and experience level.
+    """)
+
+    user_profile = api_client.get_user_profile()
+
+    if "error" in user_profile:
+        st.error(f"Error loading profile: {user_profile['error']}")
+        st.info("Make sure the backend is running and you're authenticated.")
+        return
+
+    with st.form("profile_form"):
+        st.subheader("Update Your Profile")
+
+        # Skills - Multi-select
+        default_skills = user_profile.get("skills", [])
+        all_possible_skills = [
+            "Python", "Java", "JavaScript", "TypeScript", "React", "Angular", "Vue.js", 
+            "Node.js", "Docker", "Kubernetes", "AWS", "Azure", "GCP", "SQL", "NoSQL", 
+            "PostgreSQL", "MongoDB", "Redis", "Machine Learning", "Data Science", 
+            "FastAPI", "Django", "Flask", "Spring Boot", "Go", "Rust", "C++", "C#",
+            ".NET", "Ruby", "PHP", "Swift", "Kotlin", "Flutter", "React Native",
+            "GraphQL", "REST API", "Microservices", "CI/CD", "Git", "Linux"
+        ]
+        selected_skills = st.multiselect(
+            "Skills *", 
+            options=sorted(all_possible_skills), 
+            default=default_skills,
+            help="Select all skills you possess. This helps match you with relevant jobs."
+        )
+
+        # Preferred Locations - Multi-select
+        default_locations = user_profile.get("preferred_locations", [])
+        all_possible_locations = [
+            "Remote", "New York", "San Francisco", "Los Angeles", "Seattle", "Austin",
+            "Boston", "Chicago", "Denver", "London", "Berlin", "Paris", "Amsterdam",
+            "Tokyo", "Singapore", "Sydney", "Toronto", "Vancouver"
+        ]
+        selected_locations = st.multiselect(
+            "Preferred Locations *", 
+            options=sorted(all_possible_locations), 
+            default=default_locations,
+            help="Select your preferred work locations. Include 'Remote' if you're open to remote work."
+        )
+
+        # Experience Level - Dropdown
+        default_experience = user_profile.get("experience_level", "mid")
+        experience_levels = ["junior", "mid", "senior"]
+        try:
+            default_index = experience_levels.index(default_experience)
+        except ValueError:
+            default_index = 1  # Default to "mid"
+        
+        selected_experience = st.selectbox(
+            "Experience Level *", 
+            options=experience_levels,
+            index=default_index,
+            help="Select your current experience level"
+        )
+
+        col1, col2 = st.columns(2)
+        with col1:
+            submitted = st.form_submit_button("💾 Save Profile", use_container_width=True, type="primary")
+        with col2:
+            cancel = st.form_submit_button("Cancel", use_container_width=True)
+
+        if submitted:
+            if not selected_skills:
+                st.error("Please select at least one skill")
+            elif not selected_locations:
+                st.error("Please select at least one preferred location")
+            else:
+                profile_data = {
+                    "skills": selected_skills,
+                    "preferred_locations": selected_locations,
+                    "experience_level": selected_experience,
+                }
+                with st.spinner("Updating profile..."):
+                    response = api_client.update_user_profile(profile_data)
+                    if "error" not in response:
+                        st.success("✅ Profile updated successfully!")
+                        st.session_state.user_info = response
+                        st.balloons()
+                        st.rerun()
+                    else:
+                        st.error(f"Failed to update profile: {response['error']}")
+        
+        if cancel:
+            st.info("Profile update cancelled")
+    
+    # Display current profile summary
+    st.divider()
+    st.subheader("Current Profile Summary")
+    
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        st.metric("Skills", len(user_profile.get("skills", [])))
+    with col2:
+        st.metric("Locations", len(user_profile.get("preferred_locations", [])))
+    with col3:
+        st.metric("Experience", user_profile.get("experience_level", "Not set").capitalize())
+
+def render_recommendations_page():
+    """Render the recommendations page - Task 12.2"""
+    st.title("✨ Job Recommendations")
+
+    st.markdown("""
+    Get personalized job recommendations based on your profile, skills, and preferences.
+    Jobs are ranked by match score considering tech stack, location, and experience level.
+    """)
+
+    # Pagination controls
+    col1, col2 = st.columns(2)
+    with col1:
+        limit = st.slider("Number of recommendations", min_value=5, max_value=50, value=10, step=5)
+    with col2:
+        skip = st.number_input("Skip first N recommendations", min_value=0, value=0, step=5)
+
+    with st.spinner("Loading recommendations..."):
+        recommendations = api_client.get_recommendations(skip=skip, limit=limit)
+
+    if "error" in recommendations:
+        st.error(f"Error loading recommendations: {recommendations['error']}")
+        st.info("Make sure you have updated your profile and added some jobs.")
+        return
+
+    if recommendations and len(recommendations) > 0:
+        st.success(f"Found {len(recommendations)} recommended jobs for you!")
+        
+        for idx, rec in enumerate(recommendations, 1):
+            job = rec.get("job", {})
+            score = rec.get("score", 0)
+            
+            # Create a colored badge based on match score
+            if score >= 80:
+                score_color = "🟢"
+                score_label = "Excellent Match"
+            elif score >= 60:
+                score_color = "🟡"
+                score_label = "Good Match"
+            else:
+                score_color = "🟠"
+                score_label = "Fair Match"
+            
+            with st.expander(f"#{idx} - {job.get('title', 'Unknown')} at {job.get('company', 'Unknown')} {score_color} {score:.0f}%"):
+                col1, col2 = st.columns([2, 1])
+                
+                with col1:
+                    st.markdown(f"**Company:** {job.get('company', 'N/A')}")
+                    st.markdown(f"**Title:** {job.get('title', 'N/A')}")
+                    st.markdown(f"**Location:** {job.get('location', 'N/A')}")
+                    
+                    if job.get('tech_stack'):
+                        tech_stack_str = ', '.join(job['tech_stack'])
+                        st.markdown(f"**Tech Stack:** {tech_stack_str}")
+                    
+                    if job.get('description'):
+                        with st.expander("📄 Job Description"):
+                            st.write(job['description'])
+                
+                with col2:
+                    st.metric("Match Score", f"{score:.0f}%", help=score_label)
+                    
+                    if job.get('salary_range'):
+                        st.markdown(f"**Salary:** {job['salary_range']}")
+                    
+                    if job.get('job_type'):
+                        st.markdown(f"**Type:** {job['job_type']}")
+                    
+                    if job.get('remote'):
+                        st.markdown("**Remote:** ✅ Yes")
+                
+                # Action buttons
+                col_btn1, col_btn2 = st.columns(2)
+                with col_btn1:
+                    if st.button(f"📝 Apply", key=f"apply_rec_{job.get('id')}", use_container_width=True):
+                        # Create application
+                        app_data = {
+                            "job_id": job.get('id'),
+                            "status": "interested",
+                            "notes": f"Applied via recommendations (Match: {score:.0f}%)"
+                        }
+                        response = api_client.create_application(app_data)
+                        if "error" not in response:
+                            st.success(f"✅ Application created for {job.get('title')}!")
+                            st.rerun()
+                        else:
+                            st.error(f"Failed to create application: {response.get('error')}")
+                
+                with col_btn2:
+                    if job.get('url'):
+                        st.link_button("🔗 View Job", job['url'], use_container_width=True)
+    else:
+        st.info("No recommendations found. Here's how to get started:")
+        st.markdown("""
+        1. **Update your profile** with your skills and preferred locations
+        2. **Add some jobs** you're interested in
+        3. **Come back here** to see personalized recommendations
+        """)
+        
+        if st.button("Go to Profile"):
+            st.session_state.current_page = "profile"
+            st.rerun()
+
+def render_skill_gap_page():
+    """Render the skill gap analysis page - Task 12.3"""
+    st.title("🧠 Skill Gap Analysis")
+
+    st.markdown("""
+    Understand your skill gaps based on market demands from your tracked jobs.
+    Get personalized learning recommendations to improve your competitiveness.
+    """)
+
+    with st.spinner("Analyzing skill gaps..."):
+        analysis = api_client.get_skill_gap_analysis()
+
+    if "error" in analysis:
+        st.error(f"Error loading skill gap analysis: {analysis['error']}")
+        st.info("Make sure you have updated your profile and added some jobs.")
+        return
+
+    user_skills = analysis.get("user_skills", [])
+    missing_skills = analysis.get("missing_skills", {})
+    top_market_skills = analysis.get("top_market_skills", {})
+    skill_coverage_percentage = analysis.get("skill_coverage_percentage", 0.0)
+    learning_recommendations = analysis.get("learning_recommendations", [])
+
+    # Display metrics
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        st.metric("Your Skills", len(user_skills))
+    with col2:
+        st.metric("Missing Skills", len(missing_skills))
+    with col3:
+        st.metric("Coverage", f"{skill_coverage_percentage:.0f}%")
+
+    st.divider()
+
+    # Skill Coverage Gauge Chart
+    st.subheader("📊 Skill Coverage")
+    
+    # Create a gauge chart using plotly
+    import plotly.graph_objects as go
+    
+    fig = go.Figure(go.Indicator(
+        mode="gauge+number+delta",
+        value=skill_coverage_percentage,
+        domain={'x': [0, 1], 'y': [0, 1]},
+        title={'text': "Skill Coverage Percentage"},
+        delta={'reference': 80, 'increasing': {'color': "green"}},
+        gauge={
+            'axis': {'range': [None, 100]},
+            'bar': {'color': "darkblue"},
+            'steps': [
+                {'range': [0, 50], 'color': "lightgray"},
+                {'range': [50, 75], 'color': "gray"},
+                {'range': [75, 100], 'color': "lightgreen"}
+            ],
+            'threshold': {
+                'line': {'color': "red", 'width': 4},
+                'thickness': 0.75,
+                'value': 90
+            }
+        }
+    ))
+    
+    fig.update_layout(height=300)
+    st.plotly_chart(fig, use_container_width=True)
+    
+    if skill_coverage_percentage >= 80:
+        st.success(f"🎉 Excellent! You cover {skill_coverage_percentage:.0f}% of the skills in your tracked jobs.")
+    elif skill_coverage_percentage >= 60:
+        st.info(f"👍 Good progress! You cover {skill_coverage_percentage:.0f}% of the skills in your tracked jobs.")
+    else:
+        st.warning(f"📚 Room for improvement. You cover {skill_coverage_percentage:.0f}% of the skills in your tracked jobs.")
+
+    st.divider()
+
+    # Your Current Skills
+    st.subheader("✅ Your Current Skills")
+    if user_skills:
+        # Display skills as badges
+        skills_html = " ".join([f'<span style="background-color: #4CAF50; color: white; padding: 5px 10px; border-radius: 5px; margin: 3px; display: inline-block;">{skill}</span>' for skill in user_skills])
+        st.markdown(skills_html, unsafe_allow_html=True)
+    else:
+        st.info("No skills found in your profile. Please update your profile to see analysis.")
+        if st.button("Update Profile"):
+            st.session_state.current_page = "profile"
+            st.rerun()
+
+    st.divider()
+
+    # Missing Skills vs Market Demand
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        st.subheader("❌ Missing Skills")
+        if missing_skills:
+            # Sort by frequency
+            sorted_missing = sorted(missing_skills.items(), key=lambda x: x[1], reverse=True)
+            for skill, count in sorted_missing[:10]:  # Show top 10
+                st.markdown(f"**{skill}** - appears in {count} job(s)")
+        else:
+            st.success("No missing skills identified! You have all the skills from your tracked jobs.")
+    
+    with col2:
+        st.subheader("🔥 Top Market Skills")
+        if top_market_skills:
+            # Sort by frequency
+            sorted_market = sorted(top_market_skills.items(), key=lambda x: x[1], reverse=True)
+            for skill, count in sorted_market[:10]:  # Show top 10
+                # Check if user has this skill
+                has_skill = skill in user_skills
+                icon = "✅" if has_skill else "❌"
+                st.markdown(f"{icon} **{skill}** - {count} mention(s)")
+        else:
+            st.info("Add more jobs to see market skill trends.")
+
+    st.divider()
+
+    # Learning Recommendations
+    st.subheader("📚 Learning Recommendations")
+    if learning_recommendations:
+        st.markdown("Based on your skill gaps, we recommend focusing on:")
+        for idx, rec in enumerate(learning_recommendations, 1):
+            st.markdown(f"{idx}. {rec}")
+        
+        # Add helpful resources section
+        with st.expander("🔗 Learning Resources"):
+            st.markdown("""
+            **Popular Learning Platforms:**
+            - [Coursera](https://www.coursera.org) - University courses and certifications
+            - [Udemy](https://www.udemy.com) - Practical skill-based courses
+            - [Pluralsight](https://www.pluralsight.com) - Technology skills platform
+            - [LinkedIn Learning](https://www.linkedin.com/learning) - Professional development
+            - [freeCodeCamp](https://www.freecodecamp.org) - Free coding bootcamp
+            - [YouTube](https://www.youtube.com) - Free tutorials and courses
+            """)
+    else:
+        st.success("🎉 Great job! No significant skill gaps identified based on your current jobs.")
+        st.info("Keep adding more jobs to track market trends and stay competitive.")
+
 def render_settings_interface():
 	"""Render the settings interface."""
 	st.subheader("⚙️ Settings")
@@ -1962,43 +2566,28 @@ def main():
 		st.error(f"Header rendering issue: {str(e)}")
 
 	# Add navigation tabs with responsive design
-	tab1, tab2, tab3, tab4, tab5 = st.tabs(["📄 Contract Analysis", "📊 Progress Dashboard", "📈 Analytics", "🔍 Observability", "⚙️ Settings"])
+    tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8 = st.tabs(["📄 Contract Analysis", "👤 Profile", "✨ Recommendations", "🧠 Skill Gap", "📊 Progress Dashboard", "📈 Analytics", "🔍 Observability", "⚙️ Settings"])
 
-	with tab1:
-		if PRODUCTION_FEATURES_AVAILABLE:
-			try:
-				track_user_event('tab_view', {'tab': 'analysis'})
-			except:
-				pass
-		render_analysis_interface()
+    with tab1:
+        if PRODUCTION_FEATURES_AVAILABLE:
+            try:
+                track_user_event('tab_view', {'tab': 'analysis'})
+            except:
+                pass
+        render_analysis_interface()
 
-	with tab2:
-		# Real-time Progress Dashboard Tab
-		if PRODUCTION_FEATURES_AVAILABLE:
-			try:
-				track_user_event('tab_view', {'tab': 'progress_dashboard'})
-			except:
-				pass
-		
-		st.markdown("### 📊 Real-time Progress Dashboard")
-		st.markdown("Monitor active analysis tasks and system performance in real-time.")
-		
-		# Analysis ID input for monitoring specific analysis
-		analysis_id_input = st.text_input(
-			"Analysis ID to Monitor (optional):",
-			placeholder="Enter analysis ID to monitor specific task",
-			help="Leave empty to see all active analyses"
-		)
-		
-		if analysis_id_input:
-			# Show specific analysis dashboard
-			user_id = st.session_state.get("user_info", {}).get("username", "user")
-			try:
-				show_analysis_dashboard(api_client, analysis_id_input, user_id)
-			except Exception as e:
-				st.error(f"Error loading analysis dashboard: {e}")
-				st.info("Make sure the analysis ID is correct and the analysis is active.")
-		else:
+    with tab2:
+        render_profile_page()
+
+    with tab3:
+        render_recommendations_page()
+
+    with tab4:
+        render_skill_gap_page()
+
+    with tab5:
+	
+	    with tab3:		else:
 			# Show general dashboard information
 			st.info("💡 **How to use the Progress Dashboard:**")
 			col1, col2 = st.columns(2)
