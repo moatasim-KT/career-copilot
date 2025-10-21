@@ -11,6 +11,7 @@ class Settings(BaseSettings):
     api_host: str = "0.0.0.0"
     api_port: int = 8002
     debug: bool = True
+    api_debug: bool = True
     
     # Database
     database_url: str = "sqlite:///./data/career_copilot.db"
@@ -19,6 +20,7 @@ class Settings(BaseSettings):
     jwt_secret_key: str = "change-this-in-production"
     jwt_algorithm: str = "HS256"
     jwt_expiration_hours: int = 24
+    disable_auth: bool = False  # For testing purposes
     
     # CORS
     cors_origins: str = "http://localhost:3000,http://localhost:8501"
