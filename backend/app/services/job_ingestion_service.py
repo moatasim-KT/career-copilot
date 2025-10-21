@@ -10,7 +10,8 @@ from datetime import datetime, timedelta
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
-from app.core.config import settings
+from app.core.config import get_settings
+settings = get_settings()
 from app.models.user import User
 from app.models.job import Job
 from app.services.scraping import ScraperManager, ScrapingConfig

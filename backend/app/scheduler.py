@@ -13,11 +13,8 @@ from app.core.config import get_settings
 from app.core.logging import get_logger
 
 # Import scheduled task functions
-from app.tasks.scheduled_tasks import (
-    ingest_jobs,
-    send_morning_briefing,
-    send_evening_summary
-)
+from app.tasks.job_ingestion_tasks import ingest_jobs_enhanced
+from app.tasks.notification_tasks import send_morning_briefings, send_evening_summaries
 
 logger = get_logger(__name__)
 settings = get_settings()
@@ -61,33 +58,33 @@ def start_scheduler():
         
         # Register ingest_jobs task - runs at 4:00 AM daily
         scheduler.add_job(
-            func=ingest_jobs,
+            func=ingest_jobs_enhanced, # Use the enhanced ingestion task
             trigger=CronTrigger(hour=4, minute=0, timezone=utc),
-            id="ingest_jobs",
-            name="Nightly Job Ingestion",
+            id="ingest_jobs_enhanced",
+            name="Nightly Job Ingestion (Enhanced)",
             replace_existing=True
         )
-        logger.info("Registered task: ingest_jobs (cron: 0 4 * * *)")
+        logger.info("Registered task: ingest_jobs_enhanced (cron: 0 4 * * *)")
         
         # Register send_morning_briefing task - runs at 8:00 AM daily
         scheduler.add_job(
-            func=send_morning_briefing,
+            func=send_morning_briefings, # Use the new notification task
             trigger=CronTrigger(hour=8, minute=0, timezone=utc),
-            id="send_morning_briefing",
-            name="Morning Job Briefing",
+            id="send_morning_briefings",
+            name="Morning Job Briefings",
             replace_existing=True
         )
-        logger.info("Registered task: send_morning_briefing (cron: 0 8 * * *)")
+        logger.info("Registered task: send_morning_briefings (cron: 0 8 * * *)")
         
         # Register send_evening_summary task - runs at 8:00 PM daily
         scheduler.add_job(
-            func=send_evening_summary,
+            func=send_evening_summaries, # Use the new notification task
             trigger=CronTrigger(hour=20, minute=0, timezone=utc),
-            id="send_evening_summary",
+            id="send_evening_summaries",
             name="Evening Progress Summary",
             replace_existing=True
         )
-        logger.info("Registered task: send_evening_summary (cron: 0 20 * * *)")
+        logger.info("Registered task: send_evening_summaries (cron: 0 20 * * *)")
         
         # Start the scheduler
         scheduler.start()

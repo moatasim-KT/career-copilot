@@ -12,8 +12,11 @@ from sqlalchemy.orm import Session
 
 from app.celery import celery_app
 from app.core.database import get_db
+from app.core.config import get_settings
+
+settings = get_settings()
 from app.models.analytics import Analytics
-from app.services.notification_service import notification_service
+from app.services.notification_service import NotificationService
 
 
 logger = logging.getLogger(__name__)
@@ -158,8 +161,17 @@ def send_failure_alert(task_name: str, task_id: str, exception: Exception):
         # In a real implementation, this would send to admin email or Slack
         logger.critical(f"CRITICAL TASK FAILURE: {task_name} [{task_id}] - {str(exception)}")
         
-        # Could also save to a special alerts table or send email
-        # notification_service.send_admin_alert(task_name, task_id, str(exception))
+            # Could also save to a special alerts table or send email
+        try:
+            db = next(get_db())
+            try:
+                notification_service_instance = NotificationService(db, settings)
+                # Assuming send_admin_alert exists in NotificationService
+                # notification_service_instance.send_admin_alert(task_name, task_id, str(exception))
+            finally:
+                db.close()
+        except Exception as e:
+            logger.error(f"Failed to instantiate or use NotificationService for alert: {str(e)}")
         
     except Exception as e:
         logger.error(f"Failed to send failure alert: {str(e)}")

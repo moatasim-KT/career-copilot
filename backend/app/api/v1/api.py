@@ -4,7 +4,7 @@ Main API router for v1 endpoints
 
 from fastapi import APIRouter
 
-from app.api.v1 import auth, jobs, documents, applications, profile, job_ingestion, notifications, analytics, document_templates, templates, recommendations, enhanced_recommendations, skill_gap_analysis, health, tasks, skill_matching, email, briefings, goals, cache, export, offline, document_suggestions, data_security, document_versions, feedback, saved_searches, dashboard_layouts, backup
+from app.api.v1 import auth, jobs, documents, applications, profile, job_ingestion, notifications, analytics, document_templates, templates, recommendations, enhanced_recommendations, skill_gap_analysis, skill_gap, health, tasks, skill_matching, email, briefings, goals, cache, export, offline, document_suggestions, data_security, document_versions, feedback, saved_searches, dashboard_layouts, backup
 
 api_router = APIRouter()
 
@@ -46,6 +46,9 @@ api_router.include_router(enhanced_recommendations.router, prefix="/enhanced-rec
 
 # Include skill gap analysis routes
 api_router.include_router(skill_gap_analysis.router, prefix="/skill-gap-analysis", tags=["skill-gap-analysis"])
+
+# Include simple skill gap route
+api_router.include_router(skill_gap.router, tags=["skill-gap"])
 
 # Include health check routes
 api_router.include_router(health.router, tags=["health"])

@@ -17,26 +17,53 @@ maintainers = [
 classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",
-    "Intended Audience :: End Users/Desktop",
     "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
-    "Topic :: Office/Business",
-    "Topic :: Scientific/Engineering :: Artificial Intelligence",
-    "Topic :: Software Development :: Libraries :: Python Modules",
 ]
-keywords = ["career", "job-tracking", "ai", "machine-learning", "fastapi", "streamlit"]
+keywords = ["career", "job-tracking", "ai", "fastapi", "streamlit"]
 dependencies = [
-    "fastapi>=0.104.0",
-    "uvicorn[standard]>=0.24.0",
-    "streamlit>=1.29.0",
-    "pydantic>=2.5.0",
-    "sqlalchemy>=2.0.23",
-    "openai>=1.6.0",
-    "requests>=2.31.0",
+    # Core Web Framework
+    "fastapi>=0.109.0",
+    "uvicorn[standard]>=0.27.0",
+    "gunicorn>=21.2.0",
+    "python-multipart>=0.0.6",
+
+    # Database and ORM
+    "sqlalchemy>=2.0.25",
+    "alembic>=1.13.1",
+    "psycopg2-binary>=2.9.9", # For PostgreSQL
+    "aiosqlite>=0.19.0",     # For SQLite async
+    "asyncpg>=0.29.0",        # For PostgreSQL async
+
+    # Validation and Settings
+    "pydantic[email]>=2.5.3",
+    "pydantic-settings>=2.1.0",
     "python-dotenv>=1.0.0",
+    "pyyaml>=6.0.1",
+
+    # Authentication and Security
+    "python-jose[cryptography]>=3.3.0",
+    "passlib[bcrypt]>=1.7.4",
+    "bcrypt>=4.1.2",
+    "cryptography>=41.0.7",
+    "pyjwt>=2.8.0",
+
+    # HTTP and API Clients
+    "requests>=2.31.0",
+    "httpx>=0.26.0",
+    "urllib3>=2.1.0",
+
+    # Utilities
+    "python-dateutil>=2.8.2",
+    "jinja2>=3.1.2",
+    "aiofiles>=23.2.1",
+    "email-validator>=2.1.0",
+    "diskcache>=5.6.3",
+    "firebase-admin>=6.4.0",
+    "apscheduler>=3.10.4",
 ]
 requires-python = ">=3.11"
 
@@ -45,44 +72,59 @@ dev = [
     "pytest>=7.4.3",
     "pytest-asyncio>=0.21.1",
     "pytest-cov>=4.1.0",
-    "black>=23.11.0",
-    "isort>=5.12.0",
-    "flake8>=6.1.0",
+    "pytest-mock>=3.12.0",
+    "black>=24.0.0",
+    "ruff>=0.1.0", # Replaces flake8, isort, bandit
     "mypy>=1.7.0",
     "pre-commit>=3.6.0",
+    "types-requests",
+    "types-pyyaml",
+    "faker",
+    "locust>=2.17.0",
 ]
 ai = [
     "openai>=1.6.0",
     "anthropic>=0.8.0",
+    "groq>=0.4.0",
     "langchain>=0.1.0",
+    "langchain-openai>=0.0.5",
+    "langchain-anthropic>=0.1.0",
     "chromadb>=0.4.18",
     "sentence-transformers>=2.2.2",
+    "pymupdf>=1.23.8", # For PDF processing in AI pipelines
+    "tenacity>=8.2.3",
+]
+streamlit = [
+    "streamlit>=1.31.0",
+    "pandas>=2.1.4",
+    "plotly>=5.18.0",
 ]
 cloud = [
     "google-cloud-storage>=2.10.0",
     "google-cloud-firestore>=2.13.1",
+    "google-cloud-logging>=3.8.0",
     "redis>=5.0.1",
     "celery>=5.3.4",
+    "sendgrid>=6.10.0",
+    "slack-sdk>=3.26.0",
 ]
 monitoring = [
-    "prometheus-client>=0.19.0",
     "structlog>=23.2.0",
+    "prometheus-client>=0.19.0",
+    "psutil>=5.9.6",
     "opentelemetry-api>=1.21.0",
     "opentelemetry-sdk>=1.21.0",
+    "opentelemetry-instrumentation-fastapi>=0.42b0",
 ]
 all = [
-    "career-copilot[dev,ai,cloud,monitoring]"
+    "career-copilot[dev,ai,streamlit,cloud,monitoring]"
 ]
 
 [project.urls]
-Homepage = "https://github.com/yourusername/career-copilot"
-Documentation = "https://career-copilot.readthedocs.io"
 Repository = "https://github.com/yourusername/career-copilot"
-"Bug Tracker" = "https://github.com/yourusername/career-copilot/issues"
-Changelog = "https://github.com/yourusername/career-copilot/blob/main/CHANGELOG.md"
 
 [project.scripts]
-career-copilot = "career_copilot.cli:main"
+career-copilot = "backend.app.cli:main"
 
 [tool.setuptools.packages.find]
 where = ["backend"]
@@ -91,121 +133,52 @@ include = ["app*"]
 [tool.black]
 line-length = 88
 target-version = ['py311']
-include = '\.pyi?$'
-extend-exclude = '''
-/(
-  # directories
-  \.eggs
-  | \.git
-  | \.hg
-  | \.mypy_cache
-  | \.tox
-  | \.venv
-  | build
-  | dist
-  | migrations
-)/
-'''
 
-[tool.isort]
-profile = "black"
-multi_line_output = 3
-line_length = 88
-known_first_party = ["app", "career_copilot"]
-skip_glob = ["*/migrations/*"]
+[tool.ruff]
+line-length = 88
+select = ["E", "W", "F", "I", "B", "C4", "UP"]
+ignore = ["E501"] # Handled by black
+
+[tool.ruff.lint.isort]
+known-first-party = ["app", "career_copilot"]
 
 [tool.mypy]
 python_version = "3.11"
 check_untyped_defs = true
-disallow_any_generics = true
 disallow_incomplete_defs = true
 disallow_untyped_defs = true
 no_implicit_optional = true
 warn_redundant_casts = true
 warn_unused_ignores = true
 warn_return_any = true
-strict_equality = true
-exclude = [
-    "migrations/",
-    "tests/",
-    ".venv/",
-]
+exclude = ["migrations", "tests", ".venv"]
 
 [[tool.mypy.overrides]]
-module = [
-    "chromadb.*",
-    "langchain.*",
-    "openai.*",
-    "anthropic.*",
-    "streamlit.*",
-]
+module = ["chromadb.*", "langchain.*", "openai.*", "anthropic.*", "streamlit.*"]
 ignore_missing_imports = true
 
 [tool.pytest.ini_options]
+pythonpath = ["."]
 minversion = "7.0"
-addopts = "-ra -q --strict-markers --strict-config"
-testpaths = [
-    "tests",
-    "backend/tests",
-]
-python_files = [
-    "test_*.py",
-    "*_test.py",
-]
-python_classes = [
-    "Test*",
-]
-python_functions = [
-    "test_*",
-]
+addopts = "-v --tb=short --strict-markers --color=yes"
+testpaths = ["tests"]
+python_files = ["test_*.py", "*_test.py"]
 markers = [
-    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+    "slow: marks tests as slow",
     "integration: marks tests as integration tests",
     "unit: marks tests as unit tests",
-    "e2e: marks tests as end-to-end tests",
+    "e2e: End-to-end tests",
+    "performance: Performance tests",
+    "security: Security tests",
 ]
+norecursedirs = [".git", ".tox", "dist", "build", "*.egg", "venv", "__pycache__", "tests/performance"]
 filterwarnings = [
     "error",
-    "ignore::UserWarning",
     "ignore::DeprecationWarning",
+    "ignore::PendingDeprecationWarning",
 ]
+log_cli = true
+log_cli_level = "INFO"
+log_cli_format = "% (asctime)s [%(levelname)8s] %(name)s: %(message)s"
+log_cli_date_format = "%Y-%m-%d %H:%M:%S"
 
-[tool.coverage.run]
-source = ["backend/app"]
-omit = [
-    "*/tests/*",
-    "*/migrations/*",
-    "*/__pycache__/*",
-    "*/venv/*",
-    "*/.venv/*",
-]
-
-[tool.coverage.report]
-exclude_lines = [
-    "pragma: no cover",
-    "def __repr__",
-    "if self.debug:",
-    "if settings.DEBUG",
-    "raise AssertionError",
-    "raise NotImplementedError",
-    "if 0:",
-    "if __name__ == .__main__.:",
-    "class .*\\bProtocol\\):",
-    "@(abc\\.)?abstractmethod",
-]
-
-[tool.bandit]
-exclude_dirs = ["tests", "migrations"]
-skips = ["B101", "B601"]
-
-[tool.flake8]
-max-line-length = 88
-extend-ignore = ["E203", "W503"]
-exclude = [
-    ".git",
-    "__pycache__",
-    "migrations",
-    ".venv",
-    "build",
-    "dist",
-]

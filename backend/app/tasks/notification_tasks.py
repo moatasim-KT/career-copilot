@@ -1,92 +1,102 @@
-"""
-Celery tasks for proactive notifications
-"""
-
-import asyncio
-from celery import Celery
-from datetime import datetime
+import logging
+from celery import shared_task
 from sqlalchemy.orm import Session
+from datetime import datetime, timedelta
 
-from app.core.database import get_db
-from app.services.notification_service import notification_service
-from app.services.scheduled_notification_service import scheduled_notification_service
-from app.services.goal_service import goal_service
-from app.celery import celery_app
+from ...core.database import get_db
+from ...models.user import User
+from ...services.notification_service import NotificationService
+from ...services.recommendation_engine import RecommendationEngine
+from ...services.job_analytics_service import JobAnalyticsService
+from ...core.config import get_settings
 
+logger = logging.getLogger(__name__)
 
-@celery_app.task(name="send_morning_briefings")
-def send_morning_briefings():
-    """Send morning briefings to all users at 8:00 AM with recommendations"""
-    db = next(get_db())
-    try:
-        # Use the new scheduled notification service
-        result = asyncio.run(scheduled_notification_service.send_bulk_morning_briefings(db))
-        print(f"Morning briefings sent: {result['sent']}, failed: {result['failed']}, opted out: {result['opted_out']}")
-        return result
-    finally:
-        db.close()
+@shared_task(name="app.tasks.notification_tasks.send_morning_briefings")
+def send_morning_briefings() -> Dict[str, Any]:
+    """Sends morning briefings to all eligible users with personalized job recommendations."""
+    db: Session = next(get_db())
+    settings = get_settings()
+    notification_service = NotificationService(settings)
+    recommendation_engine = RecommendationEngine(db)
 
+    users = db.query(User).filter(User.is_active == True).all()
+    logger.info(f"Sending morning briefings to {len(users)} users.")
 
-@celery_app.task(name="send_evening_summaries")
-def send_evening_summaries():
-    """Send evening summaries to all users at 6:00 PM with progress tracking"""
-    db = next(get_db())
-    try:
-        # Use the new scheduled notification service
-        result = asyncio.run(scheduled_notification_service.send_bulk_evening_updates(db))
-        print(f"Evening updates sent: {result['sent']}, failed: {result['failed']}, opted out: {result['opted_out']}, no activity: {result['no_activity']}")
-        return result
-    finally:
-        db.close()
+    results = {
+        "total_users": len(users),
+        "sent_count": 0,
+        "skipped_count": 0,
+        "failed_count": 0,
+        "errors": []
+    }
 
-
-@celery_app.task(name="check_daily_achievements")
-def check_daily_achievements():
-    """Check for daily goal achievements and send notifications"""
-    db = next(get_db())
-    try:
-        from app.models.user import User
-        users = db.query(User).filter(User.is_active == True).all()
-        
-        notifications_sent = 0
-        for user in users:
-            achievements = goal_service.check_achievements(db, user.id)
-            for achievement in achievements:
-                if goal_service.send_achievement_notification(db, user.id, achievement):
-                    notifications_sent += 1
-        
-        print(f"Achievement notifications sent: {notifications_sent}")
-        return {'notifications_sent': notifications_sent}
-    finally:
-        db.close()
-
-
-@celery_app.task(name="adaptive_timing_analysis")
-def adaptive_timing_analysis():
-    """Analyze user engagement patterns for adaptive timing"""
-    db = next(get_db())
-    try:
-        from app.models.user import User
-        users = db.query(User).filter(User.is_active == True).all()
-        
-        updated_users = 0
-        for user in users:
-            # Simple engagement analysis - can be enhanced
-            settings = user.settings.copy()
-            notifications = settings.get('notifications', {})
+    for user in users:
+        try:
+            # Get top 5 recommendations for the user
+            recommendations = recommendation_engine.get_recommendations(user, limit=5)
             
-            # Default optimal times based on general patterns
-            if 'optimal_morning_time' not in notifications:
-                notifications['optimal_morning_time'] = '08:00'
-            if 'optimal_evening_time' not in notifications:
-                notifications['optimal_evening_time'] = '19:00'
+            if not recommendations:
+                logger.info(f"No recommendations for user {user.id}. Skipping morning briefing.")
+                results["skipped_count"] += 1
+                continue
+
+            # Send email
+            success = notification_service.send_morning_briefing(user, recommendations)
+            if success:
+                results["sent_count"] += 1
+            else:
+                results["failed_count"] += 1
+                results["errors"].append(f"Failed to send briefing to user {user.id}")
+        except Exception as e:
+            logger.error(f"Error sending morning briefing to user {user.id}: {e}")
+            results["failed_count"] += 1
+            results["errors"].append(f"Error for user {user.id}: {str(e)}")
+
+    logger.info(f"Morning briefings task completed. Sent: {results["sent_count"]}, Failed: {results["failed_count"]}")
+    return results
+
+@shared_task(name="app.tasks.notification_tasks.send_evening_summaries")
+def send_evening_summaries() -> Dict[str, Any]:
+    """Sends evening summaries to all eligible users with daily analytics."""
+    db: Session = next(get_db())
+    settings = get_settings()
+    notification_service = NotificationService(settings)
+    analytics_service = JobAnalyticsService(db)
+
+    users = db.query(User).filter(User.is_active == True).all()
+    logger.info(f"Sending evening summaries to {len(users)} users.")
+
+    results = {
+        "total_users": len(users),
+        "sent_count": 0,
+        "skipped_count": 0,
+        "failed_count": 0,
+        "errors": []
+    }
+
+    for user in users:
+        try:
+            # Get daily analytics summary for the user
+            analytics_summary = analytics_service.get_summary_metrics(user)
             
-            settings['notifications'] = notifications
-            user.settings = settings
-            updated_users += 1
-        
-        db.commit()
-        print(f"Updated timing preferences for {updated_users} users")
-        return {'updated_users': updated_users}
-    finally:
-        db.close()
+            # Only send if there was some activity today
+            if analytics_summary.get("daily_applications_today", 0) == 0 and analytics_summary.get("total_jobs", 0) == 0:
+                logger.info(f"No significant activity for user {user.id}. Skipping evening summary.")
+                results["skipped_count"] += 1
+                continue
+
+            # Send email
+            success = notification_service.send_evening_summary(user, analytics_summary)
+            if success:
+                results["sent_count"] += 1
+            else:
+                results["failed_count"] += 1
+                results["errors"].append(f"Failed to send summary to user {user.id}")
+        except Exception as e:
+            logger.error(f"Error sending evening summary to user {user.id}: {e}")
+            results["failed_count"] += 1
+            results["errors"].append(f"Error for user {user.id}: {str(e)}")
+
+    logger.info(f"Evening summaries task completed. Sent: {results["sent_count"]}, Failed: {results["failed_count"]}")
+    return results

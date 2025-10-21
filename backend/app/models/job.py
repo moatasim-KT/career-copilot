@@ -24,7 +24,7 @@ class Job(Base):
     documents_required = Column(JSON, nullable=True) # e.g., ["resume", "cover_letter"]
     link = Column(String)
     source = Column(String, default="manual")  # manual, scraped, api
-    status = Column(String, default="not_applied")  # not_applied, applied, interviewing, offer, rejected
+    status = Column(String, default="not_applied", index=True)  # not_applied, applied, interviewing, offer, rejected
     notes = Column(Text)
     date_applied = Column(DateTime, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow, index=True)

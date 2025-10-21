@@ -5,13 +5,15 @@ Celery configuration for background tasks
 from celery import Celery
 from celery.schedules import crontab
 
-from app.core.config import settings
+from app.core.config import get_settings
+
+settings = get_settings()
 
 # Create Celery instance
 celery_app = Celery(
     "career-copilot",
-    broker=settings.CELERY_BROKER_URL,
-    backend=settings.CELERY_RESULT_BACKEND,
+    broker=settings.celery_broker_url,
+    backend=settings.celery_result_backend,
     include=[
         "app.services.job_ingestion",
         "app.services.recommendations", 
