@@ -4,7 +4,7 @@ import json
 
 def verify_migration():
     """Verify that all blueprint features are properly migrated."""
-    conn = sqlite3.connect('data/career_copilot.db')
+    conn = sqlite3.connect('backend/data/career_copilot.db')
     cursor = conn.cursor()
     
     print("=" * 60)
@@ -16,13 +16,9 @@ def verify_migration():
     cursor.execute("PRAGMA table_info(users)")
     user_columns = {row[1]: row[2] for row in cursor.fetchall()}
     
-    required_user_columns = {
-        'skills': 'JSON',
-        'preferred_locations': 'JSON',
-        'experience_level': 'VARCHAR'
-    }
+    required_user_columns = ['skills', 'preferred_locations', 'experience_level']
     
-    for col, col_type in required_user_columns.items():
+    for col in required_user_columns:
         if col in user_columns:
             print(f"   ✓ {col} ({user_columns[col]})")
         else:
@@ -34,14 +30,9 @@ def verify_migration():
     cursor.execute("PRAGMA table_info(jobs)")
     job_columns = {row[1]: row[2] for row in cursor.fetchall()}
     
-    required_job_columns = {
-        'tech_stack': 'JSON',
-        'responsibilities': 'TEXT',
-        'source': 'VARCHAR',
-        'date_applied': 'DATETIME'
-    }
+    required_job_columns = ['tech_stack', 'responsibilities', 'source', 'date_applied']
     
-    for col, col_type in required_job_columns.items():
+    for col in required_job_columns:
         if col in job_columns:
             print(f"   ✓ {col} ({job_columns[col]})")
         else:
