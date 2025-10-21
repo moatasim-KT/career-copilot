@@ -153,7 +153,7 @@ This implementation plan covers the complete Career Co-Pilot MVP across all four
   - _Requirements: 9.1_
 
 - [ ] 9. Implement job scraper service
-- [ ] 9.1 Create JobScraperService class
+- [x] 9.1 Create JobScraperService class
 
   - Implement scrape_jobs method with API integration placeholder
   - Add support for configurable job API
@@ -161,7 +161,7 @@ This implementation plan covers the complete Career Co-Pilot MVP across all four
   - Make case-insensitive comparison for deduplication
   - _Requirements: 5.1, 5.2_
 
-- [ ] 9.2 Implement job ingestion logic
+- [x] 9.2 Implement job ingestion logic
 
   - Create ingest_jobs function in scheduled_tasks
   - Query all users with skills and preferred_locations
