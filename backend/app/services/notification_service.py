@@ -29,12 +29,20 @@ class NotificationService:
         )
 
     def _send_email(self, to_email: str, subject: str, html_content: str) -> bool:
+        """
+        Send email with graceful degradation.
+        Logs email content if SMTP is not configured or fails.
+        """
         if not self.smtp_enabled:
-            logger.warning(f"SMTP is disabled. Not sending email to {to_email}")
+            logger.warning(f"SMTP is disabled. Email would be sent to {to_email}")
+            logger.info(f"Email subject: {subject}")
+            logger.debug(f"Email content (first 200 chars): {html_content[:200]}...")
             return False
 
         if not self.smtp_host or not self.smtp_username or not self.smtp_password or not self.smtp_from_email:
-            logger.error("SMTP settings (host, user, password, from_email) are not fully configured. Cannot send email.")
+            logger.warning("SMTP settings not fully configured. Email would be sent to {to_email}")
+            logger.info(f"Email subject: {subject}")
+            logger.debug(f"Email content (first 200 chars): {html_content[:200]}...")
             return False
 
         msg = MIMEMultipart("alternative")
@@ -48,10 +56,23 @@ class NotificationService:
             with smtplib.SMTP_SSL(self.smtp_host, self.smtp_port) as server:
                 server.login(self.smtp_username, self.smtp_password)
                 server.sendmail(self.smtp_from_email, to_email, msg.as_string())
-            logger.info(f"Email sent successfully to {to_email} with subject: {subject}")
+            logger.info(f"✓ Email sent successfully to {to_email} with subject: {subject}")
             return True
+        except smtplib.SMTPAuthenticationError as e:
+            logger.error(f"✗ SMTP authentication failed for {to_email}: {e}")
+            logger.warning("Continuing operation despite email failure (graceful degradation)")
+            return False
+        except smtplib.SMTPException as e:
+            logger.error(f"✗ SMTP error sending email to {to_email}: {e}")
+            logger.warning("Continuing operation despite email failure (graceful degradation)")
+            return False
+        except ConnectionError as e:
+            logger.error(f"✗ Connection error sending email to {to_email}: {e}")
+            logger.warning("Continuing operation despite email failure (graceful degradation)")
+            return False
         except Exception as e:
-            logger.error(f"Failed to send email to {to_email} with subject {subject}: {e}")
+            logger.error(f"✗ Unexpected error sending email to {to_email}: {e}", exc_info=True)
+            logger.warning("Continuing operation despite email failure (graceful degradation)")
             return False
 
     def send_morning_briefing(self, user: User, recommendations: List[Dict[str, Any]]) -> bool:

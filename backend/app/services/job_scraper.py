@@ -19,6 +19,7 @@ class JobScraperService:
         """
         Scrapes jobs from an external API based on user skills and preferred locations.
         This is a placeholder implementation with configurable job API support.
+        Implements graceful degradation - continues operation even if API fails.
         
         Args:
             skills: List of user skills to search for
@@ -26,14 +27,14 @@ class JobScraperService:
             limit: Maximum number of jobs to return
             
         Returns:
-            List of job dictionaries
+            List of job dictionaries (empty list if API fails)
         """
         if not self.job_api_key:
-            logger.info("Job API key not configured. Skipping job scraping.")
+            logger.warning("Job API key not configured. Skipping job scraping (graceful degradation)")
             return []
 
         if not skills or not preferred_locations:
-            logger.info("User skills or preferred locations not provided. Skipping job scraping.")
+            logger.warning("User skills or preferred locations not provided. Skipping job scraping (graceful degradation)")
             return []
 
         scraped_jobs = []
@@ -44,31 +45,57 @@ class JobScraperService:
                 try:
                     jobs = self._fetch_jobs_from_api(skill, location, limit // (len(skills[:3]) * len(preferred_locations[:2])))
                     scraped_jobs.extend(jobs)
+                except requests.exceptions.RequestException as e:
+                    logger.error(f"✗ Network error fetching jobs for skill '{skill}' in location '{location}': {str(e)}")
+                    logger.warning("Continuing operation despite job API failure (graceful degradation)")
+                    continue
+                except requests.exceptions.Timeout as e:
+                    logger.error(f"✗ Timeout fetching jobs for skill '{skill}' in location '{location}': {str(e)}")
+                    logger.warning("Continuing operation despite job API failure (graceful degradation)")
+                    continue
                 except Exception as e:
-                    logger.error(f"Error fetching jobs for skill '{skill}' in location '{location}': {str(e)}")
+                    logger.error(f"✗ Unexpected error fetching jobs for skill '{skill}' in location '{location}': {str(e)}", exc_info=True)
+                    logger.warning("Continuing operation despite job API failure (graceful degradation)")
                     continue
 
         # For now, return mock data as placeholder for actual API integration
-        mock_jobs = self._generate_mock_jobs(skills, preferred_locations, limit)
-        return mock_jobs
+        try:
+            mock_jobs = self._generate_mock_jobs(skills, preferred_locations, limit)
+            return mock_jobs
+        except Exception as e:
+            logger.error(f"✗ Error generating mock jobs: {str(e)}", exc_info=True)
+            logger.warning("Returning empty job list (graceful degradation)")
+            return []
 
     def _fetch_jobs_from_api(self, keyword: str, location: str, limit: int) -> List[Dict[str, Any]]:
         """
         Placeholder for actual API integration (Adzuna, Indeed, etc.)
         This method should be implemented with actual API calls.
+        Implements graceful degradation - returns empty list on failure.
         """
         # TODO: Implement actual API integration
         # Example for Adzuna API:
-        # url = f"https://api.adzuna.com/v1/api/jobs/{country}/search"
-        # params = {
-        #     "app_id": self.settings.adzuna_app_id,
-        #     "app_key": self.job_api_key,
-        #     "what": keyword,
-        #     "where": location,
-        #     "results_per_page": limit
-        # }
-        # response = requests.get(url, params=params)
-        # return self._parse_api_response(response.json())
+        # try:
+        #     url = f"https://api.adzuna.com/v1/api/jobs/{country}/search"
+        #     params = {
+        #         "app_id": self.settings.adzuna_app_id,
+        #         "app_key": self.job_api_key,
+        #         "what": keyword,
+        #         "where": location,
+        #         "results_per_page": limit
+        #     }
+        #     response = requests.get(url, params=params, timeout=10)
+        #     response.raise_for_status()
+        #     return self._parse_api_response(response.json())
+        # except requests.exceptions.HTTPError as e:
+        #     logger.error(f"HTTP error from job API: {e}")
+        #     return []
+        # except requests.exceptions.Timeout as e:
+        #     logger.error(f"Timeout from job API: {e}")
+        #     return []
+        # except Exception as e:
+        #     logger.error(f"Unexpected error from job API: {e}", exc_info=True)
+        #     return []
         
         return []
 
