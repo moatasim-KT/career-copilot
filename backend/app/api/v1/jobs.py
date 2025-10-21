@@ -1,142 +1,183 @@
-"""Job application API endpoints."""
-from typing import List, Optional
-from fastapi import APIRouter, Depends, HTTPException, Query
-from sqlalchemy.ext.asyncio import AsyncSession
-from app.core.database import get_db
-from app.services.job_service import JobService
-from app.models.job_models import (
-    JobApplicationCreate, JobApplicationUpdate, JobApplicationResponse,
-    InterviewCreate, InterviewResponse, ContactCreate, ContactResponse,
-    ApplicationStats, ApplicationStatus
-)
+"""Job management endpoints"""
 
-router = APIRouter(prefix="/jobs", tags=["jobs"])
+from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy.orm import Session
+from typing import List
+from datetime import datetime
+from ...core.database import get_db
+from ...core.dependencies import get_current_user
+from ...models.user import User
+from ...models.job import Job
+from ...schemas.job import JobCreate, JobUpdate, JobResponse
+
+router = APIRouter(tags=["jobs"])
 
 
-@router.post("/applications", response_model=JobApplicationResponse)
-async def create_application(
-    application: JobApplicationCreate,
-    db: AsyncSession = Depends(get_db)
+@router.get("/jobs", response_model=List[JobResponse])
+async def list_jobs(
+    skip: int = 0,
+    limit: int = 100,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
 ):
-    """Create new job application."""
-    service = JobService(db)
-    result = await service.create_application(application)
-    return result
-
-
-@router.get("/applications", response_model=List[JobApplicationResponse])
-async def list_applications(
-    status: Optional[ApplicationStatus] = None,
-    company: Optional[str] = None,
-    skip: int = Query(0, ge=0),
-    limit: int = Query(100, ge=1, le=100),
-    db: AsyncSession = Depends(get_db)
-):
-    """List job applications with filters."""
-    service = JobService(db)
-    results = await service.list_applications(status, company, skip, limit)
-    return results
-
-
-@router.get("/applications/{application_id}", response_model=JobApplicationResponse)
-async def get_application(
-    application_id: int,
-    db: AsyncSession = Depends(get_db)
-):
-    """Get job application by ID."""
-    service = JobService(db)
-    result = await service.get_application(application_id)
-    if not result:
-        raise HTTPException(status_code=404, detail="Application not found")
-    return result
-
-
-@router.put("/applications/{application_id}", response_model=JobApplicationResponse)
-async def update_application(
-    application_id: int,
-    application: JobApplicationUpdate,
-    db: AsyncSession = Depends(get_db)
-):
-    """Update job application."""
-    service = JobService(db)
-    result = await service.update_application(application_id, application)
-    if not result:
-        raise HTTPException(status_code=404, detail="Application not found")
-    return result
-
-
-@router.delete("/applications/{application_id}")
-async def delete_application(
-    application_id: int,
-    db: AsyncSession = Depends(get_db)
-):
-    """Delete job application."""
-    service = JobService(db)
-    success = await service.delete_application(application_id)
-    if not success:
-        raise HTTPException(status_code=404, detail="Application not found")
-    return {"message": "Application deleted successfully"}
-
-
-@router.post("/applications/{application_id}/interviews", response_model=InterviewResponse)
-async def create_interview(
-    application_id: int,
-    interview: InterviewCreate,
-    db: AsyncSession = Depends(get_db)
-):
-    """Create interview for application."""
-    service = JobService(db)
-    # Verify application exists
-    application = await service.get_application(application_id)
-    if not application:
-        raise HTTPException(status_code=404, detail="Application not found")
+    """
+    List all jobs for the current user with pagination support.
     
-    result = await service.create_interview(interview)
-    return result
-
-
-@router.get("/applications/{application_id}/interviews", response_model=List[InterviewResponse])
-async def list_interviews(
-    application_id: int,
-    db: AsyncSession = Depends(get_db)
-):
-    """List interviews for application."""
-    service = JobService(db)
-    results = await service.list_interviews(application_id)
-    return results
-
-
-@router.post("/applications/{application_id}/contacts", response_model=ContactResponse)
-async def create_contact(
-    application_id: int,
-    contact: ContactCreate,
-    db: AsyncSession = Depends(get_db)
-):
-    """Create contact for application."""
-    service = JobService(db)
-    # Verify application exists
-    application = await service.get_application(application_id)
-    if not application:
-        raise HTTPException(status_code=404, detail="Application not found")
+    - **skip**: Number of records to skip (default: 0)
+    - **limit**: Maximum number of records to return (default: 100, max: 1000)
     
-    result = await service.create_contact(contact)
-    return result
+    Returns jobs ordered by created_at descending (newest first).
+    """
+    # Validate pagination parameters
+    if skip < 0:
+        raise HTTPException(status_code=400, detail="Skip parameter must be non-negative")
+    
+    if limit < 1 or limit > 1000:
+        raise HTTPException(status_code=400, detail="Limit must be between 1 and 1000")
+    
+    try:
+        jobs = (
+            db.query(Job)
+            .filter(Job.user_id == current_user.id)
+            .order_by(Job.created_at.desc())
+            .offset(skip)
+            .limit(limit)
+            .all()
+        )
+        return jobs
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error retrieving jobs: {str(e)}")
 
 
-@router.get("/applications/{application_id}/contacts", response_model=List[ContactResponse])
-async def list_contacts(
-    application_id: int,
-    db: AsyncSession = Depends(get_db)
+@router.post("/jobs", response_model=JobResponse)
+async def create_job(
+    job_data: JobCreate,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
 ):
-    """List contacts for application."""
-    service = JobService(db)
-    results = await service.list_contacts(application_id)
-    return results
+    """
+    Create a new job with validation for required fields.
+    
+    - **company**: Required company name
+    - **title**: Required job title
+    - **tech_stack**: Optional list of technologies (defaults to empty list)
+    - **responsibilities**: Optional job responsibilities
+    - **source**: Source of the job (manual, scraped, api) - defaults to "manual"
+    """
+    job_dict = job_data.model_dump()
+    
+    # Ensure tech_stack is a list (not None)
+    if job_dict.get('tech_stack') is None:
+        job_dict['tech_stack'] = []
+    
+    # Ensure source has a default value
+    if not job_dict.get('source'):
+        job_dict['source'] = 'manual'
+    
+    job = Job(**job_dict, user_id=current_user.id)
+    db.add(job)
+    db.commit()
+    db.refresh(job)
+    return job
 
 
-@router.get("/statistics", response_model=ApplicationStats)
-async def get_statistics(db: AsyncSession = Depends(get_db)):
-    """Get application statistics."""
-    service = JobService(db)
-    stats = await service.get_statistics()
-    return stats
+@router.get("/jobs/{job_id}", response_model=JobResponse)
+async def get_job(
+    job_id: int,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Get a specific job by ID.
+    
+    - **job_id**: ID of the job to retrieve
+    
+    Returns 404 if the job doesn't exist or doesn't belong to the current user.
+    """
+    try:
+        job = db.query(Job).filter(Job.id == job_id, Job.user_id == current_user.id).first()
+        if not job:
+            raise HTTPException(status_code=404, detail="Job not found")
+        return job
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error retrieving job: {str(e)}")
+
+
+@router.put("/jobs/{job_id}", response_model=JobResponse)
+async def update_job(
+    job_id: int,
+    job_data: JobUpdate,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Update a job with all fields supported.
+    
+    - Automatically updates the updated_at timestamp
+    - Sets date_applied when status changes to "applied"
+    - Validates that the job belongs to the current user
+    """
+    job = db.query(Job).filter(Job.id == job_id, Job.user_id == current_user.id).first()
+    if not job:
+        raise HTTPException(status_code=404, detail="Job not found")
+    
+    update_data = job_data.model_dump(exclude_unset=True)
+    
+    # Track if status is being changed to 'applied'
+    status_changed_to_applied = (
+        "status" in update_data and 
+        update_data["status"] == "applied" and 
+        job.status != "applied"
+    )
+    
+    # Apply all updates
+    for key, value in update_data.items():
+        setattr(job, key, value)
+
+    # If status is being changed to 'applied', set the application date
+    if status_changed_to_applied and job.date_applied is None:
+        job.date_applied = datetime.utcnow()
+    
+    # Ensure updated_at is set (SQLAlchemy should handle this with onupdate, but being explicit)
+    job.updated_at = datetime.utcnow()
+    
+    db.commit()
+    db.refresh(job)
+    return job
+
+
+@router.delete("/jobs/{job_id}")
+async def delete_job(
+    job_id: int,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Delete a job and all associated applications (cascade delete).
+    
+    - **job_id**: ID of the job to delete
+    
+    The cascade delete is configured in the Job model relationship,
+    so all associated Application records will be automatically deleted.
+    """
+    job = db.query(Job).filter(Job.id == job_id, Job.user_id == current_user.id).first()
+    if not job:
+        raise HTTPException(status_code=404, detail="Job not found")
+    
+    try:
+        # Get count of applications that will be deleted
+        app_count = len(job.applications)
+        
+        db.delete(job)
+        db.commit()
+        
+        return {
+            "message": "Job deleted successfully",
+            "job_id": job_id,
+            "applications_deleted": app_count
+        }
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=f"Error deleting job: {str(e)}")
