@@ -1,0 +1,23 @@
+{
+  "template_id": "test_custom_notification",
+  "name": "Test Custom Notification",
+  "template_type": "custom",
+  "subject_template": "Test Notification: {{ title }}",
+  "html_template": "\n        <html>\n        <body style=\"font-family: Arial, sans-serif; padding: 20px;\">\n            <h1 style=\"color: #007bff;\">{{ title }}</h1>\n            <p>Hello {{ recipient_name }},</p>\n            <p>{{ message }}</p>\n            <p>Priority: <strong>{{ priority }}</strong></p>\n            <p>Best regards,<br>The Team</p>\n        </body>\n        </html>\n        ",
+  "text_template": "\n        {{ title }}\n        \n        Hello {{ recipient_name }},\n        \n        {{ message }}\n        \n        Priority: {{ priority }}\n        \n        Best regards,\n        The Team\n        ",
+  "variables": [
+    "title",
+    "recipient_name",
+    "message",
+    "priority"
+  ],
+  "default_values": {
+    "priority": "Normal"
+  },
+  "css_inline": true,
+  "tracking_enabled": true,
+  "created_at": "2025-10-06T02:57:35.585711",
+  "updated_at": "2025-10-06T02:57:35.585712",
+  "version": "1.0",
+  "tags": []
+}

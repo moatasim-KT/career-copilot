@@ -1,0 +1,68 @@
+# Redis Service Configuration
+service: redis
+enabled: false
+
+# Connection Configuration
+connection:
+  host: "localhost"
+  port: 6379
+  password_env: "REDIS_PASSWORD"
+  database: 0
+  ssl: false
+  
+# Connection Pool
+pool:
+  max_connections: 20
+  retry_on_timeout: true
+  socket_timeout: 30
+  socket_connect_timeout: 30
+  
+# Caching Configuration
+cache:
+  default_ttl: 3600  # 1 hour
+  key_prefix: "contract_analyzer:"
+  serializer: "json"  # json, pickle, msgpack
+  
+# Session Storage
+session:
+  enabled: false
+  ttl: 86400  # 24 hours
+  key_prefix: "session:"
+  
+# Rate Limiting
+rate_limit:
+  enabled: false
+  window_size: 60  # seconds
+  max_requests: 100
+  key_prefix: "rate_limit:"
+  
+# Pub/Sub Configuration
+pubsub:
+  enabled: false
+  channels:
+    - "contract_analysis"
+    - "notifications"
+    - "system_events"
+    
+# Monitoring
+monitoring:
+  enabled: true
+  health_check_interval: 30
+  log_slow_queries: true
+  slow_query_threshold: 1000  # milliseconds
+  
+# Environment Overrides
+environments:
+  development:
+    enabled: false
+    connection:
+      host: "localhost"
+  production:
+    enabled: true
+    connection:
+      host: "redis-server"
+      ssl: true
+  testing:
+    enabled: false
+    connection:
+      database: 1

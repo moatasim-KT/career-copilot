@@ -1,0 +1,104 @@
+# SendGrid Email Service Configuration
+service: sendgrid
+enabled: true
+
+# API Configuration
+api:
+  base_url: "https://api.sendgrid.com/v3"
+  timeout: 30.0
+  max_retries: 3
+  retry_delay: 1.0
+
+# Authentication
+auth:
+  api_key_env: "SENDGRID_API_KEY"
+
+# Email Configuration
+email:
+  from_email_env: "SENDGRID_FROM_EMAIL"
+  from_name: "Career Co-Pilot"
+  reply_to_email_env: "SENDGRID_REPLY_TO_EMAIL"
+
+# Rate Limiting
+rate_limit:
+  requests_per_second: 10
+  daily_limit: 40000  # SendGrid free tier limit
+
+# Tracking Settings
+tracking:
+  enable_tracking: true
+  enable_click_tracking: true
+  enable_open_tracking: true
+  enable_subscription_tracking: true
+
+# Template Configuration
+templates:
+  enabled: true
+  template_path: "backend/app/email_templates"
+  cache_ttl: 3600  # 1 hour
+
+# Email Types Configuration
+email_types:
+  morning_briefing:
+    enabled: true
+    schedule: "0 8 * * *"  # 8 AM daily
+    categories: ["morning_briefing", "career_copilot"]
+    
+  evening_summary:
+    enabled: true
+    schedule: "0 18 * * *"  # 6 PM daily
+    categories: ["evening_summary", "career_copilot"]
+    
+  job_alert:
+    enabled: true
+    categories: ["job_alert", "career_copilot"]
+    
+  application_confirmation:
+    enabled: true
+    categories: ["application_confirmation", "career_copilot"]
+    
+  skill_gap_report:
+    enabled: true
+    schedule: "0 9 * * 1"  # 9 AM every Monday
+    categories: ["skill_gap_report", "career_copilot"]
+
+# Delivery Settings
+delivery:
+  enable_sandbox_mode: false
+  ip_pool_name: null
+  batch_processing: true
+  max_batch_size: 1000
+
+# Webhook Configuration
+webhooks:
+  enabled: true
+  endpoint: "/api/webhooks/sendgrid"
+  events:
+    - "delivered"
+    - "opened"
+    - "clicked"
+    - "bounced"
+    - "dropped"
+    - "spam_report"
+    - "unsubscribe"
+
+# Environment Overrides
+environments:
+  development:
+    enabled: true
+    delivery:
+      enable_sandbox_mode: true
+    rate_limit:
+      requests_per_second: 5
+      daily_limit: 100
+      
+  testing:
+    enabled: false
+    delivery:
+      enable_sandbox_mode: true
+      
+  production:
+    enabled: true
+    rate_limit:
+      requests_per_second: 15
+      daily_limit: 35000  # Leave some buffer

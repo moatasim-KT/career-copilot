@@ -1,0 +1,25 @@
+service: analytics
+enabled: true
+providers:
+  internal:
+    enabled: true
+    retention_days: 90
+  google_analytics:
+    enabled: false
+    tracking_id: ''
+metrics:
+  track_usage: true
+  track_performance: true
+  track_errors: true
+  track_business_events: true
+privacy:
+  anonymize_ips: true
+  respect_dnt: true
+  gdpr_compliant: true
+environments:
+  development:
+    enabled: false
+  production:
+    enabled: true
+  testing:
+    enabled: false

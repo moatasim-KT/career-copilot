@@ -1,0 +1,140 @@
+{
+  "providers": {
+    "openai-gpt4": {
+      "provider": "openai",
+      "model_name": "gpt-4",
+      "api_key": null,
+      "base_url": null,
+      "temperature": 0.1,
+      "max_tokens": 4000,
+      "cost_per_token": 3e-05,
+      "rate_limit_rpm": 60,
+      "rate_limit_tpm": 40000,
+      "timeout": 60,
+      "priority": 1,
+      "capabilities": [
+        "analysis",
+        "reasoning",
+        "complex_tasks"
+      ],
+      "enabled": true,
+      "metadata": {
+        "quality": "high",
+        "speed": "medium"
+      }
+    },
+    "openai-gpt35": {
+      "provider": "openai",
+      "model_name": "gpt-3.5-turbo",
+      "api_key": null,
+      "base_url": null,
+      "temperature": 0.1,
+      "max_tokens": 4000,
+      "cost_per_token": 2e-06,
+      "rate_limit_rpm": 3500,
+      "rate_limit_tpm": 90000,
+      "timeout": 60,
+      "priority": 2,
+      "capabilities": [
+        "generation",
+        "communication",
+        "simple_analysis"
+      ],
+      "enabled": true,
+      "metadata": {
+        "quality": "medium",
+        "speed": "fast"
+      }
+    },
+    "groq-mixtral": {
+      "provider": "groq",
+      "model_name": "llama3-8b-8192",
+      "api_key": null,
+      "base_url": null,
+      "temperature": 0.1,
+      "max_tokens": 4000,
+      "cost_per_token": 2.7e-07,
+      "rate_limit_rpm": 30,
+      "rate_limit_tpm": 6000,
+      "timeout": 60,
+      "priority": 1,
+      "capabilities": [
+        "fast_analysis",
+        "reasoning",
+        "generation"
+      ],
+      "enabled": true,
+      "metadata": {
+        "quality": "high",
+        "speed": "very_fast"
+      }
+    },
+    "groq-llama2": {
+      "provider": "groq",
+      "model_name": "llama2-70b-4096",
+      "api_key": null,
+      "base_url": null,
+      "temperature": 0.1,
+      "max_tokens": 4000,
+      "cost_per_token": 7e-07,
+      "rate_limit_rpm": 30,
+      "rate_limit_tpm": 6000,
+      "timeout": 60,
+      "priority": 2,
+      "capabilities": [
+        "generation",
+        "communication",
+        "simple_analysis"
+      ],
+      "enabled": true,
+      "metadata": {
+        "quality": "medium",
+        "speed": "fast"
+      }
+    }
+  },
+  "task_routing": {
+    "contract_analysis": [
+      "openai-gpt4",
+      "groq-mixtral",
+      "openai-gpt35",
+      "ollama-local"
+    ],
+    "risk_assessment": [
+      "openai-gpt4",
+      "groq-mixtral",
+      "openai-gpt35",
+      "ollama-local"
+    ],
+    "legal_precedent": [
+      "openai-gpt4",
+      "groq-mixtral",
+      "openai-gpt35",
+      "ollama-local"
+    ],
+    "negotiation": [
+      "openai-gpt35",
+      "groq-llama2",
+      "openai-gpt4",
+      "ollama-local"
+    ],
+    "communication": [
+      "openai-gpt35",
+      "groq-llama2",
+      "ollama-local",
+      "openai-gpt4"
+    ],
+    "general": [
+      "openai-gpt35",
+      "groq-llama2",
+      "ollama-local",
+      "openai-gpt4"
+    ]
+  },
+  "default_routing_criteria": "cost",
+  "cache_ttl": 3600,
+  "max_retries": 3,
+  "fallback_enabled": true,
+  "circuit_breaker_threshold": 5,
+  "circuit_breaker_timeout": 60
+}

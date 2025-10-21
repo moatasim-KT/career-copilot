@@ -1,0 +1,54 @@
+[Unit]
+Description=Contract Analyzer Background Worker
+Documentation=https://github.com/your-org/contract-analyzer
+After=network.target postgresql.service redis.service contract-analyzer-backend.service
+Wants=postgresql.service redis.service contract-analyzer-backend.service
+Requires=network.target
+
+[Service]
+Type=exec
+User=contract-analyzer
+Group=contract-analyzer
+WorkingDirectory=/opt/contract-analyzer
+Environment=PATH=/opt/contract-analyzer/venv/bin:/usr/local/bin:/usr/bin:/bin
+EnvironmentFile=/etc/contract-analyzer/environment
+ExecStart=/opt/contract-analyzer/venv/bin/python -m backend.app.workers.main
+ExecReload=/bin/kill -HUP $MAINPID
+KillMode=mixed
+KillSignal=SIGTERM
+TimeoutStopSec=30
+Restart=always
+RestartSec=15
+StartLimitInterval=60
+StartLimitBurst=3
+
+# Security settings
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectSystem=strict
+ProtectHome=yes
+ReadWritePaths=/opt/contract-analyzer /var/lib/contract-analyzer /var/log/contract-analyzer /var/run/contract-analyzer
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectControlGroups=yes
+RestrictRealtime=yes
+RestrictNamespaces=yes
+LockPersonality=yes
+MemoryDenyWriteExecute=yes
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+SystemCallFilter=@system-service
+SystemCallErrorNumber=EPERM
+
+# Resource limits
+LimitNOFILE=65536
+LimitNPROC=2048
+MemoryMax=1G
+CPUQuota=75%
+
+# Logging
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=contract-analyzer-worker
+
+[Install]
+WantedBy=multi-user.target

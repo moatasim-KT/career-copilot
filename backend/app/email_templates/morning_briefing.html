@@ -1,0 +1,202 @@
+{% extends "base.html" %}
+
+{% block title %}Morning Briefing - Career Co-Pilot{% endblock %}
+
+{% block header_title %}🌅 Morning Briefing{% endblock %}
+{% block header_subtitle %}{{ greeting }}, {{ user_name }}! Here's your daily career update{% endblock %}
+
+{% block content %}
+<div class="greeting">
+    {{ greeting }}, {{ user_name }}! 👋
+</div>
+
+<p style="margin-bottom: 25px; color: #4a5568; font-size: 16px;">
+    Ready to take on {{ current_date|datetime_format("%A, %B %d") }}? Here's your personalized career briefing to help you make the most of today.
+</p>
+
+<!-- Daily Progress Overview -->
+{% if progress %}
+<div class="section">
+    <h2 class="section-title">📊 Your Progress</h2>
+    <div class="stats-grid">
+        {% if progress.applications_this_week %}
+        <div class="stat-card">
+            <span class="stat-number">{{ progress.applications_this_week }}</span>
+            <span class="stat-label">Applications This Week</span>
+        </div>
+        {% endif %}
+        
+        {% if progress.interviews_scheduled %}
+        <div class="stat-card">
+            <span class="stat-number">{{ progress.interviews_scheduled }}</span>
+            <span class="stat-label">Interviews Scheduled</span>
+        </div>
+        {% endif %}
+        
+        {% if progress.response_rate %}
+        <div class="stat-card">
+            <span class="stat-number">{{ progress.response_rate }}%</span>
+            <span class="stat-label">Response Rate</span>
+        </div>
+        {% endif %}
+        
+        {% if progress.goal_completion %}
+        <div class="stat-card">
+            <span class="stat-number">{{ progress.goal_completion }}%</span>
+            <span class="stat-label">Weekly Goal</span>
+        </div>
+        {% endif %}
+    </div>
+    
+    {% if progress.goal_completion %}
+    <div class="progress-bar">
+        <div class="progress-fill" style="width: {{ progress.goal_completion }}%"></div>
+    </div>
+    <p style="font-size: 14px; color: #718096; text-align: center;">
+        {{ progress.goal_completion }}% of your weekly application goal completed
+    </p>
+    {% endif %}
+</div>
+{% endif %}
+
+<!-- Top Job Recommendations -->
+{% if recommendations %}
+<div class="section">
+    <h2 class="section-title">🎯 Top Job Recommendations</h2>
+    <p style="margin-bottom: 20px; color: #4a5568;">
+        Based on your skills and preferences, here are today's best matches:
+    </p>
+    
+    {% for job in recommendations[:5] %}
+    <div class="job-card">
+        <div class="job-title">{{ job.title }}</div>
+        <div class="job-company">{{ job.company }}</div>
+        {% if job.location %}
+        <div class="job-location">📍 {{ job.location }}</div>
+        {% endif %}
+        
+        {% if job.match_score %}
+        <div class="job-match-score">{{ (job.match_score * 100)|round }}% Match</div>
+        {% endif %}
+        
+        {% if job.description %}
+        <div class="job-description">
+            {{ job.description|truncate_words(30) }}
+        </div>
+        {% endif %}
+        
+        {% if job.skills %}
+        <div style="margin-bottom: 15px;">
+            <strong style="font-size: 14px; color: #2d3748;">Key Skills:</strong>
+            <ul class="skill-list">
+                {% for skill in job.skills[:5] %}
+                <li class="skill-item">{{ skill }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
+        
+        {% if job.explanation %}
+        <div style="background-color: #e6fffa; border-left: 4px solid #38b2ac; padding: 10px; margin-bottom: 15px; border-radius: 0 4px 4px 0;">
+            <strong style="color: #2d3748; font-size: 14px;">Why this matches:</strong>
+            <p style="color: #4a5568; font-size: 13px; margin-top: 5px;">{{ job.explanation }}</p>
+        </div>
+        {% endif %}
+        
+        <div style="text-align: right;">
+            {% if job.application_url %}
+            <a href="{{ job.application_url }}" class="btn" style="margin-right: 10px;">Apply Now</a>
+            {% endif %}
+            <a href="#job-{{ job.id }}" class="btn btn-secondary">View Details</a>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+
+<!-- Daily Goals -->
+{% if daily_goals %}
+<div class="section">
+    <h2 class="section-title">🎯 Today's Goals</h2>
+    
+    {% if daily_goals.applications_target %}
+    <div style="background-color: #f0f4ff; border: 1px solid #c3dafe; border-radius: 6px; padding: 15px; margin-bottom: 15px;">
+        <strong style="color: #2d3748;">Application Goal:</strong>
+        <p style="color: #4a5568; margin-top: 5px;">
+            Apply to {{ daily_goals.applications_target }} job{{ daily_goals.applications_target|pluralize }} today
+        </p>
+    </div>
+    {% endif %}
+    
+    {% if daily_goals.networking_target %}
+    <div style="background-color: #f0fff4; border: 1px solid #c6f6d5; border-radius: 6px; padding: 15px; margin-bottom: 15px;">
+        <strong style="color: #2d3748;">Networking Goal:</strong>
+        <p style="color: #4a5568; margin-top: 5px;">
+            Connect with {{ daily_goals.networking_target }} professional{{ daily_goals.networking_target|pluralize }} in your field
+        </p>
+    </div>
+    {% endif %}
+    
+    {% if daily_goals.skill_focus %}
+    <div style="background-color: #fffaf0; border: 1px solid #fbd38d; border-radius: 6px; padding: 15px; margin-bottom: 15px;">
+        <strong style="color: #2d3748;">Skill Development:</strong>
+        <p style="color: #4a5568; margin-top: 5px;">
+            Spend 30 minutes learning about {{ daily_goals.skill_focus }}
+        </p>
+    </div>
+    {% endif %}
+</div>
+{% endif %}
+
+<!-- Market Insights -->
+{% if market_insights %}
+<div class="section">
+    <h2 class="section-title">📈 Market Insights</h2>
+    
+    {% if market_insights.trending_skills %}
+    <div style="margin-bottom: 20px;">
+        <strong style="color: #2d3748; font-size: 16px;">🔥 Trending Skills in Your Field:</strong>
+        <ul class="skill-list" style="margin-top: 10px;">
+            {% for skill in market_insights.trending_skills[:8] %}
+            <li class="skill-item">{{ skill }}</li>
+            {% endfor %}
+        </ul>
+    </div>
+    {% endif %}
+    
+    {% if market_insights.salary_trend %}
+    <div style="background-color: #f7fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 15px; margin-bottom: 15px;">
+        <strong style="color: #2d3748;">💰 Salary Trends:</strong>
+        <p style="color: #4a5568; margin-top: 5px;">
+            {{ market_insights.salary_trend }}
+        </p>
+    </div>
+    {% endif %}
+    
+    {% if market_insights.job_market_activity %}
+    <div style="background-color: #f7fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 15px;">
+        <strong style="color: #2d3748;">📊 Market Activity:</strong>
+        <p style="color: #4a5568; margin-top: 5px;">
+            {{ market_insights.job_market_activity }}
+        </p>
+    </div>
+    {% endif %}
+</div>
+{% endif %}
+
+<!-- Call to Action -->
+<div class="section" style="text-align: center; background-color: #f7fafc; border-radius: 8px; padding: 25px;">
+    <h3 style="color: #2d3748; margin-bottom: 15px;">Ready to make today count? 🚀</h3>
+    <p style="color: #4a5568; margin-bottom: 20px;">
+        Your career journey is unique, and every step forward matters. Let's make today productive!
+    </p>
+    <a href="#dashboard" class="btn" style="margin-right: 15px;">Open Dashboard</a>
+    <a href="#jobs" class="btn btn-secondary">Browse All Jobs</a>
+</div>
+
+<div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e2e8f0; text-align: center;">
+    <p style="color: #718096; font-size: 14px;">
+        💡 <strong>Pro Tip:</strong> The best time to apply for jobs is between 6-10 AM when hiring managers are most active!
+    </p>
+</div>
+{% endblock %}

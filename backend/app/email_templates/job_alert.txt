@@ -1,0 +1,37 @@
+Great news, {{ user_name }}!
+
+NEW JOB MATCHES FOUND - {{ job_count }} new opportunities
+
+We found {{ job_count }} new job{{ 's' if job_count != 1 else '' }} that match your criteria. These opportunities align with your skills and preferences.
+
+{% if match_criteria %}
+YOUR SEARCH CRITERIA:
+{% if match_criteria.skills %}Skills: {{ match_criteria.skills|join(', ') }}{% endif %}
+{% if match_criteria.locations %}Locations: {{ match_criteria.locations|join(', ') }}{% endif %}
+{% if match_criteria.experience_level %}Experience Level: {{ match_criteria.experience_level }}{% endif %}
+{% if match_criteria.job_types %}Job Types: {{ match_criteria.job_types|join(', ') }}{% endif %}
+{% endif %}
+
+NEW OPPORTUNITIES:
+
+{% for job in new_jobs %}
+{{ loop.index }}. {{ job.title }} at {{ job.company }}
+{% if job.location %}   Location: {{ job.location }}{% endif %}
+{% if job.salary_range %}   Salary: {{ job.salary_range.min|currency }} - {{ job.salary_range.max|currency }}{% endif %}
+{% if job.match_score %}   Match: {{ (job.match_score * 100)|round }}%{% endif %}
+{% if job.description %}   {{ job.description[:100] }}...{% endif %}
+{% if job.tech_stack %}   Tech Stack: {{ job.tech_stack[:5]|join(', ') }}{% endif %}
+{% if job.posted_date %}   Posted: {{ job.posted_date.strftime('%B %d, %Y') }}{% endif %}
+{% if job.link %}   Apply: {{ job.link }}{% endif %}
+
+{% endfor %}
+
+Ready to apply? Don't wait too long - great opportunities move fast! Review these matches and apply to the ones that excite you most.
+
+View All Jobs: {{ jobs_url }}
+Dashboard: {{ dashboard_url }}
+
+Quick Tip: Customize your application for each role to increase your chances of getting noticed!
+
+---
+Career Co-Pilot - Your AI-Powered Career Assistant

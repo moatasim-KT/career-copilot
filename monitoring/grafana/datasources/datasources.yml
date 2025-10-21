@@ -1,0 +1,54 @@
+# Grafana Datasources Configuration
+apiVersion: 1
+
+datasources:
+  # Prometheus
+  - name: Prometheus
+    type: prometheus
+    access: proxy
+    url: http://prometheus:9090
+    isDefault: true
+    editable: true
+    jsonData:
+      timeInterval: "5s"
+      queryTimeout: "60s"
+      httpMethod: "POST"
+
+  # Loki
+  - name: Loki
+    type: loki
+    access: proxy
+    url: http://loki:3100
+    editable: true
+    jsonData:
+      maxLines: 1000
+      derivedFields:
+        - datasourceUid: prometheus
+          matcherRegex: "traceID=(\\w+)"
+          name: TraceID
+          url: "$${__value.raw}"
+
+  # Elasticsearch
+  - name: Elasticsearch
+    type: elasticsearch
+    access: proxy
+    url: http://elasticsearch:9200
+    database: "contract-analyzer-logs-*"
+    editable: true
+    jsonData:
+      index: "contract-analyzer-logs-*"
+      timeField: "@timestamp"
+      esVersion: "8.5.0"
+      includeFrozen: false
+      logMessageField: "message"
+      logLevelField: "level"
+    secureJsonData:
+      basicAuthPassword: "${ELASTIC_PASSWORD}"
+    basicAuth: true
+    basicAuthUser: "elastic"
+
+  # TestData (for demo purposes)
+  - name: TestData
+    type: testdata
+    access: proxy
+    editable: true

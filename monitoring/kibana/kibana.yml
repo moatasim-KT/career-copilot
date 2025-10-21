@@ -1,0 +1,65 @@
+# Kibana Configuration
+server.name: kibana
+server.host: 0.0.0.0
+server.port: 5601
+
+# Elasticsearch configuration
+elasticsearch.hosts: ["http://elasticsearch:9200"]
+elasticsearch.username: "kibana_system"
+elasticsearch.password: "${ELASTICSEARCH_PASSWORD}"
+
+# Security
+xpack.security.enabled: true
+xpack.encryptedSavedObjects.encryptionKey: "${KIBANA_ENCRYPTION_KEY}"
+
+# Monitoring
+monitoring.ui.container.elasticsearch.enabled: true
+monitoring.ui.container.logstash.enabled: true
+
+# Logging
+logging.appenders:
+  file:
+    type: file
+    fileName: /usr/share/kibana/logs/kibana.log
+    layout:
+      type: json
+logging.root:
+  appenders:
+    - default
+    - file
+
+# Index patterns
+kibana.index: ".kibana"
+
+# Default space
+xpack.spaces.enabled: true
+
+# Maps
+xpack.maps.enabled: true
+
+# Machine learning
+xpack.ml.enabled: true
+
+# Alerting
+xpack.alerting.enabled: true
+
+# Actions
+xpack.actions.enabled: true
+
+# Task manager
+xpack.task_manager.enabled: true
+
+# Saved objects encryption
+xpack.encryptedSavedObjects.enabled: true
+
+# Reporting
+xpack.reporting.enabled: true
+
+# Canvas
+xpack.canvas.enabled: true
+
+# Graph
+xpack.graph.enabled: true
+
+# Watcher
+xpack.watcher.enabled: true

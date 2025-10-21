@@ -1,0 +1,38 @@
+{
+  "timestamp": "2025-10-21T11:46:51.039056",
+  "tests": [
+    {
+      "name": "Learning Resources API Endpoint",
+      "status": "failed",
+      "details": {
+        "error": "Could not connect to server. Make sure the backend is running on localhost:8080"
+      }
+    },
+    {
+      "name": "Skill Trends with Salary Analysis",
+      "status": "failed",
+      "details": {
+        "error": "Could not connect to server. Make sure the backend is running on localhost:8080"
+      }
+    },
+    {
+      "name": "Comprehensive Skill Analytics",
+      "status": "failed",
+      "details": {
+        "error": "Could not connect to server. Make sure the backend is running on localhost:8080"
+      }
+    },
+    {
+      "name": "Enhanced Skill Extraction",
+      "status": "failed",
+      "details": {
+        "error": "Could not connect to server. Make sure the backend is running on localhost:8080"
+      }
+    }
+  ],
+  "summary": {
+    "passed": 0,
+    "failed": 4,
+    "total": 4
+  }
+}

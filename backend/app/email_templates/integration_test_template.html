@@ -1,0 +1,10 @@
+<!-- Template: integration_test_template -->
+<!-- Type: email -->
+<!-- Description: Integration test template -->
+<!-- Variables: contract_name, recipient_name -->
+
+<!-- Subject Template -->
+{% set subject = "Integration Test: {{contract_name}}" %}
+
+<!-- Body Template -->
+<p>Dear {{recipient_name}},</p><p>Contract {{contract_name}} analysis complete.</p>

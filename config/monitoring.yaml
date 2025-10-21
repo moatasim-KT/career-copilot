@@ -1,0 +1,266 @@
+# Monitoring and Alerting Configuration
+# This file defines monitoring thresholds, alert rules, and notification settings
+
+# System Resource Thresholds
+system_thresholds:
+  memory:
+    warning: 80.0  # Memory usage percentage
+    critical: 90.0
+  cpu:
+    warning: 75.0  # CPU usage percentage
+    critical: 85.0
+  disk:
+    warning: 85.0  # Disk usage percentage
+    critical: 95.0
+  load_average:
+    warning: 2.0   # 1-minute load average
+    critical: 4.0
+
+# Application Performance Thresholds
+performance_thresholds:
+  response_time:
+    p95_warning: 2.0    # seconds
+    p95_critical: 5.0
+    p99_warning: 5.0
+    p99_critical: 10.0
+  error_rate:
+    warning: 5.0        # errors per minute
+    critical: 15.0
+  ai_operations:
+    timeout_warning: 30.0  # seconds
+    timeout_critical: 60.0
+    cost_warning: 1.0      # USD per hour
+    cost_critical: 5.0
+  document_processing:
+    queue_size_warning: 50
+    queue_size_critical: 100
+    processing_time_warning: 30.0  # seconds
+    processing_time_critical: 120.0
+
+# Workflow Monitoring
+workflow_thresholds:
+  execution_time:
+    warning: 300.0     # seconds (5 minutes)
+    critical: 900.0    # seconds (15 minutes)
+  failure_rate:
+    warning: 10.0      # percentage
+    critical: 25.0
+  queue_depth:
+    warning: 20
+    critical: 50
+
+# Alert Rules
+alert_rules:
+  - name: "high_memory_usage"
+    condition: "memory_usage_percent > system_thresholds.memory.warning"
+    severity: "warning"
+    description: "System memory usage is high"
+    cooldown: 300  # seconds
+    
+  - name: "critical_memory_usage"
+    condition: "memory_usage_percent > system_thresholds.memory.critical"
+    severity: "critical"
+    description: "System memory usage is critically high"
+    cooldown: 60
+    
+  - name: "high_cpu_usage"
+    condition: "cpu_usage_percent > system_thresholds.cpu.warning"
+    severity: "warning"
+    description: "System CPU usage is high"
+    cooldown: 300
+    
+  - name: "critical_cpu_usage"
+    condition: "cpu_usage_percent > system_thresholds.cpu.critical"
+    severity: "critical"
+    description: "System CPU usage is critically high"
+    cooldown: 60
+    
+  - name: "high_disk_usage"
+    condition: "disk_usage_percent > system_thresholds.disk.warning"
+    severity: "warning"
+    description: "System disk usage is high"
+    cooldown: 600
+    
+  - name: "critical_disk_usage"
+    condition: "disk_usage_percent > system_thresholds.disk.critical"
+    severity: "critical"
+    description: "System disk usage is critically high"
+    cooldown: 300
+    
+  - name: "high_error_rate"
+    condition: "error_rate_per_minute > performance_thresholds.error_rate.warning"
+    severity: "warning"
+    description: "Application error rate is elevated"
+    cooldown: 180
+    
+  - name: "critical_error_rate"
+    condition: "error_rate_per_minute > performance_thresholds.error_rate.critical"
+    severity: "critical"
+    description: "Application error rate is critically high"
+    cooldown: 60
+    
+  - name: "slow_response_time"
+    condition: "response_time_p95 > performance_thresholds.response_time.p95_warning"
+    severity: "warning"
+    description: "API response times are slow"
+    cooldown: 300
+    
+  - name: "very_slow_response_time"
+    condition: "response_time_p95 > performance_thresholds.response_time.p95_critical"
+    severity: "critical"
+    description: "API response times are critically slow"
+    cooldown: 120
+    
+  - name: "ai_operation_timeout"
+    condition: "ai_operation_duration > performance_thresholds.ai_operations.timeout_warning"
+    severity: "warning"
+    description: "AI operations are taking too long"
+    cooldown: 300
+    
+  - name: "high_ai_costs"
+    condition: "ai_cost_per_hour > performance_thresholds.ai_operations.cost_warning"
+    severity: "warning"
+    description: "AI operation costs are high"
+    cooldown: 1800  # 30 minutes
+    
+  - name: "document_queue_backlog"
+    condition: "document_queue_size > performance_thresholds.document_processing.queue_size_warning"
+    severity: "warning"
+    description: "Document processing queue has a backlog"
+    cooldown: 600
+    
+  - name: "workflow_failure_rate"
+    condition: "workflow_failure_rate > workflow_thresholds.failure_rate.warning"
+    severity: "warning"
+    description: "Workflow failure rate is elevated"
+    cooldown: 300
+    
+  - name: "langsmith_connection_failed"
+    condition: "langsmith_status != 'healthy'"
+    severity: "warning"
+    description: "LangSmith connection is not healthy"
+    cooldown: 600
+
+# Notification Channels
+notification_channels:
+  webhook:
+    enabled: true
+    url: "${SECURITY_ALERT_WEBHOOK}"  # From environment variable
+    timeout: 10
+    retry_count: 3
+    retry_delay: 30
+    
+  email:
+    enabled: false
+    smtp_server: "smtp.example.com"
+    smtp_port: 587
+    username: "${EMAIL_USERNAME}"
+    password: "${EMAIL_PASSWORD}"
+    from_address: "alerts@contractanalyzer.com"
+    to_addresses:
+      - "admin@contractanalyzer.com"
+      - "ops@contractanalyzer.com"
+    
+  slack:
+    enabled: false
+    webhook_url: "${SLACK_WEBHOOK_URL}"
+    channel: "#alerts"
+    username: "ContractAnalyzer"
+    
+  pagerduty:
+    enabled: false
+    integration_key: "${PAGERDUTY_INTEGRATION_KEY}"
+    severity_mapping:
+      critical: "critical"
+      warning: "warning"
+      info: "info"
+
+# Monitoring Intervals (in seconds)
+monitoring_intervals:
+  system_metrics: 30
+  application_metrics: 60
+  health_checks: 120
+  alert_evaluation: 60
+  performance_baseline: 3600  # 1 hour
+
+# Data Retention
+data_retention:
+  metrics: 7  # days
+  alerts: 30  # days
+  logs: 14    # days
+  traces: 3   # days
+
+# Dashboard Configuration
+dashboards:
+  grafana:
+    enabled: false
+    url: "http://grafana:3000"
+    api_key: "${GRAFANA_API_KEY}"
+    
+  prometheus:
+    enabled: true
+    url: "http://prometheus:9090"
+    scrape_interval: 15  # seconds
+    
+# Health Check Configuration
+health_checks:
+  endpoints:
+    - name: "api_health"
+      url: "/monitoring/health"
+      timeout: 5
+      interval: 30
+      
+    - name: "langsmith_health"
+      url: "/monitoring/langsmith/status"
+      timeout: 10
+      interval: 300
+      
+  dependencies:
+    - name: "openai_api"
+      type: "external_api"
+      timeout: 10
+      interval: 300
+      
+    - name: "chromadb"
+      type: "database"
+      timeout: 5
+      interval: 60
+
+# Performance Baselines
+performance_baselines:
+  calculation_window: 24  # hours
+  percentiles: [50, 90, 95, 99]
+  metrics:
+    - "response_time"
+    - "ai_operation_duration"
+    - "document_processing_time"
+    - "workflow_execution_time"
+    
+# Alerting Policies
+alerting_policies:
+  escalation:
+    warning_to_critical: 1800  # seconds (30 minutes)
+    auto_resolve: 3600         # seconds (1 hour)
+    
+  suppression:
+    maintenance_mode: false
+    quiet_hours:
+      enabled: false
+      start: "22:00"
+      end: "06:00"
+      timezone: "UTC"
+      
+  grouping:
+    enabled: true
+    window: 300  # seconds (5 minutes)
+    max_group_size: 10
+
+# Feature Flags
+features:
+  langsmith_tracing: true
+  prometheus_metrics: true
+  opentelemetry_tracing: true
+  structured_logging: true
+  alert_webhooks: true
+  performance_profiling: false
+  distributed_tracing: true

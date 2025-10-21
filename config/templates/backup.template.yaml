@@ -1,0 +1,203 @@
+# Backup Configuration Template
+# This file contains templates for backup and recovery configuration
+
+backup:
+  # General backup settings
+  enabled: "${BACKUP_ENABLED:-true}"
+  environment: "${ENVIRONMENT:-development}"
+  
+  # Backup schedule
+  schedule:
+    # Cron format: minute hour day month day_of_week
+    full_backup: "${BACKUP_SCHEDULE:-0 2 * * *}"  # Daily at 2 AM
+    incremental_backup: "0 */6 * * *"  # Every 6 hours
+    
+  # Retention policy
+  retention:
+    daily_backups: "${BACKUP_RETENTION_DAYS:-30}"
+    weekly_backups: 12  # 3 months
+    monthly_backups: 12  # 1 year
+    
+  # Storage configuration
+  storage:
+    # Local storage
+    local:
+      enabled: true
+      path: "${BACKUP_STORAGE_PATH:-./data/backups}"
+      max_size: "10GB"
+      
+    # Cloud storage (optional)
+    cloud:
+      enabled: false
+      provider: "s3"  # s3, gcs, azure
+      bucket: "${BACKUP_BUCKET:-}"
+      region: "${BACKUP_REGION:-us-east-1}"
+      access_key: "${BACKUP_ACCESS_KEY:-}"
+      secret_key: "${BACKUP_SECRET_KEY:-}"
+      
+  # What to backup
+  targets:
+    # Database backups
+    database:
+      enabled: true
+      type: "sqlite"
+      source: "${DATABASE_URL}"
+      compression: true
+      encryption: false
+      
+    # File storage backups
+    files:
+      enabled: true
+      paths:
+        - "data/storage"
+        - "data/uploads"
+        - "./secrets"
+      exclude_patterns:
+        - "*.tmp"
+        - "*.log"
+        - "__pycache__"
+        
+    # Configuration backups
+    configuration:
+      enabled: true
+      paths:
+        - "./config"
+        - "./.env"
+        - "./docker-compose.yml"
+        
+    # Application code (optional)
+    code:
+      enabled: false
+      paths:
+        - "./backend"
+        - "./frontend"
+      exclude_patterns:
+        - "*.pyc"
+        - "__pycache__"
+        - "node_modules"
+        - ".git"
+        
+  # Backup verification
+  verification:
+    enabled: true
+    
+    # Integrity checks
+    integrity:
+      checksum: true
+      test_restore: false  # Test restore on separate environment
+      
+    # Notification on verification failure
+    notifications:
+      enabled: true
+      channels:
+        - "email"
+        - "slack"
+        
+  # Compression settings
+  compression:
+    enabled: true
+    algorithm: "gzip"  # gzip, bzip2, xz
+    level: 6  # 1-9, higher = better compression but slower
+    
+  # Encryption settings
+  encryption:
+    enabled: false
+    algorithm: "AES256"
+    key_source: "environment"  # environment, file, kms
+    key_env_var: "BACKUP_ENCRYPTION_KEY"
+    
+  # Monitoring and notifications
+  monitoring:
+    enabled: true
+    
+    # Success notifications
+    success_notifications:
+      enabled: false
+      channels:
+        - "log"
+        
+    # Failure notifications
+    failure_notifications:
+      enabled: true
+      channels:
+        - "log"
+        - "email"
+        - "slack"
+        
+    # Metrics
+    metrics:
+      enabled: true
+      track_size: true
+      track_duration: true
+      track_success_rate: true
+      
+  # Recovery settings
+  recovery:
+    # Point-in-time recovery
+    point_in_time:
+      enabled: true
+      granularity: "1h"  # Minimum recovery granularity
+      
+    # Recovery testing
+    testing:
+      enabled: false
+      schedule: "0 3 * * 0"  # Weekly on Sunday at 3 AM
+      environment: "test"
+      
+  # Cleanup settings
+  cleanup:
+    enabled: true
+    
+    # Temporary files cleanup
+    temp_files:
+      enabled: true
+      max_age: "24h"
+      
+    # Failed backup cleanup
+    failed_backups:
+      enabled: true
+      max_age: "7d"
+
+# Environment-specific configurations
+environments:
+  development:
+    schedule:
+      full_backup: "0 */12 * * *"  # Every 12 hours
+    retention:
+      daily_backups: 7
+    storage:
+      local:
+        max_size: "1GB"
+    targets:
+      code:
+        enabled: false
+        
+  staging:
+    schedule:
+      full_backup: "0 1 * * *"  # Daily at 1 AM
+    retention:
+      daily_backups: 14
+    storage:
+      local:
+        max_size: "5GB"
+    verification:
+      test_restore: true
+      
+  production:
+    schedule:
+      full_backup: "0 2 * * *"  # Daily at 2 AM
+      incremental_backup: "0 */4 * * *"  # Every 4 hours
+    retention:
+      daily_backups: 30
+      weekly_backups: 12
+      monthly_backups: 12
+    storage:
+      cloud:
+        enabled: true
+    encryption:
+      enabled: true
+    verification:
+      test_restore: true
+    monitoring:
+      success_notifications:
+        enabled: true

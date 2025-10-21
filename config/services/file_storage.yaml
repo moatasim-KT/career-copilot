@@ -1,0 +1,29 @@
+service: file_storage
+enabled: true
+type: local
+local:
+  base_path: data/storage
+  max_file_size_mb: 50
+  allowed_extensions:
+  - .pdf
+  - .docx
+  - .txt
+  create_subdirs: true
+cloud:
+  enabled: false
+  provider: s3
+  bucket: contract-analyzer-files
+  region: us-west-2
+cleanup:
+  enabled: true
+  temp_file_ttl: 3600
+  orphaned_file_cleanup: true
+environments:
+  development:
+    local:
+      max_file_size_mb: 10
+  production:
+    local:
+      max_file_size_mb: 100
+    cloud:
+      enabled: true

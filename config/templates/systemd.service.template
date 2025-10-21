@@ -1,0 +1,34 @@
+[Unit]
+Description=Contract Analyzer Application
+After=network.target
+Wants=network.target
+
+[Service]
+Type=simple
+User=contract-analyzer
+Group=contract-analyzer
+WorkingDirectory=/opt/contract-analyzer
+Environment=ENVIRONMENT=production
+Environment=PYTHONPATH=/opt/contract-analyzer
+ExecStart=/opt/contract-analyzer/venv/bin/python start_production.py
+ExecReload=/bin/kill -HUP $MAINPID
+KillMode=mixed
+Restart=always
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+
+# Security
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/opt/contract-analyzer/data /opt/contract-analyzer/logs
+
+# Resource Limits
+LimitNOFILE=65536
+MemoryMax=4G
+CPUQuota=400%
+
+[Install]
+WantedBy=multi-user.target

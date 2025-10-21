@@ -1,0 +1,116 @@
+{% extends "base.html" %}
+
+{% block title %}New Job Matches - Career Co-Pilot{% endblock %}
+
+{% block header_title %}🎯 New Job Matches Found!{% endblock %}
+{% block header_subtitle %}{{ job_count }} new job{{ 's' if job_count != 1 else '' }} matching your criteria{% endblock %}
+
+{% block content %}
+<div class="greeting">
+    Great news, {{ user_name }}! 🎉
+</div>
+
+<p style="margin-bottom: 25px; color: #4a5568; font-size: 16px;">
+    We found {{ job_count }} new job{{ 's' if job_count != 1 else '' }} that match your criteria. These opportunities align with your skills and preferences.
+</p>
+
+<!-- Match Criteria -->
+{% if match_criteria %}
+<div class="section">
+    <h2 class="section-title">🔍 Your Search Criteria</h2>
+    <div style="background-color: #f7fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 15px;">
+        {% if match_criteria.skills %}
+        <div style="margin-bottom: 10px;">
+            <strong style="color: #2d3748;">Skills:</strong> {{ match_criteria.skills|join(', ') }}
+        </div>
+        {% endif %}
+        {% if match_criteria.locations %}
+        <div style="margin-bottom: 10px;">
+            <strong style="color: #2d3748;">Locations:</strong> {{ match_criteria.locations|join(', ') }}
+        </div>
+        {% endif %}
+        {% if match_criteria.experience_level %}
+        <div style="margin-bottom: 10px;">
+            <strong style="color: #2d3748;">Experience Level:</strong> {{ match_criteria.experience_level }}
+        </div>
+        {% endif %}
+        {% if match_criteria.job_types %}
+        <div>
+            <strong style="color: #2d3748;">Job Types:</strong> {{ match_criteria.job_types|join(', ') }}
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endif %}
+
+<!-- New Job Matches -->
+<div class="section">
+    <h2 class="section-title">💼 New Opportunities</h2>
+    
+    {% for job in new_jobs %}
+    <div class="job-card">
+        <div class="job-title">{{ job.title }}</div>
+        <div class="job-company">{{ job.company }}</div>
+        {% if job.location %}
+        <div class="job-location">📍 {{ job.location }}</div>
+        {% endif %}
+        
+        {% if job.salary_range %}
+        <div style="color: #38a169; font-weight: 600; margin-bottom: 10px;">
+            💰 {{ job.salary_range.min|currency }} - {{ job.salary_range.max|currency }}
+        </div>
+        {% endif %}
+        
+        {% if job.match_score %}
+        <div class="job-match-score">{{ (job.match_score * 100)|round }}% Match</div>
+        {% endif %}
+        
+        {% if job.description %}
+        <div class="job-description">
+            {{ job.description|truncate_words(30) }}
+        </div>
+        {% endif %}
+        
+        {% if job.tech_stack %}
+        <div style="margin-bottom: 15px;">
+            <strong style="font-size: 14px; color: #2d3748;">Tech Stack:</strong>
+            <ul class="skill-list">
+                {% for skill in job.tech_stack[:8] %}
+                <li class="skill-item">{{ skill }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
+        
+        {% if job.posted_date %}
+        <div style="color: #718096; font-size: 14px; margin-bottom: 15px;">
+            Posted: {{ job.posted_date|date('%B %d, %Y') }}
+        </div>
+        {% endif %}
+        
+        <div style="text-align: right;">
+            {% if job.link %}
+            <a href="{{ job.link }}" class="btn" style="margin-right: 10px;">Apply Now</a>
+            {% endif %}
+            <a href="{{ jobs_url }}?job={{ job.id }}" class="btn btn-secondary">View Details</a>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- Call to Action -->
+<div class="section" style="text-align: center; background-color: #f0f4ff; border-radius: 8px; padding: 25px;">
+    <h3 style="color: #2d3748; margin-bottom: 15px;">Ready to apply? 🚀</h3>
+    <p style="color: #4a5568; margin-bottom: 20px;">
+        Don't wait too long - great opportunities move fast! Review these matches and apply to the ones that excite you most.
+    </p>
+    <a href="{{ jobs_url }}" class="btn" style="margin-right: 15px;">View All Jobs</a>
+    <a href="{{ dashboard_url }}" class="btn btn-secondary">Open Dashboard</a>
+</div>
+
+<div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e2e8f0; text-align: center;">
+    <p style="color: #718096; font-size: 14px;">
+        💡 <strong>Quick Tip:</strong> Customize your application for each role to increase your chances of getting noticed!
+    </p>
+</div>
+{% endblock %}

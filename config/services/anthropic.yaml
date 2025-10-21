@@ -1,0 +1,21 @@
+service: anthropic
+enabled: false
+model: claude-3-sonnet-20240229
+temperature: 0.1
+max_tokens: 4000
+timeout: 60
+api_version: '2023-06-01'
+retry:
+  max_attempts: 3
+  backoff_factor: 2
+  initial_delay: 1.0
+rate_limit:
+  requests_per_minute: 50
+  tokens_per_minute: 40000
+environments:
+  development:
+    enabled: false
+  production:
+    enabled: false
+  testing:
+    enabled: false

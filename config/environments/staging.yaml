@@ -1,0 +1,193 @@
+# Staging Environment Configuration
+# Production-like settings with some debugging capabilities
+
+# Configuration File References
+config_files:
+  base: "config/base.yaml"
+  backend: "config/backend.yaml"
+  frontend: "config/frontend.yaml"
+  services: "config/services/"
+  deployment: "config/deployment.yaml"
+  monitoring: "config/monitoring.yaml"
+
+# Application Configuration
+app:
+  debug: false
+  environment: "staging"
+
+# API Configuration
+api:
+  debug: false
+  workers: 2
+  timeout: 180
+  host: "0.0.0.0"
+  port: 8002
+
+# Database Configuration
+database:
+  url: "sqlite+aiosqlite:///./data/contract_analyzer_staging.db"
+  echo: false
+  pool_size: 10
+  max_overflow: 20
+  pool_recycle: 1800  # 30 minutes
+  pool_pre_ping: true
+  migrations:
+    auto_migrate: false
+    backup_before_migrate: true
+
+# AI/LLM Configuration
+ai:
+  openai:
+    model: "gpt-4"  # Use production model
+    timeout: 90
+    temperature: 0.1
+    max_tokens: 4000
+  groq:
+    enabled: true
+    model: "llama-3.1-8b-instant"
+    timeout: 60
+  gemini:
+    enabled: true
+    timeout: 60
+  anthropic:
+    enabled: false
+  ollama:
+    enabled: false
+
+# Security Configuration (Production-like)
+security:
+  cors_origins:
+    - "https://staging.contract-analyzer.com"
+    - "https://staging-api.contract-analyzer.com"
+  jwt:
+    expiration_hours: 24
+    algorithm: "HS256"
+  rate_limiting:
+    enabled: true
+    requests_per_minute: 200
+    burst: 400
+  file_upload:
+    max_size_mb: 25
+    scan_files: true
+    allowed_types: ["pdf", "docx", "txt"]
+  encryption:
+    enabled: true
+    algorithm: "AES-256-GCM"
+  audit_logging: true
+  ip_filtering: false
+  csrf_protection: true
+
+# External Services (Production services with staging credentials)
+external_services:
+  docusign:
+    enabled: true
+    sandbox_enabled: true  # Still use sandbox in staging
+    timeout: 60
+    max_retries: 3
+  slack:
+    enabled: true
+    timeout: 30
+  gmail:
+    enabled: true
+    timeout: 30
+  google_drive:
+    enabled: true
+    timeout: 60
+
+# Monitoring (Enabled for staging)
+monitoring:
+  enabled: true
+  prometheus:
+    enabled: true
+    port: 9090
+  opentelemetry:
+    enabled: true
+  health_checks:
+    interval: 30
+    timeout: 15
+    retries: 3
+  alerting:
+    enabled: true
+    channels: ["slack"]
+
+# Logging Configuration
+logging:
+  level: "INFO"
+  structured: true
+  file_path: "logs/staging.log"
+  rotation:
+    max_size: "50MB"
+    backup_count: 5
+  audit_log: "logs/audit.log"
+
+# Feature Flags (Conservative approach)
+features:
+  enhanced_analysis: true
+  real_time_updates: true
+  batch_processing: true
+  advanced_security: true
+  experimental_ai: false
+  beta_ui: false
+  performance_monitoring: true
+  audit_logging: true
+  multi_tenant: false
+  api_versioning: true
+
+# Cache Configuration
+cache:
+  redis:
+    enabled: true
+    host: "staging-redis"
+    port: 6379
+    db: 0
+    max_connections: 10
+    timeout: 10
+    password_required: false
+  memory:
+    enabled: true
+    max_size: 2000
+    ttl: 3600
+
+# Background Tasks
+background_tasks:
+  enabled: true
+  max_workers: 4
+  queue_size: 200
+  retry_attempts: 5
+  retry_delay: 1.5
+
+# Frontend Configuration
+frontend:
+  streamlit:
+    server:
+      port: 8501
+      enableCORS: false
+      maxUploadSize: 35
+    logger:
+      level: "INFO"
+  ui:
+    enable_animations: true
+  security:
+    scan_file_content: true
+    enable_rate_limiting: true
+    max_requests_per_minute: 45
+    session_timeout_minutes: 45
+  features:
+    beta_features: false
+
+# Staging-specific settings
+staging:
+  data_retention_days: 30
+  performance_testing: true
+  load_testing: false
+  security_scanning: true
+  backup_frequency: "daily"
+  deployment:
+    replicas:
+      backend: 2
+      frontend: 1
+    ssl:
+      enabled: true
+    backup:
+      enabled: true
+      retention_days: 14

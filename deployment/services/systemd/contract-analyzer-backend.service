@@ -1,0 +1,55 @@
+[Unit]
+Description=Contract Analyzer Backend API
+Documentation=https://github.com/your-org/contract-analyzer
+After=network.target postgresql.service redis.service
+Wants=postgresql.service redis.service
+Requires=network.target
+
+[Service]
+Type=exec
+User=contract-analyzer
+Group=contract-analyzer
+WorkingDirectory=/opt/contract-analyzer
+Environment=PATH=/opt/contract-analyzer/venv/bin:/usr/local/bin:/usr/bin:/bin
+EnvironmentFile=/etc/contract-analyzer/environment
+ExecStartPre=/bin/bash -c 'cd /opt/contract-analyzer && source venv/bin/activate && python -c "import sys; sys.path.insert(0, \"/opt/contract-analyzer\"); from backend.app.core.config import get_settings; get_settings()" || echo "Config validation skipped"'
+ExecStart=/bin/bash -c 'cd /opt/contract-analyzer && source venv/bin/activate && exec uvicorn backend.app.main:app --host 0.0.0.0 --port 8000 --workers 4'
+ExecReload=/bin/kill -HUP $MAINPID
+KillMode=mixed
+KillSignal=SIGTERM
+TimeoutStopSec=30
+Restart=always
+RestartSec=10
+StartLimitInterval=60
+StartLimitBurst=3
+
+# Security settings
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectSystem=strict
+ProtectHome=yes
+ReadWritePaths=/opt/contract-analyzer /var/lib/contract-analyzer /var/log/contract-analyzer /var/run/contract-analyzer
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectControlGroups=yes
+RestrictRealtime=yes
+RestrictNamespaces=yes
+LockPersonality=yes
+MemoryDenyWriteExecute=yes
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+SystemCallFilter=@system-service
+SystemCallErrorNumber=EPERM
+
+# Resource limits
+LimitNOFILE=65536
+LimitNPROC=4096
+MemoryMax=2G
+CPUQuota=100%
+
+# Logging
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=contract-analyzer-backend
+
+[Install]
+WantedBy=multi-user.target

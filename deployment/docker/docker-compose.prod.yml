@@ -1,0 +1,142 @@
+# Docker Compose Production Configuration
+# Use this file for production deployments: docker-compose -f docker-compose.yml -f docker-compose.prod.yml up
+
+services:
+  # Production backend configuration
+  backend:
+    restart: always
+    environment:
+      - ENVIRONMENT=production
+      - LOG_LEVEL=INFO
+      - API_DEBUG=false
+      - WORKERS=4
+    # Remove volume mounts for production (code is baked into image)
+    volumes:
+      - ./data:/backend/app/data
+      - ./logs:/backend/app/logs
+      - ./data/storage:/backend/app/storage
+      - ./secrets:/backend/app/secrets:ro
+      - chroma_data:/backend/app/data/chroma
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+          cpus: '1.0'
+        reservations:
+          memory: 1G
+          cpus: '0.5'
+      replicas: 1
+      update_config:
+        parallelism: 1
+        delay: 10s
+        order: stop-first
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+
+  # Production frontend configuration
+  frontend:
+    restart: always
+    environment:
+      - STREAMLIT_ENV=production
+      - LOG_LEVEL=INFO
+    # Remove volume mounts for production (code is baked into image)
+    volumes:
+      - ./logs:/backend/app/logs
+      - ./data:/backend/app/data
+      - ./data/storage:/backend/app/storage
+      - frontend_cache:/backend/app/cache
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: '0.5'
+        reservations:
+          memory: 512M
+          cpus: '0.25'
+      replicas: 1
+      update_config:
+        parallelism: 1
+        delay: 10s
+        order: stop-first
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+
+  # Production database configuration
+  db:
+    restart: always
+    # Don't expose ports in production
+    ports: []
+    environment:
+      - POSTGRES_DB=contract_analyzer
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: '0.5'
+        reservations:
+          memory: 512M
+          cpus: '0.25'
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+
+  # Production Redis configuration
+  redis:
+    restart: always
+    # Don't expose ports in production
+    ports: []
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: '0.25'
+        reservations:
+          memory: 256M
+          cpus: '0.1'
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+
+  # Production ChromaDB configuration
+  chromadb:
+    restart: always
+    # Don't expose ports in production
+    ports: []
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: '0.5'
+        reservations:
+          memory: 256M
+          cpus: '0.25'
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+
+  # Production Nginx configuration
+  nginx:
+    restart: always
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          cpus: '0.25'
+        reservations:
+          memory: 128M
+          cpus: '0.1'
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3

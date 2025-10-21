@@ -1,0 +1,28 @@
+service: database
+enabled: true
+type: sqlite
+connection:
+  url: sqlite+aiosqlite:///./data/contract_analyzer.db
+  pool_size: 5
+  max_overflow: 10
+  pool_timeout: 30
+  pool_recycle: 3600
+migrations:
+  auto_migrate: true
+  backup_before_migrate: true
+backup:
+  enabled: true
+  schedule: 0 2 * * *
+  retention_days: 30
+environments:
+  development:
+    connection:
+      url: sqlite+aiosqlite:///./data/contract_analyzer_dev.db
+  production:
+    connection:
+      url: sqlite+aiosqlite:///./data/contract_analyzer_prod.db
+    backup:
+      retention_days: 90
+  testing:
+    connection:
+      url: sqlite+aiosqlite:///./data/contract_analyzer_test.db

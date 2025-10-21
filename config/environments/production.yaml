@@ -1,0 +1,204 @@
+# Production Environment Configuration
+# Optimized for performance, security, and reliability
+
+# Configuration File References
+config_files:
+  base: "config/base.yaml"
+  backend: "config/backend.yaml"
+  frontend: "config/frontend.yaml"
+  services: "config/services/"
+  deployment: "config/deployment.yaml"
+  monitoring: "config/monitoring.yaml"
+
+# Application Configuration
+app:
+  debug: false
+  environment: "production"
+
+# API Configuration
+api:
+  debug: false
+  workers: 8
+  timeout: 300
+  max_request_size: 26214400  # 25MB for production
+  host: "0.0.0.0"
+  port: 8002
+
+# Database Configuration
+database:
+  url: "sqlite+aiosqlite:///./data/contract_analyzer_prod.db"
+  echo: false
+  pool_size: 20
+  max_overflow: 40
+  pool_timeout: 60
+  pool_recycle: 1800  # 30 minutes
+  pool_pre_ping: true
+  migrations:
+    auto_migrate: false  # Manual migrations in production
+    backup_before_migrate: true
+
+# AI/LLM Configuration
+ai:
+  openai:
+    model: "gpt-4"
+    timeout: 120  # Longer timeout for production
+    temperature: 0.1
+    max_tokens: 4000
+  groq:
+    enabled: true
+    model: "llama-3.1-8b-instant"
+    timeout: 60
+  gemini:
+    enabled: true
+    timeout: 60
+  anthropic:
+    enabled: true
+    timeout: 60
+  ollama:
+    enabled: false  # Disable local models in production
+
+# Security Configuration (Maximum security)
+security:
+  cors_origins: []  # Must be set via environment variables
+  jwt:
+    expiration_hours: 8  # Shorter sessions for security
+    algorithm: "HS256"
+  rate_limiting:
+    enabled: true
+    requests_per_minute: 500
+    burst: 1000
+  file_upload:
+    max_size_mb: 25
+    scan_files: true
+    allowed_types: ["pdf", "docx", "txt"]
+  encryption:
+    enabled: true
+    algorithm: "AES-256-GCM"
+  audit_logging: true
+  ip_filtering: true
+  csrf_protection: true
+
+# External Services (Production endpoints)
+external_services:
+  docusign:
+    enabled: true
+    sandbox_enabled: false  # Use production DocuSign
+    timeout: 60
+    max_retries: 5
+  slack:
+    enabled: true
+    timeout: 30
+  gmail:
+    enabled: true
+    timeout: 30
+  google_drive:
+    enabled: true
+    timeout: 60
+
+# Monitoring (Full monitoring stack)
+monitoring:
+  enabled: true
+  prometheus:
+    enabled: true
+    port: 9090
+  opentelemetry:
+    enabled: true
+  health_checks:
+    interval: 30
+    timeout: 10
+    retries: 5
+  alerting:
+    enabled: true
+    channels: ["slack", "email"]
+
+# Logging Configuration (Production logging)
+logging:
+  level: "INFO"
+  structured: true
+  file_path: "logs/production.log"
+  rotation:
+    max_size: "200MB"
+    backup_count: 20
+  audit_log: "logs/audit.log"
+  security_log: "logs/security.log"
+
+# Feature Flags (Stable features only)
+features:
+  enhanced_analysis: true
+  real_time_updates: true
+  batch_processing: true
+  advanced_security: true
+  experimental_ai: false
+  beta_ui: false
+  performance_monitoring: true
+  audit_logging: true
+  multi_tenant: true
+  api_versioning: true
+
+# Cache Configuration (Production Redis)
+cache:
+  redis:
+    enabled: true
+    host: "production-redis"
+    port: 6379
+    db: 0
+    max_connections: 50
+    timeout: 10
+    password_required: true
+  memory:
+    enabled: true
+    max_size: 5000
+    ttl: 7200  # 2 hours
+
+# Background Tasks (High throughput)
+background_tasks:
+  enabled: true
+  max_workers: 16
+  queue_size: 1000
+  retry_attempts: 5
+  retry_delay: 2.0
+
+# Frontend Configuration
+frontend:
+  streamlit:
+    server:
+      port: 8501
+      enableCORS: false
+      maxUploadSize: 25
+    logger:
+      level: "INFO"
+  ui:
+    enable_animations: false
+  security:
+    scan_file_content: true
+    enable_rate_limiting: true
+    max_requests_per_minute: 30
+    session_timeout_minutes: 30
+  features:
+    beta_features: false
+
+# Production-specific settings
+production:
+  ssl_required: true
+  backup_frequency: "hourly"
+  data_retention_days: 365
+  performance_monitoring: true
+  security_scanning: true
+  compliance_logging: true
+  disaster_recovery: true
+  high_availability: true
+  auto_scaling: true
+  resource_limits:
+    memory_mb: 8192
+    cpu_cores: 8
+    disk_gb: 500
+  deployment:
+    replicas:
+      backend: 5
+      frontend: 3
+    ssl:
+      enabled: true
+      protocols: ["TLSv1.3"]
+    backup:
+      enabled: true
+      retention_days: 90

@@ -1,0 +1,34 @@
+{
+  "moved_files": [],
+  "removed_files": [
+    "backend/documentation_validation_report.json",
+    "backend/production_optimization_test_report_20251006_095054.json",
+    "backend/test_error_handling_monitoring_report.json",
+    "backend/cache_validation_report.json",
+    "reports/test-reports/task_12_3_completion_report.json",
+    "reports/test-reports/cost_efficiency_report_20251020_224703.json",
+    "reports/test-reports/jt2_validation_report.json",
+    "reports/test-reports/integration_test_report.json",
+    "reports/test-reports/job_ingestion_test_report_20251021_021147.json",
+    "reports/test-reports/performance_validation_report_20251020_224935.json",
+    "reports/test-reports/recommendation_engine_test_report_1760999664.json",
+    "reports/test-reports/e2e_coverage_report_20241201T120000Z.json",
+    "reports/test-reports/comprehensive_integration_test_report_1761000739.json",
+    "reports/test-reports/migration_report_jt2.json",
+    "reports/test-reports/task_10_2_test_report_1760966608.json",
+    "backend/app/email_templates/skill_gap_report.txt",
+    "reports/validation/task_10_3_implementation_report_1760999434.txt",
+    "reports/test-reports/e2e_implementation_validation_20251020_223113.json",
+    "backend/.pytest_cache",
+    "tests/unit/.pytest_cache"
+  ],
+  "total_moved": 0,
+  "total_removed": 20,
+  "summary": {
+    "tests_consolidated": true,
+    "reports_cleaned": true,
+    "cache_cleaned": true,
+    "directories_organized": true,
+    "artifacts_removed": true
+  }
+}

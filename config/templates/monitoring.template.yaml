@@ -1,0 +1,189 @@
+# Monitoring Configuration Template
+# This file contains templates for monitoring and observability configuration
+
+monitoring:
+  # General monitoring settings
+  enabled: true
+  environment: "${ENVIRONMENT:-development}"
+  
+  # Prometheus configuration
+  prometheus:
+    enabled: "${ENABLE_PROMETHEUS:-true}"
+    host: "${PROMETHEUS_HOST:-0.0.0.0}"
+    port: "${PROMETHEUS_PORT:-9090}"
+    metrics_path: "/metrics"
+    scrape_interval: "15s"
+    evaluation_interval: "15s"
+    
+    # Retention settings
+    retention:
+      time: "15d"
+      size: "1GB"
+    
+    # Alert manager
+    alertmanager:
+      enabled: true
+      host: "${ALERTMANAGER_HOST:-localhost}"
+      port: "${ALERTMANAGER_PORT:-9093}"
+      
+  # Grafana configuration
+  grafana:
+    enabled: "${ENABLE_GRAFANA:-false}"
+    host: "${GRAFANA_HOST:-0.0.0.0}"
+    port: "${GRAFANA_PORT:-3000}"
+    admin_user: "${GRAFANA_ADMIN_USER:-admin}"
+    admin_password: "${GRAFANA_ADMIN_PASSWORD:-admin}"
+    
+    # Dashboard settings
+    dashboards:
+      auto_import: true
+      path: "./monitoring/grafana/dashboards"
+      
+  # Logging configuration
+  logging:
+    level: "${LOG_LEVEL:-INFO}"
+    format: "${LOG_FORMAT:-%(asctime)s - %(name)s - %(levelname)s - %(message)s}"
+    
+    # File logging
+    file:
+      enabled: true
+      path: "${LOG_FILE_PATH:-./logs/app.log}"
+      max_size: "${LOG_ROTATION_SIZE:-100MB}"
+      backup_count: 5
+      
+    # Structured logging
+    structured:
+      enabled: true
+      format: "json"
+      
+    # Log aggregation
+    aggregation:
+      enabled: false
+      endpoint: "${LOG_AGGREGATION_ENDPOINT:-}"
+      
+  # Health checks
+  health_checks:
+    enabled: true
+    interval: "${HEALTH_CHECK_INTERVAL:-60s}"
+    timeout: "${HEALTH_CHECK_TIMEOUT:-30s}"
+    retries: "${HEALTH_CHECK_RETRIES:-3}"
+    
+    # Endpoints to monitor
+    endpoints:
+      - name: "api"
+        url: "http://localhost:${API_PORT:-8002}/health"
+        method: "GET"
+        expected_status: 200
+        
+      - name: "frontend"
+        url: "http://localhost:${STREAMLIT_SERVER_PORT:-8501}"
+        method: "GET"
+        expected_status: 200
+        
+      - name: "database"
+        type: "database"
+        connection_string: "${DATABASE_URL}"
+        
+  # Performance monitoring
+  performance:
+    enabled: true
+    
+    # Application performance monitoring
+    apm:
+      enabled: false
+      service_name: "contract-analyzer"
+      environment: "${ENVIRONMENT:-development}"
+      
+    # Resource monitoring
+    resources:
+      cpu_threshold: 80
+      memory_threshold: 80
+      disk_threshold: 85
+      
+  # Error tracking
+  error_tracking:
+    enabled: true
+    
+    # Sentry configuration (optional)
+    sentry:
+      enabled: false
+      dsn: "${SENTRY_DSN:-}"
+      environment: "${ENVIRONMENT:-development}"
+      
+  # Metrics collection
+  metrics:
+    enabled: true
+    
+    # Custom metrics
+    custom:
+      - name: "contract_analysis_duration"
+        type: "histogram"
+        description: "Time taken to analyze contracts"
+        
+      - name: "api_requests_total"
+        type: "counter"
+        description: "Total API requests"
+        
+      - name: "active_users"
+        type: "gauge"
+        description: "Number of active users"
+        
+  # Alerting rules
+  alerts:
+    enabled: true
+    
+    # Alert rules
+    rules:
+      - name: "high_cpu_usage"
+        condition: "cpu_usage > 80"
+        duration: "5m"
+        severity: "warning"
+        
+      - name: "high_memory_usage"
+        condition: "memory_usage > 80"
+        duration: "5m"
+        severity: "warning"
+        
+      - name: "api_error_rate"
+        condition: "error_rate > 5"
+        duration: "2m"
+        severity: "critical"
+        
+      - name: "service_down"
+        condition: "up == 0"
+        duration: "1m"
+        severity: "critical"
+
+# Environment-specific configurations
+environments:
+  development:
+    logging:
+      level: "DEBUG"
+    health_checks:
+      interval: "30s"
+    alerts:
+      enabled: false
+      
+  staging:
+    logging:
+      level: "INFO"
+    performance:
+      apm:
+        enabled: true
+    alerts:
+      enabled: true
+      
+  production:
+    logging:
+      level: "WARNING"
+      structured:
+        enabled: true
+    performance:
+      apm:
+        enabled: true
+    alerts:
+      enabled: true
+    error_tracking:
+      enabled: true
+      sentry:
+        enabled: true

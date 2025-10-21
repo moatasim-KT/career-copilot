@@ -1,0 +1,160 @@
+# Prometheus Alert Rules for Contract Analyzer
+
+groups:
+  - name: api_performance
+    interval: 30s
+    rules:
+      # API Response Time Alert
+      - alert: HighAPIResponseTime
+        expr: histogram_quantile(0.95, rate(http_request_duration_seconds_bucket[5m])) > 0.5
+        for: 5m
+        labels:
+          severity: warning
+          component: api
+        annotations:
+          summary: "High API response time (p95 > 500ms)"
+          description: "API p95 response time is {{ $value }}s for {{ $labels.endpoint }}"
+
+      # Critical API Response Time
+      - alert: CriticalAPIResponseTime
+        expr: histogram_quantile(0.95, rate(http_request_duration_seconds_bucket[5m])) > 2.0
+        for: 2m
+        labels:
+          severity: critical
+          component: api
+        annotations:
+          summary: "Critical API response time (p95 > 2s)"
+          description: "API p95 response time is {{ $value }}s for {{ $labels.endpoint }}"
+
+      # High Error Rate
+      - alert: HighErrorRate
+        expr: rate(http_requests_total{status=~"5.."}[5m]) > 0.05
+        for: 5m
+        labels:
+          severity: warning
+          component: api
+        annotations:
+          summary: "High error rate detected"
+          description: "Error rate is {{ $value | humanizePercentage }} for {{ $labels.endpoint }}"
+
+  - name: contract_analysis
+    interval: 30s
+    rules:
+      # Slow Contract Analysis
+      - alert: SlowContractAnalysis
+        expr: histogram_quantile(0.95, rate(contract_analysis_duration_seconds_bucket[10m])) > 120
+        for: 10m
+        labels:
+          severity: warning
+          component: analysis
+        annotations:
+          summary: "Contract analysis taking too long (p95 > 2 minutes)"
+          description: "Analysis p95 duration is {{ $value }}s"
+
+      # Failed Contract Analysis
+      - alert: HighAnalysisFailureRate
+        expr: rate(contract_analysis_failures_total[10m]) > 0.1
+        for: 10m
+        labels:
+          severity: critical
+          component: analysis
+        annotations:
+          summary: "High contract analysis failure rate"
+          description: "Analysis failure rate is {{ $value | humanizePercentage }}"
+
+  - name: system_resources
+    interval: 30s
+    rules:
+      # High CPU Usage
+      - alert: HighCPUUsage
+        expr: rate(process_cpu_seconds_total[5m]) > 0.8
+        for: 10m
+        labels:
+          severity: warning
+          component: system
+        annotations:
+          summary: "High CPU usage detected"
+          description: "CPU usage is {{ $value | humanizePercentage }} for {{ $labels.instance }}"
+
+      # High Memory Usage
+      - alert: HighMemoryUsage
+        expr: process_resident_memory_bytes / 1024 / 1024 / 1024 > 1.5
+        for: 10m
+        labels:
+          severity: warning
+          component: system
+        annotations:
+          summary: "High memory usage detected"
+          description: "Memory usage is {{ $value }}GB for {{ $labels.instance }}"
+
+      # Disk Space Low
+      - alert: DiskSpaceLow
+        expr: (node_filesystem_avail_bytes / node_filesystem_size_bytes) < 0.1
+        for: 5m
+        labels:
+          severity: critical
+          component: system
+        annotations:
+          summary: "Disk space running low"
+          description: "Only {{ $value | humanizePercentage }} disk space available on {{ $labels.device }}"
+
+  - name: service_health
+    interval: 30s
+    rules:
+      # Service Down
+      - alert: ServiceDown
+        expr: up == 0
+        for: 2m
+        labels:
+          severity: critical
+          component: infrastructure
+        annotations:
+          summary: "Service is down"
+          description: "{{ $labels.job }} service is down"
+
+      # Database Connection Issues
+      - alert: DatabaseConnectionIssues
+        expr: rate(database_connection_errors_total[5m]) > 0
+        for: 5m
+        labels:
+          severity: critical
+          component: database
+        annotations:
+          summary: "Database connection issues detected"
+          description: "Database connection error rate is {{ $value }}"
+
+      # Redis Connection Issues
+      - alert: RedisConnectionIssues
+        expr: rate(redis_connection_errors_total[5m]) > 0
+        for: 5m
+        labels:
+          severity: warning
+          component: cache
+        annotations:
+          summary: "Redis connection issues detected"
+          description: "Redis connection error rate is {{ $value }}"
+
+  - name: ai_services
+    interval: 30s
+    rules:
+      # High AI Service Latency
+      - alert: HighAIServiceLatency
+        expr: histogram_quantile(0.95, rate(ai_service_request_duration_seconds_bucket[5m])) > 10
+        for: 5m
+        labels:
+          severity: warning
+          component: ai
+        annotations:
+          summary: "High AI service latency"
+          description: "AI service p95 latency is {{ $value }}s for {{ $labels.provider }}"
+
+      # AI Service Rate Limit
+      - alert: AIServiceRateLimit
+        expr: rate(ai_service_rate_limit_errors_total[5m]) > 0
+        for: 2m
+        labels:
+          severity: warning
+          component: ai
+        annotations:
+          summary: "AI service rate limit hit"
+          description: "Rate limit errors for {{ $labels.provider }}: {{ $value }}"

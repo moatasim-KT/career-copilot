@@ -1,0 +1,35 @@
+Congratulations, {{ user_name }}!
+
+APPLICATION CONFIRMED - {{ job_title }} at {{ company }}
+
+Your application for {{ job_title }} at {{ company }} has been successfully submitted on {{ application_date.strftime('%B %d, %Y at %I:%M %p') }}.
+
+APPLICATION DETAILS:
+- Position: {{ job_title }}
+- Company: {{ company }}
+- Applied: {{ application_date.strftime('%B %d, %Y at %I:%M %p') }}
+- Status: ✓ Submitted
+
+{% if next_steps %}
+WHAT'S NEXT:
+Here's what you can expect and what you should do next:
+{% for step in next_steps %}
+- {{ step }}
+{% endfor %}
+{% endif %}
+
+PRO TIPS:
+- Follow up: If you don't hear back within 1-2 weeks, consider sending a polite follow-up email.
+- Stay organized: Keep track of your applications and their status in your dashboard.
+- Keep applying: Don't put all your eggs in one basket - continue applying to other opportunities.
+- Prepare for interviews: Research the company and practice common interview questions.
+
+Keep the momentum going! One application down, but don't stop here. The more you apply, the better your chances of landing your dream job!
+
+Dashboard: {{ dashboard_url }}
+Find More Jobs: {{ jobs_url }}
+
+Success Tip: Most successful job seekers apply to 10-15 positions per week. You're on the right track!
+
+---
+Career Co-Pilot - Your AI-Powered Career Assistant

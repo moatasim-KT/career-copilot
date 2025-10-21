@@ -1,0 +1,55 @@
+[Unit]
+Description=Contract Analyzer Frontend Web Application
+Documentation=https://github.com/your-org/contract-analyzer
+After=network.target contract-analyzer-backend.service
+Wants=contract-analyzer-backend.service
+Requires=network.target
+
+[Service]
+Type=exec
+User=contract-analyzer
+Group=contract-analyzer
+WorkingDirectory=/opt/contract-analyzer/frontend
+Environment=PATH=/opt/contract-analyzer/venv/bin:/usr/local/bin:/usr/bin:/bin
+EnvironmentFile=/etc/contract-analyzer/environment
+ExecStartPre=/bin/bash -c 'cd /opt/contract-analyzer/frontend && source ../venv/bin/activate && python -c "import streamlit; print(streamlit.__version__)" || echo "Streamlit check skipped"'
+ExecStart=/bin/bash -c 'cd /opt/contract-analyzer/frontend && source ../venv/bin/activate && exec streamlit run app.py --server.port 8501 --server.address 0.0.0.0 --server.headless true --server.enableCORS false --server.enableXsrfProtection true'
+ExecReload=/bin/kill -HUP $MAINPID
+KillMode=mixed
+KillSignal=SIGTERM
+TimeoutStopSec=30
+Restart=always
+RestartSec=10
+StartLimitInterval=60
+StartLimitBurst=3
+
+# Security settings
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectSystem=strict
+ProtectHome=yes
+ReadWritePaths=/opt/contract-analyzer /var/lib/contract-analyzer /var/log/contract-analyzer /var/run/contract-analyzer
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectControlGroups=yes
+RestrictRealtime=yes
+RestrictNamespaces=yes
+LockPersonality=yes
+MemoryDenyWriteExecute=yes
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+SystemCallFilter=@system-service
+SystemCallErrorNumber=EPERM
+
+# Resource limits
+LimitNOFILE=65536
+LimitNPROC=2048
+MemoryMax=1G
+CPUQuota=50%
+
+# Logging
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=contract-analyzer-frontend
+
+[Install]
+WantedBy=multi-user.target

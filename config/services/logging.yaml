@@ -1,0 +1,35 @@
+service: logging
+enabled: true
+level: INFO
+format: json
+handlers:
+  console:
+    enabled: true
+    level: INFO
+  file:
+    enabled: true
+    level: INFO
+    path: logs/app.log
+    rotation: daily
+    retention: 30
+  audit:
+    enabled: true
+    level: INFO
+    path: logs/audit/audit.log
+structured:
+  enabled: true
+  include_trace_id: true
+  include_user_id: true
+environments:
+  development:
+    level: DEBUG
+    handlers:
+      console:
+        level: DEBUG
+  production:
+    level: INFO
+    handlers:
+      file:
+        retention: 90
+  testing:
+    level: WARNING

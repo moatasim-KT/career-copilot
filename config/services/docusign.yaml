@@ -1,0 +1,54 @@
+# DocuSign Service Configuration
+service: docusign
+enabled: true
+
+# Environment Configuration
+sandbox_enabled: true
+production_enabled: false
+
+# API Endpoints
+sandbox_base_url: "https://demo.docusign.net/restapi"
+production_base_url: "https://www.docusign.net/restapi"
+auth_base_url: "https://account-d.docusign.com"
+
+# OAuth Configuration
+oauth:
+  scopes: ["signature", "impersonation"]
+  grant_type: "authorization_code"
+  response_type: "code"
+
+# API Configuration
+api:
+  timeout: 30
+  max_retries: 3
+  retry_delay: 1.0
+  
+# Rate Limiting
+rate_limit:
+  requests_per_hour: 1000
+  burst_limit: 100
+
+# Webhook Configuration
+webhook:
+  enabled: true
+  events: ["envelope-completed", "envelope-declined", "envelope-voided"]
+  
+# Document Configuration
+document:
+  max_size_mb: 25
+  allowed_formats: ["pdf", "docx", "doc"]
+  
+# Environment Overrides
+environments:
+  development:
+    enabled: false
+    sandbox_enabled: true
+    production_enabled: false
+  staging:
+    sandbox_enabled: true
+    production_enabled: false
+  production:
+    sandbox_enabled: false
+    production_enabled: true
+  testing:
+    enabled: false

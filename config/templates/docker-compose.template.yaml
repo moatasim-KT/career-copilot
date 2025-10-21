@@ -1,0 +1,83 @@
+# Docker Compose Configuration Template
+# This template can be customized for different environments
+
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: deployment/docker/Dockerfile.backend
+    ports:
+      - "${API_PORT:-8002}:8002"
+    environment:
+      - ENVIRONMENT=${ENVIRONMENT:-development}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - GROQ_API_KEY=${GROQ_API_KEY}
+      - DATABASE_URL=${DATABASE_URL:-sqlite+aiosqlite:///./data/contract_analyzer.db}
+    volumes:
+      - ./data:/backend/app/data
+      - ./logs:/backend/app/logs
+      - ./config:/backend/app/config
+    depends_on:
+      - redis
+      - prometheus
+    networks:
+      - contract-analyzer
+
+  frontend:
+    build:
+      context: .
+      dockerfile: deployment/docker/Dockerfile.frontend
+    ports:
+      - "${FRONTEND_PORT:-8501}:8501"
+    environment:
+      - BACKEND_URL=http://backend:8002
+      - ENVIRONMENT=${ENVIRONMENT:-development}
+    depends_on:
+      - backend
+    networks:
+      - contract-analyzer
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - contract-analyzer
+
+  prometheus:
+    image: prom/prometheus:latest
+    ports:
+      - "${PROMETHEUS_PORT:-9090}:9090"
+    volumes:
+      - ./monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    networks:
+      - contract-analyzer
+
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - "${GRAFANA_PORT:-3000}:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD:-admin}
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./monitoring/grafana/dashboards:/etc/grafana/provisioning/dashboards
+      - ./monitoring/grafana/datasources:/etc/grafana/provisioning/datasources
+    depends_on:
+      - prometheus
+    networks:
+      - contract-analyzer
+
+volumes:
+  redis_data:
+  prometheus_data:
+  grafana_data:
+
+networks:
+  contract-analyzer:
+    driver: bridge

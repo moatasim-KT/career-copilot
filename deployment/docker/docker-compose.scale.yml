@@ -1,0 +1,105 @@
+# Docker Compose configuration for horizontal scaling
+# Use with: docker-compose -f docker-compose.yml -f docker-compose.scale.yml up --scale worker=3
+
+services:
+  # Analysis Worker - Horizontally scalable
+  worker:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.production
+    environment:
+      # Database Configuration
+      DATABASE_URL: postgresql://postgres:${POSTGRES_PASSWORD:-postgres}@db:5432/contract_analyzer
+      DATABASE_HOST: db
+      DATABASE_PORT: 5432
+      
+      # Redis Configuration
+      REDIS_URL: redis://redis:6379/0
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      
+      # Application Configuration
+      ENVIRONMENT: production
+      WORKER_MODE: true
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+      
+      # AI/LLM Configuration
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+      GROQ_API_KEY: ${GROQ_API_KEY}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY}
+      
+      # Worker Configuration
+      WORKER_CONCURRENCY: ${WORKER_CONCURRENCY:-2}
+      WORKER_PREFETCH: ${WORKER_PREFETCH:-4}
+    volumes:
+      - ./data:/backend/app/data
+      - ./logs:/backend/app/logs
+      - ./data/storage:/backend/app/storage
+      - chroma_data:/backend/app/data/chroma
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - contract-analyzer-network
+    restart: unless-stopped
+    command: ["python", "-m", "app.workers.analysis_worker"]
+    healthcheck:
+      test: ["CMD", "python", "-c", "import sys; sys.exit(0)"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+          cpus: '1.0'
+        reservations:
+          memory: 1G
+          cpus: '0.5'
+      replicas: 3  # Default number of workers
+      update_config:
+        parallelism: 1
+        delay: 10s
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+
+  # Load Balancer for backend API
+  haproxy:
+    image: haproxy:latest
+    container_name: contract-analyzer-haproxy
+    volumes:
+      - ./haproxy/haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro
+    ports:
+      - "8000:8000"
+      - "8404:8404"  # Stats page
+    depends_on:
+      - backend
+    networks:
+      - contract-analyzer-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8404/stats"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          cpus: '0.25'
+        reservations:
+          memory: 128M
+          cpus: '0.1'
+
+volumes:
+  chroma_data:
+    external: true
+
+networks:
+  contract-analyzer-network:
+    external: true

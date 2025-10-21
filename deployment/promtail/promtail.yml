@@ -1,0 +1,44 @@
+# Promtail Configuration for Log Aggregation
+
+server:
+  http_listen_port: 9080
+  grpc_listen_port: 0
+
+positions:
+  filename: /tmp/positions.yaml
+
+clients:
+  - url: http://loki:3100/loki/api/v1/push
+
+scrape_configs:
+  - job_name: career-copilot-backend
+    static_configs:
+      - targets:
+          - localhost
+        labels:
+          job: career-copilot-backend
+          __path__: /var/log/app/backend/*.log
+
+  - job_name: career-copilot-celery
+    static_configs:
+      - targets:
+          - localhost
+        labels:
+          job: career-copilot-celery
+          __path__: /var/log/app/celery/*.log
+
+  - job_name: career-copilot-nginx
+    static_configs:
+      - targets:
+          - localhost
+        labels:
+          job: career-copilot-nginx
+          __path__: /var/log/nginx/*.log
+
+  - job_name: career-copilot-postgres
+    static_configs:
+      - targets:
+          - localhost
+        labels:
+          job: career-copilot-postgres
+          __path__: /var/log/app/postgres/*.log

@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contract Analysis Report</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f8f9fa;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 0;
+            background-color: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+            overflow: hidden;
+        }
+        .header {
+            background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+            color: #ffffff;
+            padding: 30px;
+            text-align: center;
+            position: relative;
+        }
+        .header::before {
+            content: "📋";
+            font-size: 48px;
+            display: block;
+            margin-bottom: 10px;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 28px;
+            font-weight: 700;
+        }
+        .header .subtitle {
+            font-size: 16px;
+            opacity: 0.9;
+            margin-top: 8px;
+        }
+        .content {
+            padding: 30px;
+        }
+        .contract-info {
+            background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+            border: 1px solid #90caf9;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 25px;
+        }
+        .contract-name {
+            font-size: 24px;
+            font-weight: bold;
+            color: #1565c0;
+            margin-bottom: 10px;
+        }
+        .contract-meta {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+        .meta-item {
+            background-color: rgba(255,255,255,0.7);
+            padding: 10px;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+        .meta-label {
+            font-weight: 600;
+            color: #1565c0;
+        }
+        .summary {
+            margin-bottom: 30px;
+        }
+        .summary h2 {
+            color: #007bff;
+            font-size: 22px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+        }
+        .summary h2::before {
+            content: "🎯";
+            margin-right: 10px;
+        }
+        .risk-score-section {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 25px 0;
+            padding: 25px;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border-radius: 12px;
+            border: 2px solid {{ risk_score | risk_level | risk_color }};
+        }
+        .risk-score {
+            font-size: 48px;
+            font-weight: 900;
+            color: {{ risk_score | risk_level | risk_color }};
+            margin-right: 25px;
+        }
+        .risk-details {
+            text-align: left;
+        }
+        .risk-level {
+            font-size: 24px;
+            font-weight: bold;
+            color: {{ risk_score | risk_level | risk_color }};
+            margin-bottom: 5px;
+        }
+        .risk-description {
+            color: #6c757d;
+            font-size: 16px;
+        }
+        .analysis-summary {
+            background-color: #f8f9fa;
+            border-left: 4px solid #007bff;
+            padding: 20px;
+            border-radius: 0 8px 8px 0;
+            margin: 20px 0;
+            font-style: italic;
+        }
+        .clauses {
+            margin-bottom: 30px;
+        }
+        .clauses h2 {
+            color: #dc3545;
+            font-size: 22px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+        }
+        .clauses h2::before {
+            content: "⚠️";
+            margin-right: 10px;
+        }
+        .clause {
+            margin-bottom: 20px;
+            padding: 20px;
+            border-left: 5px solid;
+            background-color: #f9f9f9;
+            border-radius: 0 8px 8px 0;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .clause-critical {
+            border-left-color: #dc3545;
+            background-color: #f8d7da;
+        }
+        .clause-high {
+            border-left-color: #fd7e14;
+            background-color: #fff3cd;
+        }
+        .clause-medium {
+            border-left-color: #ffc107;
+            background-color: #fff3cd;
+        }
+        .clause-low {
+            border-left-color: #28a745;
+            background-color: #d4edda;
+        }
+        .clause-title {
+            font-weight: bold;
+            font-size: 16px;
+            margin-bottom: 8px;
+            color: #495057;
+        }
+        .clause-text {
+            font-style: italic;
+            color: #6c757d;
+            margin: 10px 0;
+            padding: 10px;
+            background-color: rgba(255,255,255,0.7);
+            border-radius: 4px;
+        }
+        .clause-risk {
+            font-size: 14px;
+            font-weight: 600;
+            margin-top: 10px;
+        }
+        .recommendations {
+            background: linear-gradient(135deg, #f0fff4 0%, #c6f6d5 100%);
+            border: 1px solid #9ae6b4;
+            border-radius: 12px;
+            padding: 25px;
+            margin: 30px 0;
+        }
+        .recommendations h2 {
+            color: #2f855a;
+            font-size: 22px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+        }
+        .recommendations h2::before {
+            content: "💡";
+            margin-right: 10px;
+        }
+        .recommendation-item {
+            background-color: rgba(255,255,255,0.8);
+            padding: 15px;
+            margin-bottom: 12px;
+            border-radius: 8px;
+            border-left: 4px solid #48bb78;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        .recommendation-priority {
+            font-size: 12px;
+            font-weight: bold;
+            color: #2f855a;
+            text-transform: uppercase;
+            margin-bottom: 5px;
+        }
+        .action-buttons {
+            text-align: center;
+            margin: 30px 0;
+            padding: 20px;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+        }
+        .btn {
+            display: inline-block;
+            padding: 14px 28px;
+            margin: 0 10px;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+            color: #ffffff;
+        }
+        .btn-secondary {
+            background-color: #6c757d;
+            color: #ffffff;
+        }
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        .footer {
+            background-color: #f8f9fa;
+            padding: 25px;
+            text-align: center;
+            border-top: 1px solid #dee2e6;
+        }
+        .footer-text {
+            font-size: 14px;
+            color: #6c757d;
+            margin-bottom: 10px;
+        }
+        .footer-links {
+            font-size: 12px;
+            color: #adb5bd;
+        }
+        .footer-links a {
+            color: #007bff;
+            text-decoration: none;
+            margin: 0 10px;
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        .stat-card {
+            background-color: #ffffff;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .stat-number {
+            font-size: 24px;
+            font-weight: bold;
+            color: #007bff;
+        }
+        .stat-label {
+            font-size: 12px;
+            color: #6c757d;
+            text-transform: uppercase;
+        }
+        @media (max-width: 600px) {
+            .container {
+                margin: 10px;
+                border-radius: 8px;
+            }
+            .header, .content {
+                padding: 20px;
+            }
+            .risk-score-section {
+                flex-direction: column;
+                text-align: center;
+            }
+            .risk-score {
+                margin-right: 0;
+                margin-bottom: 10px;
+            }
+            .contract-meta {
+                grid-template-columns: 1fr;
+            }
+            .btn {
+                display: block;
+                margin: 10px 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Contract Analysis Report</h1>
+            <div class="subtitle">Comprehensive AI-powered contract analysis</div>
+        </div>
+        
+        <div class="content">
+            <div class="contract-info">
+                <div class="contract-name">{{ contract_name }}</div>
+                <div class="contract-meta">
+                    <div class="meta-item">
+                        <div class="meta-label">Uploaded</div>
+                        <div>{{ upload_date | date('%B %d, %Y') }}</div>
+                    </div>
+                    <div class="meta-item">
+                        <div class="meta-label">Analyzed</div>
+                        <div>{{ current_datetime | date('%B %d, %Y at %I:%M %p') }}</div>
+                    </div>
+                    <div class="meta-item">
+                        <div class="meta-label">File Size</div>
+                        <div>{{ file_size | filesizeformat }}</div>
+                    </div>
+                    <div class="meta-item">
+                        <div class="meta-label">Processing Time</div>
+                        <div>{{ processing_time }}s</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="summary">
+                <h2>Risk Assessment</h2>
+                <div class="risk-score-section">
+                    <div class="risk-score">{{ risk_score }}/10</div>
+                    <div class="risk-details">
+                        <div class="risk-level">{{ risk_score | risk_level }} Risk</div>
+                        <div class="risk-description">
+                            Based on analysis of {{ total_clauses }} clauses and {{ total_pages }} pages
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-number">{{ num_risky_clauses }}</div>
+                        <div class="stat-label">Risky Clauses</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number">{{ num_recommendations }}</div>
+                        <div class="stat-label">Recommendations</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number">{{ confidence_score }}%</div>
+                        <div class="stat-label">Confidence</div>
+                    </div>
+                </div>
+                
+                <div class="analysis-summary">
+                    {{ analysis_summary }}
+                </div>
+            </div>
+            
+            <div class="clauses">
+                <h2>Risky Clauses ({{ num_risky_clauses }})</h2>
+                {% for clause in risky_clauses %}
+                <div class="clause clause-{{ clause.risk_level | lower }}">
+                    <div class="clause-title">{{ clause.title }}</div>
+                    <div class="clause-text">"{{ clause.text | truncate(200) }}"</div>
+                    <div class="clause-risk" style="color: {{ clause.risk_level | risk_color }};">
+                        Risk Level: {{ clause.risk_level }} - {{ clause.explanation }}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            
+            <div class="recommendations">
+                <h2>Recommendations</h2>
+                {% for recommendation in recommendations %}
+                <div class="recommendation-item">
+                    <div class="recommendation-priority">{{ recommendation.priority }} Priority</div>
+                    <div>{{ recommendation.text }}</div>
+                </div>
+                {% endfor %}
+            </div>
+            
+            <div class="action-buttons">
+                <a href="{{ review_url }}" class="btn btn-primary">Review in Dashboard</a>
+                <a href="{{ download_url }}" class="btn btn-secondary">Download Full Report</a>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <div class="footer-text">
+                This analysis was generated by Contract Analyzer AI on {{ current_datetime | date('%B %d, %Y at %I:%M %p') }}
+            </div>
+            <div class="footer-text">
+                Analysis ID: {{ tracking_id }} | Confidence Score: {{ confidence_score }}%
+            </div>
+            <div class="footer-links">
+                <a href="{{ unsubscribe_url }}">Unsubscribe</a> |
+                <a href="{{ support_url }}">Contact Support</a> |
+                <a href="{{ privacy_url }}">Privacy Policy</a>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

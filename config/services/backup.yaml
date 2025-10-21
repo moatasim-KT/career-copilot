@@ -1,0 +1,128 @@
+# Backup Service Configuration
+service: backup
+enabled: true
+
+# Backup Schedule
+schedule:
+  enabled: true
+  cron: "0 2 * * *"  # Daily at 2 AM
+  timezone: "UTC"
+  
+# Backup Targets
+targets:
+  # Database Backup
+  database:
+    enabled: true
+    type: "sqlite"
+    source: "data/contract_analyzer.db"
+    compression: true
+    
+  # Vector Database Backup
+  vector_db:
+    enabled: true
+    type: "chromadb"
+    source: "data/chroma"
+    compression: true
+    
+  # File Storage Backup
+  files:
+    enabled: true
+    source: "data/storage"
+    exclude_patterns:
+      - "*.tmp"
+      - "*.log"
+    compression: true
+    
+  # Configuration Backup
+  config:
+    enabled: true
+    source: "./config"
+    exclude_patterns:
+      - "*.pyc"
+      - "__pycache__"
+    compression: false
+    
+  # Logs Backup (Optional)
+  logs:
+    enabled: false
+    source: "./logs"
+    retention_days: 7
+    compression: true
+    
+# Storage Configuration
+storage:
+  # Local Storage
+  local:
+    enabled: true
+    path: "data/backups"
+    retention_days: 30
+    max_size_gb: 10
+    
+  # Cloud Storage (Optional)
+  cloud:
+    enabled: false
+    provider: "s3"  # s3, gcs, azure
+    bucket: "contract-analyzer-backups"
+    region: "us-west-2"
+    encryption: true
+    
+# Backup Verification
+verification:
+  enabled: true
+  test_restore: false
+  checksum_validation: true
+  
+# Notification
+notification:
+  enabled: true
+  on_success: false
+  on_failure: true
+  channels:
+    - "slack"
+    - "email"
+    
+# Retention Policy
+retention:
+  daily: 7    # Keep 7 daily backups
+  weekly: 4   # Keep 4 weekly backups
+  monthly: 12 # Keep 12 monthly backups
+  yearly: 5   # Keep 5 yearly backups
+  
+# Restoration
+restoration:
+  enabled: true
+  auto_restore: false
+  backup_before_restore: true
+  
+# Monitoring
+monitoring:
+  enabled: true
+  track_backup_size: true
+  track_backup_duration: true
+  alert_on_failure: true
+  alert_on_size_increase: true
+  size_increase_threshold: 50  # percent
+  
+# Environment Overrides
+environments:
+  development:
+    schedule:
+      enabled: false
+    storage:
+      local:
+        retention_days: 7
+        max_size_gb: 1
+        
+  production:
+    schedule:
+      enabled: true
+      cron: "0 1 * * *"  # 1 AM in production
+    storage:
+      local:
+        retention_days: 90
+        max_size_gb: 50
+      cloud:
+        enabled: true
+        
+  testing:
+    enabled: false

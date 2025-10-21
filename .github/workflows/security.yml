@@ -1,0 +1,242 @@
+name: Security Scanning
+
+on:
+  schedule:
+    - cron: '0 2 * * 1'  # Weekly on Monday at 2 AM
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  # =============================================================================
+  # DEPENDENCY VULNERABILITY SCANNING
+  # =============================================================================
+  dependency-scan:
+    name: Dependency Vulnerability Scan
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install safety
+
+    - name: Run Safety check
+      run: safety check --json --output safety-report.json
+
+    - name: Upload safety report
+      uses: actions/upload-artifact@v3
+      with:
+        name: safety-report
+        path: safety-report.json
+
+  # =============================================================================
+  # CODE SECURITY SCANNING
+  # =============================================================================
+  code-scan:
+    name: Code Security Scan
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install bandit
+
+    - name: Run Bandit security linter
+      run: bandit -r backend/ frontend/ -f json -o bandit-report.json
+
+    - name: Upload bandit report
+      uses: actions/upload-artifact@v3
+      with:
+        name: bandit-report
+        path: bandit-report.json
+
+  # =============================================================================
+  # CONTAINER SECURITY SCANNING
+  # =============================================================================
+  container-scan:
+    name: Container Security Scan
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+
+    - name: Build backend image
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        file: backend/Dockerfile
+        target: production
+        push: false
+        tags: contract-analyzer-backend:security-scan
+
+    - name: Build frontend image
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        file: frontend/Dockerfile
+        target: production
+        push: false
+        tags: contract-analyzer-frontend:security-scan
+
+    - name: Run Trivy vulnerability scanner on backend
+      uses: aquasec/trivy-action@master
+      with:
+        image-ref: 'contract-analyzer-backend:security-scan'
+        format: 'json'
+        output: 'trivy-backend-report.json'
+
+    - name: Run Trivy vulnerability scanner on frontend
+      uses: aquasec/trivy-action@master
+      with:
+        image-ref: 'contract-analyzer-frontend:security-scan'
+        format: 'json'
+        output: 'trivy-frontend-report.json'
+
+    - name: Upload Trivy reports
+      uses: actions/upload-artifact@v3
+      with:
+        name: trivy-reports
+        path: |
+          trivy-backend-report.json
+          trivy-frontend-report.json
+
+  # =============================================================================
+  # SECRET SCANNING
+  # =============================================================================
+  secret-scan:
+    name: Secret Scanning
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Run TruffleHog secret scanner
+      uses: trufflesecurity/trufflehog@main
+      with:
+        path: ./
+        base: main
+        head: HEAD
+        extra_args: --debug --only-verified
+
+    - name: Run GitLeaks secret scanner
+      uses: gitleaks/gitleaks-action@v2
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GITLEAKS_LICENSE: ${{ secrets.GITLEAKS_LICENSE }}
+
+  # =============================================================================
+  # SAST (STATIC APPLICATION SECURITY TESTING)
+  # =============================================================================
+  sast-scan:
+    name: SAST Scan
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Initialize CodeQL
+      uses: github/codeql-action/init@v2
+      with:
+        languages: python
+
+    - name: Autobuild
+      uses: github/codeql-action/autobuild@v2
+
+    - name: Perform CodeQL Analysis
+      uses: github/codeql-action/analyze@v2
+
+  # =============================================================================
+  # SECURITY REPORT GENERATION
+  # =============================================================================
+  security-report:
+    name: Generate Security Report
+    runs-on: ubuntu-latest
+    needs: [dependency-scan, code-scan, container-scan, secret-scan, sast-scan]
+    if: always()
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Download all artifacts
+      uses: actions/download-artifact@v3
+
+    - name: Generate security report
+      run: |
+        echo "# Security Scan Report" > security-report.md
+        echo "Generated on: $(date)" >> security-report.md
+        echo "" >> security-report.md
+        
+        echo "## Dependency Vulnerabilities" >> security-report.md
+        if [ -f "safety-report/safety-report.json" ]; then
+          echo "Safety scan completed. Check artifacts for details." >> security-report.md
+        else
+          echo "Safety scan failed or not available." >> security-report.md
+        fi
+        echo "" >> security-report.md
+        
+        echo "## Code Security Issues" >> security-report.md
+        if [ -f "bandit-report/bandit-report.json" ]; then
+          echo "Bandit scan completed. Check artifacts for details." >> security-report.md
+        else
+          echo "Bandit scan failed or not available." >> security-report.md
+        fi
+        echo "" >> security-report.md
+        
+        echo "## Container Vulnerabilities" >> security-report.md
+        if [ -f "trivy-reports/trivy-backend-report.json" ]; then
+          echo "Trivy scan completed. Check artifacts for details." >> security-report.md
+        else
+          echo "Trivy scan failed or not available." >> security-report.md
+        fi
+        echo "" >> security-report.md
+
+    - name: Upload security report
+      uses: actions/upload-artifact@v3
+      with:
+        name: security-report
+        path: security-report.md
+
+    - name: Comment PR with security report
+      if: github.event_name == 'pull_request'
+      uses: actions/github-script@v6
+      with:
+        script: |
+          const fs = require('fs');
+          const report = fs.readFileSync('security-report.md', 'utf8');
+          github.rest.issues.createComment({
+            issue_number: context.issue.number,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            body: report
+          });

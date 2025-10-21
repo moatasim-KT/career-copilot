@@ -1,0 +1,158 @@
+# Development Environment Configuration
+# Overrides base configuration for development environment
+
+# Configuration File References
+config_files:
+  base: "config/base.yaml"
+  backend: "config/backend.yaml"
+  frontend: "config/frontend.yaml"
+  services: "config/services/"
+  deployment: "config/deployment.yaml"
+
+# Application Configuration
+app:
+  debug: true
+  environment: "development"
+
+# API Configuration
+api:
+  debug: true
+  workers: 1
+  reload: true
+  host: "0.0.0.0"
+  port: 8002
+
+# Database Configuration
+database:
+  url: "sqlite+aiosqlite:///./data/contract_analyzer_dev.db"
+  echo: true  # Log SQL queries in development
+  pool_size: 2
+  max_overflow: 5
+  migrations:
+    auto_migrate: true
+
+# AI/LLM Configuration
+ai:
+  openai:
+    model: "gpt-3.5-turbo"  # Use cheaper model for development
+    temperature: 0.1
+    max_tokens: 4000
+  groq:
+    enabled: true
+    model: "llama-3.1-8b-instant"
+  gemini:
+    enabled: false
+  anthropic:
+    enabled: false
+  ollama:
+    enabled: false
+
+# Security Configuration (Relaxed for development)
+security:
+  cors_origins:
+    - "http://localhost:8501"
+    - "http://localhost:8502"
+    - "http://localhost:8503"
+    - "http://localhost:3000"
+    - "http://127.0.0.1:8501"
+    - "http://127.0.0.1:8502"
+    - "http://127.0.0.1:8503"
+    - "http://127.0.0.1:3000"
+  jwt:
+    expiration_hours: 168  # 7 days for development
+  rate_limiting:
+    enabled: false
+  file_upload:
+    max_size_mb: 100  # Larger files for testing
+    scan_files: false  # Disable scanning in development
+  encryption:
+    enabled: false
+  audit_logging: false
+
+# External Services (Sandbox/Test modes)
+external_services:
+  docusign:
+    enabled: true
+    sandbox_enabled: true
+  slack:
+    enabled: true
+  gmail:
+    enabled: true
+  google_drive:
+    enabled: true
+
+# Monitoring (Minimal for development)
+monitoring:
+  enabled: false
+  prometheus:
+    enabled: false
+  opentelemetry:
+    enabled: false
+  health_checks:
+    interval: 120
+    timeout: 30
+
+# Logging Configuration (Verbose for development)
+logging:
+  level: "DEBUG"
+  structured: false
+  console_output: true
+  file_path: "logs/development.log"
+  rotation:
+    max_size: "50MB"
+    backup_count: 5
+
+# Feature Flags (Enable experimental features)
+features:
+  enhanced_analysis: true
+  real_time_updates: true
+  batch_processing: true
+  advanced_security: false
+  experimental_ai: true
+  beta_ui: true
+  performance_monitoring: false
+  audit_logging: false
+  multi_tenant: false
+  api_versioning: true
+
+# Cache Configuration
+cache:
+  redis:
+    enabled: false  # Use memory cache in development
+  memory:
+    enabled: true
+    max_size: 500
+    ttl: 1800  # 30 minutes
+
+# Background Tasks
+background_tasks:
+  enabled: true
+  max_workers: 1
+  queue_size: 50
+  retry_attempts: 2
+
+# Frontend Configuration
+frontend:
+  streamlit:
+    server:
+      port: 8501
+      enableCORS: true
+      maxUploadSize: 100
+    logger:
+      level: "DEBUG"
+  ui:
+    theme: "light"
+    enable_animations: true
+  features:
+    beta_features: true
+
+# Development-specific settings
+development:
+  hot_reload: true
+  auto_migrate: true
+  seed_data: true
+  mock_external_services: false
+  debug_toolbar: true
+  profiling: false
+  test_data_enabled: true
+  verbose_errors: true

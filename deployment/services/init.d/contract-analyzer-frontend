@@ -1,0 +1,115 @@
+#!/bin/bash
+#
+# contract-analyzer-frontend    Contract Analyzer Frontend Service
+#
+# chkconfig: 35 80 20
+# description: Contract Analyzer Frontend Web Service
+#
+
+. /etc/rc.d/init.d/functions
+
+USER="contract-analyzer"
+DAEMON="contract-analyzer-frontend"
+ROOT_DIR="/opt/contract-analyzer"
+FRONTEND_DIR="$ROOT_DIR/frontend"
+VENV_DIR="$ROOT_DIR/venv"
+LOCK_FILE="/var/lock/subsys/contract-analyzer-frontend"
+PID_FILE="/var/run/contract-analyzer/frontend.pid"
+LOG_FILE="/var/log/contract-analyzer/frontend.log"
+
+start() {
+    if [ -f $LOCK_FILE ]; then
+        echo "$DAEMON is locked."
+        return 1
+    fi
+    
+    echo -n "Starting $DAEMON: "
+    
+    # Source environment
+    if [ -f /etc/contract-analyzer/environment ]; then
+        set -a
+        source /etc/contract-analyzer/environment
+        set +a
+    fi
+    
+    # Start the service
+    daemon --user="$USER" --pidfile="$PID_FILE" \
+        "$VENV_DIR/bin/python" -c "
+import os, sys
+sys.path.insert(0, '$ROOT_DIR')
+os.chdir('$FRONTEND_DIR')
+os.system('$VENV_DIR/bin/streamlit run app.py --server.port 8501 --server.address 0.0.0.0 --server.headless true --server.enableCORS false --server.enableXsrfProtection true > $LOG_FILE 2>&1 & echo \$! > $PID_FILE')
+"
+    
+    RETVAL=$?
+    echo
+    [ $RETVAL -eq 0 ] && touch $LOCK_FILE
+    return $RETVAL
+}
+
+stop() {
+    if [ ! -f $LOCK_FILE ]; then
+        echo "$DAEMON is not running."
+        return 1
+    fi
+    
+    echo -n "Shutting down $DAEMON: "
+    
+    if [ -f $PID_FILE ]; then
+        kill -TERM $(cat $PID_FILE)
+        rm -f $PID_FILE
+    fi
+    
+    RETVAL=$?
+    echo
+    [ $RETVAL -eq 0 ] && rm -f $LOCK_FILE
+    return $RETVAL
+}
+
+restart() {
+    stop
+    sleep 2
+    start
+}
+
+status() {
+    if [ -f $LOCK_FILE ]; then
+        if [ -f $PID_FILE ]; then
+            PID=$(cat $PID_FILE)
+            if ps -p $PID > /dev/null; then
+                echo "$DAEMON is running (PID: $PID)"
+                return 0
+            else
+                echo "$DAEMON is not running but PID file exists"
+                return 1
+            fi
+        else
+            echo "$DAEMON is not running"
+            return 1
+        fi
+    else
+        echo "$DAEMON is not running"
+        return 1
+    fi
+}
+
+case "$1" in
+    start)
+        start
+        ;;
+    stop)
+        stop
+        ;;
+    status)
+        status
+        ;;
+    restart)
+        restart
+        ;;
+    *)
+        echo "Usage: {start|stop|status|restart}"
+        exit 1
+        ;;
+esac
+
+exit $?

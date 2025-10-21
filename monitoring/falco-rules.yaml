@@ -1,0 +1,194 @@
+# Falco Security Rules for Contract Analyzer
+# =============================================================================
+# Custom security rules for runtime monitoring
+# =============================================================================
+
+# Detect suspicious file access in containers
+- rule: Suspicious File Access in Container
+  desc: Detect access to sensitive files in containers
+  condition: >
+    container and
+    (fd.name startswith /etc/passwd or
+     fd.name startswith /etc/shadow or
+     fd.name startswith /etc/ssh/ or
+     fd.name startswith /root/.ssh/ or
+     fd.name startswith /home/*/.ssh/)
+  output: >
+    Suspicious file access in container
+    (user=%user.name command=%proc.cmdline file=%fd.name container=%container.name image=%container.image)
+  priority: WARNING
+  tags: [filesystem, container]
+
+# Detect privilege escalation attempts
+- rule: Container Privilege Escalation
+  desc: Detect attempts to escalate privileges in containers
+  condition: >
+    container and
+    (proc.name in (su, sudo, doas) or
+     spawned_process and proc.args contains "chmod +s")
+  output: >
+    Privilege escalation attempt in container
+    (user=%user.name command=%proc.cmdline container=%container.name image=%container.image)
+  priority: HIGH
+  tags: [privilege_escalation, container]
+
+# Detect network connections to suspicious ports
+- rule: Suspicious Network Connection
+  desc: Detect connections to commonly exploited ports
+  condition: >
+    container and
+    (fd.sport in (22, 23, 135, 139, 445, 1433, 3389, 5432, 6379) or
+     fd.dport in (22, 23, 135, 139, 445, 1433, 3389, 5432, 6379)) and
+    not proc.name in (postgres, redis-server, ssh, sshd)
+  output: >
+    Suspicious network connection
+    (user=%user.name command=%proc.cmdline connection=%fd.name container=%container.name image=%container.image)
+  priority: MEDIUM
+  tags: [network, container]
+
+# Detect shell spawning in containers
+- rule: Shell Spawned in Container
+  desc: Detect interactive shell spawning in production containers
+  condition: >
+    container and
+    proc.name in (bash, sh, zsh, fish, csh, tcsh) and
+    container.image.tag != "development" and
+    not proc.pname in (streamlit, uvicorn, python, python3)
+  output: >
+    Shell spawned in container
+    (user=%user.name shell=%proc.name parent=%proc.pname container=%container.name image=%container.image)
+  priority: WARNING
+  tags: [shell, container]
+
+# Detect file modifications in read-only containers
+- rule: Write to Read-Only Container
+  desc: Detect write attempts in read-only containers
+  condition: >
+    container and
+    (evt.type=openat or evt.type=open) and
+    evt.is_open_write=true and
+    fd.name startswith /app and
+    not fd.name startswith /backend/app/data and
+    not fd.name startswith /backend/app/logs and
+    not fd.name startswith /backend/app/tmp
+  output: >
+    Write attempt to read-only container filesystem
+    (user=%user.name command=%proc.cmdline file=%fd.name container=%container.name image=%container.image)
+  priority: HIGH
+  tags: [filesystem, container]
+
+# Detect crypto mining activities
+- rule: Crypto Mining Activity
+  desc: Detect potential cryptocurrency mining
+  condition: >
+    container and
+    (proc.name in (xmrig, cpuminer, cgminer, bfgminer, sgminer) or
+     proc.cmdline contains "stratum+tcp" or
+     proc.cmdline contains "mining" or
+     proc.cmdline contains "cryptonight")
+  output: >
+    Potential crypto mining activity detected
+    (user=%user.name command=%proc.cmdline container=%container.name image=%container.image)
+  priority: CRITICAL
+  tags: [malware, container]
+
+# Detect package manager usage in production
+- rule: Package Manager in Production Container
+  desc: Detect package manager usage in production containers
+  condition: >
+    container and
+    proc.name in (apt, apt-get, yum, dnf, pip, pip3, npm, yarn) and
+    container.image.tag != "development"
+  output: >
+    Package manager used in production container
+    (user=%user.name command=%proc.cmdline container=%container.name image=%container.image)
+  priority: WARNING
+  tags: [package_management, container]
+
+# Detect sensitive environment variable access
+- rule: Sensitive Environment Variable Access
+  desc: Detect access to sensitive environment variables
+  condition: >
+    container and
+    (proc.cmdline contains "API_KEY" or
+     proc.cmdline contains "SECRET" or
+     proc.cmdline contains "PASSWORD" or
+     proc.cmdline contains "TOKEN") and
+    not proc.name in (python, python3, uvicorn, streamlit)
+  output: >
+    Access to sensitive environment variables
+    (user=%user.name command=%proc.cmdline container=%container.name image=%container.image)
+  priority: MEDIUM
+  tags: [secrets, container]
+
+# Detect container escape attempts
+- rule: Container Escape Attempt
+  desc: Detect potential container escape attempts
+  condition: >
+    container and
+    (proc.cmdline contains "docker.sock" or
+     proc.cmdline contains "/proc/self/root" or
+     proc.cmdline contains "nsenter" or
+     proc.cmdline contains "unshare")
+  output: >
+    Potential container escape attempt
+    (user=%user.name command=%proc.cmdline container=%container.name image=%container.image)
+  priority: CRITICAL
+  tags: [container_escape, container]
+
+# Detect suspicious process execution
+- rule: Suspicious Process in Container
+  desc: Detect execution of suspicious processes
+  condition: >
+    container and
+    proc.name in (nc, netcat, ncat, socat, wget, curl) and
+    not (proc.pname in (python, python3, uvicorn, streamlit) or
+         proc.cmdline contains "health")
+  output: >
+    Suspicious process execution in container
+    (user=%user.name command=%proc.cmdline parent=%proc.pname container=%container.name image=%container.image)
+  priority: MEDIUM
+  tags: [process, container]
+
+# Application-specific rules for Contract Analyzer
+- rule: Unauthorized Database Access
+  desc: Detect unauthorized database access attempts
+  condition: >
+    container and
+    container.name contains "postgres" and
+    proc.name in (psql, pg_dump, pg_restore) and
+    not user.name in (postgres, contract_user)
+  output: >
+    Unauthorized database access attempt
+    (user=%user.name command=%proc.cmdline container=%container.name)
+  priority: HIGH
+  tags: [database, unauthorized_access]
+
+- rule: Redis Unauthorized Access
+  desc: Detect unauthorized Redis access
+  condition: >
+    container and
+    container.name contains "redis" and
+    proc.name in (redis-cli) and
+    not proc.cmdline contains "ping"
+  output: >
+    Unauthorized Redis access attempt
+    (user=%user.name command=%proc.cmdline container=%container.name)
+  priority: MEDIUM
+  tags: [redis, unauthorized_access]
+
+- rule: File Upload Anomaly
+  desc: Detect suspicious file upload activities
+  condition: >
+    container and
+    container.name contains "backend" and
+    fd.name startswith /backend/app/data/uploads and
+    (fd.size > 50000000 or
+     fd.name contains ".exe" or
+     fd.name contains ".bat" or
+     fd.name contains ".sh")
+  output: >
+    Suspicious file upload detected
+    (user=%user.name file=%fd.name size=%fd.size container=%container.name)
+  priority: WARNING
+  tags: [file_upload, suspicious_activity]

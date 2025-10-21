@@ -1,0 +1,49 @@
+# Slack Service Configuration
+service: slack
+enabled: false
+
+# Bot Configuration
+bot:
+  username: "Contract Analyzer Bot"
+  icon_emoji: ":robot_face:"
+  default_channel: "#contract-analyzer"
+
+# API Configuration
+api:
+  timeout: 30
+  max_retries: 3
+  retry_delay: 1.0
+
+# Rate Limiting
+rate_limit:
+  seconds_between_requests: 1
+  messages_per_minute: 60
+  burst_limit: 10
+
+# Message Configuration
+message:
+  max_length: 4000
+  enable_threading: true
+  enable_mentions: true
+  
+# Webhook Configuration
+webhook:
+  enabled: true
+  timeout: 10
+  
+# Notification Types
+notifications:
+  analysis_complete: true
+  error_alerts: true
+  system_status: false
+  
+# Environment Overrides
+environments:
+  development:
+    enabled: true
+    default_channel: "#dev-contract-analyzer"
+  production:
+    enabled: true
+    default_channel: "#contract-analyzer"
+  testing:
+    enabled: false

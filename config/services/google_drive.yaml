@@ -1,0 +1,45 @@
+# Google Drive Service Configuration
+service: google_drive
+enabled: false
+
+# OAuth Configuration
+oauth:
+  scopes:
+    - "https://www.googleapis.com/auth/drive.file"
+    - "https://www.googleapis.com/auth/drive.readonly"
+  redirect_uri: "http://localhost:8000/auth/google/callback"
+
+# API Configuration
+api:
+  timeout: 60
+  max_retries: 3
+  retry_delay: 2.0
+  
+# Upload Configuration
+upload:
+  chunk_size_mb: 10
+  max_file_size_mb: 100
+  resumable_threshold_mb: 5
+  
+# Storage Configuration
+storage:
+  folder_name: "Contract Analyzer"
+  organize_by_date: true
+  auto_cleanup: false
+  
+# Backup Configuration
+backup:
+  enabled: true
+  retention_days: 90
+  compression: true
+  
+# Environment Overrides
+environments:
+  development:
+    enabled: true
+    folder_name: "Contract Analyzer Dev"
+  production:
+    enabled: true
+    folder_name: "Contract Analyzer"
+  testing:
+    enabled: false

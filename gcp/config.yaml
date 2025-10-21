@@ -1,0 +1,77 @@
+# Environment-specific configuration for Google Cloud deployment
+
+environments:
+  development:
+    project_id: "career-copilot-dev"
+    region: "us-central1"
+    functions:
+      memory: "512Mi"
+      timeout: "300s"
+      max_instances: 10
+    scheduler:
+      job_ingestion: "0 */6 * * *"  # Every 6 hours
+      morning_briefing: "0 9 * * *"  # 9 AM
+      evening_update: "0 17 * * *"   # 5 PM
+    firestore:
+      database_id: "(default)"
+    monitoring:
+      log_level: "INFO"
+      enable_tracing: false
+    
+  staging:
+    project_id: "career-copilot-staging"
+    region: "us-central1"
+    functions:
+      memory: "1Gi"
+      timeout: "540s"
+      max_instances: 20
+    scheduler:
+      job_ingestion: "0 */4 * * *"  # Every 4 hours
+      morning_briefing: "0 8 * * *"  # 8 AM
+      evening_update: "0 18 * * *"   # 6 PM
+    firestore:
+      database_id: "(default)"
+    monitoring:
+      log_level: "INFO"
+      enable_tracing: true
+    
+  production:
+    project_id: "career-copilot-prod"
+    region: "us-central1"
+    functions:
+      memory: "2Gi"
+      timeout: "540s"
+      max_instances: 100
+    scheduler:
+      job_ingestion: "0 */2 * * *"  # Every 2 hours
+      morning_briefing: "0 8 * * *"  # 8 AM
+      evening_update: "0 18 * * *"   # 6 PM
+    firestore:
+      database_id: "(default)"
+    monitoring:
+      log_level: "WARNING"
+      enable_tracing: true
+
+# Common configuration
+common:
+  runtime: "python311"
+  service_account: "career-copilot-sa"
+  required_apis:
+    - cloudfunctions.googleapis.com
+    - cloudscheduler.googleapis.com
+    - firestore.googleapis.com
+    - logging.googleapis.com
+    - monitoring.googleapis.com
+    - cloudbuild.googleapis.com
+  
+  iam_roles:
+    - roles/datastore.user
+    - roles/logging.logWriter
+    - roles/monitoring.metricWriter
+    - roles/cloudscheduler.jobRunner
+  
+  environment_variables:
+    GOOGLE_CLOUD_PROJECT: "${PROJECT_ID}"
+    FIRESTORE_DATABASE: "(default)"
+    LOG_LEVEL: "${LOG_LEVEL}"
+    ENABLE_TRACING: "${ENABLE_TRACING}"

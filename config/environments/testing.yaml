@@ -1,0 +1,164 @@
+# Testing Environment Configuration
+# Optimized for automated testing and CI/CD
+
+# Configuration File References
+config_files:
+  base: "config/base.yaml"
+  backend: "config/backend.yaml"
+  frontend: "config/frontend.yaml"
+  services: "config/services/"
+
+# Application Configuration
+app:
+  debug: true
+  environment: "testing"
+
+# API Configuration
+api:
+  debug: false  # Reduce noise in test logs
+  workers: 1
+  timeout: 60
+  host: "0.0.0.0"
+  port: 8002
+
+# Database Configuration (In-memory for testing)
+database:
+  url: "sqlite+aiosqlite:///:memory:"
+  echo: false
+  pool_size: 1
+  max_overflow: 0
+  migrations:
+    auto_migrate: true
+
+# Vector Database (Temporary for testing)
+vector_db:
+  persist_directory: "./test_data/chroma"
+  collection_name: "test_embeddings"
+  batch_size: 50
+  similarity_threshold: 0.7
+
+# AI/LLM Configuration (Mock or minimal)
+ai:
+  openai:
+    model: "gpt-3.5-turbo"
+    timeout: 30
+    temperature: 0.1
+    max_tokens: 2000
+  groq:
+    enabled: false
+  gemini:
+    enabled: false
+  anthropic:
+    enabled: false
+  ollama:
+    enabled: false
+
+# Security Configuration (Minimal for testing)
+security:
+  cors_origins:
+    - "http://localhost:8501"
+    - "http://localhost:8502"
+    - "http://testserver"
+    - "http://127.0.0.1:8501"
+    - "http://127.0.0.1:8502"
+  jwt:
+    expiration_hours: 1
+    algorithm: "HS256"
+  rate_limiting:
+    enabled: false
+  file_upload:
+    max_size_mb: 10
+    scan_files: false
+    allowed_types: ["pdf", "docx", "txt"]
+  encryption:
+    enabled: false
+  audit_logging: false
+
+# External Services (Mocked)
+external_services:
+  docusign:
+    enabled: false
+  slack:
+    enabled: false
+  gmail:
+    enabled: false
+  google_drive:
+    enabled: false
+
+# Monitoring (Disabled for testing)
+monitoring:
+  enabled: false
+  prometheus:
+    enabled: false
+  opentelemetry:
+    enabled: false
+  health_checks:
+    interval: 300
+    timeout: 5
+
+# Logging Configuration (Minimal for testing)
+logging:
+  level: "WARNING"
+  structured: false
+  console_output: true
+  file_path: "logs/testing.log"
+  rotation:
+    max_size: "10MB"
+    backup_count: 2
+
+# Feature Flags (All features enabled for testing)
+features:
+  enhanced_analysis: true
+  real_time_updates: true
+  batch_processing: true
+  advanced_security: false
+  experimental_ai: true
+  beta_ui: true
+  performance_monitoring: false
+  audit_logging: false
+  multi_tenant: true
+  api_versioning: true
+
+# Cache Configuration (Memory only)
+cache:
+  redis:
+    enabled: false
+  memory:
+    enabled: true
+    max_size: 100
+    ttl: 300  # 5 minutes
+
+# Background Tasks (Synchronous for testing)
+background_tasks:
+  enabled: false
+  max_workers: 1
+  queue_size: 10
+
+# Frontend Configuration
+frontend:
+  streamlit:
+    server:
+      port: 8501
+      maxUploadSize: 10
+    logger:
+      level: "WARNING"
+  security:
+    enable_rate_limiting: false
+    session_timeout_minutes: 5
+  analytics:
+    enable_user_tracking: false
+    enable_performance_tracking: false
+  features:
+    beta_features: true
+
+# Testing-specific settings
+testing:
+  mock_external_services: true
+  fast_mode: true
+  cleanup_after_test: true
+  parallel_execution: false
+  test_data_path: "./test_data"
+  fixtures_path: "./tests/fixtures"
+  timeout_multiplier: 0.5
+  memory_limit_mb: 512
+  test_data_isolation: true

@@ -1,0 +1,196 @@
+# Base Configuration - Common settings across all environments
+# This file contains default values that can be overridden by environment-specific configs
+
+# Application Information
+app:
+  name: "Contract Risk Analyzer"
+  version: "1.0.0"
+  description: "AI-powered contract analysis and risk assessment platform"
+
+# API Configuration
+api:
+  host: "0.0.0.0"
+  port: 8002
+  debug: false
+  workers: 1
+  timeout: 300
+  max_request_size: 52428800  # 50MB
+
+# Database Configuration
+database:
+  url: "sqlite+aiosqlite:///./data/contract_analyzer.db"
+  pool_size: 5
+  max_overflow: 10
+  pool_timeout: 30
+  pool_recycle: 3600
+  echo: false
+  migrations:
+    auto_migrate: true
+    backup_before_migrate: true
+    script_location: "migrations"
+
+# Vector Database (ChromaDB)
+vector_db:
+  persist_directory: "data/chroma"
+  collection_name: "contract_embeddings"
+  batch_size: 100
+  similarity_threshold: 0.7
+
+# AI/LLM Configuration
+ai:
+  openai:
+    model: "gpt-4"
+    temperature: 0.1
+    max_tokens: 4000
+    timeout: 60
+  groq:
+    model: "llama-3.1-8b-instant"
+    temperature: 0.1
+    max_tokens: 4000
+    enabled: true
+    timeout: 60
+  gemini:
+    model: "gemini-pro"
+    temperature: 0.1
+    max_tokens: 4000
+    enabled: false
+    timeout: 60
+  anthropic:
+    model: "claude-3-sonnet-20240229"
+    temperature: 0.1
+    max_tokens: 4000
+    enabled: false
+    timeout: 60
+  ollama:
+    base_url: "http://localhost:11434"
+    model: "llama2"
+    temperature: 0.1
+    max_tokens: 4000
+    enabled: false
+    timeout: 60
+
+# Task Routing Configuration
+task_routing:
+  default_criteria: "cost"
+  cache_ttl: 3600
+  max_retries: 3
+  fallback_enabled: true
+  circuit_breaker:
+    threshold: 5
+    timeout: 60
+
+# Security Configuration
+security:
+  cors_origins:
+    - "http://localhost:8501"
+    - "http://localhost:8002"
+    - "http://127.0.0.1:8501"
+    - "http://127.0.0.1:8002"
+  jwt:
+    algorithm: "HS256"
+    expiration_hours: 24
+  rate_limiting:
+    enabled: false
+    requests_per_minute: 100
+    burst: 200
+  file_upload:
+    max_size_mb: 50
+    allowed_types:
+      - "pdf"
+      - "docx"
+      - "txt"
+    scan_files: true
+  encryption:
+    enabled: false
+    algorithm: "AES-256-GCM"
+
+# External Services
+external_services:
+  docusign:
+    enabled: false
+    sandbox_enabled: true
+    scopes: ["signature", "impersonation"]
+    base_url: "https://demo.docusign.net/restapi"
+    timeout: 30
+    max_retries: 3
+  slack:
+    enabled: false
+    default_channel: "#contracts"
+    timeout: 30
+  gmail:
+    enabled: false
+    scopes: ["https://www.googleapis.com/auth/gmail.send"]
+    timeout: 30
+  google_drive:
+    enabled: false
+    scopes: ["https://www.googleapis.com/auth/drive.file"]
+    timeout: 30
+
+# Monitoring and Observability
+monitoring:
+  enabled: false
+  prometheus:
+    enabled: false
+    port: 9090
+  opentelemetry:
+    enabled: false
+  health_checks:
+    interval: 60
+    timeout: 30
+    retries: 3
+
+# Logging Configuration
+logging:
+  level: "INFO"
+  format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+  file_path: "logs/app.log"
+  rotation:
+    max_size: "100MB"
+    backup_count: 10
+  structured: false
+
+# File Storage
+storage:
+  local:
+    enabled: true
+    path: "data/storage"
+    max_size_mb: 1000
+  backup:
+    enabled: false
+    retention_days: 30
+    schedule: "0 2 * * *"
+
+# Feature Flags
+features:
+  enhanced_analysis: true
+  real_time_updates: true
+  batch_processing: true
+  advanced_security: false
+  experimental_ai: false
+  beta_ui: false
+  performance_monitoring: false
+  audit_logging: false
+  multi_tenant: false
+  api_versioning: false
+
+# Cache Configuration
+cache:
+  redis:
+    enabled: false
+    host: "localhost"
+    port: 6379
+    db: 0
+    max_connections: 20
+    timeout: 5
+  memory:
+    enabled: true
+    max_size: 1000
+    ttl: 3600
+
+# Background Tasks
+background_tasks:
+  enabled: true
+  max_workers: 2
+  queue_size: 100
+  retry_attempts: 3
+  retry_delay: 1.0

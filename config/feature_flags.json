@@ -1,0 +1,235 @@
+{
+  "flags": {
+    "enhanced_analysis": {
+      "description": "Enable enhanced AI-powered contract analysis with advanced risk detection",
+      "state": "enabled",
+      "default_value": true,
+      "tags": ["analysis", "ai", "core"],
+      "created_at": "2024-01-01T00:00:00",
+      "updated_at": "2024-01-01T00:00:00",
+      "created_by": "system",
+      "metadata": {
+        "impact": "high",
+        "category": "analysis"
+      }
+    },
+    "real_time_updates": {
+      "description": "Enable real-time progress updates via WebSocket connections",
+      "state": "enabled",
+      "default_value": true,
+      "tags": ["ui", "websocket", "core"],
+      "created_at": "2024-01-01T00:00:00",
+      "updated_at": "2024-01-01T00:00:00",
+      "created_by": "system",
+      "metadata": {
+        "impact": "medium",
+        "category": "ui"
+      }
+    },
+    "batch_processing": {
+      "description": "Enable batch processing of multiple contracts simultaneously",
+      "state": "enabled",
+      "default_value": true,
+      "tags": ["processing", "performance", "core"],
+      "created_at": "2024-01-01T00:00:00",
+      "updated_at": "2024-01-01T00:00:00",
+      "created_by": "system",
+      "metadata": {
+        "impact": "high",
+        "category": "processing"
+      }
+    },
+    "advanced_security": {
+      "description": "Enable advanced security features including malware scanning and encryption",
+      "state": "rollout",
+      "default_value": false,
+      "tags": ["security", "enterprise"],
+      "rollout_config": {
+        "strategy": "environment",
+        "environments": ["production", "staging"]
+      },
+      "created_at": "2024-01-01T00:00:00",
+      "updated_at": "2024-01-01T00:00:00",
+      "created_by": "security-team",
+      "metadata": {
+        "impact": "high",
+        "category": "security",
+        "requires_license": true
+      }
+    },
+    "experimental_ai": {
+      "description": "Enable experimental AI features and models for testing",
+      "state": "rollout",
+      "default_value": false,
+      "tags": ["ai", "experimental", "beta"],
+      "rollout_config": {
+        "strategy": "percentage",
+        "percentage": 10
+      },
+      "created_at": "2024-01-01T00:00:00",
+      "updated_at": "2024-01-01T00:00:00",
+      "created_by": "ai-team",
+      "metadata": {
+        "impact": "medium",
+        "category": "ai",
+        "experimental": true
+      }
+    },
+    "beta_ui": {
+      "description": "Enable beta user interface features and improvements",
+      "state": "testing",
+      "default_value": false,
+      "tags": ["ui", "beta", "frontend"],
+      "rollout_config": {
+        "strategy": "user_attribute",
+        "user_attribute": "role",
+        "attribute_values": ["admin", "beta_tester"]
+      },
+      "created_at": "2024-01-01T00:00:00",
+      "updated_at": "2024-01-01T00:00:00",
+      "created_by": "ui-team",
+      "metadata": {
+        "impact": "low",
+        "category": "ui",
+        "beta": true
+      }
+    },
+    "performance_monitoring": {
+      "description": "Enable detailed performance monitoring and metrics collection",
+      "state": "rollout",
+      "default_value": false,
+      "tags": ["monitoring", "performance", "ops"],
+      "rollout_config": {
+        "strategy": "environment",
+        "environments": ["production", "staging"]
+      },
+      "created_at": "2024-01-01T00:00:00",
+      "updated_at": "2024-01-01T00:00:00",
+      "created_by": "ops-team",
+      "metadata": {
+        "impact": "low",
+        "category": "monitoring"
+      }
+    },
+    "audit_logging": {
+      "description": "Enable comprehensive audit logging for compliance",
+      "state": "rollout",
+      "default_value": false,
+      "tags": ["logging", "compliance", "security"],
+      "rollout_config": {
+        "strategy": "environment",
+        "environments": ["production"]
+      },
+      "dependencies": ["advanced_security"],
+      "created_at": "2024-01-01T00:00:00",
+      "updated_at": "2024-01-01T00:00:00",
+      "created_by": "compliance-team",
+      "metadata": {
+        "impact": "medium",
+        "category": "compliance",
+        "requires_license": true
+      }
+    },
+    "multi_tenant": {
+      "description": "Enable multi-tenant support for enterprise customers",
+      "state": "disabled",
+      "default_value": false,
+      "tags": ["enterprise", "multi-tenant", "future"],
+      "created_at": "2024-01-01T00:00:00",
+      "updated_at": "2024-01-01T00:00:00",
+      "created_by": "enterprise-team",
+      "metadata": {
+        "impact": "high",
+        "category": "enterprise",
+        "requires_license": true,
+        "planned_release": "2024-Q2"
+      }
+    },
+    "api_versioning": {
+      "description": "Enable API versioning support for backward compatibility",
+      "state": "rollout",
+      "default_value": false,
+      "tags": ["api", "versioning", "compatibility"],
+      "rollout_config": {
+        "strategy": "percentage",
+        "percentage": 25
+      },
+      "created_at": "2024-01-01T00:00:00",
+      "updated_at": "2024-01-01T00:00:00",
+      "created_by": "api-team",
+      "metadata": {
+        "impact": "medium",
+        "category": "api"
+      }
+    },
+    "enhanced_document_processing": {
+      "description": "Enable enhanced document processing with OCR and table extraction",
+      "state": "enabled",
+      "default_value": true,
+      "tags": ["document", "processing", "ocr"],
+      "created_at": "2024-01-01T00:00:00",
+      "updated_at": "2024-01-01T00:00:00",
+      "created_by": "system",
+      "metadata": {
+        "impact": "high",
+        "category": "processing"
+      }
+    },
+    "vector_search": {
+      "description": "Enable vector-based similarity search for legal precedents",
+      "state": "enabled",
+      "default_value": true,
+      "tags": ["search", "vector", "ai"],
+      "created_at": "2024-01-01T00:00:00",
+      "updated_at": "2024-01-01T00:00:00",
+      "created_by": "system",
+      "metadata": {
+        "impact": "high",
+        "category": "search"
+      }
+    },
+    "smart_caching": {
+      "description": "Enable intelligent caching of analysis results and AI responses",
+      "state": "enabled",
+      "default_value": true,
+      "tags": ["performance", "caching", "optimization"],
+      "created_at": "2024-01-01T00:00:00",
+      "updated_at": "2024-01-01T00:00:00",
+      "created_by": "system",
+      "metadata": {
+        "impact": "medium",
+        "category": "performance"
+      }
+    },
+    "external_integrations": {
+      "description": "Enable external service integrations (DocuSign, Slack, etc.)",
+      "state": "rollout",
+      "default_value": false,
+      "tags": ["integrations", "external", "services"],
+      "rollout_config": {
+        "strategy": "environment",
+        "environments": ["production", "staging", "development"]
+      },
+      "created_at": "2024-01-01T00:00:00",
+      "updated_at": "2024-01-01T00:00:00",
+      "created_by": "integrations-team",
+      "metadata": {
+        "impact": "medium",
+        "category": "integrations"
+      }
+    },
+    "ai_model_fallback": {
+      "description": "Enable automatic fallback between AI models for reliability",
+      "state": "enabled",
+      "default_value": true,
+      "tags": ["ai", "reliability", "fallback"],
+      "created_at": "2024-01-01T00:00:00",
+      "updated_at": "2024-01-01T00:00:00",
+      "created_by": "system",
+      "metadata": {
+        "impact": "high",
+        "category": "reliability"
+      }
+    }
+  }
+}

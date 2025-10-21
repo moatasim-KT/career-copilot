@@ -1,0 +1,46 @@
+# LangSmith Service Configuration
+service: langsmith
+enabled: false
+
+# API Configuration
+api:
+  endpoint: "https://api.smith.langchain.com"
+  timeout: 30
+  max_retries: 3
+  
+# Project Configuration
+project:
+  name: "contract-analyzer"
+  description: "AI-powered contract analysis and risk assessment"
+  
+# Tracing Configuration
+tracing:
+  enabled: false
+  sample_rate: 1.0
+  include_inputs: true
+  include_outputs: true
+  
+# Monitoring Configuration
+monitoring:
+  enabled: false
+  metrics: ["latency", "cost", "error_rate"]
+  
+# Data Configuration
+data:
+  retention_days: 30
+  export_enabled: false
+  
+# Environment Overrides
+environments:
+  development:
+    enabled: true
+    tracing:
+      enabled: true
+      sample_rate: 0.1
+  production:
+    enabled: true
+    tracing:
+      enabled: true
+      sample_rate: 0.05
+  testing:
+    enabled: false
