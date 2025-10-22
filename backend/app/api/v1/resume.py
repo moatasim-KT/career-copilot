@@ -4,7 +4,7 @@ import os
 import uuid
 import logging
 from typing import Dict, Any
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, BackgroundTasks
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, BackgroundTasks, Response
 from sqlalchemy.orm import Session
 
 from ...core.database import get_db
@@ -12,6 +12,8 @@ from ...dependencies import get_current_user
 from ...models.user import User
 from ...models.resume_upload import ResumeUpload
 from ...models.content_generation import ContentGeneration
+from ...models.content_version import ContentVersion
+from ...services.content_quality_service import ContentQualityService
 from ...models.job import Job
 from ...schemas.resume import (
     ResumeUploadResponse,
@@ -38,6 +40,7 @@ logger = logging.getLogger(__name__)
 resume_parser = ResumeParserService()
 job_description_parser = JobDescriptionParserService()
 content_generator = ContentGeneratorService()
+content_quality = ContentQualityService()
 profile_service = ProfileService()
 
 # Upload directory configuration
@@ -616,4 +619,414 @@ async def get_user_content(
         raise
     except Exception as e:
         logger.error(f"Error getting user content: {str(e)}")
+        raise HTTPException(status_code=500, detail="Internal server error")
+
+@rou
+ter.get("/content/{content_id}/versions")
+async def get_content_versions(
+    content_id: int,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Get all versions of a content generation
+    """
+    try:
+        # Verify content belongs to user
+        content = db.query(ContentGeneration).filter(
+            ContentGeneration.id == content_id,
+            ContentGeneration.user_id == current_user.id
+        ).first()
+        
+        if not content:
+            raise HTTPException(status_code=404, detail="Content not found")
+        
+        # Get versions using the service
+        versions = content_generator.get_content_versions(content_id, db)
+        
+        return {
+            "versions": [
+                {
+                    "id": version.id,
+                    "version_number": version.version_number,
+                    "content": version.content,
+                    "change_description": version.change_description,
+                    "change_type": version.change_type,
+                    "created_at": version.created_at,
+                    "created_by": version.created_by
+                }
+                for version in versions
+            ]
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error getting content versions: {str(e)}")
+        raise HTTPException(status_code=500, detail="Internal server error")
+
+
+@router.post("/content/{content_id}/rollback/{version_number}")
+async def rollback_content(
+    content_id: int,
+    version_number: int,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Rollback content to a specific version
+    """
+    try:
+        # Verify content belongs to user
+        content = db.query(ContentGeneration).filter(
+            ContentGeneration.id == content_id,
+            ContentGeneration.user_id == current_user.id
+        ).first()
+        
+        if not content:
+            raise HTTPException(status_code=404, detail="Content not found")
+        
+        # Rollback using the service
+        updated_content = content_generator.rollback_to_version(content, version_number, db)
+        
+        return {
+            "message": f"Content rolled back to version {version_number}",
+            "content_id": updated_content.id,
+            "current_content": updated_content.generated_content,
+            "status": updated_content.status
+        }
+        
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error rolling back content: {str(e)}")
+        raise HTTPException(status_code=500, detail="Internal server error")
+
+
+@router.get("/content/{content_id}/suggestions")
+async def get_template_suggestions(
+    content_id: int,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Get template suggestions for content based on job and user context
+    """
+    try:
+        # Get content and associated job
+        content = db.query(ContentGeneration).filter(
+            ContentGeneration.id == content_id,
+            ContentGeneration.user_id == current_user.id
+        ).first()
+        
+        if not content:
+            raise HTTPException(status_code=404, detail="Content not found")
+        
+        if not content.job_id:
+            raise HTTPException(status_code=400, detail="Content must be associated with a job for suggestions")
+        
+        job = db.query(Job).filter(Job.id == content.job_id).first()
+        if not job:
+            raise HTTPException(status_code=404, detail="Associated job not found")
+        
+        # Get suggestions using the service
+        suggestions = content_generator.get_template_suggestions(job, current_user)
+        
+        return suggestions
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error getting template suggestions: {str(e)}")
+        raise HTTPException(status_code=500, detail="Internal server error")
+
+
+@router.post("/content/{content_id}/track-modifications")
+async def track_content_modifications(
+    content_id: int,
+    request: ContentUpdateRequest,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Track user modifications to content for learning purposes
+    """
+    try:
+        # Get content
+        content = db.query(ContentGeneration).filter(
+            ContentGeneration.id == content_id,
+            ContentGeneration.user_id == current_user.id
+        ).first()
+        
+        if not content:
+            raise HTTPException(status_code=404, detail="Content not found")
+        
+        # Track modifications using the service
+        original_content = content.generated_content
+        content_generator.track_user_modifications(
+            content, 
+            original_content, 
+            request.user_modifications, 
+            db
+        )
+        
+        return {
+            "message": "User modifications tracked successfully",
+            "content_id": content.id,
+            "modifications_recorded": True
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error tracking content modifications: {str(e)}")
+        raise HTTPException(status_code=500, detail="Internal server error")
+@rout
+er.post("/content/{content_id}/analyze-quality")
+async def analyze_content_quality(
+    content_id: int,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Analyze content quality and provide scoring and suggestions
+    """
+    try:
+        # Get content
+        content = db.query(ContentGeneration).filter(
+            ContentGeneration.id == content_id,
+            ContentGeneration.user_id == current_user.id
+        ).first()
+        
+        if not content:
+            raise HTTPException(status_code=404, detail="Content not found")
+        
+        # Get job keywords if available
+        job_keywords = []
+        if content.job_id:
+            job = db.query(Job).filter(Job.id == content.job_id).first()
+            if job and job.tech_stack:
+                job_keywords = job.tech_stack
+        
+        # Analyze quality
+        quality_score = content_quality.analyze_content_quality(
+            content=content.generated_content,
+            content_type=content.content_type,
+            target_tone=content.tone or "professional",
+            job_keywords=job_keywords
+        )
+        
+        return {
+            "content_id": content_id,
+            "quality_analysis": {
+                "overall_score": quality_score.overall_score,
+                "readability_score": quality_score.readability_score,
+                "grammar_score": quality_score.grammar_score,
+                "structure_score": quality_score.structure_score,
+                "keyword_relevance_score": quality_score.keyword_relevance_score,
+                "length_score": quality_score.length_score,
+                "tone_consistency_score": quality_score.tone_consistency_score,
+                "suggestions": quality_score.suggestions,
+                "issues": quality_score.issues
+            }
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error analyzing content quality: {str(e)}")
+        raise HTTPException(status_code=500, detail="Internal server error")
+
+
+@router.post("/content/{content_id}/check-grammar")
+async def check_content_grammar(
+    content_id: int,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Check content for spelling and grammar issues
+    """
+    try:
+        # Get content
+        content = db.query(ContentGeneration).filter(
+            ContentGeneration.id == content_id,
+            ContentGeneration.user_id == current_user.id
+        ).first()
+        
+        if not content:
+            raise HTTPException(status_code=404, detail="Content not found")
+        
+        # Check grammar and spelling
+        grammar_check = content_quality.check_spelling_and_grammar(content.generated_content)
+        
+        return {
+            "content_id": content_id,
+            "grammar_check": grammar_check
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error checking grammar: {str(e)}")
+        raise HTTPException(status_code=500, detail="Internal server error")
+
+
+@router.get("/content/{content_id}/export/{format_type}")
+async def export_content(
+    content_id: int,
+    format_type: str,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Export content in different formats (txt, html, markdown)
+    """
+    try:
+        # Validate format type
+        if format_type not in ["txt", "html", "markdown"]:
+            raise HTTPException(status_code=400, detail="Invalid format type. Supported: txt, html, markdown")
+        
+        # Get content
+        content = db.query(ContentGeneration).filter(
+            ContentGeneration.id == content_id,
+            ContentGeneration.user_id == current_user.id
+        ).first()
+        
+        if not content:
+            raise HTTPException(status_code=404, detail="Content not found")
+        
+        # Export content
+        exported_content = content_quality.export_content(
+            content=content.user_modifications or content.generated_content,
+            format_type=format_type
+        )
+        
+        # Set appropriate content type
+        content_types = {
+            "txt": "text/plain",
+            "html": "text/html",
+            "markdown": "text/markdown"
+        }
+        
+        return Response(
+            content=exported_content,
+            media_type=content_types[format_type],
+            headers={
+                "Content-Disposition": f"attachment; filename=content_{content_id}.{format_type}"
+            }
+        )
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error exporting content: {str(e)}")
+        raise HTTPException(status_code=500, detail="Internal server error")
+
+
+@router.post("/content/preview")
+async def preview_content_with_quality(
+    request: ContentGenerationRequest,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Generate content preview with quality analysis before saving
+    """
+    try:
+        # Get job if job_id is provided
+        job = None
+        job_keywords = []
+        if request.job_id:
+            job = db.query(Job).filter(
+                Job.id == request.job_id,
+                Job.user_id == current_user.id
+            ).first()
+            
+            if not job:
+                raise HTTPException(status_code=404, detail="Job not found")
+            
+            if job.tech_stack:
+                job_keywords = job.tech_stack
+        
+        # Generate content preview (without saving)
+        if request.content_type == "cover_letter":
+            if not job:
+                raise HTTPException(status_code=400, detail="Job ID required for cover letter generation")
+            
+            # Generate preview content
+            preview_content = await content_generator.generate_cover_letter(
+                user=current_user,
+                job=job,
+                tone=request.tone or "professional",
+                custom_instructions=request.custom_instructions,
+                db=None  # Don't save to database
+            )
+            
+        elif request.content_type == "resume_tailoring":
+            if not job:
+                raise HTTPException(status_code=400, detail="Job ID required for resume tailoring")
+            
+            resume_sections = {
+                "skills": ', '.join(current_user.skills) if current_user.skills else "",
+                "experience": f"{current_user.experience_level} level experience",
+                "summary": f"Professional with {current_user.experience_level} experience"
+            }
+            
+            preview_content = await content_generator.generate_resume_tailoring(
+                user=current_user,
+                job=job,
+                resume_sections=resume_sections,
+                db=None  # Don't save to database
+            )
+            
+        elif request.content_type == "email_template":
+            if not job:
+                raise HTTPException(status_code=400, detail="Job ID required for email template generation")
+            
+            preview_content = await content_generator.generate_email_template(
+                user=current_user,
+                job=job,
+                template_type=request.template_type or "follow_up",
+                custom_instructions=request.custom_instructions,
+                db=None  # Don't save to database
+            )
+            
+        else:
+            raise HTTPException(status_code=400, detail="Invalid content type")
+        
+        # Analyze quality of preview content
+        quality_score = content_quality.analyze_content_quality(
+            content=preview_content.generated_content,
+            content_type=request.content_type,
+            target_tone=request.tone or "professional",
+            job_keywords=job_keywords
+        )
+        
+        return {
+            "preview": {
+                "content_type": preview_content.content_type,
+                "generated_content": preview_content.generated_content,
+                "tone": preview_content.tone,
+                "template_used": preview_content.template_used
+            },
+            "quality_analysis": {
+                "overall_score": quality_score.overall_score,
+                "readability_score": quality_score.readability_score,
+                "grammar_score": quality_score.grammar_score,
+                "structure_score": quality_score.structure_score,
+                "keyword_relevance_score": quality_score.keyword_relevance_score,
+                "length_score": quality_score.length_score,
+                "tone_consistency_score": quality_score.tone_consistency_score,
+                "suggestions": quality_score.suggestions,
+                "issues": quality_score.issues
+            }
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error generating content preview: {str(e)}")
         raise HTTPException(status_code=500, detail="Internal server error")

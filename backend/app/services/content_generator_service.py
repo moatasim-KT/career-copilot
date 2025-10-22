@@ -6,6 +6,7 @@ from sqlalchemy.orm import Session
 
 from ..services.llm_manager import LLMManager
 from ..models.content_generation import ContentGeneration
+from ..models.content_version import ContentVersion
 from ..models.job import Job
 from ..models.user import User
 
@@ -18,19 +19,52 @@ class ContentGeneratorService:
     def __init__(self):
         self.llm_manager = LLMManager()
         
-        # Content templates
+        # Enhanced content templates with more options
         self.cover_letter_templates = {
             'professional': {
                 'opening': "Dear Hiring Manager,\n\nI am writing to express my strong interest in the {job_title} position at {company}.",
-                'closing': "Thank you for considering my application. I look forward to the opportunity to discuss how my skills and experience can contribute to {company}'s success.\n\nSincerely,\n{user_name}"
+                'closing': "Thank you for considering my application. I look forward to the opportunity to discuss how my skills and experience can contribute to {company}'s success.\n\nSincerely,\n{user_name}",
+                'style': 'formal, business-like, respectful'
             },
             'casual': {
                 'opening': "Hi there!\n\nI'm excited to apply for the {job_title} role at {company}.",
-                'closing': "Thanks for your time and consideration. I'd love to chat more about how I can help {company} achieve its goals!\n\nBest regards,\n{user_name}"
+                'closing': "Thanks for your time and consideration. I'd love to chat more about how I can help {company} achieve its goals!\n\nBest regards,\n{user_name}",
+                'style': 'friendly, conversational, approachable'
             },
             'enthusiastic': {
                 'opening': "Dear {company} Team,\n\nI am thrilled to submit my application for the {job_title} position!",
-                'closing': "I am genuinely excited about the possibility of joining {company} and contributing to your innovative work. Thank you for your consideration!\n\nWith enthusiasm,\n{user_name}"
+                'closing': "I am genuinely excited about the possibility of joining {company} and contributing to your innovative work. Thank you for your consideration!\n\nWith enthusiasm,\n{user_name}",
+                'style': 'energetic, passionate, excited'
+            },
+            'confident': {
+                'opening': "Dear Hiring Manager,\n\nWith my proven track record in {relevant_field}, I am confident I would be an excellent fit for the {job_title} position at {company}.",
+                'closing': "I am ready to bring my expertise to {company} and contribute to your continued success. I look forward to discussing this opportunity further.\n\nBest regards,\n{user_name}",
+                'style': 'assertive, self-assured, results-focused'
+            },
+            'creative': {
+                'opening': "Hello {company} Team,\n\nYour {job_title} position caught my attention because it perfectly aligns with my passion for {relevant_field} and innovation.",
+                'closing': "I would love to bring my creative perspective and technical skills to {company}. Thank you for considering my application!\n\nCreatively yours,\n{user_name}",
+                'style': 'innovative, artistic, unique'
+            }
+        }
+        
+        # Job type specific templates
+        self.job_type_templates = {
+            'startup': {
+                'focus': 'adaptability, growth mindset, wearing multiple hats',
+                'keywords': ['agile', 'fast-paced', 'innovative', 'growth', 'impact']
+            },
+            'enterprise': {
+                'focus': 'scalability, process improvement, collaboration',
+                'keywords': ['enterprise', 'scale', 'process', 'collaboration', 'efficiency']
+            },
+            'remote': {
+                'focus': 'self-motivation, communication, time management',
+                'keywords': ['remote', 'autonomous', 'communication', 'self-directed', 'virtual']
+            },
+            'consulting': {
+                'focus': 'client service, problem-solving, adaptability',
+                'keywords': ['client', 'consulting', 'solutions', 'analysis', 'recommendations']
             }
         }
 
@@ -94,6 +128,16 @@ class ContentGeneratorService:
                 db.add(content_generation)
                 db.commit()
                 db.refresh(content_generation)
+                
+                # Create initial version
+                self.create_content_version(
+                    content_generation=content_generation,
+                    content=generated_content,
+                    change_description="Initial generation",
+                    change_type="generated",
+                    created_by="ai",
+                    db=db
+                )
             
             logger.info(f"Generated cover letter for user {user.id} and job {job.id}")
             return content_generation
@@ -147,6 +191,16 @@ class ContentGeneratorService:
                 db.add(content_generation)
                 db.commit()
                 db.refresh(content_generation)
+                
+                # Create initial version
+                self.create_content_version(
+                    content_generation=content_generation,
+                    content=generated_content,
+                    change_description="Initial generation",
+                    change_type="generated",
+                    created_by="ai",
+                    db=db
+                )
             
             logger.info(f"Generated resume tailoring for user {user.id} and job {job.id}")
             return content_generation
@@ -203,6 +257,16 @@ class ContentGeneratorService:
                 db.add(content_generation)
                 db.commit()
                 db.refresh(content_generation)
+                
+                # Create initial version
+                self.create_content_version(
+                    content_generation=content_generation,
+                    content=generated_content,
+                    change_description="Initial generation",
+                    change_type="generated",
+                    created_by="ai",
+                    db=db
+                )
             
             logger.info(f"Generated {template_type} email template for user {user.id} and job {job.id}")
             return content_generation
@@ -466,3 +530,258 @@ Best regards,
         except Exception as e:
             logger.error(f"Error improving content: {str(e)}")
             return original_content
+
+    def create_content_version(
+        self,
+        content_generation: ContentGeneration,
+        content: str,
+        change_description: str,
+        change_type: str = "user_modified",
+        created_by: str = "user",
+        db: Session = None
+    ) -> ContentVersion:
+        """
+        Create a new version of content for version tracking
+        
+        Args:
+            content_generation: ContentGeneration object
+            content: The content for this version
+            change_description: Description of what changed
+            change_type: Type of change (generated, user_modified, ai_improved)
+            created_by: Who created this version (user, system, ai)
+            db: Database session
+            
+        Returns:
+            ContentVersion object
+        """
+        try:
+            # Get the next version number
+            if db:
+                last_version = db.query(ContentVersion).filter(
+                    ContentVersion.content_generation_id == content_generation.id
+                ).order_by(ContentVersion.version_number.desc()).first()
+                
+                version_number = (last_version.version_number + 1) if last_version else 1
+            else:
+                version_number = 1
+            
+            # Create new version
+            content_version = ContentVersion(
+                content_generation_id=content_generation.id,
+                version_number=version_number,
+                content=content,
+                change_description=change_description,
+                change_type=change_type,
+                created_by=created_by
+            )
+            
+            if db:
+                db.add(content_version)
+                db.commit()
+                db.refresh(content_version)
+            
+            logger.info(f"Created version {version_number} for content {content_generation.id}")
+            return content_version
+            
+        except Exception as e:
+            logger.error(f"Error creating content version: {str(e)}")
+            raise
+
+    def get_content_versions(
+        self,
+        content_generation_id: int,
+        db: Session
+    ) -> List[ContentVersion]:
+        """
+        Get all versions of a content generation
+        
+        Args:
+            content_generation_id: ID of the content generation
+            db: Database session
+            
+        Returns:
+            List of ContentVersion objects ordered by version number
+        """
+        try:
+            versions = db.query(ContentVersion).filter(
+                ContentVersion.content_generation_id == content_generation_id
+            ).order_by(ContentVersion.version_number.desc()).all()
+            
+            return versions
+            
+        except Exception as e:
+            logger.error(f"Error getting content versions: {str(e)}")
+            return []
+
+    def rollback_to_version(
+        self,
+        content_generation: ContentGeneration,
+        version_number: int,
+        db: Session
+    ) -> ContentGeneration:
+        """
+        Rollback content to a specific version
+        
+        Args:
+            content_generation: ContentGeneration object
+            version_number: Version number to rollback to
+            db: Database session
+            
+        Returns:
+            Updated ContentGeneration object
+        """
+        try:
+            # Get the target version
+            target_version = db.query(ContentVersion).filter(
+                ContentVersion.content_generation_id == content_generation.id,
+                ContentVersion.version_number == version_number
+            ).first()
+            
+            if not target_version:
+                raise ValueError(f"Version {version_number} not found")
+            
+            # Update the content generation with the target version content
+            old_content = content_generation.generated_content
+            content_generation.generated_content = target_version.content
+            content_generation.status = "rolled_back"
+            
+            # Create a new version entry for the rollback
+            self.create_content_version(
+                content_generation=content_generation,
+                content=target_version.content,
+                change_description=f"Rolled back to version {version_number}",
+                change_type="rollback",
+                created_by="user",
+                db=db
+            )
+            
+            db.commit()
+            db.refresh(content_generation)
+            
+            logger.info(f"Rolled back content {content_generation.id} to version {version_number}")
+            return content_generation
+            
+        except Exception as e:
+            logger.error(f"Error rolling back content: {str(e)}")
+            raise
+
+    def get_template_suggestions(
+        self,
+        job: Job,
+        user: User
+    ) -> Dict[str, Any]:
+        """
+        Get template suggestions based on job and user context
+        
+        Args:
+            job: Job object
+            user: User object
+            
+        Returns:
+            Dictionary with template suggestions
+        """
+        suggestions = {
+            'recommended_tone': 'professional',
+            'job_type': 'general',
+            'focus_areas': [],
+            'keywords': []
+        }
+        
+        # Analyze job description for tone suggestions
+        if job.description:
+            description_lower = job.description.lower()
+            
+            # Determine job type
+            if any(word in description_lower for word in ['startup', 'fast-paced', 'agile']):
+                suggestions['job_type'] = 'startup'
+                suggestions['recommended_tone'] = 'enthusiastic'
+            elif any(word in description_lower for word in ['enterprise', 'large', 'corporation']):
+                suggestions['job_type'] = 'enterprise'
+                suggestions['recommended_tone'] = 'professional'
+            elif any(word in description_lower for word in ['remote', 'work from home', 'distributed']):
+                suggestions['job_type'] = 'remote'
+                suggestions['recommended_tone'] = 'confident'
+            elif any(word in description_lower for word in ['creative', 'design', 'innovative']):
+                suggestions['recommended_tone'] = 'creative'
+            
+            # Get job type specific suggestions
+            if suggestions['job_type'] in self.job_type_templates:
+                template = self.job_type_templates[suggestions['job_type']]
+                suggestions['focus_areas'] = [template['focus']]
+                suggestions['keywords'] = template['keywords']
+        
+        # Consider user experience level
+        if user.experience_level == 'senior':
+            suggestions['recommended_tone'] = 'confident'
+        elif user.experience_level == 'junior':
+            suggestions['recommended_tone'] = 'enthusiastic'
+        
+        return suggestions
+
+    def track_user_modifications(
+        self,
+        content_generation: ContentGeneration,
+        original_content: str,
+        modified_content: str,
+        db: Session
+    ) -> None:
+        """
+        Track user modifications for learning purposes
+        
+        Args:
+            content_generation: ContentGeneration object
+            original_content: Original generated content
+            modified_content: User-modified content
+            db: Database session
+        """
+        try:
+            # Calculate modification patterns (simplified)
+            modifications = {
+                'length_change': len(modified_content) - len(original_content),
+                'word_count_change': len(modified_content.split()) - len(original_content.split()),
+                'has_structural_changes': '\n\n' in modified_content != '\n\n' in original_content,
+                'tone_indicators': self._analyze_tone_changes(original_content, modified_content)
+            }
+            
+            # Store user modifications
+            content_generation.user_modifications = modified_content
+            
+            # Create version for tracking
+            self.create_content_version(
+                content_generation=content_generation,
+                content=modified_content,
+                change_description="User modifications applied",
+                change_type="user_modified",
+                created_by="user",
+                db=db
+            )
+            
+            logger.info(f"Tracked user modifications for content {content_generation.id}")
+            
+        except Exception as e:
+            logger.error(f"Error tracking user modifications: {str(e)}")
+
+    def _analyze_tone_changes(self, original: str, modified: str) -> Dict[str, bool]:
+        """Analyze tone changes between original and modified content"""
+        
+        formal_indicators = ['Dear', 'Sincerely', 'respectfully', 'formally']
+        casual_indicators = ['Hi', 'Hey', 'Thanks', 'Cheers']
+        enthusiastic_indicators = ['excited', 'thrilled', 'passionate', '!']
+        
+        original_lower = original.lower()
+        modified_lower = modified.lower()
+        
+        return {
+            'became_more_formal': (
+                sum(1 for word in formal_indicators if word.lower() in modified_lower) >
+                sum(1 for word in formal_indicators if word.lower() in original_lower)
+            ),
+            'became_more_casual': (
+                sum(1 for word in casual_indicators if word.lower() in modified_lower) >
+                sum(1 for word in casual_indicators if word.lower() in original_lower)
+            ),
+            'became_more_enthusiastic': (
+                sum(1 for word in enthusiastic_indicators if word.lower() in modified_lower) >
+                sum(1 for word in enthusiastic_indicators if word.lower() in original_lower)
+            )
+        }

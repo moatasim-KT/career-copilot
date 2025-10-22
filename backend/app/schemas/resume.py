@@ -136,3 +136,51 @@ class ContentResponse(BaseModel):
     
     class Config:
         from_attributes = True
+
+
+class ContentQualityAnalysis(BaseModel):
+    """Schema for content quality analysis"""
+    overall_score: float
+    readability_score: float
+    grammar_score: float
+    structure_score: float
+    keyword_relevance_score: float
+    length_score: float
+    tone_consistency_score: float
+    suggestions: List[str]
+    issues: List[Dict[str, Any]]
+
+
+class ContentVersionResponse(BaseModel):
+    """Schema for content version"""
+    id: int
+    version_number: int
+    content: str
+    change_description: Optional[str] = None
+    change_type: str
+    created_at: datetime
+    created_by: str
+    
+    class Config:
+        from_attributes = True
+
+
+class TemplateSuggestions(BaseModel):
+    """Schema for template suggestions"""
+    recommended_tone: str
+    job_type: str
+    focus_areas: List[str]
+    keywords: List[str]
+
+
+class GrammarCheckResult(BaseModel):
+    """Schema for grammar check results"""
+    issues: List[Dict[str, Any]]
+    suggestions: List[str]
+    total_issues: int
+
+
+class ContentPreviewResponse(BaseModel):
+    """Schema for content preview with quality analysis"""
+    preview: Dict[str, Any]
+    quality_analysis: ContentQualityAnalysis
