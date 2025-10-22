@@ -2,7 +2,7 @@
 
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from typing import List
+from typing import List, Optional
 from datetime import datetime
 from ...core.database import get_db
 from ...core.dependencies import get_current_user
@@ -230,3 +230,160 @@ async def delete_job(
     except Exception as e:
         db.rollback()
         raise HTTPException(status_code=500, detail=f"Error deleting job: {str(e)}")
+
+
+@router.get("/api/v1/jobs/sources/analytics")
+async def get_job_source_analytics(
+    timeframe_days: int = 30,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Get comprehensive analytics for all job sources.
+    
+    - **timeframe_days**: Number of days to analyze (default: 30)
+    
+    Returns quality scores, performance metrics, and recommendations for each job source.
+    """
+    try:
+        from ...services.job_source_manager import JobSourceManager
+        source_manager = JobSourceManager(db)
+        
+        analytics = source_manager.get_source_analytics(timeframe_days)
+        user_preferences = source_manager.get_user_source_preferences(current_user.id)
+        
+        return {
+            "analytics": analytics,
+            "user_preferences": user_preferences,
+            "timeframe_days": timeframe_days
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error retrieving source analytics: {str(e)}")
+
+
+@router.get("/api/v1/jobs/sources/recommendations")
+async def get_source_recommendations(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Get personalized job source recommendations for the current user.
+    
+    Returns recommended job sources based on user's historical success rates
+    and overall source quality metrics.
+    """
+    try:
+        from ...services.job_source_manager import JobSourceManager
+        source_manager = JobSourceManager(db)
+        
+        user_data = source_manager.get_user_source_preferences(current_user.id)
+        
+        return {
+            "recommended_sources": user_data.get("recommended_sources", []),
+            "source_performance": user_data.get("source_preferences", {}),
+            "user_id": current_user.id
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error retrieving source recommendations: {str(e)}")
+
+
+@router.get("/api/v1/jobs/{job_id}/source-info")
+async def get_job_source_info(
+    job_id: int,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Get detailed source information for a specific job.
+    
+    - **job_id**: ID of the job to analyze
+    
+    Returns source quality metrics, reliability indicators, and enriched data.
+    """
+    try:
+        job = db.query(Job).filter(Job.id == job_id, Job.user_id == current_user.id).first()
+        if not job:
+            raise HTTPException(status_code=404, detail="Job not found")
+        
+        from ...services.job_source_manager import JobSourceManager
+        source_manager = JobSourceManager(db)
+        
+        source_info = source_manager.enrich_job_with_source_data(job)
+        
+        return {
+            "job_id": job_id,
+            "source": job.source,
+            "source_info": source_info
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error retrieving job source info: {str(e)}")
+
+
+@router.post("/api/v1/jobs/scrape")
+async def trigger_job_scraping(
+    keywords: List[str],
+    location: str = "Remote",
+    max_results: int = 20,
+    sources: List[str] = None,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Manually trigger job scraping from multiple sources.
+    
+    - **keywords**: List of keywords to search for
+    - **location**: Location to search in (default: "Remote")
+    - **max_results**: Maximum number of results to return (default: 20)
+    - **sources**: Specific sources to search (optional, defaults to all available)
+    
+    Returns scraped jobs that were added to the user's job list.
+    """
+    try:
+        from ...services.job_scraper_service import JobScraperService
+        scraper = JobScraperService(db)
+        
+        # If specific sources are requested, filter the search
+        if sources:
+            scraped_jobs = []
+            for source in sources:
+                if hasattr(scraper, f'search_{source}'):
+                    method = getattr(scraper, f'search_{source}')
+                    if source in ['linkedin', 'indeed', 'glassdoor']:
+                        jobs = await method(keywords, location, max_results // len(sources))
+                    else:
+                        jobs = await method(keywords, max_results // len(sources))
+                    scraped_jobs.extend(jobs)
+        else:
+            # Search all available APIs
+            scraped_jobs = await scraper.search_all_apis(keywords, location, max_results)
+        
+        # Deduplicate against existing user jobs
+        unique_jobs = scraper.deduplicate_against_db(scraped_jobs, current_user.id)
+        
+        # Create job records
+        created_jobs = []
+        for job_data in unique_jobs:
+            job_dict = job_data.model_dump()
+            job = Job(**job_dict, user_id=current_user.id)
+            db.add(job)
+            created_jobs.append(job)
+        
+        db.commit()
+        
+        # Invalidate cache
+        cache_service.invalidate_user_cache(current_user.id)
+        
+        return {
+            "message": f"Successfully scraped {len(created_jobs)} new jobs",
+            "jobs_added": len(created_jobs),
+            "jobs_scraped": len(scraped_jobs),
+            "jobs_deduplicated": len(scraped_jobs) - len(unique_jobs),
+            "keywords": keywords,
+            "location": location,
+            "sources_used": sources or "all"
+        }
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=f"Error scraping jobs: {str(e)}")

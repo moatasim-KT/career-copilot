@@ -540,8 +540,8 @@ This implementation plan covers the complete Career Co-Pilot MVP across all four
   - Implement interview preparation suggestions based on job context
   - _Requirements: 19.3, 19.4, 19.5_
 
-- [ ] 26. Enhance job board integration
-- [ ] 26.1 Implement LinkedIn API integration
+- [-] 26. Enhance job board integration
+- [-] 26.1 Implement LinkedIn API integration
   - Set up LinkedIn API credentials and authentication
   - Implement LinkedIn job search and data retrieval
   - Add LinkedIn-specific data normalization

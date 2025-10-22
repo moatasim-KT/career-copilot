@@ -40,6 +40,19 @@ class Settings(BaseSettings):
     adzuna_app_key: Optional[str] = None
     adzuna_country: Optional[str] = "us"
     
+    # LinkedIn API Configuration
+    linkedin_api_client_id: Optional[str] = None
+    linkedin_api_client_secret: Optional[str] = None
+    linkedin_api_access_token: Optional[str] = None
+    
+    # Indeed API Configuration
+    indeed_publisher_id: Optional[str] = None
+    indeed_api_key: Optional[str] = None
+    
+    # Glassdoor API Configuration
+    glassdoor_partner_id: Optional[str] = None
+    glassdoor_api_key: Optional[str] = None
+    
     # Celery Configuration
     celery_broker_url: Optional[str] = "redis://localhost:6379/0"
     celery_result_backend: Optional[str] = "redis://localhost:6379/0"

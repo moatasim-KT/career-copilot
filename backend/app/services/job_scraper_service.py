@@ -21,12 +21,18 @@ class JobScraperService:
             'usajobs': 1000,     # Government API: generous limits
             'github_jobs': 500,  # No official limit, be conservative
             'remoteok': 100,     # Limited free usage
+            'linkedin': 500,     # LinkedIn API rate limits
+            'indeed': 1000,      # Indeed API limits
+            'glassdoor': 500,    # Glassdoor API limits
         }
         self.api_delays = {
             'adzuna': 0.1,       # 0.1 seconds between requests
             'usajobs': 0.5,      # 0.5 seconds between requests
             'github_jobs': 1.0,  # 1 second between requests
             'remoteok': 2.0,     # 2 seconds between requests
+            'linkedin': 1.0,     # LinkedIn API rate limiting
+            'indeed': 0.5,       # Indeed API rate limiting
+            'glassdoor': 1.5,    # Glassdoor API rate limiting
         }
 
     async def _make_api_request(self, url: str, params: Dict, headers: Optional[Dict] = None, api_name: str = "generic") -> Any:
@@ -130,24 +136,350 @@ class JobScraperService:
             logger.error(f"Error searching RemoteOK API: {e}")
         return jobs
 
+    async def search_linkedin(self, keywords: List[str], location: str, max_results: int = 20) -> List[JobCreate]:
+        """Search LinkedIn Jobs API for job postings"""
+        jobs = []
+        if not self.settings.linkedin_api_access_token:
+            logger.warning("LinkedIn API access token not configured. Skipping LinkedIn search.")
+            return []
+
+        headers = {
+            "Authorization": f"Bearer {self.settings.linkedin_api_access_token}",
+            "Content-Type": "application/json",
+            "X-Restli-Protocol-Version": "2.0.0"
+        }
+        
+        # LinkedIn Jobs API parameters
+        params = {
+            "keywords": " ".join(keywords),
+            "locationFallback": location,
+            "count": min(max_results, 50),  # LinkedIn API max per request
+            "start": 0,
+            "sortBy": "DD"  # Sort by date descending
+        }
+        
+        try:
+            # LinkedIn Jobs Search API endpoint
+            url = "https://api.linkedin.com/v2/jobSearch"
+            response_data = await self._make_api_request(url, params, headers, api_name="linkedin")
+            
+            if "elements" in response_data:
+                for job_data in response_data["elements"][:max_results]:
+                    job = await self._parse_linkedin_job(job_data)
+                    if job:
+                        jobs.append(job)
+            
+            logger.info(f"Found {len(jobs)} jobs from LinkedIn API")
+        except Exception as e:
+            logger.error(f"Error searching LinkedIn API: {e}")
+        return jobs
+
+    async def _parse_linkedin_job(self, job_data: Dict[str, Any]) -> Optional[JobCreate]:
+        """Parse LinkedIn job data into JobCreate schema"""
+        try:
+            # Extract basic job information
+            title = job_data.get("title", "")
+            company_info = job_data.get("companyDetails", {})
+            company_name = company_info.get("company", {}).get("name", "Unknown Company")
+            
+            # Extract location information
+            location_info = job_data.get("formattedLocation", "")
+            
+            # Extract job description
+            description = job_data.get("description", {}).get("text", "")
+            
+            # Extract employment type
+            employment_type = job_data.get("employmentType", "FULL_TIME")
+            job_type = self._normalize_employment_type(employment_type)
+            
+            # Extract workplace type (remote/onsite/hybrid)
+            workplace_type = job_data.get("workplaceTypes", ["ON_SITE"])
+            remote_option = self._normalize_workplace_type(workplace_type)
+            
+            # Extract salary information if available
+            salary_range = None
+            if "salaryInsights" in job_data:
+                salary_info = job_data["salaryInsights"]
+                if "baseCompensationRange" in salary_info:
+                    comp_range = salary_info["baseCompensationRange"]
+                    min_salary = comp_range.get("min", {}).get("amount")
+                    max_salary = comp_range.get("max", {}).get("amount")
+                    if min_salary and max_salary:
+                        salary_range = f"${min_salary:,} - ${max_salary:,}"
+            
+            # Extract skills/tech stack from job description
+            tech_stack = self._extract_tech_stack_from_description(description)
+            
+            # Get job posting URL
+            job_url = f"https://www.linkedin.com/jobs/view/{job_data.get('jobPostingId', '')}"
+            
+            return JobCreate(
+                company=company_name,
+                title=title,
+                location=location_info,
+                description=description,
+                salary_range=salary_range,
+                job_type=job_type,
+                remote_option=remote_option,
+                tech_stack=tech_stack,
+                link=job_url,
+                source="linkedin"
+            )
+        except Exception as e:
+            logger.error(f"Error parsing LinkedIn job: {e}")
+            return None
+
+    def _normalize_employment_type(self, employment_type: str) -> str:
+        """Normalize LinkedIn employment type to standard format"""
+        type_mapping = {
+            "FULL_TIME": "full-time",
+            "PART_TIME": "part-time",
+            "CONTRACT": "contract",
+            "TEMPORARY": "temporary",
+            "INTERNSHIP": "internship",
+            "VOLUNTEER": "volunteer"
+        }
+        return type_mapping.get(employment_type, "full-time")
+
+    def _normalize_workplace_type(self, workplace_types: List[str]) -> str:
+        """Normalize LinkedIn workplace type to remote option"""
+        if "REMOTE" in workplace_types:
+            return "remote"
+        elif "HYBRID" in workplace_types:
+            return "hybrid"
+        else:
+            return "onsite"
+
+    def _extract_tech_stack_from_description(self, description: str) -> List[str]:
+        """Extract technology skills from job description using keyword matching"""
+        # Common technology keywords to look for
+        tech_keywords = [
+            # Programming Languages
+            "python", "java", "javascript", "typescript", "c++", "c#", "go", "rust", "php", "ruby", "swift", "kotlin",
+            # Web Technologies
+            "react", "angular", "vue", "node.js", "express", "django", "flask", "spring", "laravel",
+            # Databases
+            "mysql", "postgresql", "mongodb", "redis", "elasticsearch", "cassandra", "dynamodb",
+            # Cloud Platforms
+            "aws", "azure", "gcp", "google cloud", "docker", "kubernetes", "terraform",
+            # Data & Analytics
+            "pandas", "numpy", "tensorflow", "pytorch", "spark", "hadoop", "kafka",
+            # DevOps & Tools
+            "git", "jenkins", "gitlab", "github", "jira", "confluence"
+        ]
+        
+        found_skills = []
+        description_lower = description.lower()
+        
+        for skill in tech_keywords:
+            if skill in description_lower:
+                found_skills.append(skill.title())
+        
+        return list(set(found_skills))  # Remove duplicates
+
+    async def search_indeed(self, keywords: List[str], location: str, max_results: int = 20) -> List[JobCreate]:
+        """Search Indeed API for job postings"""
+        jobs = []
+        if not self.settings.indeed_publisher_id:
+            logger.warning("Indeed Publisher ID not configured. Skipping Indeed search.")
+            return []
+
+        params = {
+            "publisher": self.settings.indeed_publisher_id,
+            "q": " ".join(keywords),
+            "l": location,
+            "limit": min(max_results, 25),  # Indeed API max per request
+            "format": "json",
+            "v": "2",  # API version
+            "userip": "1.2.3.4",  # Required by Indeed API
+            "useragent": "Mozilla/5.0 (compatible; Career-Copilot/1.0)"
+        }
+        
+        try:
+            url = "https://api.indeed.com/ads/apisearch"
+            response_data = await self._make_api_request(url, params, api_name="indeed")
+            
+            if "results" in response_data:
+                for job_data in response_data["results"][:max_results]:
+                    job = self._parse_indeed_job(job_data)
+                    if job:
+                        jobs.append(job)
+            
+            logger.info(f"Found {len(jobs)} jobs from Indeed API")
+        except Exception as e:
+            logger.error(f"Error searching Indeed API: {e}")
+        return jobs
+
+    def _parse_indeed_job(self, job_data: Dict[str, Any]) -> Optional[JobCreate]:
+        """Parse Indeed job data into JobCreate schema"""
+        try:
+            title = job_data.get("jobtitle", "")
+            company = job_data.get("company", "")
+            location = f"{job_data.get('city', '')}, {job_data.get('state', '')}"
+            description = job_data.get("snippet", "")
+            
+            # Extract salary if available
+            salary_range = None
+            if job_data.get("salary"):
+                salary_range = job_data["salary"]
+            
+            # Determine job type and remote option from description
+            job_type = "full-time"  # Indeed doesn't provide this directly
+            remote_option = "onsite"
+            if description and ("remote" in description.lower() or "work from home" in description.lower()):
+                remote_option = "remote"
+            
+            # Extract tech stack from description
+            tech_stack = self._extract_tech_stack_from_description(description)
+            
+            return JobCreate(
+                company=company,
+                title=title,
+                location=location.strip(", "),
+                description=description,
+                salary_range=salary_range,
+                job_type=job_type,
+                remote_option=remote_option,
+                tech_stack=tech_stack,
+                link=job_data.get("url", ""),
+                source="indeed"
+            )
+        except Exception as e:
+            logger.error(f"Error parsing Indeed job: {e}")
+            return None
+
+    async def search_glassdoor(self, keywords: List[str], location: str, max_results: int = 20) -> List[JobCreate]:
+        """Search Glassdoor API for job postings and company data"""
+        jobs = []
+        if not self.settings.glassdoor_partner_id or not self.settings.glassdoor_api_key:
+            logger.warning("Glassdoor API credentials not configured. Skipping Glassdoor search.")
+            return []
+
+        params = {
+            "t.p": self.settings.glassdoor_partner_id,
+            "t.k": self.settings.glassdoor_api_key,
+            "action": "jobs-prog",
+            "q": " ".join(keywords),
+            "l": location,
+            "ps": min(max_results, 20),  # Glassdoor API max per request
+            "format": "json",
+            "v": "1"
+        }
+        
+        try:
+            url = "https://api.glassdoor.com/api/api.htm"
+            response_data = await self._make_api_request(url, params, api_name="glassdoor")
+            
+            if "response" in response_data and "jobs" in response_data["response"]:
+                for job_data in response_data["response"]["jobs"][:max_results]:
+                    job = await self._parse_glassdoor_job(job_data)
+                    if job:
+                        jobs.append(job)
+            
+            logger.info(f"Found {len(jobs)} jobs from Glassdoor API")
+        except Exception as e:
+            logger.error(f"Error searching Glassdoor API: {e}")
+        return jobs
+
+    async def _parse_glassdoor_job(self, job_data: Dict[str, Any]) -> Optional[JobCreate]:
+        """Parse Glassdoor job data into JobCreate schema with company enrichment"""
+        try:
+            title = job_data.get("jobTitle", "")
+            company = job_data.get("employer", {}).get("name", "")
+            location = job_data.get("location", "")
+            description = job_data.get("jobDescription", "")
+            
+            # Extract salary information
+            salary_range = None
+            if "salaryEstimate" in job_data:
+                salary_range = job_data["salaryEstimate"]
+            elif "estimatedSalary" in job_data:
+                est_salary = job_data["estimatedSalary"]
+                if "min" in est_salary and "max" in est_salary:
+                    salary_range = f"${est_salary['min']:,} - ${est_salary['max']:,}"
+            
+            # Determine job type and remote option
+            job_type = "full-time"
+            remote_option = "onsite"
+            if description and ("remote" in description.lower() or "work from home" in description.lower()):
+                remote_option = "remote"
+            
+            # Extract tech stack from description
+            tech_stack = self._extract_tech_stack_from_description(description)
+            
+            # Enrich with company data if available
+            company_info = await self._get_glassdoor_company_info(company)
+            
+            return JobCreate(
+                company=company,
+                title=title,
+                location=location,
+                description=description,
+                salary_range=salary_range,
+                job_type=job_type,
+                remote_option=remote_option,
+                tech_stack=tech_stack,
+                link=job_data.get("jobUrl", ""),
+                source="glassdoor",
+                requirements=company_info.get("industry", "") if company_info else ""
+            )
+        except Exception as e:
+            logger.error(f"Error parsing Glassdoor job: {e}")
+            return None
+
+    async def _get_glassdoor_company_info(self, company_name: str) -> Optional[Dict[str, Any]]:
+        """Get additional company information from Glassdoor API"""
+        try:
+            params = {
+                "t.p": self.settings.glassdoor_partner_id,
+                "t.k": self.settings.glassdoor_api_key,
+                "action": "employers",
+                "q": company_name,
+                "format": "json",
+                "v": "1"
+            }
+            
+            url = "https://api.glassdoor.com/api/api.htm"
+            response_data = await self._make_api_request(url, params, api_name="glassdoor")
+            
+            if "response" in response_data and "employers" in response_data["response"]:
+                employers = response_data["response"]["employers"]
+                if employers:
+                    return employers[0]  # Return first match
+            
+        except Exception as e:
+            logger.debug(f"Could not fetch company info for {company_name}: {e}")
+        
+        return None
+
     async def search_all_apis(self, keywords: List[str], location: str, max_results: int = 20) -> List[JobCreate]:
         """Search all available job APIs concurrently"""
         logger.info(f"Searching all job APIs for '{keywords}' in '{location}'")
         tasks = []
         
+        # Calculate results per API (distribute evenly across available APIs)
+        num_apis = 7  # Total number of APIs
+        results_per_api = max(1, max_results // num_apis)
+        
         # Adzuna
-        tasks.append(self.search_adzuna(keywords, location, max_results // 4))
+        tasks.append(self.search_adzuna(keywords, location, results_per_api))
         # USAJobs (free government API)
-        tasks.append(self.search_usajobs(keywords, location, max_results // 4))
+        tasks.append(self.search_usajobs(keywords, location, results_per_api))
         # GitHub Jobs (if still available)
-        tasks.append(self.search_github_jobs(keywords, location, max_results // 4))
+        tasks.append(self.search_github_jobs(keywords, location, results_per_api))
         # RemoteOK (for remote jobs, location is often ignored or assumed remote)
-        tasks.append(self.search_remoteok(keywords, max_results // 4))
+        tasks.append(self.search_remoteok(keywords, results_per_api))
+        # LinkedIn Jobs
+        tasks.append(self.search_linkedin(keywords, location, results_per_api))
+        # Indeed Jobs
+        tasks.append(self.search_indeed(keywords, location, results_per_api))
+        # Glassdoor Jobs
+        tasks.append(self.search_glassdoor(keywords, location, results_per_api))
 
         results = await asyncio.gather(*tasks, return_exceptions=True)
 
         all_jobs = []
-        api_names = ['Adzuna', 'USAJobs', 'GitHub Jobs', 'RemoteOK']
+        api_names = ['Adzuna', 'USAJobs', 'GitHub Jobs', 'RemoteOK', 'LinkedIn', 'Indeed', 'Glassdoor']
         for i, res in enumerate(results):
             if isinstance(res, Exception):
                 logger.error(f"Error from {api_names[i]} API: {res}")
@@ -160,22 +492,66 @@ class JobScraperService:
         return unique_jobs[:max_results]
 
     def _deduplicate_api_jobs(self, jobs: List[JobCreate]) -> List[JobCreate]:
-        """Remove duplicate jobs from API results based on title and company (case-insensitive)"""
+        """Remove duplicate jobs from API results with intelligent merging across sources"""
         unique_jobs = []
-        seen_keys = set()
+        job_map = {}  # key -> job with best data
+        source_priority = {
+            'linkedin': 5,    # Highest priority - most comprehensive data
+            'glassdoor': 4,   # High priority - good salary and company data
+            'indeed': 3,      # Medium-high priority - good coverage
+            'adzuna': 2,      # Medium priority - decent data quality
+            'usajobs': 2,     # Medium priority - government jobs
+            'github_jobs': 1, # Low priority - deprecated API
+            'remoteok': 1     # Low priority - limited data
+        }
 
         for job in jobs:
+            # Create a normalized key for deduplication
             key = f"{job.title.lower().strip()}|{job.company.lower().strip()}"
-            if key not in seen_keys:
-                unique_jobs.append(job)
-                seen_keys.add(key)
+            
+            if key not in job_map:
+                job_map[key] = job
             else:
-                logger.debug(f"Duplicate job filtered: {job.title} at {job.company}")
+                # Keep the job from the higher priority source, or merge data
+                existing_job = job_map[key]
+                existing_priority = source_priority.get(existing_job.source, 0)
+                new_priority = source_priority.get(job.source, 0)
+                
+                if new_priority > existing_priority:
+                    # Replace with higher priority source
+                    job_map[key] = job
+                elif new_priority == existing_priority:
+                    # Merge data from same priority sources
+                    merged_job = self._merge_job_data(existing_job, job)
+                    job_map[key] = merged_job
+                # If new priority is lower, keep existing job
+                
+                logger.debug(f"Duplicate job handled: {job.title} at {job.company} (sources: {existing_job.source}, {job.source})")
         
+        unique_jobs = list(job_map.values())
         removed = len(jobs) - len(unique_jobs)
         if removed > 0:
             logger.info(f"Removed {removed} duplicate jobs from API results")
         return unique_jobs
+
+    def _merge_job_data(self, job1: JobCreate, job2: JobCreate) -> JobCreate:
+        """Merge data from two job postings of the same position"""
+        # Use the more complete data from either job
+        merged_data = {
+            "company": job1.company or job2.company,
+            "title": job1.title or job2.title,
+            "location": job1.location or job2.location,
+            "description": job1.description if len(job1.description or "") > len(job2.description or "") else job2.description,
+            "salary_range": job1.salary_range or job2.salary_range,
+            "job_type": job1.job_type or job2.job_type,
+            "remote_option": job1.remote_option or job2.remote_option,
+            "tech_stack": list(set((job1.tech_stack or []) + (job2.tech_stack or []))),  # Combine and deduplicate
+            "requirements": job1.requirements or job2.requirements,
+            "link": job1.link or job2.link,
+            "source": f"{job1.source},{job2.source}"  # Track multiple sources
+        }
+        
+        return JobCreate(**merged_data)
 
     def deduplicate_against_db(self, new_jobs: List[JobCreate], user_id: int) -> List[JobCreate]:
         """Filter out new jobs that already exist in the database for the given user."""
