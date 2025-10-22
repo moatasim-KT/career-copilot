@@ -11,7 +11,7 @@ from ...services.skill_gap_analyzer import SkillGapAnalyzer
 router = APIRouter(tags=["skill-gap"])
 
 
-@router.get("/skill-gap", response_model=Dict)
+@router.get("/api/v1/skill-gap", response_model=SkillGapAnalysisResponse)
 async def analyze_skill_gap(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)

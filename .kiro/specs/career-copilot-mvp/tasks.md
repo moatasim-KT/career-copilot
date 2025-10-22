@@ -322,7 +322,7 @@ This implementation plan covers the complete Career Co-Pilot MVP across all four
   - Log failures and continue operation
   - _Requirements: 15.4_
 
-- [ ] 15. Implement health check endpoint
+- [x] 15. Implement health check endpoint
 
   - Create GET /api/v1/health endpoint
   - Check database connectivity
@@ -330,15 +330,15 @@ This implementation plan covers the complete Career Co-Pilot MVP across all four
   - Return status and component health
   - _Requirements: 15.5_
 
-- [ ] 16. Create database initialization scripts
-- [ ] 16.1 Create init_database script
+- [x] 16. Create database initialization scripts
+- [x] 16.1 Create init_database script
 
   - Initialize all tables using SQLAlchemy models
   - Add indexes
   - Verify foreign key constraints
   - _Requirements: 14.1, 14.5_
 
-- [ ] 16.2 Create seed_data script
+- [x] 16.2 Create seed_data script
 
   - Create test user with sample profile
   - Create sample jobs with tech_stack

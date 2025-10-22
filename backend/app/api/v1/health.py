@@ -8,11 +8,13 @@ from ...core.database import get_db
 from ...core.logging import get_logger
 from ...scheduler import scheduler
 
+from ...schemas.health import HealthResponse
+
 logger = get_logger(__name__)
 router = APIRouter(tags=["health"])
 
 
-@router.get("/health")
+@router.get("/api/v1/health", response_model=HealthResponse)
 async def health_check(db: Session = Depends(get_db)):
     """
     Health check endpoint that verifies system component status.

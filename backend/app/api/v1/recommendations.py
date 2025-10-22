@@ -11,7 +11,10 @@ from ...services.recommendation_engine import RecommendationEngine
 router = APIRouter(tags=["recommendations"])
 
 
-@router.get("", response_model=List[Dict])
+router = APIRouter(tags=["recommendations"])
+
+
+@router.get("/api/v1/recommendations", response_model=List[Dict])
 async def get_recommendations(
     limit: int = 5,
     current_user: User = Depends(get_current_user),

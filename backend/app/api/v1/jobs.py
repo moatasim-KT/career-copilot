@@ -13,7 +13,7 @@ from ...schemas.job import JobCreate, JobUpdate, JobResponse
 router = APIRouter(tags=["jobs"])
 
 
-@router.get("/jobs", response_model=List[JobResponse])
+@router.get("/api/v1/jobs", response_model=List[JobResponse])
 async def list_jobs(
     skip: int = 0,
     limit: int = 100,
@@ -49,7 +49,10 @@ async def list_jobs(
         raise HTTPException(status_code=500, detail=f"Error retrieving jobs: {str(e)}")
 
 
-@router.post("/jobs", response_model=JobResponse)
+router = APIRouter(tags=["jobs"])
+
+
+@router.post("/api/v1/jobs", response_model=JobResponse)
 async def create_job(
     job_data: JobCreate,
     current_user: User = Depends(get_current_user),
@@ -81,7 +84,7 @@ async def create_job(
     return job
 
 
-@router.get("/jobs/{job_id}", response_model=JobResponse)
+@router.get("/api/v1/jobs/{job_id}", response_model=JobResponse)
 async def get_job(
     job_id: int,
     current_user: User = Depends(get_current_user),
@@ -105,7 +108,7 @@ async def get_job(
         raise HTTPException(status_code=500, detail=f"Error retrieving job: {str(e)}")
 
 
-@router.put("/jobs/{job_id}", response_model=JobResponse)
+@router.put("/api/v1/jobs/{job_id}", response_model=JobResponse)
 async def update_job(
     job_id: int,
     job_data: JobUpdate,
@@ -148,7 +151,7 @@ async def update_job(
     return job
 
 
-@router.delete("/jobs/{job_id}")
+@router.delete("/api/v1/jobs/{job_id}", status_code=204)
 async def delete_job(
     job_id: int,
     current_user: User = Depends(get_current_user),

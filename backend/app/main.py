@@ -141,14 +141,14 @@ def create_app() -> FastAPI:
     
     # Include routers
     from .api.v1 import health, auth, jobs, applications, analytics, recommendations, skill_gap, profile
-    app.include_router(health.router, prefix="/api/v1")
-    app.include_router(auth.router, prefix="/api/v1")
-    app.include_router(jobs.router, prefix="/api/v1")
-    app.include_router(applications.router, prefix="/api/v1")
-    app.include_router(analytics.router, prefix="/api/v1")
-    app.include_router(recommendations.router, prefix="/api/v1")
-    app.include_router(skill_gap.router, prefix="/api/v1")
-    app.include_router(profile.router, prefix="/api/v1")
+    app.include_router(health.router)
+    app.include_router(auth.router)
+    app.include_router(profile.router)
+    app.include_router(jobs.router)
+    app.include_router(analytics.router)
+    app.include_router(recommendations.router)
+    app.include_router(skill_gap.router)
+    app.include_router(applications.router)
     
     @app.on_event("startup")
     async def startup_event():

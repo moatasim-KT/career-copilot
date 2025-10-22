@@ -12,14 +12,12 @@ from ...models.application import Application
 from ...models.job import Job
 from ...services.job_analytics_service import JobAnalyticsService
 
+from ...schemas.analytics import AnalyticsSummaryResponse
+
 router = APIRouter(tags=["analytics"])
 
-# Simple in-memory cache for analytics data
-_analytics_cache = {}
-_cache_ttl = timedelta(hours=1)
 
-
-@router.get("/summary", response_model=Dict[str, Any])
+@router.get("/api/v1/analytics/summary", response_model=AnalyticsSummaryResponse)
 async def get_analytics_summary(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)

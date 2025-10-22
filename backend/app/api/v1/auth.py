@@ -10,7 +10,7 @@ from ...schemas.user import UserCreate, UserLogin
 router = APIRouter(tags=["auth"])
 
 
-@router.post("/auth/register")
+@router.post("/api/v1/auth/register")
 async def register(user_data: UserCreate, db: Session = Depends(get_db)):
     # Check if user exists
     if db.query(User).filter(User.username == user_data.username).first():
@@ -30,7 +30,7 @@ async def register(user_data: UserCreate, db: Session = Depends(get_db)):
     return {"access_token": token, "token_type": "bearer", "id": user.id}
 
 
-@router.post("/auth/login")
+@router.post("/api/v1/auth/login")
 async def login(credentials: UserLogin, db: Session = Depends(get_db)):
     user = db.query(User).filter(User.username == credentials.username).first()
     if not user or not verify_password(credentials.password, user.hashed_password):

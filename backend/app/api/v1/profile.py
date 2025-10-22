@@ -11,13 +11,13 @@ from app.schemas.profile import ProfileUpdate, ProfileResponse
 router = APIRouter(tags=["profile"])
 
 
-@router.get("/profile", response_model=ProfileResponse)
+@router.get("/api/v1/profile", response_model=ProfileResponse)
 async def get_user_profile(current_user: User = Depends(get_current_user)):
     """Retrieve the current user's profile."""
     return current_user
 
 
-@router.put("/profile", response_model=ProfileResponse)
+@router.put("/api/v1/profile", response_model=ProfileResponse)
 async def update_user_profile(
     profile_data: ProfileUpdate,
     db: Session = Depends(get_db),

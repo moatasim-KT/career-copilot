@@ -14,7 +14,7 @@ from ...schemas.application import ApplicationCreate, ApplicationUpdate, Applica
 router = APIRouter(tags=["applications"])
 
 
-@router.get("/", response_model=List[ApplicationResponse])
+@router.get("/api/v1/applications", response_model=List[ApplicationResponse])
 async def list_applications(
     skip: int = 0,
     limit: int = 100,
@@ -38,7 +38,7 @@ async def list_applications(
     return applications
 
 
-@router.post("/", response_model=ApplicationResponse)
+@router.post("/api/v1/applications", response_model=ApplicationResponse)
 async def create_application(
     app_data: ApplicationCreate,
     current_user: User = Depends(get_current_user),
@@ -74,7 +74,7 @@ async def create_application(
     return application
 
 
-@router.get("/{app_id}", response_model=ApplicationResponse)
+@router.get("/api/v1/applications/{app_id}", response_model=ApplicationResponse)
 async def get_application(
     app_id: int,
     current_user: User = Depends(get_current_user),
@@ -94,7 +94,7 @@ async def get_application(
     return app
 
 
-@router.put("/{app_id}", response_model=ApplicationResponse)
+@router.put("/api/v1/applications/{app_id}", response_model=ApplicationResponse)
 async def update_application(
     app_id: int,
     app_data: ApplicationUpdate,
@@ -140,7 +140,7 @@ async def update_application(
     return app
 
 
-@router.delete("/{app_id}")
+@router.delete("/api/v1/applications/{app_id}")
 async def delete_application(
     app_id: int,
     current_user: User = Depends(get_current_user),
