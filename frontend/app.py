@@ -12,6 +12,7 @@ from typing import Optional, Dict, Any
 import streamlit as st
 import pandas as pd
 import plotly.express as px
+from interactive_analytics_dashboard import render_interactive_analytics_dashboard
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -174,6 +175,100 @@ class APIClient:
                 f"{self.base_url}/api/v1/analytics/summary",
                 headers=self._get_headers(),
                 timeout=10
+            )
+            return self._handle_response(response)
+        except requests.exceptions.RequestException as e:
+            return {"error": f"Connection error: {str(e)}"}
+    
+    def get_comprehensive_analytics(self, days: int = 90) -> Dict[str, Any]:
+        """Get comprehensive analytics dashboard"""
+        try:
+            response = self.session.get(
+                f"{self.base_url}/api/v1/analytics/comprehensive-dashboard",
+                params={"days": days},
+                headers=self._get_headers(),
+                timeout=30
+            )
+            return self._handle_response(response)
+        except requests.exceptions.RequestException as e:
+            return {"error": f"Connection error: {str(e)}"}
+    
+    def get_success_rates(self, days: int = 90) -> Dict[str, Any]:
+        """Get detailed success rates analysis"""
+        try:
+            response = self.session.get(
+                f"{self.base_url}/api/v1/analytics/success-rates",
+                params={"days": days},
+                headers=self._get_headers(),
+                timeout=30
+            )
+            return self._handle_response(response)
+        except requests.exceptions.RequestException as e:
+            return {"error": f"Connection error: {str(e)}"}
+    
+    def get_conversion_funnel(self, days: int = 90) -> Dict[str, Any]:
+        """Get conversion funnel analysis"""
+        try:
+            response = self.session.get(
+                f"{self.base_url}/api/v1/analytics/conversion-funnel",
+                params={"days": days},
+                headers=self._get_headers(),
+                timeout=30
+            )
+            return self._handle_response(response)
+        except requests.exceptions.RequestException as e:
+            return {"error": f"Connection error: {str(e)}"}
+    
+    def get_performance_benchmarks(self, days: int = 90) -> Dict[str, Any]:
+        """Get performance benchmarks"""
+        try:
+            response = self.session.get(
+                f"{self.base_url}/api/v1/analytics/performance-benchmarks",
+                params={"days": days},
+                headers=self._get_headers(),
+                timeout=30
+            )
+            return self._handle_response(response)
+        except requests.exceptions.RequestException as e:
+            return {"error": f"Connection error: {str(e)}"}
+    
+    def get_market_analysis_dashboard(self) -> Dict[str, Any]:
+        """Get market analysis dashboard"""
+        try:
+            response = self.session.get(
+                f"{self.base_url}/api/v1/market-analysis/dashboard",
+                headers=self._get_headers(),
+                timeout=30
+            )
+            return self._handle_response(response)
+        except requests.exceptions.RequestException as e:
+            return {"error": f"Connection error: {str(e)}"}
+    
+    def get_salary_trends(self, days: int = 180, role_filter: str = None) -> Dict[str, Any]:
+        """Get salary trends analysis"""
+        try:
+            params = {"days": days}
+            if role_filter:
+                params["role_filter"] = role_filter
+            
+            response = self.session.get(
+                f"{self.base_url}/api/v1/market-analysis/salary-trends",
+                params=params,
+                headers=self._get_headers(),
+                timeout=30
+            )
+            return self._handle_response(response)
+        except requests.exceptions.RequestException as e:
+            return {"error": f"Connection error: {str(e)}"}
+    
+    def get_job_market_patterns(self, days: int = 90) -> Dict[str, Any]:
+        """Get job market patterns analysis"""
+        try:
+            response = self.session.get(
+                f"{self.base_url}/api/v1/market-analysis/job-patterns",
+                params={"days": days},
+                headers=self._get_headers(),
+                timeout=30
             )
             return self._handle_response(response)
         except requests.exceptions.RequestException as e:
@@ -2807,17 +2902,19 @@ def main():
 		render_dashboard()
 
 	with tab6:
-		if PRODUCTION_FEATURES_AVAILABLE:
-			try:
+		try:
+			if PRODUCTION_FEATURES_AVAILABLE:
 				track_user_event('tab_view', {'tab': 'analytics'})
-				if analytics:
-					analytics.render_full_dashboard()
-				else:
-					st.info("Analytics dashboard not available")
-			except:
-				st.info("Analytics dashboard not available")
-		else:
-			st.info("Analytics dashboard not available")
+			
+			# Check if user is authenticated
+			if st.session_state.get("auth_token"):
+				render_interactive_analytics_dashboard(api_client)
+			else:
+				st.info("Please log in to view analytics dashboard")
+		except Exception as e:
+			st.error(f"Analytics dashboard error: {str(e)}")
+			# Fallback to basic analytics
+			render_dashboard()
 
 	with tab7:
 		if PRODUCTION_FEATURES_AVAILABLE:
