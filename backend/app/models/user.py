@@ -1,6 +1,6 @@
 """User model"""
 
-from sqlalchemy import Column, Integer, String, DateTime, JSON
+from sqlalchemy import Column, Integer, String, DateTime, JSON, Boolean
 from sqlalchemy.orm import relationship
 from datetime import datetime
 from ..core.database import Base
@@ -17,6 +17,7 @@ class User(Base):
     preferred_locations = Column(JSON, default=list)
     experience_level = Column(String)
     daily_application_goal = Column(Integer, default=10)
+    is_admin = Column(Boolean, default=False, nullable=False)
     
     # OAuth fields
     oauth_provider = Column(String, nullable=True)  # google, linkedin, github
@@ -28,9 +29,5 @@ class User(Base):
     
     jobs = relationship("Job", back_populates="user", cascade="all, delete-orphan")
     applications = relationship("Application", back_populates="user", cascade="all, delete-orphan")
-    job_preferences = relationship("UserJobPreferences", back_populates="user", cascade="all, delete-orphan", uselist=False)
-    resume_uploads = relationship("ResumeUpload", back_populates="user", cascade="all, delete-orphan")
-    content_generations = relationship("ContentGeneration", back_populates="user", cascade="all, delete-orphan")
     job_recommendation_feedback = relationship("JobRecommendationFeedback", back_populates="user", cascade="all, delete-orphan")
     feedback = relationship("Feedback", back_populates="user", cascade="all, delete-orphan")
-    onboarding_progress = relationship("OnboardingProgress", back_populates="user", cascade="all, delete-orphan", uselist=False)

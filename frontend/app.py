@@ -308,6 +308,19 @@ def initialize_session_state():
         st.session_state.current_page = "dashboard"
 
 
+def setup_security():
+    """Initialize security features"""
+    if "security" not in st.session_state:
+        # Initialize minimal security object
+        st.session_state.security = {
+            "memory_manager": {
+                "get_memory_usage": lambda: {"used": 0, "available": 100},
+                "get_temp_file_stats": lambda: {"count": 0, "size": 0}
+            },
+            "enabled": False
+        }
+
+
 def render_login_form():
     """Render the login/register form"""
     st.title("💼 Career Copilot")

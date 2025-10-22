@@ -29,8 +29,8 @@ class ContentGeneration(Base):
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
     # Relationships
-    user = relationship("User", back_populates="content_generations")
-    job = relationship("Job", back_populates="content_generations")
+    user = relationship("User")
+    job = relationship("Job")
     versions = relationship("ContentVersion", back_populates="content_generation", cascade="all, delete-orphan", order_by="ContentVersion.version_number")
 
 

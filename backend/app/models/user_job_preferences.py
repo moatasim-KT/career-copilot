@@ -30,7 +30,7 @@ class UserJobPreferences(Base):
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
     
     # Relationships
-    user = relationship("User", back_populates="job_preferences")
+    user = relationship("User")
 
     def __repr__(self):
         return f"<UserJobPreferences(user_id={self.user_id}, sources={len(self.preferred_sources or [])})>"

@@ -152,7 +152,7 @@ class OnboardingProgress(Base):
     completed_at = Column(DateTime, nullable=True)
     
     # Relationships
-    user = relationship("User", back_populates="onboarding_progress")
+    user = relationship("User")
 
 
 class HelpArticle(Base):

@@ -30,7 +30,7 @@ class ResumeUpload(Base):
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
     # Relationships
-    user = relationship("User", back_populates="resume_uploads")
+    user = relationship("User")
 
 
 # Add the relationship to User model (this will be added via migration)
