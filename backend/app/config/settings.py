@@ -49,6 +49,24 @@ class Settings(BaseSettings):
     
     # CORS Settings
     cors_origins: Optional[str] = "http://localhost:3000,http://localhost:8000"
+    
+    # OAuth Social Authentication
+    oauth_enabled: Optional[bool] = False
+    
+    # Google OAuth Configuration
+    google_client_id: Optional[str] = None
+    google_client_secret: Optional[str] = None
+    google_redirect_uri: Optional[str] = "http://localhost:8002/api/v1/auth/oauth/google/callback"
+    
+    # LinkedIn OAuth Configuration
+    linkedin_client_id: Optional[str] = None
+    linkedin_client_secret: Optional[str] = None
+    linkedin_redirect_uri: Optional[str] = "http://localhost:8002/api/v1/auth/oauth/linkedin/callback"
+    
+    # GitHub OAuth Configuration
+    github_client_id: Optional[str] = None
+    github_client_secret: Optional[str] = None
+    github_redirect_uri: Optional[str] = "http://localhost:8002/api/v1/auth/oauth/github/callback"
 
     class Config:
         env_file = ".env"

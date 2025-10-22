@@ -22,6 +22,14 @@ The Career Co-Pilot is an intelligent, proactive system designed to transform th
 - **Backend API**: The FastAPI-based REST API server
 - **Frontend Dashboard**: The Streamlit-based user interface
 - **Database**: The SQLite/PostgreSQL persistent storage system
+- **Resume Parser**: LLM-powered service that extracts structured data from resume documents
+- **Job Description Parser**: Service that scrapes and analyzes job postings to extract requirements
+- **WebSocket Service**: Real-time communication layer for instant notifications and updates
+- **Content Generator**: LLM-powered service for creating cover letters and resume modifications
+- **Interview Practice System**: AI chatbot for conducting mock interviews and providing feedback
+- **OAuth Provider**: External authentication service (Google, LinkedIn, GitHub) for social login
+- **Analytics Service**: Component that generates market trends and performance insights
+- **Feedback System**: User input collection mechanism for improving AI recommendations
 
 ## Requirements
 
@@ -204,3 +212,99 @@ The Career Co-Pilot is an intelligent, proactive system designed to transform th
 3. WHEN scheduled tasks execute, THE Scheduler SHALL log start time, completion time, and results
 4. WHEN external services fail, THE Career Co-Pilot System SHALL log the failure and continue operation where possible
 5. WHEN the system starts, THE Career Co-Pilot System SHALL log initialization status and configuration summary
+
+### Requirement 16: Resume and Job Description Parsing
+
+**User Story:** As a job seeker, I want the system to automatically extract skills and requirements from resumes and job descriptions, so that I can save time on manual data entry.
+
+#### Acceptance Criteria
+
+1. WHEN a user uploads a resume file, THE Career Co-Pilot System SHALL extract skills, experience level, and contact information using LLM parsing
+2. WHEN a user adds a job with a description URL, THE Career Co-Pilot System SHALL scrape and parse the job description to extract tech stack and requirements
+3. WHEN parsing is complete, THE Career Co-Pilot System SHALL suggest profile updates based on extracted resume data
+4. WHEN job description parsing succeeds, THE Career Co-Pilot System SHALL auto-populate tech_stack and requirements fields
+5. WHERE parsing fails or confidence is low, THE Career Co-Pilot System SHALL allow manual review and editing of extracted data
+
+### Requirement 17: Real-time Notifications and Updates
+
+**User Story:** As a job seeker, I want to receive real-time notifications about new job matches and application updates, so that I can respond quickly to opportunities.
+
+#### Acceptance Criteria
+
+1. WHEN a new job matches a user's profile with high confidence, THE Career Co-Pilot System SHALL send an instant notification via WebSocket
+2. WHEN a user's application status changes, THE Career Co-Pilot System SHALL broadcast the update to active browser sessions
+3. WHEN new jobs are scraped that exceed the user's match threshold, THE Career Co-Pilot System SHALL trigger real-time alerts
+4. WHEN the user is actively using the dashboard, THE Frontend Dashboard SHALL display live updates without requiring page refresh
+5. WHERE WebSocket connection is unavailable, THE Career Co-Pilot System SHALL fall back to polling-based updates
+
+### Requirement 18: Advanced Content Generation
+
+**User Story:** As a job seeker, I want the system to help generate personalized cover letters and tailored resumes, so that I can create compelling applications efficiently.
+
+#### Acceptance Criteria
+
+1. WHEN a user requests a cover letter for a specific job, THE Career Co-Pilot System SHALL generate personalized content using LLM integration
+2. WHEN generating cover letters, THE Career Co-Pilot System SHALL incorporate user skills, job requirements, and company information
+3. WHEN a user requests resume tailoring, THE Career Co-Pilot System SHALL suggest modifications to highlight relevant skills for the target job
+4. WHEN content generation is complete, THE Career Co-Pilot System SHALL allow user review and editing before saving
+5. WHERE LLM services are unavailable, THE Career Co-Pilot System SHALL provide template-based alternatives
+
+### Requirement 19: Interview Practice System
+
+**User Story:** As a job seeker, I want to practice interviews with an AI-powered chatbot, so that I can improve my interview performance and confidence.
+
+#### Acceptance Criteria
+
+1. WHEN a user starts an interview practice session, THE Career Co-Pilot System SHALL generate relevant questions based on the target job's tech stack
+2. WHEN conducting mock interviews, THE Interview Practice System SHALL provide real-time feedback on answer quality and completeness
+3. WHEN practice sessions end, THE Career Co-Pilot System SHALL generate a summary report with strengths and improvement areas
+4. WHEN users complete multiple sessions, THE Career Co-Pilot System SHALL track progress and suggest focus areas
+5. WHERE specific job context is provided, THE Interview Practice System SHALL customize questions for that role and company
+
+### Requirement 20: Enhanced Job Board Integration
+
+**User Story:** As a job seeker, I want access to jobs from multiple major job boards, so that I can see comprehensive opportunities in one place.
+
+#### Acceptance Criteria
+
+1. WHEN the Job Scraper Service runs, THE Career Co-Pilot System SHALL query multiple job board APIs including Indeed, LinkedIn, and Glassdoor
+2. WHEN integrating with LinkedIn API, THE Career Co-Pilot System SHALL respect rate limits and authentication requirements
+3. WHEN jobs are retrieved from multiple sources, THE Job Scraper Service SHALL normalize data formats into a consistent schema
+4. WHEN duplicate jobs are detected across sources, THE Career Co-Pilot System SHALL merge information and track all source URLs
+5. WHERE API quotas are exceeded, THE Career Co-Pilot System SHALL implement intelligent backoff and retry strategies
+
+### Requirement 21: User Feedback and AI Model Improvement
+
+**User Story:** As a job seeker, I want to provide feedback on recommendations and suggestions, so that the system learns and improves its accuracy over time.
+
+#### Acceptance Criteria
+
+1. WHEN a user views job recommendations, THE Career Co-Pilot System SHALL provide thumbs up/down feedback options for each suggestion
+2. WHEN users provide feedback, THE Career Co-Pilot System SHALL store the feedback with context for model training
+3. WHEN skill gap suggestions are made, THE Career Co-Pilot System SHALL allow users to mark suggestions as helpful or irrelevant
+4. WHEN sufficient feedback is collected, THE Recommendation Engine SHALL adjust weighting algorithms based on user preferences
+5. WHERE feedback indicates poor recommendations, THE Career Co-Pilot System SHALL trigger algorithm review and adjustment
+
+### Requirement 22: Advanced Analytics and Reporting
+
+**User Story:** As a job seeker, I want detailed analytics about job market trends and my search performance, so that I can make data-driven career decisions.
+
+#### Acceptance Criteria
+
+1. WHEN a user requests market analytics, THE Career Co-Pilot System SHALL analyze job posting trends for their skills and location
+2. WHEN generating trend reports, THE Analytics Service SHALL identify growing and declining skill demands over time
+3. WHEN calculating success metrics, THE Career Co-Pilot System SHALL track application-to-interview and interview-to-offer conversion rates
+4. WHEN displaying analytics, THE Frontend Dashboard SHALL provide interactive charts showing salary ranges, job posting frequency, and competition levels
+5. WHERE sufficient historical data exists, THE Analytics Service SHALL provide predictive insights about future job market conditions
+
+### Requirement 23: OAuth and Social Authentication
+
+**User Story:** As a job seeker, I want to sign up and log in using my existing social media accounts, so that I can access the system quickly without creating new credentials.
+
+#### Acceptance Criteria
+
+1. WHEN a user chooses social login, THE Career Co-Pilot System SHALL support OAuth integration with Google, LinkedIn, and GitHub
+2. WHEN OAuth authentication succeeds, THE Career Co-Pilot System SHALL create or link user accounts automatically
+3. WHEN social profile data is available, THE Career Co-Pilot System SHALL pre-populate user profiles with relevant information
+4. WHEN users disconnect social accounts, THE Career Co-Pilot System SHALL maintain account access through alternative authentication methods
+5. WHERE OAuth providers are unavailable, THE Career Co-Pilot System SHALL fall back to traditional email/password authentication

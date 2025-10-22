@@ -4,12 +4,15 @@ Main API router for v1 endpoints
 
 from fastapi import APIRouter
 
-from app.api.v1 import auth, jobs, documents, applications, profile, job_ingestion, notifications, analytics, document_templates, templates, recommendations, enhanced_recommendations, skill_gap_analysis, skill_gap, health, tasks, skill_matching, email, briefings, goals, cache, export, offline, document_suggestions, data_security, document_versions, feedback, saved_searches, dashboard_layouts, backup
+from app.api.v1 import auth, jobs, documents, applications, profile, job_ingestion, notifications, analytics, document_templates, templates, recommendations, enhanced_recommendations, skill_gap_analysis, skill_gap, health, tasks, skill_matching, email, briefings, goals, cache, export, offline, document_suggestions, data_security, document_versions, feedback, saved_searches, dashboard_layouts, backup, oauth
 
 api_router = APIRouter()
 
 # Include authentication routes
 api_router.include_router(auth.router, prefix="/auth", tags=["authentication"])
+
+# Include OAuth authentication routes
+api_router.include_router(oauth.router, tags=["oauth"])
 
 # Include job management routes
 api_router.include_router(jobs.router, prefix="/jobs", tags=["jobs"])

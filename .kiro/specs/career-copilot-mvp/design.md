@@ -28,17 +28,23 @@ Theyers:
 
 **Backend Layer (FastAPI Application)**
 - API Endpoints for all operations
-- Business Logic Services (Recommendation Engine, Skill Gap Anae)
-- Scheduled Tasks (APSchedule)
+- Business Logic Services (Recommendation Engine, Skill Gap Analyzer, Content Generator, Interview Practice System)
+- Real-time Services (WebSocket handlers, notification broadcasting)
+- Scheduled Tasks (APScheduler)
+- Authentication Services (JWT, OAuth providers)
 
 **Data Layer (Database)**
 - SQLite for development
 - PostgreSQL for production
-- Three main tables: users, jobs, applications
+- Enhanced schema: users, jobs, applications, feedback, analytics, interview_sessions
+- Redis for caching and real-time data
 
 **External Services**
-- Job APIs (Adzuna, Indeed, etc.) - optional
+- Job APIs (Indeed, LinkedIn, Glassdoor, Adzuna) - enhanced integration
+- LLM Services (OpenAI, Anthropic, local models) - for parsing and content generation
 - SMTP Email Service (Gmail, SendGrid, etc.)
+- OAuth Providers (Google, LinkedIn, GitHub)
+- File Storage (local, S3, Google Drive) - for resume uploads
 
 ### Technology Stack
 
@@ -47,16 +53,25 @@ Theyers:
 - SQLAlchemy 2.0+ (ORM)
 - Pydantic 2.0+ (data validation)
 - APScheduler 3.10+ (task scheduling)
+- WebSockets (real-time communication)
+- Authlib 1.2+ (OAuth integration)
+- OpenAI/Anthropic SDK (LLM integration)
+- PyPDF2/pdfplumber (resume parsing)
+- BeautifulSoup4 (web scraping)
+- Redis 4.0+ (caching and sessions)
 - Python 3.9+
 
 **Frontend:**
 - Streamlit 1.28+ (web UI framework)
 - Plotly (data visualization)
 - Requests (HTTP client)
+- Streamlit-WebRTC (real-time features)
+- File uploader components
 
 **Database:**
 - SQLite (development)
 - PostgreSQL (production)
+- Redis (caching, real-time data)
 
 ## Components and Interfaces
 
@@ -70,37 +85,96 @@ Theyers:
 - skills: JSON array
 - preferred_locations: JSON array
 - experience_level: str (junior, mid, senior)
+- oauth_provider: str (google, linkedin, github, null)
+- oauth_id: str (external user ID)
+- profile_picture_url: str
 - created_at, updated_at: datetime
-- Relationships: jobs (one-to-many), applications (one-to-many
+- Relationships: jobs (one-to-many), applications (one-to-many), feedback (one-to-many), interview_sessions (one-to-many)
 
-**Design Rationale:** JSON columns provide flexibility for skis.
+**Design Rationale:** JSON columns provide flexibility for skills and locations. OAuth fields enable social authentication.
 
-l
+#### Job Model
 - id: int (primary key)
 - user_id: int (foreign key)
 - company, title: str (indexed)
 - location, description, requirements: str
 - salary_range, job_type, remote_option: str
-- ty
-r
-- source: str (manua)
-
-- date_appli
+- tech_stack: JSON array
+- responsibilities: text
+- source: str (manual, scraped, linkedin, indeed, glassdoor)
+- source_url: str
+- date_applied: datetime
+- match_score: float (calculated field)
 - created_at, updated_at: datetime
-- Relationships: user ()
+- Relationships: user (many-to-one), applications (one-to-many)
 
-**Design Rationale:** Indexed companyics.
+**Design Rationale:** Indexed company/title for deduplication. Multiple source tracking for comprehensive job aggregation.
 
-odel
-- id: int (pr)
+#### Application Model
+- id: int (primary key)
 - user_id, job_id: int (foreign keys)
-- status: str (interested, ap
-- applied_date, intervie
-ext
-- created_at,e
-- Relationships: user 
+- status: str (interested, applied, interview, offer, rejected, accepted, declined)
+- applied_date, interview_date, offer_date: datetime
+- notes: text
+- cover_letter_id: int (foreign key to content_generation)
+- created_at, updated_at: datetime
+- Relationships: user (many-to-one), job (many-to-one), cover_letter (many-to-one)
 
-t.
+**Design Rationale:** Status tracking enables pipeline management and analytics. Links to generated content.
+
+#### User Feedback Model
+- id: int (primary key)
+- user_id: int (foreign key)
+- feedback_type: str (recommendation, skill_gap, content_generation, interview_practice)
+- target_id: int (job_id, skill_name, session_id, etc.)
+- rating: int (1-5 or thumbs up/down)
+- comments: text
+- created_at: datetime
+- Relationships: user (many-to-one)
+
+**Design Rationale:** Enables machine learning feedback loop for improving AI recommendations.
+
+#### Interview Session Model
+- id: int (primary key)
+- user_id: int (foreign key)
+- job_id: int (foreign key, optional)
+- session_type: str (general, job_specific, behavioral, technical)
+- questions_asked: JSON array
+- user_responses: JSON array
+- ai_feedback: JSON object
+- overall_score: float
+- duration_minutes: int
+- created_at: datetime
+- Relationships: user (many-to-one), job (many-to-one, optional)
+
+**Design Rationale:** Structured storage for interview practice data and progress tracking.
+
+#### Resume Upload Model
+- id: int (primary key)
+- user_id: int (foreign key)
+- filename: str
+- file_path: str
+- parsed_data: JSON object
+- parsing_status: str (pending, completed, failed)
+- extracted_skills: JSON array
+- extracted_experience: str
+- created_at: datetime
+- Relationships: user (many-to-one)
+
+**Design Rationale:** Supports resume parsing workflow with status tracking and extracted data storage.
+
+#### Content Generation Model
+- id: int (primary key)
+- user_id: int (foreign key)
+- job_id: int (foreign key, optional)
+- content_type: str (cover_letter, resume_tailoring, email_template)
+- generated_content: text
+- user_modifications: text
+- generation_prompt: text
+- created_at: datetime
+- Relationships: user (many-to-one), job (many-to-one, optional)
+
+**Design Rationale:** Tracks AI-generated content with user modifications for learning and reuse.
 
 ### 2. API Layer
 
@@ -173,67 +247,202 @@ dpoints
 #### Analytics Endpoints
 
 **GET /api/v1/analytics/summary**
-- Response: total_jobs, tofers
+- Response: total_jobs, total_applications, interviews, offers
+
+**GET /api/v1/analytics/trends**
+- Query params: timeframe (30d, 90d, 1y)
+- Response: skill_trends, salary_trends, job_posting_frequency
+
+#### Resume and Parsing Endpoints
+
+**POST /api/v1/resume/upload**
+- Request: multipart/form-data with resume file
+- Response: upload_id, parsing_status
+
+**GET /api/v1/resume/{upload_id}/status**
+- Response: parsing_status, extracted_data, suggestions
+
+**POST /api/v1/jobs/parse-description**
+- Request: job_url or description_text
+- Response: extracted_tech_stack, requirements, parsed_data
+
+#### Content Generation Endpoints
+
+**POST /api/v1/content/cover-letter**
+- Request: job_id, tone (professional, casual, enthusiastic)
+- Response: generated_content, content_id
+
+**POST /api/v1/content/resume-tailor**
+- Request: job_id, resume_sections
+- Response: tailored_sections, suggestions
+
+**GET /api/v1/content/{content_id}**
+- Response: content details, user_modifications
+
+**PUT /api/v1/content/{content_id}**
+- Request: user_modifications
+- Response: updated content
+
+#### Interview Practice Endpoints
+
+**POST /api/v1/interview/start-session**
+- Request: job_id (optional), session_type
+- Response: session_id, first_question
+
+**POST /api/v1/interview/{session_id}/answer**
+- Request: answer_text, question_id
+- Response: feedback, next_question
+
+**GET /api/v1/interview/{session_id}/summary**
+- Response: overall_score, detailed_feedback, improvement_areas
+
+#### Feedback Endpoints
+
+**POST /api/v1/feedback**
+- Request: feedback_type, target_id, rating, comments
+- Response: feedback_id
+
+**GET /api/v1/feedback/summary**
+- Response: user's feedback history and impact on recommendations
+
+#### Real-time WebSocket Endpoints
+
+**WS /api/v1/ws/notifications**
+- Real-time job matches, application updates, system notifications
+
+**WS /api/v1/ws/interview**
+- Real-time interview practice sessions with voice support
+
+#### OAuth Authentication Endpoints
+
+**GET /api/v1/auth/oauth/{provider}/login**
+- Redirects to OAuth provider (Google, LinkedIn, GitHub)
+
+**GET /api/v1/auth/oauth/{provider}/callback**
+- Handles OAuth callback and creates/links user account
+
+**POST /api/v1/auth/oauth/disconnect**
+- Request: provider
+- Response: success message
 
 ### 3. Business Logic Services
 
-#### RecommendationEngin
+#### RecommendationEngine
 
-**Pu
+**Purpose:** Calculate job-to-user match scores using weighted algorithms.
 
 **Algorithm:**
-1. Tech Stacills
-2. tion
-le
-4. Return score cappe00
+1. Tech Stack Match: Compare user skills with job tech_stack (50% weight)
+2. Location Match: Compare user preferred_locations with job location (30% weight)
+3. Experience Level Match: Compare user experience_level with job requirements (20% weight)
+4. Return score capped at 100
 
 **Methods:**
-- calculate_match_score(job, user) t
+- calculate_match_score(job, user) -> float
+- get_recommendations(user, limit) -> List[JobWithScore]
+- update_algorithm_weights(feedback_data) -> None
 
+**Design Rationale:** Weighted scoring provides flexibility and personalization.
 
-bility.
+#### SkillGapAnalyzer
 
+**Purpose:** Identify missing skills and generate learning recommendations.
 
+**Algorithm:**
+1. Aggregate all tech_stack arrays from user's jobs
+2. Count frequency of each skill using Counter
+3. Identify skills present in jobs but missing from user profile
+4. Calculate skill coverage percentage
 
-**P
+**Methods:**
+- analyze_skill_gaps(user) -> SkillGapReport
+- _generate_recommendations(missing_skills) -> List[str]
+- calculate_market_demand(skills) -> Dict[str, float]
 
-*thm:**
-1. Aggregate all tech jobs
-2. Count frequencyll
-3. Identify skills ns
-4percentage
+**Design Rationale:** Frequency-based analysis identifies high-impact skills.
 
+#### JobScraperService
 
-*ds:**
-- analyze_skt
-- _generate_recommend
+**Purpose:** Ingest jobs from external APIs and deduplicate.
 
-**Design Rationale:** Fric.
+**Methods:**
+- scrape_jobs(skills, locations, sources) -> List[Job]
+- deduplicate_jobs(existing_jobs, new_jobs) -> List[Job]
+- normalize_job_data(raw_job, source) -> Job
 
-###
-
-**Purpose:** Ingest jobs frplicate.
-
-**Method:**
--
-- deduplicate_jobs(ex
-
-*sitively.
-
-**Design bloat.
+**Design Rationale:** Multi-source aggregation prevents vendor lock-in and reduces data bloat.
 
 #### NotificationService
 
-**Purpose:*es.
+**Purpose:** Handle email notifications and real-time updates.
 
 **Methods:**
-- send_morning_bries)
-- sts)
--dy)
+- send_morning_briefing(user) -> bool
+- send_evening_summary(user) -> bool
+- broadcast_real_time_update(user_id, message) -> None
+- send_job_alert(user, job, match_score) -> bool
 
+**Design Rationale:** SMTP-based for flexibility, WebSocket for real-time features.
 
+#### ResumeParserService
 
-**Design Rationale:** SMTP-based for flexgured.
+**Purpose:** Extract structured data from resume documents using LLM integration.
+
+**Methods:**
+- parse_resume(file_path) -> ParsedResumeData
+- extract_skills(resume_text) -> List[str]
+- extract_experience_level(resume_text) -> str
+- suggest_profile_updates(parsed_data, current_profile) -> ProfileSuggestions
+
+**Design Rationale:** LLM-powered parsing provides high accuracy with fallback to rule-based extraction.
+
+#### ContentGeneratorService
+
+**Purpose:** Generate personalized cover letters and resume modifications.
+
+**Methods:**
+- generate_cover_letter(user, job, tone) -> str
+- tailor_resume(user, job, resume_sections) -> Dict[str, str]
+- generate_email_template(user, job, template_type) -> str
+- improve_content(original_content, feedback) -> str
+
+**Design Rationale:** Template-based generation with LLM enhancement for personalization.
+
+#### InterviewPracticeService
+
+**Purpose:** Conduct AI-powered mock interviews with feedback.
+
+**Methods:**
+- start_session(user, job_id, session_type) -> InterviewSession
+- generate_question(session_context, previous_answers) -> str
+- evaluate_answer(question, answer, job_context) -> AnswerFeedback
+- generate_session_summary(session) -> SessionSummary
+
+**Design Rationale:** Contextual question generation with structured feedback for skill improvement.
+
+#### WebSocketService
+
+**Purpose:** Handle real-time communication and notifications.
+
+**Methods:**
+- connect_user(user_id, websocket) -> None
+- broadcast_to_user(user_id, message) -> None
+- handle_job_match_alert(user_id, job, match_score) -> None
+- handle_application_update(user_id, application) -> None
+
+**Design Rationale:** Real-time updates improve user engagement and responsiveness.
+
+#### OAuthService
+
+**Purpose:** Handle social authentication with multiple providers.
+
+**Methods:**
+- initiate_oauth_flow(provider) -> str (redirect_url)
+- handle_oauth_callback(provider, code) -> UserData
+- link_oauth_account(user_id, provider, oauth_data) -> bool
+- disconnect_oauth_account(user_id, provider) -> bool
+
+**Design Rationale:** Multi-provider support reduces friction in user onboarding.
 
 ### 4. Scheduled Tasks
 
