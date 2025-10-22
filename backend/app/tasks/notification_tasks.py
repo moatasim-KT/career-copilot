@@ -54,7 +54,7 @@ def send_morning_briefings() -> Dict[str, Any]:
             results["failed_count"] += 1
             results["errors"].append(f"Error for user {user.id}: {str(e)}")
 
-    logger.info(f"Morning briefings task completed. Sent: {results["sent_count"]}, Failed: {results["failed_count"]}")
+    logger.info(f"Morning briefings task completed. Sent: {results['sent_count']}, Failed: {results['failed_count']}")
     return results
 
 @shared_task(name="app.tasks.notification_tasks.send_evening_summaries")
@@ -99,5 +99,5 @@ def send_evening_summaries() -> Dict[str, Any]:
             results["failed_count"] += 1
             results["errors"].append(f"Error for user {user.id}: {str(e)}")
 
-    logger.info(f"Evening summaries task completed. Sent: {results["sent_count"]}, Failed: {results["failed_count"]}")
+    logger.info(f"Evening summaries task completed. Sent: {results['sent_count']}, Failed: {results['failed_count']}")
     return results

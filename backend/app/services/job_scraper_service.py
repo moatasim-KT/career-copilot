@@ -207,7 +207,7 @@ class JobScraperService:
                 title=title,
                 location=job_data.get("location", {}).get("display_name", "Unknown"),
                 description=description,
-                salary_range=f"{job_data.get("salary_min", 0)} - {job_data.get("salary_max", 0)}" if job_data.get("salary_min") else None,
+                salary_range=f"{job_data.get('salary_min', 0)} - {job_data.get('salary_max', 0)}" if job_data.get("salary_min") else None,
                 job_type=job_data.get("contract_type", "full-time"),
                 remote_option="remote" if "remote" in job_data.get("location", {}).get("display_name", "").lower() else "onsite",
                 tech_stack=job_data.get("category", {}).get("tag", "").split(",") if job_data.get("category") else [],

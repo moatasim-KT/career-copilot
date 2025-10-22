@@ -12,7 +12,7 @@ from ...models.application import Application
 from ...models.job import Job
 from ...services.analytics import AnalyticsService
 
-from ...schemas.analytics import AnalyticsSummaryResponse
+from ...schemas.analytics import AnalyticsSummaryResponse, InterviewTrendsResponse
 
 _analytics_cache = {}
 _cache_ttl = timedelta(minutes=5) # Cache for 5 minutes
