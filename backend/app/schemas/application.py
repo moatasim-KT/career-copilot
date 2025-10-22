@@ -1,7 +1,7 @@
 """Application schemas"""
 
 from pydantic import BaseModel
-from typing import Optional, Literal
+from typing import Optional, Literal, Dict, Any
 from datetime import datetime, date
 
 

@@ -19,6 +19,7 @@ class JobCreate(BaseModel):
     link: Optional[str] = None
     notes: Optional[str] = None
     documents_required: Optional[List[str]] = None
+    source: Optional[str] = Field(default="manual", description="Source of the job posting")
     
     @field_validator('tech_stack')
     @classmethod
