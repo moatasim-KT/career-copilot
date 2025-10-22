@@ -578,14 +578,14 @@ This implementation plan covers the complete Career Co-Pilot MVP across all four
   - _Requirements: 21.3, 21.4, 21.5_
 
 - [-] 28. Implement advanced analytics and market insights
-- [-] 28.1 Create market trend analysis service
+- [x] 28.1 Create market trend analysis service
   - Implement job market trend analysis across skills and locations
   - Add salary trend tracking and prediction
   - Create skill demand forecasting based on job posting data
   - Implement competitive analysis for job seekers
   - _Requirements: 22.1, 22.2, 22.5_
 
-- [ ] 28.2 Implement advanced user analytics
+- [-] 28.2 Implement advanced user analytics
   - Create detailed application success rate tracking
   - Implement conversion funnel analysis (application → interview → offer)
   - Add personalized performance benchmarking

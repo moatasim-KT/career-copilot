@@ -164,7 +164,7 @@ def create_app() -> FastAPI:
 
     
     # Include routers
-    from .api.v1 import health, auth, jobs, applications, analytics, recommendations, skill_gap, profile, job_sources, job_recommendation_feedback, feedback_analysis, market_analysis
+    from .api.v1 import health, auth, jobs, applications, analytics, recommendations, skill_gap, profile, job_sources, job_recommendation_feedback, feedback_analysis, market_analysis, advanced_user_analytics
     app.include_router(health.router)
     app.include_router(auth.router)
     app.include_router(profile.router)
@@ -177,6 +177,7 @@ def create_app() -> FastAPI:
     app.include_router(job_recommendation_feedback.router, prefix="/api/v1", tags=["job-recommendation-feedback"])
     app.include_router(feedback_analysis.router, prefix="/api/v1", tags=["feedback-analysis"])
     app.include_router(market_analysis.router)
+    app.include_router(advanced_user_analytics.router)
     
     @app.on_event("startup")
     async def startup_event():
