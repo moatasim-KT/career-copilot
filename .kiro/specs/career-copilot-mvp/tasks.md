@@ -430,7 +430,7 @@ This implementation plan covers the complete Career Co-Pilot MVP across all four
 
 ## Phase 2: Advanced Features Implementation
 
-- [-] 21. Implement OAuth social authentication
+- [x] 21. Implement OAuth social authentication
 - [x] 21.1 Set up OAuth providers integration
   - Configure Google OAuth 2.0 client
   - Configure LinkedIn OAuth integration
@@ -445,29 +445,29 @@ This implementation plan covers the complete Career Co-Pilot MVP across all four
   - Handle OAuth token exchange and user data retrieval
   - _Requirements: 23.1, 23.2, 23.3_
 
-- [-] 21.3 Implement account linking and profile pre-population
+- [x] 21.3 Implement account linking and profile pre-population
   - Create or link user accounts based on OAuth data
   - Pre-populate user profiles with social media information
   - Handle OAuth account disconnection
   - Add OAuth provider fields to user model migration
   - _Requirements: 23.3, 23.4_
 
-- [ ] 22. Implement resume parsing and job description analysis
-- [ ] 22.1 Create resume parser service
+- [-] 22. Implement resume parsing and job description analysis
+- [x] 22.1 Create resume parser service
   - Implement ResumeParserService with LLM integration
   - Add support for PDF, DOC, and DOCX file formats
   - Create resume upload endpoint with file validation
   - Implement skill extraction and experience level detection
   - _Requirements: 16.1, 16.3_
 
-- [ ] 22.2 Create job description parser
+- [x] 22.2 Create job description parser
   - Implement job description scraping from URLs
   - Create LLM-powered tech stack and requirements extraction
   - Add job description parsing endpoint
   - Implement auto-population of job fields from parsed data
   - _Requirements: 16.2, 16.4_
 
-- [ ] 22.3 Implement parsing status tracking and suggestions
+- [-] 22.3 Implement parsing status tracking and suggestions
   - Create resume upload and parsing status models
   - Implement parsing progress tracking
   - Generate profile update suggestions from parsed resume data
