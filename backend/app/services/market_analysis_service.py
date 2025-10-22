@@ -267,9 +267,8 @@ class MarketAnalysisService:
         alerts = []
         
         # Get user preferences
-        profile = user.profile or {}
-        target_roles = profile.get('career_goals', [])
-        preferred_locations = profile.get('locations', [])
+        target_roles = []  # Would be implemented as a separate field if needed
+        preferred_locations = user.preferred_locations or []
         
         # Recent job market analysis
         market_data = self.analyze_job_market_patterns(db, user_id, days=30)

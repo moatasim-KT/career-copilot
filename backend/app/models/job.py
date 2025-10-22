@@ -17,6 +17,8 @@ class Job(Base):
     description = Column(Text)
     requirements = Column(Text)
     salary_range = Column(String)
+    salary_min = Column(Integer)  # Minimum salary in dollars
+    salary_max = Column(Integer)  # Maximum salary in dollars
     job_type = Column(String)  # full-time, part-time, contract
     remote_option = Column(String)  # remote, hybrid, onsite
     tech_stack = Column(JSON)  # List of technologies
