@@ -11,15 +11,21 @@ export const metadata: Metadata = {
   description: 'AI-powered job application tracking and career management system',
 };
 
+import { NotificationProvider } from '@/components/NotificationProvider';
+import Notification from '@/components/Notification';
+
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
       <body className={inter.className}>
         <AuthProvider>
-          <Navbar />
-          <main className="pt-16">
-            {children}
-          </main>
+          <NotificationProvider>
+            <Navbar />
+            <main className="pt-16">
+              <Notification />
+              {children}
+            </main>
+          </NotificationProvider>
         </AuthProvider>
       </body>
     </html>

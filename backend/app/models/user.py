@@ -31,3 +31,6 @@ class User(Base):
     job_preferences = relationship("UserJobPreferences", back_populates="user", cascade="all, delete-orphan", uselist=False)
     resume_uploads = relationship("ResumeUpload", back_populates="user", cascade="all, delete-orphan")
     content_generations = relationship("ContentGeneration", back_populates="user", cascade="all, delete-orphan")
+    job_recommendation_feedback = relationship("JobRecommendationFeedback", back_populates="user", cascade="all, delete-orphan")
+    feedback = relationship("Feedback", back_populates="user", cascade="all, delete-orphan")
+    onboarding_progress = relationship("OnboardingProgress", back_populates="user", cascade="all, delete-orphan", uselist=False)

@@ -3,7 +3,7 @@
 from sqlalchemy import Column, Integer, String, JSON, Boolean, DateTime, ForeignKey, Float
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
-from app.core.database import Base
+from ..core.database import Base
 
 class UserJobPreferences(Base):
     __tablename__ = "user_job_preferences"

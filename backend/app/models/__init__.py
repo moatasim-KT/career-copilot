@@ -6,6 +6,15 @@ from .analytics import Analytics
 from .resume_upload import ResumeUpload
 from .content_generation import ContentGeneration
 from .content_version import ContentVersion
-from .user_job_preferences import UserJobPreferences
+# from .user_job_preferences import UserJobPreferences  # Temporarily disabled
+from .feedback import (
+    JobRecommendationFeedback, Feedback, FeedbackVote, OnboardingProgress,
+    HelpArticle, HelpArticleVote, FeedbackType, FeedbackPriority, FeedbackStatus
+)
 
-__all__ = ["Base", "User", "Job", "Application", "Analytics", "ResumeUpload", "ContentGeneration", "ContentVersion", "UserJobPreferences"]
+__all__ = [
+    "Base", "User", "Job", "Application", "Analytics", "ResumeUpload", 
+    "ContentGeneration", "ContentVersion", # "UserJobPreferences",
+    "JobRecommendationFeedback", "Feedback", "FeedbackVote", "OnboardingProgress",
+    "HelpArticle", "HelpArticleVote", "FeedbackType", "FeedbackPriority", "FeedbackStatus"
+]

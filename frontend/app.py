@@ -252,6 +252,36 @@ class APIClient:
         except requests.exceptions.RequestException as e:
             return {"error": f"Connection error: {str(e)}"}
 
+    def create_job_feedback(self, job_id: int, is_helpful: bool, comment: Optional[str] = None) -> Dict[str, Any]:
+        """Create feedback for a job recommendation"""
+        try:
+            params = {"is_helpful": is_helpful}
+            if comment:
+                params["comment"] = comment
+            
+            response = self.session.post(
+                f"{self.base_url}/api/v1/jobs/{job_id}/feedback",
+                params=params,
+                headers=self._get_headers(),
+                timeout=10
+            )
+            return self._handle_response(response)
+        except requests.exceptions.RequestException as e:
+            return {"error": f"Connection error: {str(e)}"}
+
+    def get_user_feedback(self, limit: int = 50, offset: int = 0) -> Dict[str, Any]:
+        """Get user's job recommendation feedback"""
+        try:
+            response = self.session.get(
+                f"{self.base_url}/api/v1/job-recommendation-feedback",
+                params={"limit": limit, "offset": offset},
+                headers=self._get_headers(),
+                timeout=10
+            )
+            return self._handle_response(response)
+        except requests.exceptions.RequestException as e:
+            return {"error": f"Connection error: {str(e)}"}
+
 
 # Initialize API client
 backend_url = os.getenv("BACKEND_URL", "http://localhost:8002")
@@ -2096,7 +2126,64 @@ def render_recommendations_page():
                     if job.get('remote'):
                         st.markdown("**Remote:** ✅ Yes")
                 
+                # Feedback section
+                st.markdown("---")
+                st.markdown("**Was this recommendation helpful?**")
+                
+                # Check if user has already provided feedback for this job
+                feedback_key = f"feedback_{job.get('id')}"
+                if feedback_key not in st.session_state:
+                    st.session_state[feedback_key] = None
+                
+                col_feedback1, col_feedback2, col_feedback3 = st.columns([1, 1, 2])
+                
+                with col_feedback1:
+                    if st.button("👍 Helpful", key=f"thumbs_up_{job.get('id')}", use_container_width=True):
+                        response = api_client.create_job_feedback(job.get('id'), True)
+                        if "error" not in response:
+                            st.session_state[feedback_key] = "helpful"
+                            st.success("Thanks for your feedback!")
+                            st.rerun()
+                        else:
+                            st.error(f"Failed to submit feedback: {response.get('error')}")
+                
+                with col_feedback2:
+                    if st.button("👎 Not Helpful", key=f"thumbs_down_{job.get('id')}", use_container_width=True):
+                        response = api_client.create_job_feedback(job.get('id'), False)
+                        if "error" not in response:
+                            st.session_state[feedback_key] = "not_helpful"
+                            st.success("Thanks for your feedback!")
+                            st.rerun()
+                        else:
+                            st.error(f"Failed to submit feedback: {response.get('error')}")
+                
+                with col_feedback3:
+                    # Optional comment field
+                    comment = st.text_input(
+                        "Optional comment", 
+                        key=f"comment_{job.get('id')}", 
+                        placeholder="Why was this helpful/not helpful?",
+                        help="Your feedback helps improve our recommendations"
+                    )
+                    
+                    if comment and st.button("💬 Submit Comment", key=f"submit_comment_{job.get('id')}"):
+                        # Submit feedback with comment (default to helpful if comment provided)
+                        response = api_client.create_job_feedback(job.get('id'), True, comment)
+                        if "error" not in response:
+                            st.success("Thanks for your detailed feedback!")
+                            st.rerun()
+                        else:
+                            st.error(f"Failed to submit feedback: {response.get('error')}")
+                
+                # Show feedback status if already provided
+                if st.session_state.get(feedback_key):
+                    if st.session_state[feedback_key] == "helpful":
+                        st.success("✅ You marked this as helpful")
+                    else:
+                        st.info("ℹ️ You marked this as not helpful")
+                
                 # Action buttons
+                st.markdown("---")
                 col_btn1, col_btn2 = st.columns(2)
                 with col_btn1:
                     if st.button(f"📝 Apply", key=f"apply_rec_{job.get('id')}", use_container_width=True):
@@ -2132,72 +2219,135 @@ def render_skill_gap_analysis_page():
     """Render the skill gap analysis page - Task 12.3"""
     st.title("🧠 Skill Gap Analysis")
     
-    st.markdown("""
-    Understand your skill gaps based on your tracked jobs and get learning recommendations.
-    This analysis helps you identify which skills to learn to become a more competitive candidate.
-    """)
+    # Add tabs for skill gap and feedback
+    tab1, tab2 = st.tabs(["📊 Skill Analysis", "📝 Feedback History"])
+    
+    with tab1:
+        st.markdown("""
+        Understand your skill gaps based on your tracked jobs and get learning recommendations.
+        This analysis helps you identify which skills to learn to become a more competitive candidate.
+        """)
 
-    with st.spinner("Analyzing your skill gaps..."):
-        analysis = api_client.get_skill_gap_analysis()
+        with st.spinner("Analyzing your skill gaps..."):
+            analysis = api_client.get_skill_gap_analysis()
 
-    if "error" in analysis:
-        st.error(f"Error loading skill gap analysis: {analysis['error']}")
-        st.info("Make sure you have added some jobs with tech stacks to your profile.")
+        if "error" in analysis:
+            st.error(f"Error loading skill gap analysis: {analysis['error']}")
+            st.info("Make sure you have added some jobs with tech stacks to your profile.")
+            return
+
+        if not analysis:
+            st.info("No data available for skill gap analysis. Add some jobs with tech stacks to get started.")
+            return
+
+        # Skill Coverage Percentage Gauge
+        skill_coverage_percentage = analysis.get("skill_coverage_percentage", 0)
+        st.subheader("Skill Coverage")
+        st.progress(skill_coverage_percentage / 100.0)
+        st.metric("Your Skill Coverage", f"{skill_coverage_percentage:.1f}%", help="Percentage of skills in your tracked jobs that you possess.")
+
+        st.divider()
+
+        # User Skills vs. Missing Skills
+        col1, col2 = st.columns(2)
+        with col1:
+            st.subheader("✅ Your Skills")
+            user_skills = analysis.get("user_skills", [])
+            if user_skills:
+                st.write(", ".join(user_skills))
+            else:
+                st.info("No skills found in your profile. Please update your profile.")
+
+        with col2:
+            st.subheader("❌ Missing Skills")
+            missing_skills = analysis.get("missing_skills", {})
+            if missing_skills:
+                for skill, count in missing_skills.items():
+                    st.markdown(f"- **{skill.capitalize()}** (appears in {count} jobs)")
+            else:
+                st.success("🎉 No missing skills found!")
+
+        st.divider()
+
+        # Top Market Skills
+        st.subheader("🔥 Top Market Skills")
+        st.markdown("The most in-demand skills based on your tracked jobs.")
+        top_market_skills = analysis.get("top_market_skills", {})
+        if top_market_skills:
+            df_market_skills = pd.DataFrame(list(top_market_skills.items()), columns=['Skill', 'Frequency'])
+            st.dataframe(df_market_skills, use_container_width=True, hide_index=True)
+        else:
+            st.info("No market skill data available yet.")
+
+        st.divider()
+
+        # Learning Recommendations
+        st.subheader("📚 Learning Recommendations")
+        learning_recommendations = analysis.get("learning_recommendations", [])
+        if learning_recommendations:
+            for rec in learning_recommendations:
+                st.markdown(f"- {rec}")
+        else:
+            st.success("You have all the required skills for your tracked jobs!")
+    
+    with tab2:
+        render_feedback_management()
+
+def render_feedback_management():
+    """Render feedback management section"""
+    st.subheader("📝 Your Feedback History")
+    
+    with st.spinner("Loading your feedback..."):
+        feedback_response = api_client.get_user_feedback(limit=20)
+    
+    if "error" in feedback_response:
+        st.error(f"Error loading feedback: {feedback_response['error']}")
         return
-
-    if not analysis:
-        st.info("No data available for skill gap analysis. Add some jobs with tech stacks to get started.")
+    
+    feedback_items = feedback_response if isinstance(feedback_response, list) else []
+    
+    if not feedback_items:
+        st.info("You haven't provided any feedback yet. Visit the recommendations page to start giving feedback!")
         return
-
-    # Skill Coverage Percentage Gauge
-    skill_coverage_percentage = analysis.get("skill_coverage_percentage", 0)
-    st.subheader("Skill Coverage")
-    st.progress(skill_coverage_percentage / 100.0)
-    st.metric("Your Skill Coverage", f"{skill_coverage_percentage:.1f}%", help="Percentage of skills in your tracked jobs that you possess.")
-
-    st.divider()
-
-    # User Skills vs. Missing Skills
-    col1, col2 = st.columns(2)
+    
+    st.markdown(f"**Total feedback items:** {len(feedback_items)}")
+    
+    # Summary stats
+    helpful_count = sum(1 for item in feedback_items if item.get('is_helpful'))
+    unhelpful_count = len(feedback_items) - helpful_count
+    
+    col1, col2, col3 = st.columns(3)
     with col1:
-        st.subheader("✅ Your Skills")
-        user_skills = analysis.get("user_skills", [])
-        if user_skills:
-            st.write(", ".join(user_skills))
-        else:
-            st.info("No skills found in your profile. Please update your profile.")
-
+        st.metric("👍 Helpful", helpful_count)
     with col2:
-        st.subheader("❌ Missing Skills")
-        missing_skills = analysis.get("missing_skills", {})
-        if missing_skills:
-            for skill, count in missing_skills.items():
-                st.markdown(f"- **{skill.capitalize()}** (appears in {count} jobs)")
-        else:
-            st.success("🎉 No missing skills found!")
-
+        st.metric("👎 Not Helpful", unhelpful_count)
+    with col3:
+        if len(feedback_items) > 0:
+            helpful_percentage = (helpful_count / len(feedback_items)) * 100
+            st.metric("% Helpful", f"{helpful_percentage:.1f}%")
+    
     st.divider()
+    
+    # Display feedback items
+    for idx, feedback in enumerate(feedback_items[:10]):  # Show last 10
+        with st.expander(f"Feedback #{idx + 1} - {'👍 Helpful' if feedback.get('is_helpful') else '👎 Not Helpful'}"):
+            col1, col2 = st.columns([2, 1])
+            
+            with col1:
+                st.markdown(f"**Job ID:** {feedback.get('job_id')}")
+                if feedback.get('comment'):
+                    st.markdown(f"**Comment:** {feedback.get('comment')}")
+                
+                # Show context if available
+                if feedback.get('user_skills_at_time'):
+                    st.markdown(f"**Your skills at time:** {', '.join(feedback.get('user_skills_at_time', []))}")
+                if feedback.get('job_tech_stack'):
+                    st.markdown(f"**Job tech stack:** {', '.join(feedback.get('job_tech_stack', []))}")
+            
+            with col2:
+                st.markdown(f"**Match Score:** {feedback.get('match_score', 'N/A')}")
+                st.markdown(f"**Date:** {feedback.get('created_at', 'N/A')[:10]}")
 
-    # Top Market Skills
-    st.subheader("🔥 Top Market Skills")
-    st.markdown("The most in-demand skills based on your tracked jobs.")
-    top_market_skills = analysis.get("top_market_skills", {})
-    if top_market_skills:
-        df_market_skills = pd.DataFrame(list(top_market_skills.items()), columns=['Skill', 'Frequency'])
-        st.dataframe(df_market_skills, use_container_width=True, hide_index=True)
-    else:
-        st.info("No market skill data available yet.")
-
-    st.divider()
-
-    # Learning Recommendations
-    st.subheader("📚 Learning Recommendations")
-    learning_recommendations = analysis.get("learning_recommendations", [])
-    if learning_recommendations:
-        for rec in learning_recommendations:
-            st.markdown(f"- {rec}")
-    else:
-        st.success("You have all the required skills for your tracked jobs!")
 
 def render_settings_interface():
 	"""Render the settings interface."""
@@ -2638,7 +2788,7 @@ def main():
 		render_recommendations_page()
 
 	with tab4:
-		render_skill_gap_page()
+		render_skill_gap_analysis_page()
 
 	with tab5:
 		render_dashboard()

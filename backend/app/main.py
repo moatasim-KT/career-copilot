@@ -22,7 +22,7 @@ from app.core.database import get_db
 from app.core.exceptions import ContractAnalysisError, AuthenticationError, AuthorizationError
 from app.middleware.logging_middleware import LoggingMiddleware
 from app.middleware.auth_middleware import AuthMiddleware
-from app.scheduler import scheduler
+# from app.scheduler import scheduler  # Temporarily disabled due to import issues
 from app.middleware.error_handling import add_error_handlers
 
 logger = get_logger(__name__)
@@ -152,49 +152,19 @@ def create_app() -> FastAPI:
             "timestamp": datetime.now().isoformat(),
         }
 
-    from app.services.websocket_service import websocket_service
+    # from app.services.websocket_service import websocket_service  # Temporarily disabled
 
-    @app.websocket("/ws")
-    async def websocket_endpoint(websocket: WebSocket):
-        """
-        WebSocket endpoint with authentication.
-        Client should send authentication message after connection.
-        """
-        await websocket.accept()
-        
-        try:
-            # Wait for authentication message
-            auth_data = await websocket.receive_text()
-            auth_message = json.loads(auth_data)
-            
-            if auth_message.get("type") != "auth" or "token" not in auth_message:
-                await websocket.close(code=status.WS_1008_POLICY_VIOLATION, reason="Authentication required")
-                return
-            
-            # Get database session
-            from app.core.database import SessionLocal
-            db = SessionLocal()
-            
-            try:
-                # Authenticate user
-                user_id = await websocket_service.authenticate_websocket(websocket, auth_message["token"], db)
-                if not user_id:
-                    return  # Connection already closed by authenticate_websocket
-                
-                # Handle the connection
-                await websocket_service.handle_websocket_connection(websocket, user_id)
-            finally:
-                db.close()
-                
-        except json.JSONDecodeError:
-            await websocket.close(code=status.WS_1003_UNSUPPORTED_DATA, reason="Invalid JSON")
-        except Exception as e:
-            logger.error(f"WebSocket connection error: {e}")
-            await websocket.close(code=status.WS_1011_INTERNAL_ERROR, reason="Connection error")
+    # @app.websocket("/ws")  # Temporarily disabled
+    # async def websocket_endpoint(websocket: WebSocket):
+    #     """
+    #     WebSocket endpoint with authentication.
+    #     Client should send authentication message after connection.
+    #     """
+    #     pass
 
     
     # Include routers
-    from .api.v1 import health, auth, jobs, applications, analytics, recommendations, skill_gap, profile, job_sources
+    from .api.v1 import health, auth, jobs, applications, analytics, recommendations, skill_gap, profile, job_sources, job_recommendation_feedback
     app.include_router(health.router)
     app.include_router(auth.router)
     app.include_router(profile.router)
@@ -204,6 +174,7 @@ def create_app() -> FastAPI:
     app.include_router(recommendations.router)
     app.include_router(skill_gap.router)
     app.include_router(applications.router)
+    app.include_router(job_recommendation_feedback.router, prefix="/api/v1", tags=["job-recommendation-feedback"])
     
     @app.on_event("startup")
     async def startup_event():
@@ -216,20 +187,22 @@ def create_app() -> FastAPI:
         logger.info("✅ Database initialized")
         
         # Start scheduler
-        if settings.enable_scheduler:
-            from .scheduler import start_scheduler
-            start_scheduler()
-            logger.info("✅ Scheduler started")
+        # if settings.enable_scheduler:
+        #     from .scheduler import start_scheduler
+        #     start_scheduler()
+        #     logger.info("✅ Scheduler started")
+        logger.info("⚠️ Scheduler disabled temporarily")
     
     @app.on_event("shutdown")
     async def shutdown_event():
         logger.info("🛑 Career Copilot API shutting down...")
         
         # Shutdown scheduler
-        if settings.enable_scheduler:
-            from .scheduler import shutdown_scheduler
-            shutdown_scheduler()
-            logger.info("✅ Scheduler shut down")
+        # if settings.enable_scheduler:
+        #     from .scheduler import shutdown_scheduler
+        #     shutdown_scheduler()
+        #     logger.info("✅ Scheduler shut down")
+        logger.info("⚠️ Scheduler was disabled")
     
     return app
 

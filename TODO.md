@@ -159,3 +159,62 @@
     *   **Inputs**: Backend OAuth endpoints.
     *   **Expected Output**: Frontend displays OAuth login/register options.
     *   **Success Criteria**: Users can initiate OAuth login/registration from the frontend.
+
+## Phase 3: Frontend Enhancements
+
+### 29. Enhance frontend with advanced features
+
+*   **29.1 Implement real-time UI updates**
+    *   [backend] [websocket] Choose a WebSocket library for the Python backend (e.g., `FastAPI-WebSocket`, `websockets`).
+    *   [backend] [websocket] Define WebSocket endpoints in the FastAPI application to handle real-time communication.
+    *   [backend] [websocket] Integrate the WebSocket endpoints with the existing job matching and application status logic.
+    *   [frontend] [websocket] Implement a WebSocket client in the Streamlit frontend to connect to the backend.
+    *   [frontend] [ui] Create UI components to display real-time notifications for job matches and application status updates.
+    *   [frontend] [ui] Develop a real-time analytics dashboard that updates with live data from the WebSocket.
+    *   [test] [websocket] Write tests for the WebSocket endpoints.
+    *   [test] [ui] Write tests for the real-time UI components.
+
+*   **29.2 Add file upload and content generation UI**
+    *   [frontend] [ui] Use Streamlit's `st.file_uploader` to create a resume upload interface.
+    *   [frontend] [ui] Add drag-and-drop functionality using a Streamlit component or custom HTML/JavaScript.
+    *   [frontend] [ui] Implement UI to show parsing status and progress.
+    *   [frontend] [ui] Create Streamlit forms (`st.form`) for generating cover letters and tailored resumes.
+    *   [frontend] [ui] Add input fields for job descriptions, user skills, and other relevant information.
+    *   [frontend] [ui] Implement a preview and editing interface for the generated content.
+    *   [test] [ui] Write tests for the file upload and content generation UI.
+
+*   **29.3 Implement interview practice UI**
+    *   [frontend] [ui] Design a Streamlit interface for the interview practice sessions.
+    *   [frontend] [websocket] Implement a real-time Q&A flow using WebSockets or by triggering backend API calls.
+    *   [frontend] [ui] Implement UI elements to display real-time feedback on user answers.
+    *   [frontend] [ui] Create views to show interview history and performance analytics.
+    *   [test] [ui] Write tests for the interview practice UI.
+
+*   **29.4 Add OAuth login integration to frontend**
+    *   [backend] [auth] Integrate an OAuth library (e.g., `Authlib`, `FastAPI-Users`) with the FastAPI backend.
+    *   [backend] [auth] Configure OAuth providers (e.g., Google, LinkedIn).
+    *   [backend] [auth] Implement callback endpoints to handle the OAuth flow.
+    *   [frontend] [auth] Add social login buttons to the Streamlit frontend.
+    *   [frontend] [auth] Implement the client-side logic to initiate the OAuth flow.
+    *   [frontend] [auth] Handle the callback from the backend to complete the authentication process.
+    *   [frontend] [auth] Create UI for account linking and profile setup after the first login.
+
+## 31. Implement performance optimizations
+
+*   **31.1 Add Redis caching for enhanced features**
+    *   [backend] [caching] Cache LLM responses for content generation.
+    *   [backend] [caching] Cache parsed resume data and job descriptions.
+    *   [backend] [caching] Cache interview questions and feedback.
+    *   [backend] [caching] Implement cache invalidation strategies.
+
+*   **31.2 Implement background job processing**
+    *   [backend] [celery] Add Celery for asynchronous task processing.
+    *   [backend] [celery] Move resume parsing to background jobs.
+    *   [backend] [celery] Implement async content generation.
+    *   [backend] [celery] Add job queue monitoring and management.
+
+*   **31.3 Add database optimizations for new features**
+    *   [database] [optimization] Create indexes for new tables and queries.
+    *   [database] [optimization] Implement database connection pooling.
+    *   [database] [optimization] Add query optimization for complex analytics.
+    *   [database] [optimization] Implement database partitioning for large datasets.

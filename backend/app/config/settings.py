@@ -39,51 +39,53 @@ class Settings(BaseSettings):
     adzuna_app_id: Optional[str] = None
     adzuna_app_key: Optional[str] = None
     adzuna_country: Optional[str] = "us"
-    
+
     # LinkedIn API Configuration
     linkedin_api_client_id: Optional[str] = None
     linkedin_api_client_secret: Optional[str] = None
     linkedin_api_access_token: Optional[str] = None
-    
+
     # Indeed API Configuration
     indeed_publisher_id: Optional[str] = None
     indeed_api_key: Optional[str] = None
-    
+
     # Glassdoor API Configuration
     glassdoor_partner_id: Optional[str] = None
     glassdoor_api_key: Optional[str] = None
-    
+
     # Celery Configuration
     celery_broker_url: Optional[str] = "redis://localhost:6379/0"
     celery_result_backend: Optional[str] = "redis://localhost:6379/0"
 
     # Logging Settings
     log_level: Optional[str] = "INFO"
-    
+
     # Caching Settings
-    enable_redis_caching: Optional[bool] = False
-    
+    enable_redis_caching: Optional[bool] = True
+    redis_url: Optional[str] = "redis://localhost:6379/1"
+
+
     # CORS Settings
     cors_origins: Optional[str] = "http://localhost:3000,http://localhost:8000"
-    
+
     # OAuth Social Authentication
     oauth_enabled: Optional[bool] = False
-    
+
     # Google OAuth Configuration
     google_client_id: Optional[str] = None
     google_client_secret: Optional[str] = None
     google_redirect_uri: Optional[str] = "http://localhost:8002/api/v1/auth/oauth/google/callback"
-    
+
     # LinkedIn OAuth Configuration
     linkedin_client_id: Optional[str] = None
     linkedin_client_secret: Optional[str] = None
     linkedin_redirect_uri: Optional[str] = "http://localhost:8002/api/v1/auth/oauth/linkedin/callback"
-    
+
     # GitHub OAuth Configuration
     github_client_id: Optional[str] = None
     github_client_secret: Optional[str] = None
     github_redirect_uri: Optional[str] = "http://localhost:8002/api/v1/auth/oauth/github/callback"
-    
+
     # Job Matching Configuration
     high_match_threshold: Optional[float] = 80.0
     medium_match_threshold: Optional[float] = 60.0

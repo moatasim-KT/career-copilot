@@ -11,7 +11,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload, joinedload
 from sqlalchemy.sql import Select
 
-from ..models.database_models import Base
+from ..core.database import Base
 from ..core.logging import get_logger
 
 logger = get_logger(__name__)

@@ -9,7 +9,7 @@ from sqlalchemy import select, and_, or_
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from ..models.database_models import User, APIKey
+from ..models.user import User
 from .base_repository import BaseRepository
 
 
