@@ -7,6 +7,7 @@ from app.core.database import get_db
 from app.dependencies import get_current_user
 from app.models.user import User
 from app.schemas.profile import ProfileUpdate, ProfileResponse
+from app.services.cache_service import cache_service
 
 router = APIRouter(tags=["profile"])
 
@@ -32,9 +33,14 @@ async def update_user_profile(
         current_user.preferred_locations = update_data["preferred_locations"]
     if "experience_level" in update_data:
         current_user.experience_level = update_data["experience_level"]
+    if "daily_application_goal" in update_data:
+        current_user.daily_application_goal = update_data["daily_application_goal"]
 
     db.add(current_user)
     db.commit()
     db.refresh(current_user)
     
+    # Invalidate recommendations cache for this user since profile changed
+    cache_service.invalidate_user_cache(current_user.id)
+
     return current_user

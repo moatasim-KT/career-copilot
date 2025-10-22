@@ -1,6 +1,6 @@
 """Application model"""
 
-from sqlalchemy import Column, Integer, String, Text, DateTime, ForeignKey, Date
+from sqlalchemy import Column, Integer, String, Text, DateTime, ForeignKey, Date, JSON
 from sqlalchemy.orm import relationship
 from datetime import datetime
 from ..core.database import Base
@@ -27,6 +27,7 @@ class Application(Base):
     interview_date = Column(DateTime)
     offer_date = Column(Date)
     notes = Column(Text)
+    interview_feedback = Column(JSON, nullable=True)
     follow_up_date = Column(Date)
     created_at = Column(DateTime, default=datetime.utcnow, index=True)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)

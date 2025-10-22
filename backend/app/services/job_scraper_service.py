@@ -177,6 +177,27 @@ class JobScraperService:
             logger.info(f"Removed {removed} duplicate jobs from API results")
         return unique_jobs
 
+    def deduplicate_against_db(self, new_jobs: List[JobCreate], user_id: int) -> List[JobCreate]:
+        """Filter out new jobs that already exist in the database for the given user."""
+        existing_jobs = self.db.query(Job).filter(Job.user_id == user_id).all()
+        existing_job_keys = set()
+        for job in existing_jobs:
+            existing_job_keys.add(f"{job.title.lower().strip()}|{job.company.lower().strip()}")
+        
+        truly_unique_jobs = []
+        removed_from_db_check = 0
+        for job_data in new_jobs:
+            key = f"{job_data.title.lower().strip()}|{job_data.company.lower().strip()}"
+            if key not in existing_job_keys:
+                truly_unique_jobs.append(job_data)
+            else:
+                removed_from_db_check += 1
+        
+        if removed_from_db_check > 0:
+            logger.info(f"Removed {removed_from_db_check} jobs already in DB for user {user_id}")
+        
+        return truly_unique_jobs
+
     def _parse_adzuna_job(self, job_data: Dict[str, Any]) -> Optional[JobCreate]:
         try:
             title = job_data.get("title", "").replace("<b>", "").replace("</b>", "")

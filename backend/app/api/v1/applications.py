@@ -133,7 +133,10 @@ async def update_application(
             db.add(job) # Mark job as modified
     
     for key, value in update_data.items():
-        setattr(app, key, value)
+        if key == "interview_feedback":
+            app.interview_feedback = value
+        else:
+            setattr(app, key, value)
     
     db.commit()
     db.refresh(app)

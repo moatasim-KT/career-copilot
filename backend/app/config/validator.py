@@ -54,7 +54,7 @@ def validate_smtp_configuration(settings: Settings) -> Tuple[bool, str]:
     
     if not settings.smtp_host:
         issues.append("SMTP_HOST is missing")
-    if not settings.get_smtp_user():
+    if not settings.smtp_username:
         issues.append("SMTP_USER is missing")
     if not settings.smtp_password:
         issues.append("SMTP_PASSWORD is missing")

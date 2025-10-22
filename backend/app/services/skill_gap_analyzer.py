@@ -4,6 +4,7 @@ from collections import Counter
 
 from ..models.user import User
 from ..models.job import Job
+from ..models.application import Application
 
 class SkillGapAnalyzer:
     def __init__(self, db: Session):
@@ -11,8 +12,8 @@ class SkillGapAnalyzer:
 
     def analyze_skill_gaps(self, user: User) -> Dict[str, Any]:
         """
-        Analyzes skill gaps for a user based on their tracked jobs.
-        - Aggregates all tech_stack arrays from user jobs.
+        Analyzes skill gaps for a user based on their tracked jobs and interview feedback.
+        - Aggregates all tech_stack arrays from user jobs and skill areas from interview feedback.
         - Counts frequency of each skill.
         - Identifies skills not in user's profile.
         - Calculates skill coverage percentage.
@@ -21,12 +22,23 @@ class SkillGapAnalyzer:
         user_skills = set(s.lower() for s in user.skills) if user.skills else set()
 
         # Aggregate all tech_stack from user's jobs
-        all_job_tech_stacks = []
-        for job in user.jobs: # Assuming user.jobs is loaded via relationship
+        all_market_skills = []
+        for job in user.jobs:
             if job.tech_stack:
-                all_job_tech_stacks.extend([s.lower() for s in job.tech_stack])
+                all_market_skills.extend([s.lower() for s in job.tech_stack])
 
-        skill_frequency = Counter(all_job_tech_stacks)
+        # Incorporate skill areas from interview feedback
+        interviewed_applications = self.db.query(Application).filter(
+            Application.user_id == user.id,
+            Application.status == "interview",
+            Application.interview_feedback.isnot(None)
+        ).all()
+
+        for app in interviewed_applications:
+            if app.interview_feedback and "skill_areas" in app.interview_feedback and isinstance(app.interview_feedback["skill_areas"], list):
+                all_market_skills.extend([s.lower() for s in app.interview_feedback["skill_areas"]])
+
+        skill_frequency = Counter(all_market_skills)
 
         # Identify missing skills
         missing_skills = {}
@@ -38,16 +50,16 @@ class SkillGapAnalyzer:
         sorted_missing_skills = sorted(missing_skills.items(), key=lambda item: item[1], reverse=True)
 
         # Calculate skill coverage percentage
-        total_market_skills = len(skill_frequency) # Total unique skills in jobs
-        if total_market_skills == 0:
-            skill_coverage_percentage = 100.0 # No jobs, so no gaps
+        total_unique_market_skills = len(skill_frequency) # Total unique skills in jobs and interview feedback
+        if total_unique_market_skills == 0:
+            skill_coverage_percentage = 100.0 # No market skills, so no gaps
         else:
             covered_skills_count = len(user_skills.intersection(skill_frequency.keys()))
-            skill_coverage_percentage = (covered_skills_count / total_market_skills) * 100
+            skill_coverage_percentage = (covered_skills_count / total_unique_market_skills) * 100
 
         # Generate top 5 learning recommendations
         learning_recommendations = [
-            f"Learn {skill.capitalize()} (appears in {count} relevant jobs)"
+            f"Learn {skill.capitalize()} (appears in {count} relevant jobs/interviews)"
             for skill, count in sorted_missing_skills[:5]
         ]
 

@@ -7,6 +7,7 @@ class ProfileBase(BaseModel):
     skills: Optional[List[str]] = []
     preferred_locations: Optional[List[str]] = []
     experience_level: Optional[Literal["junior", "mid", "senior"]] = None
+    daily_application_goal: Optional[int] = None
 
 class ProfileUpdate(ProfileBase):
     pass

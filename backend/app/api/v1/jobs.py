@@ -9,6 +9,7 @@ from ...core.dependencies import get_current_user
 from ...models.user import User
 from ...models.job import Job
 from ...schemas.job import JobCreate, JobUpdate, JobResponse
+from ...services.cache_service import cache_service
 
 router = APIRouter(tags=["jobs"])
 
@@ -81,6 +82,10 @@ async def create_job(
     db.add(job)
     db.commit()
     db.refresh(job)
+
+    # Invalidate all recommendation caches since new job affects all users' recommendations
+    cache_service.invalidate_all_recommendations()
+
     return job
 
 
@@ -148,6 +153,10 @@ async def update_job(
     
     db.commit()
     db.refresh(job)
+
+    # Invalidate recommendations cache for this user since job details changed
+    cache_service.invalidate_user_cache(current_user.id)
+
     return job
 
 
@@ -176,6 +185,9 @@ async def delete_job(
         db.delete(job)
         db.commit()
         
+        # Invalidate recommendations cache for this user since job was deleted
+        cache_service.invalidate_user_cache(current_user.id)
+
         return {
             "message": "Job deleted successfully",
             "job_id": job_id,

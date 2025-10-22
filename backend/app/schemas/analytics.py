@@ -12,6 +12,14 @@ class AnalyticsSummaryResponse(BaseModel):
     daily_applications_today: int
     weekly_applications: int
     monthly_applications: int
+    daily_application_goal: int
+    daily_goal_progress: float
     top_skills_in_jobs: List[Dict[str, Any]]
     top_companies_applied: List[Dict[str, Any]]
     application_status_breakdown: Dict[str, int]
+
+class InterviewTrendsResponse(BaseModel):
+    total_interviews_analyzed: int
+    top_common_questions: List[List[Any]]
+    top_skill_areas_discussed: List[List[Any]]
+    common_tech_stack_in_interviews: List[List[Any]]

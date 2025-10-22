@@ -240,6 +240,18 @@ class APIClient:
         except requests.exceptions.RequestException as e:
             return {"error": f"Connection error: {str(e)}"}
 
+    def get_interview_trends(self) -> Dict[str, Any]:
+        """Get interview trends analysis for the current user"""
+        try:
+            response = self.session.get(
+                f"{self.base_url}/api/v1/analytics/interview-trends",
+                headers=self._get_headers(),
+                timeout=10
+            )
+            return self._handle_response(response)
+        except requests.exceptions.RequestException as e:
+            return {"error": f"Connection error: {str(e)}"}
+
 
 # Initialize API client
 backend_url = os.getenv("BACKEND_URL", "http://localhost:8002")
@@ -466,6 +478,34 @@ def render_dashboard():
                     st.session_state.current_page = "recommendations"
                     st.rerun()
 
+    st.divider()
+
+    # Interview Trends Analysis
+    st.subheader("🎤 Interview Trends")
+    with st.spinner("Loading interview trends..."):
+        interview_trends = api_client.get_interview_trends()
+    
+    if "error" in interview_trends:
+        st.warning("Unable to load interview trends.")
+    elif interview_trends.get("total_interviews_analyzed", 0) > 0:
+        st.info(f"Analyzed {interview_trends["total_interviews_analyzed"]} interviews.")
+        
+        col1, col2 = st.columns(2)
+        with col1:
+            st.markdown("**Top Common Questions:**")
+            for q, count in interview_trends.get("top_common_questions", []):
+                st.markdown(f"- {q.capitalize()} (seen {count} times)")
+        with col2:
+            st.markdown("**Top Skill Areas Discussed:**")
+            for s, count in interview_trends.get("top_skill_areas_discussed", []):
+                st.markdown(f"- {s.capitalize()} (discussed {count} times)")
+        
+        st.markdown("**Common Tech Stack in Interviews:**")
+        for ts, count in interview_trends.get("common_tech_stack_in_interviews", []):
+            st.markdown(f"- {ts.capitalize()} (in {count} jobs)")
+    else:
+        st.info("No interview data available for trend analysis. Update application statuses to 'interview' and add feedback.")
+
 
 def render_jobs_page():
     """Render the jobs management page - Task 12.5"""
@@ -645,6 +685,12 @@ def render_jobs_page():
                         st.markdown("**🛠️ Tech Stack:**")
                         tech_html = " ".join([f'<span style="background-color: #2196F3; color: white; padding: 3px 8px; border-radius: 5px; margin: 2px; display: inline-block; font-size: 0.85em;">{tech}</span>' for tech in job.get('tech_stack')])
                         st.markdown(tech_html, unsafe_allow_html=True)
+
+                    # Documents Required display - Task 25
+                    if job.get('documents_required'):
+                        st.markdown("**📄 Documents Required:**")
+                        docs_html = " ".join([f'<span style="background-color: #607D8B; color: white; padding: 3px 8px; border-radius: 5px; margin: 2px; display: inline-block; font-size: 0.85em;">{doc}</span>' for doc in job.get('documents_required')])
+                        st.markdown(docs_html, unsafe_allow_html=True)
                     
                     # Responsibilities display - Task 12.5
                     if job.get('responsibilities'):
@@ -728,6 +774,25 @@ def render_applications_page():
                     
                     if app.get('notes'):
                         st.write(f"**Notes:** {app.get('notes')}")
+
+                    # Interview Feedback - Task 22
+                    st.subheader("Interview Feedback")
+                    current_feedback = app.get("interview_feedback", {})
+                    feedback_questions = st.text_area(
+                        "Common Questions Asked (comma-separated)",
+                        value=", ".join(current_feedback.get("questions", [])),
+                        key=f"feedback_questions_{app.get('id')}"
+                    )
+                    feedback_skill_areas = st.text_area(
+                        "Skill Areas Discussed (comma-separated)",
+                        value=", ".join(current_feedback.get("skill_areas", [])),
+                        key=f"feedback_skill_areas_{app.get('id')}"
+                    )
+                    feedback_notes = st.text_area(
+                        "Subjective Notes",
+                        value=current_feedback.get("notes", ""),
+                        key=f"feedback_notes_{app.get('id')}"
+                    )
                     
                     # Update status
                     new_status = st.selectbox(
@@ -739,6 +804,16 @@ def render_applications_page():
                     
                     if st.button("Update", key=f"update_{app.get('id')}"):
                         update_data = {"status": new_status}
+                        
+                        # Add interview feedback to update data
+                        interview_feedback_data = {
+                            "questions": [q.strip() for q in feedback_questions.split(",") if q.strip()],
+                            "skill_areas": [s.strip() for s in feedback_skill_areas.split(",") if s.strip()],
+                            "notes": feedback_notes
+                        }
+                        if any(interview_feedback_data.values()): # Only send if there's actual feedback
+                            update_data["interview_feedback"] = interview_feedback_data
+
                         response = api_client.update_application(app.get('id'), update_data)
                         if "error" not in response:
                             st.success("Status updated!")
@@ -1894,6 +1969,17 @@ def render_profile_page():
             help="Select your current experience level"
         )
 
+        # Daily Application Goal - Number input
+        default_daily_goal = user_profile.get("daily_application_goal", 10)
+        selected_daily_goal = st.number_input(
+            "Daily Application Goal",
+            min_value=1,
+            max_value=50,
+            value=default_daily_goal,
+            step=1,
+            help="Set your daily target for job applications."
+        )
+
         col1, col2 = st.columns(2)
         with col1:
             submitted = st.form_submit_button("💾 Save Profile", use_container_width=True, type="primary")
@@ -1910,6 +1996,7 @@ def render_profile_page():
                     "skills": selected_skills,
                     "preferred_locations": selected_locations,
                     "experience_level": selected_experience,
+                    "daily_application_goal": selected_daily_goal,
                 }
                 with st.spinner("Updating profile..."):
                     response = api_client.update_user_profile(profile_data)

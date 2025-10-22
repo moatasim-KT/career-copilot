@@ -18,6 +18,7 @@ class ApplicationUpdate(BaseModel):
     interview_date: Optional[datetime] = None
     offer_date: Optional[date] = None
     notes: Optional[str] = None
+    interview_feedback: Optional[Dict[str, Any]] = None
     follow_up_date: Optional[date] = None
 
 
@@ -31,6 +32,7 @@ class ApplicationResponse(BaseModel):
     interview_date: Optional[datetime]
     offer_date: Optional[date]
     notes: Optional[str]
+    interview_feedback: Optional[Dict[str, Any]]
     follow_up_date: Optional[date]
     created_at: datetime
     updated_at: datetime

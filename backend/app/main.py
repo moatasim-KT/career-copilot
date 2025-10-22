@@ -32,6 +32,18 @@ def create_app() -> FastAPI:
     
     setup_logging()
     settings = get_settings()
+
+    logger.info("--- Configuration Summary ---")
+    logger.info(f"Environment: {settings.environment}")
+    logger.info(f"Debug Mode: {settings.debug}")
+    logger.info(f"API Host: {settings.api_host}:{settings.api_port}")
+    logger.info(f"Database URL: {settings.database_url}")
+    logger.info(f"JWT Expiration: {settings.jwt_expiration_hours} hours")
+    logger.info(f"SMTP Enabled: {settings.smtp_enabled}")
+    logger.info(f"Scheduler Enabled: {settings.enable_scheduler}")
+    logger.info(f"Job Scraping Enabled: {settings.enable_job_scraping}")
+    logger.info(f"CORS Origins: {settings.cors_origins}")
+    logger.info("-----------------------------")
     
     # Create FastAPI application
     app = FastAPI(

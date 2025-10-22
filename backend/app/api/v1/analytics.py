@@ -10,9 +10,12 @@ from ...core.dependencies import get_current_user
 from ...models.user import User
 from ...models.application import Application
 from ...models.job import Job
-from ...services.job_analytics_service import JobAnalyticsService
+from ...services.analytics import AnalyticsService
 
 from ...schemas.analytics import AnalyticsSummaryResponse
+
+_analytics_cache = {}
+_cache_ttl = timedelta(minutes=5) # Cache for 5 minutes
 
 router = APIRouter(tags=["analytics"])
 
@@ -34,7 +37,7 @@ async def get_analytics_summary(
     
     # Generate fresh analytics data
     analytics_service = JobAnalyticsService(db=db)
-    summary = analytics_service.get_summary_metrics(current_user)
+    summary = analytics_service.get_user_analytics(current_user)
     
     # Cache the result
     _analytics_cache[cache_key] = (summary, now)
@@ -79,3 +82,14 @@ async def get_status_breakdown(
             for status, count in status_counts
         ]
     }
+
+
+@router.get("/api/v1/analytics/interview-trends", response_model=InterviewTrendsResponse)
+async def get_interview_trends(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Get analysis of interview trends for the current user."""
+    analytics_service = AnalyticsService(db=db)
+    trends = analytics_service.get_interview_trends(current_user)
+    return trends

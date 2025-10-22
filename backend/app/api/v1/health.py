@@ -30,7 +30,7 @@ async def health_check(db: Session = Depends(get_db)):
     
     # Check database connectivity
     try:
-        db.execute(text("SELECT 1"))
+        await db.execute(text("SELECT 1"))
         db_status = "healthy"
     except Exception as e:
         logger.error(f"Database health check failed: {e}")
@@ -59,10 +59,10 @@ async def health_check(db: Session = Depends(get_db)):
     }
 
 
-@router.get("/health/db")
+@router.get("/api/v1/health/db")
 async def health_check_db(db: Session = Depends(get_db)):
     try:
-        db.execute(text("SELECT 1"))
+        await db.execute(text("SELECT 1"))
         return {
             "status": "healthy",
             "database": "connected",

@@ -56,10 +56,10 @@ def ingest_jobs():
             try:
                 # Scrape jobs based on user preferences
                 logger.info(f"Scraping jobs for user {user.username} with {len(user.skills)} skills and {len(user.preferred_locations)} locations")
-                new_jobs = scraper.scrape_jobs(
-                    skills=user.skills,
-                    preferred_locations=user.preferred_locations,
-                    limit=20
+                new_jobs = await scraper.search_all_apis(
+                    keywords=user.skills,
+                    location=" ".join(user.preferred_locations), # Join locations for API query
+                    max_results=20
                 )
                 
                 if not new_jobs:
@@ -68,7 +68,7 @@ def ingest_jobs():
                     continue
                 
                 # Deduplicate against existing jobs for this user
-                unique_jobs = scraper.deduplicate_jobs(new_jobs, user_id=user.id)
+                unique_jobs = scraper.deduplicate_against_db(new_jobs, user_id=user.id)
                 logger.info(f"Found {len(unique_jobs)} unique jobs for user {user.username} after deduplication")
                 
                 # Create Job entities with source="scraped"
@@ -84,6 +84,7 @@ def ingest_jobs():
                             requirements=job_data.get("requirements"),
                             tech_stack=job_data.get("tech_stack", []),
                             responsibilities=job_data.get("responsibilities"),
+                            documents_required=job_data.get("documents_required"),
                             salary_range=job_data.get("salary_range"),
                             job_type=job_data.get("job_type"),
                             remote_option=job_data.get("remote_option"),
@@ -104,6 +105,10 @@ def ingest_jobs():
                 
                 # Log number of jobs added per user
                 logger.info(f"✓ Added {jobs_added} new jobs for user {user.username}")
+
+                # Invalidate all recommendation caches since new jobs affect all users
+                from ..services.cache_service import cache_service
+                cache_service.invalidate_all_recommendations()
                 
             except Exception as e:
                 users_failed += 1
@@ -211,7 +216,7 @@ def send_evening_summary():
     db = SessionLocal()
     try:
         from ..core.config import get_settings
-        from ..services.job_analytics_service import JobAnalyticsService
+        from ..services.analytics import AnalyticsService
         settings = get_settings()
         
         # Initialize notification service with settings
@@ -237,7 +242,7 @@ def send_evening_summary():
                 # Calculate daily statistics using JobAnalyticsService
                 logger.debug(f"Calculating analytics for user {user.username}")
                 analytics_service = JobAnalyticsService(db)
-                analytics_summary = analytics_service.get_summary_metrics(user)
+                analytics_summary = analytics_service.get_user_analytics(user)
                 
                 # Add applications_today count (applications created today)
                 from ..models.application import Application

@@ -120,6 +120,33 @@ def test_calculate_match_score_experience_mismatch(engine, mock_user, mock_job_p
     score = engine.calculate_match_score(mock_user, mock_job_perfect_match)
     assert score < 100  # Experience mismatch should reduce score
 
+def test_calculate_match_score_perfect_experience_match(engine, mock_user, mock_job_perfect_match):
+    mock_user.experience_level = "senior"
+    mock_job_perfect_match.title = "Senior Python Developer"
+    score = engine.calculate_match_score(mock_user, mock_job_perfect_match)
+    # Assuming other factors are also perfect, this should still be 100
+    assert score == 100.0
+
+def test_calculate_match_score_close_experience_match(engine, mock_user, mock_job_perfect_match):
+    mock_user.experience_level = "mid"
+    mock_job_perfect_match.title = "Senior Python Developer"
+    score = engine.calculate_match_score(mock_user, mock_job_perfect_match)
+    # Score should be reduced due to close experience mismatch
+    assert score < 100.0 and score > 50.0
+
+def test_calculate_match_score_partial_location_match(engine, mock_user, mock_job_partial_match):
+    mock_user.preferred_locations = ["New York", "Remote"]
+    mock_job_partial_match.location = "New York, NY"
+    score = engine.calculate_match_score(mock_user, mock_job_partial_match)
+    assert score > 0  # Should have some location match score
+
+def test_calculate_match_score_no_location_match(engine, mock_user, mock_job_no_match):
+    mock_user.preferred_locations = ["London"]
+    mock_job_no_match.location = "Los Angeles"
+    score = engine.calculate_match_score(mock_user, mock_job_no_match)
+    # Location score should be 0 or very low if no match
+    assert score < 50 # Assuming other factors are also low or no match
+
 def test_get_recommendations_returns_sorted_jobs(engine, mock_db_session, mock_user, mock_job_perfect_match, mock_job_partial_match, mock_job_no_match):
     # Set user_id to match mock_user
     mock_job_perfect_match.user_id = mock_user.id

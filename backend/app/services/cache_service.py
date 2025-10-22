@@ -1,171 +1,136 @@
 """
-Redis caching service for performance optimization
+Cache service for managing in-memory caching with TTL and invalidation.
 """
 
-import json
-import redis
-from typing import Any, Optional, Dict
-from datetime import timedelta
+from typing import Dict, Any, Optional, Set
+from datetime import datetime, timedelta
 import logging
-
-from app.core.config import settings
 
 logger = logging.getLogger(__name__)
 
-
 class CacheService:
-    """Service for Redis caching operations"""
+    """Simple in-memory cache service with TTL and invalidation support."""
     
     def __init__(self):
-        try:
-            self.redis_client = redis.from_url(
-                settings.REDIS_URL,
-                decode_responses=True,
-                socket_connect_timeout=5
-            )
-            self.redis_client.ping()
-            self.enabled = True
-        except Exception as e:
-            logger.warning(f"Redis unavailable, caching disabled: {e}")
-            self.redis_client = None
-            self.enabled = False
-    
+        self._cache: Dict[str, Dict[str, Any]] = {}
+        self._user_cache_keys: Dict[int, Set[str]] = {}  # Track cache keys per user
+        
     def get(self, key: str) -> Optional[Any]:
-        """Get value from cache"""
-        if not self.enabled:
+        """Get value from cache if not expired."""
+        if key not in self._cache:
             return None
+            
+        cache_entry = self._cache[key]
+        now = datetime.utcnow()
         
-        try:
-            value = self.redis_client.get(key)
-            if value:
-                return json.loads(value)
+        # Check if expired
+        if now > cache_entry["expires_at"]:
+            self._remove_key(key)
             return None
-        except Exception as e:
-            logger.error(f"Cache get error for key {key}: {e}")
-            return None
+            
+        logger.debug(f"Cache hit for key: {key}")
+        return cache_entry["value"]
     
-    def set(self, key: str, value: Any, ttl: int = 3600) -> bool:
-        """Set value in cache with TTL in seconds"""
-        if not self.enabled:
-            return False
+    def set(self, key: str, value: Any, ttl_seconds: int = 3600, user_id: Optional[int] = None):
+        """Set value in cache with TTL."""
+        expires_at = datetime.utcnow() + timedelta(seconds=ttl_seconds)
         
-        try:
-            serialized = json.dumps(value)
-            self.redis_client.setex(key, ttl, serialized)
-            return True
-        except Exception as e:
-            logger.error(f"Cache set error for key {key}: {e}")
-            return False
+        self._cache[key] = {
+            "value": value,
+            "expires_at": expires_at,
+            "user_id": user_id,
+            "created_at": datetime.utcnow()
+        }
+        
+        # Track user cache keys for invalidation
+        if user_id is not None:
+            if user_id not in self._user_cache_keys:
+                self._user_cache_keys[user_id] = set()
+            self._user_cache_keys[user_id].add(key)
+            
+        logger.debug(f"Cache set for key: {key}, expires at: {expires_at}")
     
-    def delete(self, key: str) -> bool:
-        """Delete key from cache"""
-        if not self.enabled:
-            return False
-        
-        try:
-            self.redis_client.delete(key)
-            return True
-        except Exception as e:
-            logger.error(f"Cache delete error for key {key}: {e}")
-            return False
+    def delete(self, key: str):
+        """Delete specific key from cache."""
+        if key in self._cache:
+            self._remove_key(key)
+            logger.debug(f"Cache key deleted: {key}")
     
-    def delete_pattern(self, pattern: str) -> int:
-        """Delete all keys matching pattern"""
-        if not self.enabled:
-            return 0
-        
-        try:
-            keys = self.redis_client.keys(pattern)
-            if keys:
-                return self.redis_client.delete(*keys)
-            return 0
-        except Exception as e:
-            logger.error(f"Cache delete pattern error for {pattern}: {e}")
-            return 0
+    def invalidate_user_cache(self, user_id: int):
+        """Invalidate all cache entries for a specific user."""
+        if user_id not in self._user_cache_keys:
+            return
+            
+        keys_to_remove = list(self._user_cache_keys[user_id])
+        for key in keys_to_remove:
+            self._remove_key(key)
+            
+        logger.info(f"Invalidated {len(keys_to_remove)} cache entries for user {user_id}")
     
-    def exists(self, key: str) -> bool:
-        """Check if key exists in cache"""
-        if not self.enabled:
-            return False
+    def invalidate_all_recommendations(self):
+        """Invalidate all recommendation cache entries (when new jobs are added)."""
+        keys_to_remove = []
         
-        try:
-            return self.redis_client.exists(key) > 0
-        except Exception as e:
-            logger.error(f"Cache exists error for key {key}: {e}")
-            return False
+        for key, cache_entry in self._cache.items():
+            if key.startswith("recommendations:"):
+                keys_to_remove.append(key)
+        
+        for key in keys_to_remove:
+            self._remove_key(key)
+            
+        logger.info(f"Invalidated {len(keys_to_remove)} recommendation cache entries")
     
-    def get_ttl(self, key: str) -> int:
-        """Get remaining TTL for key in seconds"""
-        if not self.enabled:
-            return -1
+    def _remove_key(self, key: str):
+        """Remove key from cache and user tracking."""
+        if key not in self._cache:
+            return
+            
+        cache_entry = self._cache[key]
+        user_id = cache_entry.get("user_id")
         
-        try:
-            return self.redis_client.ttl(key)
-        except Exception as e:
-            logger.error(f"Cache TTL error for key {key}: {e}")
-            return -1
+        # Remove from main cache
+        del self._cache[key]
+        
+        # Remove from user tracking
+        if user_id is not None and user_id in self._user_cache_keys:
+            self._user_cache_keys[user_id].discard(key)
+            if not self._user_cache_keys[user_id]:  # Remove empty set
+                del self._user_cache_keys[user_id]
     
-    def increment(self, key: str, amount: int = 1) -> Optional[int]:
-        """Increment counter"""
-        if not self.enabled:
-            return None
+    def clear_expired(self):
+        """Remove all expired entries from cache."""
+        now = datetime.utcnow()
+        keys_to_remove = []
         
-        try:
-            return self.redis_client.incrby(key, amount)
-        except Exception as e:
-            logger.error(f"Cache increment error for key {key}: {e}")
-            return None
+        for key, cache_entry in self._cache.items():
+            if now > cache_entry["expires_at"]:
+                keys_to_remove.append(key)
+        
+        for key in keys_to_remove:
+            self._remove_key(key)
+            
+        if keys_to_remove:
+            logger.info(f"Cleared {len(keys_to_remove)} expired cache entries")
     
-    def get_stats(self) -> Dict:
-        """Get cache statistics"""
-        if not self.enabled:
-            return {"enabled": False}
+    def get_stats(self) -> Dict[str, Any]:
+        """Get cache statistics."""
+        now = datetime.utcnow()
+        total_entries = len(self._cache)
+        expired_entries = sum(
+            1 for entry in self._cache.values() 
+            if now > entry["expires_at"]
+        )
         
-        try:
-            info = self.redis_client.info()
-            return {
-                "enabled": True,
-                "used_memory_mb": round(info.get('used_memory', 0) / 1024 / 1024, 2),
-                "connected_clients": info.get('connected_clients', 0),
-                "total_keys": self.redis_client.dbsize(),
-                "hit_rate": self._calculate_hit_rate(info)
+        return {
+            "total_entries": total_entries,
+            "active_entries": total_entries - expired_entries,
+            "expired_entries": expired_entries,
+            "users_with_cache": len(self._user_cache_keys),
+            "cache_keys_by_user": {
+                user_id: len(keys) 
+                for user_id, keys in self._user_cache_keys.items()
             }
-        except Exception as e:
-            logger.error(f"Cache stats error: {e}")
-            return {"enabled": True, "error": str(e)}
-    
-    def _calculate_hit_rate(self, info: Dict) -> float:
-        """Calculate cache hit rate"""
-        hits = info.get('keyspace_hits', 0)
-        misses = info.get('keyspace_misses', 0)
-        total = hits + misses
-        
-        if total == 0:
-            return 0.0
-        
-        return round(hits / total, 3)
-    
-    # Convenience methods for common cache patterns
-    
-    def cache_user_profile(self, user_id: int, profile: Dict) -> bool:
-        """Cache user profile"""
-        return self.set(f"user:profile:{user_id}", profile, ttl=1800)  # 30 min
-    
-    def get_user_profile(self, user_id: int) -> Optional[Dict]:
-        """Get cached user profile"""
-        return self.get(f"user:profile:{user_id}")
-    
-    def invalidate_user_cache(self, user_id: int) -> int:
-        """Invalidate all cache for a user"""
-        return self.delete_pattern(f"user:*:{user_id}")
-    
-    def cache_analytics(self, user_id: int, analytics_type: str, data: Dict) -> bool:
-        """Cache analytics results"""
-        return self.set(f"analytics:{analytics_type}:{user_id}", data, ttl=3600)  # 1 hour
-    
-    def get_analytics(self, user_id: int, analytics_type: str) -> Optional[Dict]:
-        """Get cached analytics"""
-        return self.get(f"analytics:{analytics_type}:{user_id}")
+        }
 
-
+# Global cache instance
 cache_service = CacheService()

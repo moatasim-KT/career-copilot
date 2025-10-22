@@ -8,6 +8,8 @@ from ...core.dependencies import get_current_user
 from ...models.user import User
 from ...services.skill_gap_analyzer import SkillGapAnalyzer
 
+from ...schemas.skill_gap import SkillGapAnalysisResponse
+
 router = APIRouter(tags=["skill-gap"])
 
 

@@ -16,6 +16,7 @@ class User(Base):
     skills = Column(JSON, default=list)
     preferred_locations = Column(JSON, default=list)
     experience_level = Column(String)
+    daily_application_goal = Column(Integer, default=10)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     

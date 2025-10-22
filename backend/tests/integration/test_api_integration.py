@@ -117,3 +117,12 @@ def test_full_user_workflow(client: TestClient, db_session: Session):
     analytics = response.json()
     assert analytics["total_jobs"] == 2
     assert analytics["total_applications"] == 1
+
+    # 8. Get skill gap analysis
+    response = client.get("/api/v1/skill-gap", headers=headers)
+    assert response.status_code == 200
+    skill_gap_analysis = response.json()
+    assert "user_skills" in skill_gap_analysis
+    assert "missing_skills" in skill_gap_analysis
+    assert "skill_coverage_percentage" in skill_gap_analysis
+    assert "learning_recommendations" in skill_gap_analysis

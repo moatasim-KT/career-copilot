@@ -330,7 +330,7 @@ This implementation plan covers the complete Career Co-Pilot MVP across all four
   - Return status and component health
   - _Requirements: 15.5_
 
-- [x] 16. Create database initialization scripts
+- [ ] 16. Create database initialization scripts
 - [x] 16.1 Create init_database script
 
   - Initialize all tables using SQLAlchemy models
@@ -371,7 +371,7 @@ This implementation plan covers the complete Career Co-Pilot MVP across all four
   - Update architecture diagram
   - _Requirements: 13.1, 13.2, 13.3, 13.4_
 
-- [ ] 18.2 Create deployment guide
+- [-] 18.2 Create deployment guide
 
   - Document production environment setup
   - Add PostgreSQL migration instructions
@@ -386,8 +386,8 @@ This implementation plan covers the complete Career Co-Pilot MVP across all four
   - Add validation script to check configuration
   - _Requirements: 13.1, 13.5_
 
-- [ ] 19. Performance optimization
-- [ ] 19.1 Add database indexes
+- [-] 19. Performance optimization
+- [x] 19.1 Add database indexes
 
   - Verify indexes on users username email
   - Verify indexes on jobs user_id company title created_at
@@ -395,7 +395,7 @@ This implementation plan covers the complete Career Co-Pilot MVP across all four
   - Test query performance with EXPLAIN
   - _Requirements: 14.4_
 
-- [ ] 19.2 Implement caching for recommendations
+- [-] 19.2 Implement caching for recommendations
 
   - Add simple in-memory cache for recommendations 1 hour TTL
   - Invalidate cache when user profile changes
