@@ -6,7 +6,7 @@ import logging
 from typing import Dict, List, Optional, Tuple, Any
 from pathlib import Path
 import magic
-import PyPDF2
+import pypdf as PyPDF2
 import pdfplumber
 from docx import Document
 from io import BytesIO

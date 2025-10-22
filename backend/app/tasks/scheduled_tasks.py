@@ -12,6 +12,7 @@ from ..services.job_scraper import JobScraperService
 from ..services.recommendation_engine import RecommendationEngine
 from ..services.notification_service import NotificationService
 import os
+from ..core.websocket_manager import websocket_manager
 
 logger = logging.getLogger(__name__)
 
@@ -54,6 +55,9 @@ def ingest_jobs():
                 continue
             
             try:
+                # Send WebSocket update
+                asyncio.run(websocket_manager.send_personal_message(user.id, f"Starting job ingestion for {user.username}..."))
+
                 # Scrape jobs based on user preferences
                 logger.info(f"Scraping jobs for user {user.username} with {len(user.skills)} skills and {len(user.preferred_locations)} locations")
                 new_jobs = await scraper.search_all_apis(
@@ -64,13 +68,15 @@ def ingest_jobs():
                 
                 if not new_jobs:
                     logger.info(f"No new jobs found for user {user.username}")
+                    asyncio.run(websocket_manager.send_personal_message(user.id, f"No new jobs found for {user.username}."))
                     users_processed += 1
                     continue
                 
                 # Deduplicate against existing jobs for this user
                 unique_jobs = scraper.deduplicate_against_db(new_jobs, user_id=user.id)
                 logger.info(f"Found {len(unique_jobs)} unique jobs for user {user.username} after deduplication")
-                
+                asyncio.run(websocket_manager.send_personal_message(user.id, f"Found {len(unique_jobs)} unique jobs for {user.username}."))
+
                 # Create Job entities with source="scraped"
                 jobs_added = 0
                 for job_data in unique_jobs:
@@ -105,16 +111,19 @@ def ingest_jobs():
                 
                 # Log number of jobs added per user
                 logger.info(f"✓ Added {jobs_added} new jobs for user {user.username}")
+                asyncio.run(websocket_manager.send_personal_message(user.id, f"Added {jobs_added} new jobs for {user.username}."))
 
                 # Invalidate all recommendation caches since new jobs affect all users
-                from ..services.cache_service import cache_service
-                cache_service.invalidate_all_recommendations()
+                from ..api.v1.recommendations import _recommendations_cache
+                if user.id in _recommendations_cache:
+                    del _recommendations_cache[user.id]
                 
             except Exception as e:
                 users_failed += 1
                 logger.error(f"✗ Error processing jobs for user {user.username}: {str(e)}", exc_info=True)
                 logger.error(f"Stack trace: {traceback.format_exc()}")
                 db.rollback()
+                asyncio.run(websocket_manager.send_personal_message(user.id, f"Error processing jobs for {user.username}: {e}"))
                 continue
         
         end_time = datetime.now()
@@ -126,7 +135,8 @@ def ingest_jobs():
         logger.info(f"Users processed: {users_processed}, Failed: {users_failed}")
         logger.info(f"Total jobs added: {total_jobs_added}")
         logger.info("=" * 80)
-    
+        asyncio.run(websocket_manager.send_personal_message(user.id, f"Job ingestion task completed. Total jobs added: {total_jobs_added}."))
+
     except Exception as e:
         logger.error(f"Critical error in job ingestion task: {str(e)}", exc_info=True)
         logger.error(f"Stack trace: {traceback.format_exc()}")
@@ -179,9 +189,11 @@ def send_morning_briefing():
                 if success:
                     total_sent += 1
                     logger.info(f"✓ Morning briefing sent successfully to {user.email}")
+                    asyncio.run(websocket_manager.send_personal_message(user.id, "Morning briefing sent successfully!"))
                 else:
                     total_failed += 1
                     logger.error(f"✗ Failed to send morning briefing to {user.email}")
+                    asyncio.run(websocket_manager.send_personal_message(user.id, "Failed to send morning briefing."))
                     
             except Exception as e:
                 total_failed += 1
@@ -263,9 +275,11 @@ def send_evening_summary():
                 if success:
                     total_sent += 1
                     logger.info(f"✓ Evening summary sent successfully to {user.email}")
+                    asyncio.run(websocket_manager.send_personal_message(user.id, "Evening summary sent successfully!"))
                 else:
                     total_failed += 1
                     logger.error(f"✗ Failed to send evening summary to {user.email}")
+                    asyncio.run(websocket_manager.send_personal_message(user.id, "Failed to send evening summary."))
                     
             except Exception as e:
                 total_failed += 1

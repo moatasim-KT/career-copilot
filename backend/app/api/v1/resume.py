@@ -8,7 +8,7 @@ from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Backgro
 from sqlalchemy.orm import Session
 
 from ...core.database import get_db
-from ...core.auth import get_current_user
+from ...dependencies import get_current_user
 from ...models.user import User
 from ...models.resume_upload import ResumeUpload
 from ...models.content_generation import ContentGeneration

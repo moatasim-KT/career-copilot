@@ -3,7 +3,7 @@ Career Copilot - Job Application Tracking System
 FastAPI application entry point
 """
 
-from fastapi import FastAPI, Request, HTTPException, status, Depends
+from fastapi import FastAPI, Request, HTTPException, status, Depends, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.exceptions import RequestValidationError
@@ -150,6 +150,22 @@ def create_app() -> FastAPI:
             "status": "running",
             "timestamp": datetime.now().isoformat(),
         }
+
+    from app.core.websocket_manager import websocket_manager
+
+    @app.websocket("/ws/{user_id}")
+    async def websocket_endpoint(websocket: WebSocket, user_id: int):
+        await websocket_manager.connect(user_id, websocket)
+        try:
+            while True:
+                # Keep connection alive, or handle specific messages
+                await websocket.receive_text() # Expects client to send keep-alive or other messages
+        except WebSocketDisconnect:
+            websocket_manager.disconnect(user_id)
+        except Exception as e:
+            logger.error(f"WebSocket error for user {user_id}: {e}")
+            websocket_manager.disconnect(user_id)
+
     
     # Include routers
     from .api.v1 import health, auth, jobs, applications, analytics, recommendations, skill_gap, profile

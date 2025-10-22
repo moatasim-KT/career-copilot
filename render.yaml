@@ -12,6 +12,15 @@ services:
           property: connectionString
       - key: PYTHON_VERSION
         value: 3.11
+  - type: web
+    name: career-copilot-frontend
+    env: node
+    plan: free
+    buildCommand: "npm install && npm run build"
+    startCommand: "npm start"
+    envVars:
+      - key: NEXT_PUBLIC_API_BASE_URL
+        value: http://career-copilot-backend.onrender.com # This will be replaced by Render's dynamic URL
   - type: pserv
     name: career-copilot-db
     env: postgres

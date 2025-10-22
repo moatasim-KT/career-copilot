@@ -47,6 +47,9 @@ class Settings(BaseSettings):
     # Logging Settings
     log_level: Optional[str] = "INFO"
     
+    # Caching Settings
+    enable_redis_caching: Optional[bool] = False
+    
     # CORS Settings
     cors_origins: Optional[str] = "http://localhost:3000,http://localhost:8000"
     

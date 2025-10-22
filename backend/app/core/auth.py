@@ -7,10 +7,10 @@ from uuid import UUID
 
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
-from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import Session
 
-from .database import get_db_session
-from ..models.database_models import User as DBUser
+from .database import get_db
+from ..models.user import User as DBUser
 from ..repositories.user_repository import UserRepository
 from ..services.authentication_service import get_authentication_service
 
@@ -32,7 +32,7 @@ class User:
 
 async def get_current_user_optional(
     credentials: Optional[HTTPAuthorizationCredentials] = Depends(security),
-    session: AsyncSession = Depends(get_db_session)
+    session: Session = Depends(get_db)
 ) -> Optional[User]:
     """
     Get current user from JWT token (optional).
@@ -55,7 +55,7 @@ async def get_current_user_optional(
 
 async def get_current_user(
     credentials: HTTPAuthorizationCredentials = Depends(security),
-    session: AsyncSession = Depends(get_db_session)
+    session: Session = Depends(get_db)
 ) -> User:
     """
     Get current user from JWT token.
@@ -171,7 +171,7 @@ async def get_current_superuser(current_user: User = Depends(get_current_user)) 
 # API Key authentication
 async def APIKey(
     api_key: str = Depends(HTTPBearer()),
-    session: AsyncSession = Depends(get_db_session)
+    session: Session = Depends(get_db)
 ) -> User:
     """
     API Key authentication dependency.
