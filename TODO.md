@@ -15,7 +15,7 @@
 #### Enhancement 2.1: Advanced LLM Integration (Resume/JD Parsing & Content Generation)
 
 *   **Task 2.1.1: Research and Select LLM Provider/Model**
-    *   **Objective**: Choose a suitable LLM provider (opic) and specific model(s) for text processing tasks.
+    *   **Objective**: Choose a suitable LLM provider (GOW or nvidia) and specific model(s) for text processing tasks.
     *   **Inputs**: Project requirements (cost, performance, capabilities), available API keys.
     *   **Expected Output**: Documented decision on LLM provider/model.
     *   **Success Criteria**: LLM selected and API access confirmed.

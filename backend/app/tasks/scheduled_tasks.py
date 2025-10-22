@@ -2,22 +2,24 @@
 
 import logging
 import traceback
+import asyncio
 from datetime import datetime, timedelta
 from sqlalchemy.orm import Session
 from ..core.database import SessionLocal
 from ..models.user import User
 from ..models.job import Job
 from ..models.application import Application
-from ..services.job_scraper import JobScraperService
+from ..services.job_scraper_service import JobScraperService
 from ..services.recommendation_engine import RecommendationEngine
 from ..services.notification_service import NotificationService
+from ..services.job_matching_service import get_job_matching_service
+from ..services.websocket_service import websocket_service
 import os
-from ..core.websocket_manager import websocket_manager
 
 logger = logging.getLogger(__name__)
 
 
-def ingest_jobs():
+async def ingest_jobs():
     """Nightly job ingestion task - Run at 4 AM"""
     start_time = datetime.now()
     logger.info("=" * 80)
@@ -56,7 +58,10 @@ def ingest_jobs():
             
             try:
                 # Send WebSocket update
-                asyncio.run(websocket_manager.send_personal_message(user.id, f"Starting job ingestion for {user.username}..."))
+                await websocket_service.send_system_notification(
+                    message=f"Starting job ingestion for {user.username}...",
+                    target_users={user.id}
+                )
 
                 # Scrape jobs based on user preferences
                 logger.info(f"Scraping jobs for user {user.username} with {len(user.skills)} skills and {len(user.preferred_locations)} locations")
@@ -68,37 +73,44 @@ def ingest_jobs():
                 
                 if not new_jobs:
                     logger.info(f"No new jobs found for user {user.username}")
-                    asyncio.run(websocket_manager.send_personal_message(user.id, f"No new jobs found for {user.username}."))
+                    await websocket_service.send_system_notification(
+                        message=f"No new jobs found for {user.username}.",
+                        target_users={user.id}
+                    )
                     users_processed += 1
                     continue
                 
                 # Deduplicate against existing jobs for this user
                 unique_jobs = scraper.deduplicate_against_db(new_jobs, user_id=user.id)
                 logger.info(f"Found {len(unique_jobs)} unique jobs for user {user.username} after deduplication")
-                asyncio.run(websocket_manager.send_personal_message(user.id, f"Found {len(unique_jobs)} unique jobs for {user.username}."))
+                await websocket_service.send_system_notification(
+                    message=f"Found {len(unique_jobs)} unique jobs for {user.username}.",
+                    target_users={user.id}
+                )
 
                 # Create Job entities with source="scraped"
                 jobs_added = 0
+                created_jobs = []
                 for job_data in unique_jobs:
                     try:
                         job = Job(
                             user_id=user.id,
-                            company=job_data["company"],
-                            title=job_data["title"],
-                            location=job_data.get("location"),
-                            description=job_data.get("description"),
-                            requirements=job_data.get("requirements"),
-                            tech_stack=job_data.get("tech_stack", []),
-                            responsibilities=job_data.get("responsibilities"),
-                            documents_required=job_data.get("documents_required"),
-                            salary_range=job_data.get("salary_range"),
-                            job_type=job_data.get("job_type"),
-                            remote_option=job_data.get("remote_option"),
-                            link=job_data.get("link"),
+                            company=job_data.company,
+                            title=job_data.title,
+                            location=job_data.location,
+                            description=job_data.description,
+                            requirements=job_data.requirements if hasattr(job_data, 'requirements') else None,
+                            tech_stack=job_data.tech_stack or [],
+                            responsibilities=job_data.responsibilities if hasattr(job_data, 'responsibilities') else None,
+                            salary_range=job_data.salary_range,
+                            job_type=job_data.job_type,
+                            remote_option=job_data.remote_option,
+                            link=job_data.link if hasattr(job_data, 'link') else None,
                             source="scraped",
                             status="not_applied"
                         )
                         db.add(job)
+                        created_jobs.append(job)
                         jobs_added += 1
                     except Exception as e:
                         logger.error(f"Error creating job for user {user.username}: {str(e)}", exc_info=True)
@@ -106,24 +118,47 @@ def ingest_jobs():
                 
                 # Commit jobs for this user
                 db.commit()
+                
+                # Refresh job objects to get IDs
+                for job in created_jobs:
+                    db.refresh(job)
+                
                 total_jobs_added += jobs_added
                 users_processed += 1
                 
                 # Log number of jobs added per user
                 logger.info(f"✓ Added {jobs_added} new jobs for user {user.username}")
-                asyncio.run(websocket_manager.send_personal_message(user.id, f"Added {jobs_added} new jobs for {user.username}."))
+                await websocket_service.send_system_notification(
+                    message=f"Added {jobs_added} new jobs for {user.username}.",
+                    target_users={user.id}
+                )
+
+                # Process real-time job matching for new jobs
+                if created_jobs:
+                    try:
+                        matching_service = get_job_matching_service(db)
+                        await matching_service.process_new_jobs_for_matching(created_jobs)
+                    except Exception as e:
+                        logger.error(f"Error processing job matching for user {user.username}: {e}")
 
                 # Invalidate all recommendation caches since new jobs affect all users
-                from ..api.v1.recommendations import _recommendations_cache
-                if user.id in _recommendations_cache:
-                    del _recommendations_cache[user.id]
+                try:
+                    from ..services.cache_service import cache_service
+                    cache_service.invalidate_user_cache(user.id)
+                except ImportError:
+                    # Fallback if cache service not available
+                    pass
                 
             except Exception as e:
                 users_failed += 1
                 logger.error(f"✗ Error processing jobs for user {user.username}: {str(e)}", exc_info=True)
                 logger.error(f"Stack trace: {traceback.format_exc()}")
                 db.rollback()
-                asyncio.run(websocket_manager.send_personal_message(user.id, f"Error processing jobs for {user.username}: {e}"))
+                await websocket_service.send_system_notification(
+                    message=f"Error processing jobs for {user.username}: {e}",
+                    notification_type="error",
+                    target_users={user.id}
+                )
                 continue
         
         end_time = datetime.now()
@@ -135,7 +170,10 @@ def ingest_jobs():
         logger.info(f"Users processed: {users_processed}, Failed: {users_failed}")
         logger.info(f"Total jobs added: {total_jobs_added}")
         logger.info("=" * 80)
-        asyncio.run(websocket_manager.send_personal_message(user.id, f"Job ingestion task completed. Total jobs added: {total_jobs_added}."))
+        await websocket_service.send_system_notification(
+            message=f"Job ingestion task completed. Total jobs added: {total_jobs_added}.",
+            notification_type="info"
+        )
 
     except Exception as e:
         logger.error(f"Critical error in job ingestion task: {str(e)}", exc_info=True)
@@ -145,7 +183,7 @@ def ingest_jobs():
         db.close()
 
 
-def send_morning_briefing():
+async def send_morning_briefing():
     """Morning recommendation task - Run at 8 AM"""
     start_time = datetime.now()
     logger.info("=" * 80)
@@ -189,11 +227,18 @@ def send_morning_briefing():
                 if success:
                     total_sent += 1
                     logger.info(f"✓ Morning briefing sent successfully to {user.email}")
-                    asyncio.run(websocket_manager.send_personal_message(user.id, "Morning briefing sent successfully!"))
+                    await websocket_service.send_system_notification(
+                        message="Morning briefing sent successfully!",
+                        target_users={user.id}
+                    )
                 else:
                     total_failed += 1
                     logger.error(f"✗ Failed to send morning briefing to {user.email}")
-                    asyncio.run(websocket_manager.send_personal_message(user.id, "Failed to send morning briefing."))
+                    await websocket_service.send_system_notification(
+                        message="Failed to send morning briefing.",
+                        notification_type="error",
+                        target_users={user.id}
+                    )
                     
             except Exception as e:
                 total_failed += 1
@@ -218,7 +263,7 @@ def send_morning_briefing():
         db.close()
 
 
-def send_evening_summary():
+async def send_evening_summary():
     """Evening summary task - Run at 8 PM"""
     start_time = datetime.now()
     logger.info("=" * 80)
@@ -251,9 +296,10 @@ def send_evening_summary():
                     total_skipped += 1
                     continue
                 
-                # Calculate daily statistics using JobAnalyticsService
+                # Calculate daily statistics using AnalyticsService
                 logger.debug(f"Calculating analytics for user {user.username}")
-                analytics_service = JobAnalyticsService(db)
+                from ..services.analytics_service import AnalyticsService
+                analytics_service = AnalyticsService(db)
                 analytics_summary = analytics_service.get_user_analytics(user)
                 
                 # Add applications_today count (applications created today)
@@ -275,11 +321,18 @@ def send_evening_summary():
                 if success:
                     total_sent += 1
                     logger.info(f"✓ Evening summary sent successfully to {user.email}")
-                    asyncio.run(websocket_manager.send_personal_message(user.id, "Evening summary sent successfully!"))
+                    await websocket_service.send_system_notification(
+                        message="Evening summary sent successfully!",
+                        target_users={user.id}
+                    )
                 else:
                     total_failed += 1
                     logger.error(f"✗ Failed to send evening summary to {user.email}")
-                    asyncio.run(websocket_manager.send_personal_message(user.id, "Failed to send evening summary."))
+                    await websocket_service.send_system_notification(
+                        message="Failed to send evening summary.",
+                        notification_type="error",
+                        target_users={user.id}
+                    )
                     
             except Exception as e:
                 total_failed += 1

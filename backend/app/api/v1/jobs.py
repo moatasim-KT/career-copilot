@@ -86,6 +86,29 @@ async def create_job(
     # Invalidate all recommendation caches since new job affects all users' recommendations
     cache_service.invalidate_all_recommendations()
 
+    # Trigger real-time job matching for scraped jobs
+    if job.source == 'scraped':
+        try:
+            from ...services.job_matching_service import get_job_matching_service
+            matching_service = get_job_matching_service(db)
+            await matching_service.process_new_jobs_for_matching([job])
+        except Exception as e:
+            # Don't fail job creation if matching fails
+            from ...core.logging import get_logger
+            logger = get_logger(__name__)
+            logger.error(f"Error processing job matching for new job {job.id}: {e}")
+    
+    # Trigger dashboard update
+    try:
+        from ...services.dashboard_service import get_dashboard_service
+        dashboard_service = get_dashboard_service(db)
+        await dashboard_service.handle_job_update(current_user.id, job.id)
+    except Exception as e:
+        # Don't fail job creation if dashboard update fails
+        from ...core.logging import get_logger
+        logger = get_logger(__name__)
+        logger.error(f"Error sending dashboard update for new job {job.id}: {e}")
+
     return job
 
 
@@ -156,6 +179,17 @@ async def update_job(
 
     # Invalidate recommendations cache for this user since job details changed
     cache_service.invalidate_user_cache(current_user.id)
+    
+    # Trigger dashboard update
+    try:
+        from ...services.dashboard_service import get_dashboard_service
+        dashboard_service = get_dashboard_service(db)
+        await dashboard_service.handle_job_update(current_user.id, job.id)
+    except Exception as e:
+        # Don't fail job update if dashboard update fails
+        from ...core.logging import get_logger
+        logger = get_logger(__name__)
+        logger.error(f"Error sending dashboard update for job {job.id}: {e}")
 
     return job
 

@@ -103,3 +103,11 @@ api_router.include_router(backup.router, prefix="/backup", tags=["backup", "reco
 
 # Include resume parsing routes
 api_router.include_router(resume.router, prefix="/resume", tags=["resume", "parsing"])
+
+# Include WebSocket management routes
+from app.api.v1 import websocket
+api_router.include_router(websocket.router, prefix="/websocket", tags=["websocket", "notifications"])
+
+# Include dashboard routes
+from app.api.v1 import dashboard
+api_router.include_router(dashboard.router, prefix="/api/v1", tags=["dashboard", "real-time"])

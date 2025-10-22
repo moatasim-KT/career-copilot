@@ -71,6 +71,26 @@ async def create_application(
     db.add(application)
     db.commit()
     db.refresh(application)
+    
+    # Send real-time notification for new application
+    try:
+        from ...services.websocket_service import websocket_service
+        application_data = {
+            "id": application.id,
+            "job_id": application.job_id,
+            "job_title": job.title,
+            "job_company": job.company,
+            "status": application.status,
+            "created_at": application.created_at.isoformat() if application.created_at else None,
+            "notes": application.notes
+        }
+        await websocket_service.send_application_status_update(current_user.id, application_data)
+    except Exception as e:
+        # Don't fail application creation if WebSocket notification fails
+        from ...core.logging import get_logger
+        logger = get_logger(__name__)
+        logger.error(f"Error sending application creation notification: {e}")
+    
     return application
 
 
@@ -121,12 +141,15 @@ async def update_application(
     if not app:
         raise HTTPException(status_code=404, detail="Application not found")
     
+    # Get job info for notifications
+    job = db.query(Job).filter(Job.id == app.job_id).first()
+    
     update_data = app_data.model_dump(exclude_unset=True)
+    old_status = app.status
     
     # Check for status change to "applied"
     if "status" in update_data and update_data["status"] == "applied" and app.status != "applied":
         # Update job status and date_applied
-        job = db.query(Job).filter(Job.id == app.job_id).first()
         if job:
             job.status = "applied"
             job.date_applied = datetime.utcnow()
@@ -140,6 +163,49 @@ async def update_application(
     
     db.commit()
     db.refresh(app)
+    
+    # Send real-time notification for application status update
+    try:
+        from ...services.websocket_service import websocket_service
+        application_data = {
+            "id": app.id,
+            "job_id": app.job_id,
+            "job_title": job.title if job else "Unknown",
+            "job_company": job.company if job else "Unknown",
+            "status": app.status,
+            "old_status": old_status,
+            "updated_at": app.updated_at.isoformat() if app.updated_at else None,
+            "notes": app.notes,
+            "interview_date": app.interview_date.isoformat() if app.interview_date else None,
+            "offer_date": app.offer_date.isoformat() if app.offer_date else None,
+            "response_date": app.response_date.isoformat() if app.response_date else None
+        }
+        await websocket_service.send_application_status_update(current_user.id, application_data)
+        
+        # Also send analytics update if status changed
+        if old_status != app.status:
+            from ...services.job_analytics_service import JobAnalyticsService
+            analytics_service = JobAnalyticsService(db)
+            analytics_data = analytics_service.get_summary_metrics(current_user)
+            await websocket_service.send_analytics_update(current_user.id, analytics_data)
+            
+    except Exception as e:
+        # Don't fail application update if WebSocket notification fails
+        from ...core.logging import get_logger
+        logger = get_logger(__name__)
+        logger.error(f"Error sending application update notification: {e}")
+    
+    # Trigger dashboard update
+    try:
+        from ...services.dashboard_service import get_dashboard_service
+        dashboard_service = get_dashboard_service(db)
+        await dashboard_service.handle_application_update(current_user.id, app.id)
+    except Exception as e:
+        # Don't fail application update if dashboard update fails
+        from ...core.logging import get_logger
+        logger = get_logger(__name__)
+        logger.error(f"Error sending dashboard update for application {app.id}: {e}")
+    
     return app
 
 

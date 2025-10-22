@@ -14,6 +14,7 @@ from sqlalchemy import text
 from datetime import datetime
 import traceback
 import os
+import json
 
 from app.core.config import get_settings
 from app.core.logging import get_logger, setup_logging, set_correlation_id, get_correlation_id
@@ -151,20 +152,45 @@ def create_app() -> FastAPI:
             "timestamp": datetime.now().isoformat(),
         }
 
-    from app.core.websocket_manager import websocket_manager
+    from app.services.websocket_service import websocket_service
 
-    @app.websocket("/ws/{user_id}")
-    async def websocket_endpoint(websocket: WebSocket, user_id: int):
-        await websocket_manager.connect(user_id, websocket)
+    @app.websocket("/ws")
+    async def websocket_endpoint(websocket: WebSocket):
+        """
+        WebSocket endpoint with authentication.
+        Client should send authentication message after connection.
+        """
+        await websocket.accept()
+        
         try:
-            while True:
-                # Keep connection alive, or handle specific messages
-                await websocket.receive_text() # Expects client to send keep-alive or other messages
-        except WebSocketDisconnect:
-            websocket_manager.disconnect(user_id)
+            # Wait for authentication message
+            auth_data = await websocket.receive_text()
+            auth_message = json.loads(auth_data)
+            
+            if auth_message.get("type") != "auth" or "token" not in auth_message:
+                await websocket.close(code=status.WS_1008_POLICY_VIOLATION, reason="Authentication required")
+                return
+            
+            # Get database session
+            from app.core.database import SessionLocal
+            db = SessionLocal()
+            
+            try:
+                # Authenticate user
+                user_id = await websocket_service.authenticate_websocket(websocket, auth_message["token"], db)
+                if not user_id:
+                    return  # Connection already closed by authenticate_websocket
+                
+                # Handle the connection
+                await websocket_service.handle_websocket_connection(websocket, user_id)
+            finally:
+                db.close()
+                
+        except json.JSONDecodeError:
+            await websocket.close(code=status.WS_1003_UNSUPPORTED_DATA, reason="Invalid JSON")
         except Exception as e:
-            logger.error(f"WebSocket error for user {user_id}: {e}")
-            websocket_manager.disconnect(user_id)
+            logger.error(f"WebSocket connection error: {e}")
+            await websocket.close(code=status.WS_1011_INTERNAL_ERROR, reason="Connection error")
 
     
     # Include routers

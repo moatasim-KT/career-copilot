@@ -474,22 +474,22 @@ This implementation plan covers the complete Career Co-Pilot MVP across all four
   - Add user review and approval workflow for extracted data
   - _Requirements: 16.3, 16.5_
 
-- [ ] 23. Implement real-time notifications and WebSocket support
-- [ ] 23.1 Set up WebSocket infrastructure
+- [-] 23. Implement real-time notifications and WebSocket support
+- [x] 23.1 Set up WebSocket infrastructure
   - Add WebSocket support to FastAPI application
   - Implement WebSocketService for connection management
   - Create user connection tracking and message broadcasting
   - Add WebSocket authentication and authorization
   - _Requirements: 17.1, 17.2_
 
-- [ ] 23.2 Implement real-time job matching alerts
+- [x] 23.2 Implement real-time job matching alerts
   - Create job match threshold configuration
   - Implement real-time job match notifications
   - Add instant alerts for high-scoring job matches
   - Create WebSocket endpoint for job notifications
   - _Requirements: 17.1, 17.3_
 
-- [ ] 23.3 Add real-time application status updates
+- [-] 23.3 Add real-time application status updates
   - Broadcast application status changes to active sessions
   - Implement live dashboard updates without page refresh
   - Add real-time analytics updates

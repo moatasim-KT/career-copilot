@@ -13,8 +13,8 @@ from app.core.config import get_settings
 from app.core.logging import get_logger
 
 # Import scheduled task functions
-from app.tasks.job_ingestion_tasks import ingest_jobs_enhanced
-from app.tasks.notification_tasks import send_morning_briefings, send_evening_summaries
+from app.tasks.scheduled_tasks import ingest_jobs, send_morning_briefing, send_evening_summary
+import asyncio
 
 logger = get_logger(__name__)
 settings = get_settings()
@@ -58,33 +58,33 @@ def start_scheduler():
         
         # Register ingest_jobs task - runs at 4:00 AM daily
         scheduler.add_job(
-            func=ingest_jobs_enhanced, # Use the enhanced ingestion task
+            func=lambda: asyncio.run(ingest_jobs()),
             trigger=CronTrigger(hour=4, minute=0, timezone=utc),
-            id="ingest_jobs_enhanced",
-            name="Nightly Job Ingestion (Enhanced)",
+            id="ingest_jobs",
+            name="Nightly Job Ingestion",
             replace_existing=True
         )
-        logger.info("Registered task: ingest_jobs_enhanced (cron: 0 4 * * *)")
+        logger.info("Registered task: ingest_jobs (cron: 0 4 * * *)")
         
         # Register send_morning_briefing task - runs at 8:00 AM daily
         scheduler.add_job(
-            func=send_morning_briefings, # Use the new notification task
+            func=lambda: asyncio.run(send_morning_briefing()),
             trigger=CronTrigger(hour=8, minute=0, timezone=utc),
-            id="send_morning_briefings",
-            name="Morning Job Briefings",
+            id="send_morning_briefing",
+            name="Morning Job Briefing",
             replace_existing=True
         )
-        logger.info("Registered task: send_morning_briefings (cron: 0 8 * * *)")
+        logger.info("Registered task: send_morning_briefing (cron: 0 8 * * *)")
         
         # Register send_evening_summary task - runs at 8:00 PM daily
         scheduler.add_job(
-            func=send_evening_summaries, # Use the new notification task
+            func=lambda: asyncio.run(send_evening_summary()),
             trigger=CronTrigger(hour=20, minute=0, timezone=utc),
-            id="send_evening_summaries",
+            id="send_evening_summary",
             name="Evening Progress Summary",
             replace_existing=True
         )
-        logger.info("Registered task: send_evening_summaries (cron: 0 20 * * *)")
+        logger.info("Registered task: send_evening_summary (cron: 0 20 * * *)")
         
         # Start the scheduler
         scheduler.start()

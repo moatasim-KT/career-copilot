@@ -70,6 +70,11 @@ class Settings(BaseSettings):
     github_client_id: Optional[str] = None
     github_client_secret: Optional[str] = None
     github_redirect_uri: Optional[str] = "http://localhost:8002/api/v1/auth/oauth/github/callback"
+    
+    # Job Matching Configuration
+    high_match_threshold: Optional[float] = 80.0
+    medium_match_threshold: Optional[float] = 60.0
+    instant_alert_threshold: Optional[float] = 85.0
 
     class Config:
         env_file = ".env"
