@@ -7,7 +7,7 @@ from typing import List, Optional, Dict, Any
 from sqlalchemy.orm import Session
 from sqlalchemy import and_, desc
 
-from app.models.application import JobApplication
+from app.models.application import Application
 from app.models.job import Job
 from app.models.document import Document
 from app.schemas.document import DocumentAssociation
