@@ -4,6 +4,7 @@ from app.core.config import get_settings
 from app.models.job import Job
 from app.schemas.job import JobCreate
 from app.core.logging import get_logger
+from app.services.job_data_normalizer import JobDataNormalizer
 import httpx
 import asyncio
 logger = get_logger(__name__)
@@ -15,6 +16,7 @@ class JobScraperService:
         self.job_api_key = self.settings.job_api_key
         self.adzuna_app_id = self.settings.adzuna_app_id
         self.adzuna_app_key = self.settings.adzuna_app_key
+        self.normalizer = JobDataNormalizer()
 
         self.api_limits = {
             'adzuna': 1000,      # Free tier: 1000 requests/day
@@ -177,25 +179,6 @@ class JobScraperService:
     async def _parse_linkedin_job(self, job_data: Dict[str, Any]) -> Optional[JobCreate]:
         """Parse LinkedIn job data into JobCreate schema"""
         try:
-            # Extract basic job information
-            title = job_data.get("title", "")
-            company_info = job_data.get("companyDetails", {})
-            company_name = company_info.get("company", {}).get("name", "Unknown Company")
-            
-            # Extract location information
-            location_info = job_data.get("formattedLocation", "")
-            
-            # Extract job description
-            description = job_data.get("description", {}).get("text", "")
-            
-            # Extract employment type
-            employment_type = job_data.get("employmentType", "FULL_TIME")
-            job_type = self._normalize_employment_type(employment_type)
-            
-            # Extract workplace type (remote/onsite/hybrid)
-            workplace_type = job_data.get("workplaceTypes", ["ON_SITE"])
-            remote_option = self._normalize_workplace_type(workplace_type)
-            
             # Extract salary information if available
             salary_range = None
             if "salaryInsights" in job_data:
@@ -207,24 +190,17 @@ class JobScraperService:
                     if min_salary and max_salary:
                         salary_range = f"${min_salary:,} - ${max_salary:,}"
             
-            # Extract skills/tech stack from job description
-            tech_stack = self._extract_tech_stack_from_description(description)
-            
-            # Get job posting URL
-            job_url = f"https://www.linkedin.com/jobs/view/{job_data.get('jobPostingId', '')}"
-            
-            return JobCreate(
-                company=company_name,
-                title=title,
-                location=location_info,
-                description=description,
-                salary_range=salary_range,
-                job_type=job_type,
-                remote_option=remote_option,
-                tech_stack=tech_stack,
-                link=job_url,
-                source="linkedin"
-            )
+            raw_data = {
+                'company': job_data.get("companyDetails", {}).get("company", {}).get("name", ""),
+                'title': job_data.get("title", ""),
+                'location': job_data.get("formattedLocation", ""),
+                'description': job_data.get("description", {}).get("text", ""),
+                'salary_range': salary_range,
+                'job_type': self._normalize_employment_type(job_data.get("employmentType", "FULL_TIME")),
+                'remote_option': self._normalize_workplace_type(job_data.get("workplaceTypes", ["ON_SITE"])),
+                'link': f"https://www.linkedin.com/jobs/view/{job_data.get('jobPostingId', '')}"
+            }
+            return self.normalizer.normalize_job_data(raw_data, "linkedin")
         except Exception as e:
             logger.error(f"Error parsing LinkedIn job: {e}")
             return None
@@ -313,37 +289,15 @@ class JobScraperService:
     def _parse_indeed_job(self, job_data: Dict[str, Any]) -> Optional[JobCreate]:
         """Parse Indeed job data into JobCreate schema"""
         try:
-            title = job_data.get("jobtitle", "")
-            company = job_data.get("company", "")
-            location = f"{job_data.get('city', '')}, {job_data.get('state', '')}"
-            description = job_data.get("snippet", "")
-            
-            # Extract salary if available
-            salary_range = None
-            if job_data.get("salary"):
-                salary_range = job_data["salary"]
-            
-            # Determine job type and remote option from description
-            job_type = "full-time"  # Indeed doesn't provide this directly
-            remote_option = "onsite"
-            if description and ("remote" in description.lower() or "work from home" in description.lower()):
-                remote_option = "remote"
-            
-            # Extract tech stack from description
-            tech_stack = self._extract_tech_stack_from_description(description)
-            
-            return JobCreate(
-                company=company,
-                title=title,
-                location=location.strip(", "),
-                description=description,
-                salary_range=salary_range,
-                job_type=job_type,
-                remote_option=remote_option,
-                tech_stack=tech_stack,
-                link=job_data.get("url", ""),
-                source="indeed"
-            )
+            raw_data = {
+                'company': job_data.get("company", ""),
+                'title': job_data.get("jobtitle", ""),
+                'location': f"{job_data.get('city', '')}, {job_data.get('state', '')}".strip(", "),
+                'description': job_data.get("snippet", ""),
+                'salary_range': job_data.get("salary"),
+                'link': job_data.get("url", "")
+            }
+            return self.normalizer.normalize_job_data(raw_data, "indeed")
         except Exception as e:
             logger.error(f"Error parsing Indeed job: {e}")
             return None
@@ -384,11 +338,6 @@ class JobScraperService:
     async def _parse_glassdoor_job(self, job_data: Dict[str, Any]) -> Optional[JobCreate]:
         """Parse Glassdoor job data into JobCreate schema with company enrichment"""
         try:
-            title = job_data.get("jobTitle", "")
-            company = job_data.get("employer", {}).get("name", "")
-            location = job_data.get("location", "")
-            description = job_data.get("jobDescription", "")
-            
             # Extract salary information
             salary_range = None
             if "salaryEstimate" in job_data:
@@ -398,31 +347,20 @@ class JobScraperService:
                 if "min" in est_salary and "max" in est_salary:
                     salary_range = f"${est_salary['min']:,} - ${est_salary['max']:,}"
             
-            # Determine job type and remote option
-            job_type = "full-time"
-            remote_option = "onsite"
-            if description and ("remote" in description.lower() or "work from home" in description.lower()):
-                remote_option = "remote"
-            
-            # Extract tech stack from description
-            tech_stack = self._extract_tech_stack_from_description(description)
-            
             # Enrich with company data if available
-            company_info = await self._get_glassdoor_company_info(company)
+            company_name = job_data.get("employer", {}).get("name", "")
+            company_info = await self._get_glassdoor_company_info(company_name)
             
-            return JobCreate(
-                company=company,
-                title=title,
-                location=location,
-                description=description,
-                salary_range=salary_range,
-                job_type=job_type,
-                remote_option=remote_option,
-                tech_stack=tech_stack,
-                link=job_data.get("jobUrl", ""),
-                source="glassdoor",
-                requirements=company_info.get("industry", "") if company_info else ""
-            )
+            raw_data = {
+                'company': company_name,
+                'title': job_data.get("jobTitle", ""),
+                'location': job_data.get("location", ""),
+                'description': job_data.get("jobDescription", ""),
+                'salary_range': salary_range,
+                'link': job_data.get("jobUrl", ""),
+                'requirements': company_info.get("industry", "") if company_info else ""
+            }
+            return self.normalizer.normalize_job_data(raw_data, "glassdoor")
         except Exception as e:
             logger.error(f"Error parsing Glassdoor job: {e}")
             return None
@@ -487,8 +425,9 @@ class JobScraperService:
                 all_jobs.extend(res)
                 logger.info(f"Collected {len(res)} jobs from {api_names[i]}")
 
-        unique_jobs = self._deduplicate_api_jobs(all_jobs)
-        logger.info(f"API search completed: {len(unique_jobs)} unique jobs found")
+        # Use normalizer for intelligent deduplication and merging
+        unique_jobs = self.normalizer.merge_duplicate_jobs(all_jobs)
+        logger.info(f"API search completed: {len(unique_jobs)} unique jobs found after intelligent merging")
         return unique_jobs[:max_results]
 
     def _deduplicate_api_jobs(self, jobs: List[JobCreate]) -> List[JobCreate]:
@@ -576,20 +515,17 @@ class JobScraperService:
 
     def _parse_adzuna_job(self, job_data: Dict[str, Any]) -> Optional[JobCreate]:
         try:
-            title = job_data.get("title", "").replace("<b>", "").replace("</b>", "")
-            description = job_data.get("description", "").replace("<b>", "").replace("</b>", "")
-            return JobCreate(
-                company=job_data.get("company", {}).get("display_name", "Unknown"),
-                title=title,
-                location=job_data.get("location", {}).get("display_name", "Unknown"),
-                description=description,
-                salary_range=f"{job_data.get('salary_min', 0)} - {job_data.get('salary_max', 0)}" if job_data.get("salary_min") else None,
-                job_type=job_data.get("contract_type", "full-time"),
-                remote_option="remote" if "remote" in job_data.get("location", {}).get("display_name", "").lower() else "onsite",
-                tech_stack=job_data.get("category", {}).get("tag", "").split(",") if job_data.get("category") else [],
-                link=job_data.get("redirect_url"),
-                source="adzuna"
-            )
+            raw_data = {
+                'company': job_data.get("company", {}).get("display_name", ""),
+                'title': job_data.get("title", "").replace("<b>", "").replace("</b>", ""),
+                'location': job_data.get("location", {}).get("display_name", ""),
+                'description': job_data.get("description", "").replace("<b>", "").replace("</b>", ""),
+                'salary_range': f"{job_data.get('salary_min', 0)} - {job_data.get('salary_max', 0)}" if job_data.get("salary_min") else None,
+                'job_type': job_data.get("contract_type", ""),
+                'tech_stack': job_data.get("category", {}).get("tag", "").split(",") if job_data.get("category") else [],
+                'link': job_data.get("redirect_url")
+            }
+            return self.normalizer.normalize_job_data(raw_data, "adzuna")
         except Exception as e:
             logger.error(f"Error parsing Adzuna job: {e}")
             return None

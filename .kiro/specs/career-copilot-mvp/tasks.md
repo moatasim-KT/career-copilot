@@ -541,14 +541,14 @@ This implementation plan covers the complete Career Co-Pilot MVP across all four
   - _Requirements: 19.3, 19.4, 19.5_
 
 - [-] 26. Enhance job board integration
-- [-] 26.1 Implement LinkedIn API integration
+- [x] 26.1 Implement LinkedIn API integration
   - Set up LinkedIn API credentials and authentication
   - Implement LinkedIn job search and data retrieval
   - Add LinkedIn-specific data normalization
   - Handle LinkedIn API rate limits and quotas
   - _Requirements: 20.1, 20.2, 20.5_
 
-- [ ] 26.2 Add Indeed and Glassdoor integration
+- [-] 26.2 Add Indeed and Glassdoor integration
   - Implement Indeed API integration with proper authentication
   - Add Glassdoor API integration for salary and company data
   - Create unified job data schema across all sources

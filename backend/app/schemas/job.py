@@ -31,7 +31,10 @@ class JobCreate(BaseModel):
     @field_validator('source')
     @classmethod
     def validate_source(cls, v):
-        allowed_sources = ["manual", "scraped", "api"]
+        allowed_sources = [
+            "manual", "scraped", "api", "linkedin", "indeed", 
+            "glassdoor", "adzuna", "usajobs", "github_jobs", "remoteok"
+        ]
         if v and v not in allowed_sources:
             return "manual"
         return v or "manual"
@@ -59,7 +62,10 @@ class JobUpdate(BaseModel):
     @classmethod
     def validate_source(cls, v):
         if v is not None:
-            allowed_sources = ["manual", "scraped", "api"]
+            allowed_sources = [
+                "manual", "scraped", "api", "linkedin", "indeed", 
+                "glassdoor", "adzuna", "usajobs", "github_jobs", "remoteok"
+            ]
             if v not in allowed_sources:
                 raise ValueError(f"Source must be one of: {', '.join(allowed_sources)}")
         return v
