@@ -31,6 +31,7 @@ class ContentGeneration(Base):
     # Relationships
     user = relationship("User", back_populates="content_generations")
     job = relationship("Job", back_populates="content_generations")
+    versions = relationship("ContentVersion", back_populates="content_generation", cascade="all, delete-orphan", order_by="ContentVersion.version_number")
 
 
 # Add relationships to existing models (will be added via migration)

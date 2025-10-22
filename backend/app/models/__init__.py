@@ -6,5 +6,6 @@ from .analytics import Analytics
 from .resume_upload import ResumeUpload
 from .content_generation import ContentGeneration
 from .content_version import ContentVersion
+from .user_job_preferences import UserJobPreferences
 
-__all__ = ["Base", "User", "Job", "Application", "Analytics", "ResumeUpload", "ContentGeneration", "ContentVersion"]
+__all__ = ["Base", "User", "Job", "Application", "Analytics", "ResumeUpload", "ContentGeneration", "ContentVersion", "UserJobPreferences"]

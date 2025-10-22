@@ -28,3 +28,6 @@ class User(Base):
     
     jobs = relationship("Job", back_populates="user", cascade="all, delete-orphan")
     applications = relationship("Application", back_populates="user", cascade="all, delete-orphan")
+    job_preferences = relationship("UserJobPreferences", back_populates="user", cascade="all, delete-orphan", uselist=False)
+    resume_uploads = relationship("ResumeUpload", back_populates="user", cascade="all, delete-orphan")
+    content_generations = relationship("ContentGeneration", back_populates="user", cascade="all, delete-orphan")

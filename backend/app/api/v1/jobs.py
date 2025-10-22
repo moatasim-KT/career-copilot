@@ -342,7 +342,15 @@ async def trigger_job_scraping(
     """
     try:
         from ...services.job_scraper_service import JobScraperService
+        from ...services.job_source_manager import JobSourceManager
+        
         scraper = JobScraperService(db)
+        source_manager = JobSourceManager(db)
+        
+        # Filter sources based on user preferences
+        if not sources:
+            available_sources = list(source_manager.source_metadata.keys())
+            sources = source_manager.filter_sources_by_user_preferences(current_user.id, available_sources)
         
         # If specific sources are requested, filter the search
         if sources:
@@ -387,3 +395,132 @@ async def trigger_job_scraping(
     except Exception as e:
         db.rollback()
         raise HTTPException(status_code=500, detail=f"Error scraping jobs: {str(e)}")
+
+
+@router.get("/api/v1/jobs/sources/available")
+async def get_available_sources(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Get information about all available job sources.
+    
+    Returns metadata, quality scores, and availability status for each source.
+    """
+    try:
+        from ...services.job_source_manager import JobSourceManager
+        source_manager = JobSourceManager(db)
+        
+        sources_info = source_manager.get_available_sources_info()
+        user_preferences = source_manager.get_user_source_preferences(current_user.id)
+        
+        return {
+            "sources": sources_info,
+            "user_preferences": user_preferences.get("preferences", {}),
+            "total_sources": len(sources_info),
+            "active_sources": len([s for s in sources_info if s['is_active']])
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error retrieving available sources: {str(e)}")
+
+
+@router.get("/api/v1/jobs/sources/performance")
+async def get_source_performance_summary(
+    timeframe_days: int = 30,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Get comprehensive performance summary for all job sources.
+    
+    - **timeframe_days**: Number of days to analyze (default: 30)
+    
+    Returns performance rankings, quality metrics, and recommendations.
+    """
+    try:
+        from ...services.job_source_manager import JobSourceManager
+        source_manager = JobSourceManager(db)
+        
+        performance_summary = source_manager.get_source_performance_summary(current_user.id, timeframe_days)
+        
+        return performance_summary
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error retrieving source performance: {str(e)}")
+
+
+@router.put("/api/v1/jobs/sources/preferences")
+async def update_source_preferences(
+    preferences_data: dict,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Update user's job source preferences.
+    
+    - **preferred_sources**: List of preferred job sources
+    - **disabled_sources**: List of disabled job sources  
+    - **source_priorities**: Custom source priority weights
+    - **auto_scraping_enabled**: Enable/disable automatic job scraping
+    - **max_jobs_per_source**: Maximum jobs to fetch per source
+    - **min_quality_threshold**: Minimum quality score to accept jobs
+    """
+    try:
+        from ...services.job_source_manager import JobSourceManager
+        source_manager = JobSourceManager(db)
+        
+        updated_prefs = source_manager.create_or_update_user_preferences(current_user.id, preferences_data)
+        
+        return {
+            "message": "Source preferences updated successfully",
+            "preferences": {
+                "preferred_sources": updated_prefs.preferred_sources,
+                "disabled_sources": updated_prefs.disabled_sources,
+                "source_priorities": updated_prefs.source_priorities,
+                "auto_scraping_enabled": updated_prefs.auto_scraping_enabled,
+                "max_jobs_per_source": updated_prefs.max_jobs_per_source,
+                "min_quality_threshold": updated_prefs.min_quality_threshold
+            }
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error updating source preferences: {str(e)}")
+
+
+@router.get("/api/v1/jobs/{job_id}/enrichment")
+async def get_job_enrichment_data(
+    job_id: int,
+    include_external: bool = False,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Get enriched data for a specific job including source quality and external data.
+    
+    - **job_id**: ID of the job to enrich
+    - **include_external**: Whether to include external API data (slower)
+    
+    Returns comprehensive job enrichment data including source metrics and external insights.
+    """
+    try:
+        job = db.query(Job).filter(Job.id == job_id, Job.user_id == current_user.id).first()
+        if not job:
+            raise HTTPException(status_code=404, detail="Job not found")
+        
+        from ...services.job_source_manager import JobSourceManager
+        source_manager = JobSourceManager(db)
+        
+        enrichment_data = source_manager.enrich_job_with_source_data(job, include_external)
+        
+        # If external data is requested, fetch it asynchronously
+        if include_external:
+            external_data = await source_manager.enrich_job_with_external_apis(job)
+            enrichment_data['external_enrichment'] = external_data
+        
+        return {
+            "job_id": job_id,
+            "source": job.source,
+            "enrichment_data": enrichment_data
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error enriching job data: {str(e)}")

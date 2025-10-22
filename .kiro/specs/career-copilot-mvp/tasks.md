@@ -548,14 +548,14 @@ This implementation plan covers the complete Career Co-Pilot MVP across all four
   - Handle LinkedIn API rate limits and quotas
   - _Requirements: 20.1, 20.2, 20.5_
 
-- [-] 26.2 Add Indeed and Glassdoor integration
+- [x] 26.2 Add Indeed and Glassdoor integration
   - Implement Indeed API integration with proper authentication
   - Add Glassdoor API integration for salary and company data
   - Create unified job data schema across all sources
   - Implement intelligent job deduplication across multiple sources
   - _Requirements: 20.1, 20.3, 20.4_
 
-- [ ] 26.3 Implement advanced job source management
+- [-] 26.3 Implement advanced job source management
   - Add job source priority and quality scoring
   - Implement source-specific job enrichment (salary data, company info)
   - Create job source analytics and performance tracking
