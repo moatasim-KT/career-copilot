@@ -488,7 +488,7 @@ def render_dashboard():
     if "error" in interview_trends:
         st.warning("Unable to load interview trends.")
     elif interview_trends.get("total_interviews_analyzed", 0) > 0:
-        st.info(f"Analyzed {interview_trends["total_interviews_analyzed"]} interviews.")
+        st.info(f"Analyzed {interview_trends['total_interviews_analyzed']} interviews.")
         
         col1, col2 = st.columns(2)
         with col1:
