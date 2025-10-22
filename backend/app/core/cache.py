@@ -12,7 +12,9 @@ import redis
 from redis.exceptions import ConnectionError, TimeoutError
 import logging
 
-from app.core.config import settings
+from app.core.config import get_settings
+
+settings = get_settings()
 
 logger = logging.getLogger(__name__)
 
@@ -36,7 +38,7 @@ class CacheService:
         try:
             # Create connection pool for better performance
             self.connection_pool = redis.ConnectionPool.from_url(
-                settings.REDIS_URL,
+                settings.celery_broker_url,
                 max_connections=20,
                 retry_on_timeout=True,
                 socket_connect_timeout=5,

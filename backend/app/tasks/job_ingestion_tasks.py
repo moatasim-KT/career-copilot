@@ -4,13 +4,12 @@ from sqlalchemy.orm import Session
 from typing import List, Dict, Any
 from datetime import datetime, timedelta
 
-from ...core.database import get_db
-from ...models.user import User
-from ...models.job import Job
-from ...schemas.job import JobCreate
-from ...services.job_scraper_service import JobScraperService
-from ...services.job_service import JobService
-from ...core.config import get_settings
+from app.core.database import get_db
+from app.models.user import User
+from app.models.job import Job
+from app.schemas.job import JobCreate
+from app.services.job_scraper_service import JobScraperService
+from app.core.config import get_settings
 
 logger = logging.getLogger(__name__)
 

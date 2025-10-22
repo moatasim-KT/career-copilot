@@ -3,12 +3,13 @@ from celery import shared_task
 from sqlalchemy.orm import Session
 from datetime import datetime, timedelta
 
-from ...core.database import get_db
-from ...models.user import User
-from ...services.notification_service import NotificationService
-from ...services.recommendation_engine import RecommendationEngine
-from ...services.job_analytics_service import JobAnalyticsService
-from ...core.config import get_settings
+from typing import Dict, Any
+from app.core.database import get_db
+from app.models.user import User
+from app.services.notification_service import NotificationService
+from app.services.recommendation_engine import RecommendationEngine
+from app.services.job_analytics_service import JobAnalyticsService
+from app.core.config import get_settings
 
 logger = logging.getLogger(__name__)
 

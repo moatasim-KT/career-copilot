@@ -5,6 +5,15 @@ from sqlalchemy.orm import relationship
 from datetime import datetime
 from ..core.database import Base
 
+APPLICATION_STATUSES = [
+    "interested",
+    "applied",
+    "interview",
+    "offer",
+    "rejected",
+    "accepted",
+    "declined"
+]
 
 class Application(Base):
     __tablename__ = "applications"

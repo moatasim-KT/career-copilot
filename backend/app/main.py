@@ -10,18 +10,19 @@ from fastapi.exceptions import RequestValidationError
 from pydantic import ValidationError
 from starlette.exceptions import HTTPException as StarletteHTTPException
 from sqlalchemy.orm import Session
-from sqlalchemy import text # Import text for raw SQL query
+from sqlalchemy import text
 from datetime import datetime
 import traceback
+import os
 
 from app.core.config import get_settings
 from app.core.logging import get_logger, setup_logging, set_correlation_id, get_correlation_id
-from app.core.database import get_db # Import get_db
+from app.core.database import get_db
 from app.core.exceptions import ContractAnalysisError, AuthenticationError, AuthorizationError
 from app.middleware.logging_middleware import LoggingMiddleware
 from app.middleware.auth_middleware import AuthMiddleware
-from app.middleware.error_handling import ErrorHandlingMiddleware
-from app.scheduler import scheduler # Import the scheduler instance
+from app.scheduler import scheduler
+from app.middleware.error_handling import add_error_handlers
 
 logger = get_logger(__name__)
 
@@ -32,12 +33,11 @@ def create_app() -> FastAPI:
     setup_logging()
     settings = get_settings()
     
+    # Create FastAPI application
     app = FastAPI(
         title="Career Copilot API",
         description="AI-powered job application tracking and career management system",
-        version="1.0.0",
-        docs_url="/docs" if settings.api_debug else None,
-        redoc_url="/redoc" if settings.api_debug else None,
+        version="1.0.0"
     )
     
     # CORS configuration
@@ -51,7 +51,7 @@ def create_app() -> FastAPI:
     )
     
     # Essential middleware
-    app.add_middleware(ErrorHandlingMiddleware)
+    add_error_handlers(app)
     app.add_middleware(LoggingMiddleware)
     app.add_middleware(AuthMiddleware)
     
@@ -137,43 +137,6 @@ def create_app() -> FastAPI:
             "version": "1.0.0",
             "status": "running",
             "timestamp": datetime.now().isoformat(),
-        }
-    
-    # Health check endpoint
-    @app.get("/api/v1/health")
-    async def health_check(db: Session = Depends(get_db)):
-        db_status = "unhealthy"
-        scheduler_status = "unhealthy"
-
-        try:
-            # Check database connectivity
-            db.execute(text("SELECT 1"))
-            db_status = "healthy"
-        except Exception as e:
-            logger.error(f"Database health check failed: {e}")
-            db_status = "unhealthy"
-        
-        try:
-            # Check scheduler status
-            if scheduler.running:
-                scheduler_status = "healthy"
-            else:
-                scheduler_status = "unhealthy"
-        except Exception as e:
-            logger.error(f"Scheduler health check failed: {e}")
-            scheduler_status = "unhealthy"
-
-        overall_status = "healthy"
-        if db_status == "unhealthy" or scheduler_status == "unhealthy":
-            overall_status = "unhealthy"
-
-        return {
-            "status": overall_status,
-            "timestamp": datetime.now().isoformat(),
-            "components": {
-                "database": db_status,
-                "scheduler": scheduler_status,
-            }
         }
     
     # Include routers

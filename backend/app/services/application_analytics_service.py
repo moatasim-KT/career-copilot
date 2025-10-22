@@ -9,7 +9,7 @@ from sqlalchemy import func, and_, desc, case
 
 from app.models.user import User
 from app.models.job import Job
-from app.models.application import JobApplication, APPLICATION_STATUSES
+from app.models.application import Application, APPLICATION_STATUSES
 from app.models.analytics import Analytics
 
 

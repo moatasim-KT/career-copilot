@@ -1,23 +1,20 @@
-from typing import List, Dict, Any, Optional
+from typing import Any, Dict, Optional, List
 from sqlalchemy.orm import Session
-from datetime import datetime, timedelta
+from app.core.config import get_settings
+from app.models.job import Job
+from app.schemas.job import JobCreate
+from app.core.logging import get_logger
 import httpx
 import asyncio
-import logging
-
-from ..models.job import Job
-from ..schemas.job import JobCreate
-from ..core.config import get_settings
-
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 class JobScraperService:
-    def __init__(self, db: Session, settings: Any = Depends(get_settings)):
+    def __init__(self, db: Session, settings: Any = None):
         self.db = db
-        self.settings = settings
-        self.job_api_key = settings.job_api_key
-        self.adzuna_app_id = settings.adzuna_app_id
-        self.adzuna_app_key = settings.adzuna_app_key
+        self.settings = settings or get_settings()
+        self.job_api_key = self.settings.job_api_key
+        self.adzuna_app_id = self.settings.adzuna_app_id
+        self.adzuna_app_key = self.settings.adzuna_app_key
 
         self.api_limits = {
             'adzuna': 1000,      # Free tier: 1000 requests/day

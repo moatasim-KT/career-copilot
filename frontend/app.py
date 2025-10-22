@@ -358,15 +358,26 @@ def render_dashboard():
         st.metric("Applications", total_apps, help="Total applications submitted")
     
     with col3:
-        interviews = analytics.get("interviews", 0)
+        interviews = analytics.get("interviews_scheduled", 0)
         st.metric("Interviews", interviews, help="Applications that reached interview stage")
     
     with col4:
-        offers = analytics.get("offers", 0)
+        offers = analytics.get("offers_received", 0)
         st.metric("Offers", offers, help="Job offers received")
 
     st.divider()
+
+    # Daily Application Goal
+    st.subheader("🎯 Daily Application Goal")
+    daily_apps_today = analytics.get("daily_applications_today", 0)
+    daily_goal = analytics.get("daily_application_goal", 10)
+    daily_goal_progress = analytics.get("daily_goal_progress", 0)
     
+    st.progress(daily_goal_progress / 100.0)
+    st.metric("Applications Today", f"{daily_apps_today} / {daily_goal}", help=f"You have applied to {daily_apps_today} out of your goal of {daily_goal} jobs today.")
+
+    st.divider()
+
     # Status Breakdown Pie Chart
     st.subheader("📊 Application Status Breakdown")
     status_breakdown = analytics.get("status_breakdown", {})
@@ -2030,143 +2041,76 @@ def render_recommendations_page():
             st.session_state.current_page = "profile"
             st.rerun()
 
-def render_skill_gap_page():
+def render_skill_gap_analysis_page():
     """Render the skill gap analysis page - Task 12.3"""
     st.title("🧠 Skill Gap Analysis")
-
+    
     st.markdown("""
-    Understand your skill gaps based on market demands from your tracked jobs.
-    Get personalized learning recommendations to improve your competitiveness.
+    Understand your skill gaps based on your tracked jobs and get learning recommendations.
+    This analysis helps you identify which skills to learn to become a more competitive candidate.
     """)
 
-    with st.spinner("Analyzing skill gaps..."):
+    with st.spinner("Analyzing your skill gaps..."):
         analysis = api_client.get_skill_gap_analysis()
 
     if "error" in analysis:
         st.error(f"Error loading skill gap analysis: {analysis['error']}")
-        st.info("Make sure you have updated your profile and added some jobs.")
+        st.info("Make sure you have added some jobs with tech stacks to your profile.")
         return
 
-    user_skills = analysis.get("user_skills", [])
-    missing_skills = analysis.get("missing_skills", {})
-    top_market_skills = analysis.get("top_market_skills", {})
-    skill_coverage_percentage = analysis.get("skill_coverage_percentage", 0.0)
-    learning_recommendations = analysis.get("learning_recommendations", [])
+    if not analysis:
+        st.info("No data available for skill gap analysis. Add some jobs with tech stacks to get started.")
+        return
 
-    # Display metrics
-    col1, col2, col3 = st.columns(3)
-    with col1:
-        st.metric("Your Skills", len(user_skills))
-    with col2:
-        st.metric("Missing Skills", len(missing_skills))
-    with col3:
-        st.metric("Coverage", f"{skill_coverage_percentage:.0f}%")
+    # Skill Coverage Percentage Gauge
+    skill_coverage_percentage = analysis.get("skill_coverage_percentage", 0)
+    st.subheader("Skill Coverage")
+    st.progress(skill_coverage_percentage / 100.0)
+    st.metric("Your Skill Coverage", f"{skill_coverage_percentage:.1f}%", help="Percentage of skills in your tracked jobs that you possess.")
 
     st.divider()
 
-    # Skill Coverage Gauge Chart
-    st.subheader("📊 Skill Coverage")
-    
-    # Create a gauge chart using plotly
-    import plotly.graph_objects as go
-    
-    fig = go.Figure(go.Indicator(
-        mode="gauge+number+delta",
-        value=skill_coverage_percentage,
-        domain={'x': [0, 1], 'y': [0, 1]},
-        title={'text': "Skill Coverage Percentage"},
-        delta={'reference': 80, 'increasing': {'color': "green"}},
-        gauge={
-            'axis': {'range': [None, 100]},
-            'bar': {'color': "darkblue"},
-            'steps': [
-                {'range': [0, 50], 'color': "lightgray"},
-                {'range': [50, 75], 'color': "gray"},
-                {'range': [75, 100], 'color': "lightgreen"}
-            ],
-            'threshold': {
-                'line': {'color': "red", 'width': 4},
-                'thickness': 0.75,
-                'value': 90
-            }
-        }
-    ))
-    
-    fig.update_layout(height=300)
-    st.plotly_chart(fig, use_container_width=True)
-    
-    if skill_coverage_percentage >= 80:
-        st.success(f"🎉 Excellent! You cover {skill_coverage_percentage:.0f}% of the skills in your tracked jobs.")
-    elif skill_coverage_percentage >= 60:
-        st.info(f"👍 Good progress! You cover {skill_coverage_percentage:.0f}% of the skills in your tracked jobs.")
-    else:
-        st.warning(f"📚 Room for improvement. You cover {skill_coverage_percentage:.0f}% of the skills in your tracked jobs.")
-
-    st.divider()
-
-    # Your Current Skills
-    st.subheader("✅ Your Current Skills")
-    if user_skills:
-        # Display skills as badges
-        skills_html = " ".join([f'<span style="background-color: #4CAF50; color: white; padding: 5px 10px; border-radius: 5px; margin: 3px; display: inline-block;">{skill}</span>' for skill in user_skills])
-        st.markdown(skills_html, unsafe_allow_html=True)
-    else:
-        st.info("No skills found in your profile. Please update your profile to see analysis.")
-        if st.button("Update Profile"):
-            st.session_state.current_page = "profile"
-            st.rerun()
-
-    st.divider()
-
-    # Missing Skills vs Market Demand
+    # User Skills vs. Missing Skills
     col1, col2 = st.columns(2)
-    
     with col1:
-        st.subheader("❌ Missing Skills")
-        if missing_skills:
-            # Sort by frequency
-            sorted_missing = sorted(missing_skills.items(), key=lambda x: x[1], reverse=True)
-            for skill, count in sorted_missing[:10]:  # Show top 10
-                st.markdown(f"**{skill}** - appears in {count} job(s)")
+        st.subheader("✅ Your Skills")
+        user_skills = analysis.get("user_skills", [])
+        if user_skills:
+            st.write(", ".join(user_skills))
         else:
-            st.success("No missing skills identified! You have all the skills from your tracked jobs.")
-    
+            st.info("No skills found in your profile. Please update your profile.")
+
     with col2:
-        st.subheader("🔥 Top Market Skills")
-        if top_market_skills:
-            # Sort by frequency
-            sorted_market = sorted(top_market_skills.items(), key=lambda x: x[1], reverse=True)
-            for skill, count in sorted_market[:10]:  # Show top 10
-                # Check if user has this skill
-                has_skill = skill in user_skills
-                icon = "✅" if has_skill else "❌"
-                st.markdown(f"{icon} **{skill}** - {count} mention(s)")
+        st.subheader("❌ Missing Skills")
+        missing_skills = analysis.get("missing_skills", {})
+        if missing_skills:
+            for skill, count in missing_skills.items():
+                st.markdown(f"- **{skill.capitalize()}** (appears in {count} jobs)")
         else:
-            st.info("Add more jobs to see market skill trends.")
+            st.success("🎉 No missing skills found!")
+
+    st.divider()
+
+    # Top Market Skills
+    st.subheader("🔥 Top Market Skills")
+    st.markdown("The most in-demand skills based on your tracked jobs.")
+    top_market_skills = analysis.get("top_market_skills", {})
+    if top_market_skills:
+        df_market_skills = pd.DataFrame(list(top_market_skills.items()), columns=['Skill', 'Frequency'])
+        st.dataframe(df_market_skills, use_container_width=True, hide_index=True)
+    else:
+        st.info("No market skill data available yet.")
 
     st.divider()
 
     # Learning Recommendations
     st.subheader("📚 Learning Recommendations")
+    learning_recommendations = analysis.get("learning_recommendations", [])
     if learning_recommendations:
-        st.markdown("Based on your skill gaps, we recommend focusing on:")
-        for idx, rec in enumerate(learning_recommendations, 1):
-            st.markdown(f"{idx}. {rec}")
-        
-        # Add helpful resources section
-        with st.expander("🔗 Learning Resources"):
-            st.markdown("""
-            **Popular Learning Platforms:**
-            - [Coursera](https://www.coursera.org) - University courses and certifications
-            - [Udemy](https://www.udemy.com) - Practical skill-based courses
-            - [Pluralsight](https://www.pluralsight.com) - Technology skills platform
-            - [LinkedIn Learning](https://www.linkedin.com/learning) - Professional development
-            - [freeCodeCamp](https://www.freecodecamp.org) - Free coding bootcamp
-            - [YouTube](https://www.youtube.com) - Free tutorials and courses
-            """)
+        for rec in learning_recommendations:
+            st.markdown(f"- {rec}")
     else:
-        st.success("🎉 Great job! No significant skill gaps identified based on your current jobs.")
-        st.info("Keep adding more jobs to track market trends and stay competitive.")
+        st.success("You have all the required skills for your tracked jobs!")
 
 def render_settings_interface():
 	"""Render the settings interface."""
