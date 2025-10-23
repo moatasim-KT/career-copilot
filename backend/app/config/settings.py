@@ -29,6 +29,7 @@ class Settings(BaseSettings):
     smtp_port: Optional[int] = 587
     smtp_username: Optional[str] = "your-email@example.com"
     smtp_password: Optional[str] = "your-email-password"
+    smtp_use_tls: Optional[bool] = True
     smtp_from_email: Optional[str] = "noreply@career-copilot.com"
     sendgrid_api_key: Optional[str] = None
 

@@ -32,7 +32,7 @@ class ScheduledAnalyticsReportsService:
         self.smtp_settings = {
             'host': settings.smtp_host,
             'port': settings.smtp_port,
-            'username': settings.smtp_user,
+            'username': settings.smtp_username,
             'password': settings.smtp_password,
             'use_tls': settings.smtp_use_tls
         }

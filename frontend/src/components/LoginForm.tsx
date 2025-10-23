@@ -3,22 +3,20 @@
 import { useState } from 'react';
 import { apiClient } from '@/lib/api';
 import { Briefcase, Eye, EyeOff, AlertCircle } from 'lucide-react';
+import Link from 'next/link';
 
 interface LoginFormProps {
   onLogin: (token: string, user: any) => void;
 }
 
 export default function LoginForm({ onLogin }: LoginFormProps) {
-  const [isLogin, setIsLogin] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   
   const [formData, setFormData] = useState({
     username: '',
-    email: '',
-    password: '',
-    confirmPassword: ''
+    password: ''
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -27,28 +25,11 @@ export default function LoginForm({ onLogin }: LoginFormProps) {
     setError('');
 
     try {
-      if (isLogin) {
-        const response = await apiClient.login(formData.username, formData.password);
-        if (response.error) {
-          setError(response.error);
-        } else if (response.data) {
-          onLogin(response.data.access_token, response.data.user);
-        }
-      } else {
-        if (formData.password !== formData.confirmPassword) {
-          setError('Passwords do not match');
-          return;
-        }
-        
-        const response = await apiClient.register(formData.username, formData.email, formData.password);
-        if (response.error) {
-          setError(response.error);
-        } else {
-          setError('');
-          setIsLogin(true);
-          setFormData({ username: '', email: '', password: '', confirmPassword: '' });
-          // Show success message or auto-login
-        }
+      const response = await apiClient.login(formData.username, formData.password);
+      if (response.error) {
+        setError(response.error);
+      } else if (response.data) {
+        onLogin(response.data.access_token, response.data.user);
       }
     } catch (err) {
       setError('An unexpected error occurred');
@@ -75,7 +56,7 @@ export default function LoginForm({ onLogin }: LoginFormProps) {
             Career Copilot
           </h2>
           <p className="mt-2 text-sm text-gray-600">
-            {isLogin ? 'Sign in to your account' : 'Create your account'}
+            Sign in to your account
           </p>
         </div>
 
@@ -108,24 +89,6 @@ export default function LoginForm({ onLogin }: LoginFormProps) {
               />
             </div>
 
-            {!isLogin && (
-              <div>
-                <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-                  Email
-                </label>
-                <input
-                  id="email"
-                  name="email"
-                  type="email"
-                  required
-                  value={formData.email}
-                  onChange={handleInputChange}
-                  className="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
-                  placeholder="Enter your email"
-                />
-              </div>
-            )}
-
             <div>
               <label htmlFor="password" className="block text-sm font-medium text-gray-700">
                 Password
@@ -154,24 +117,6 @@ export default function LoginForm({ onLogin }: LoginFormProps) {
                 </button>
               </div>
             </div>
-
-            {!isLogin && (
-              <div>
-                <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700">
-                  Confirm Password
-                </label>
-                <input
-                  id="confirmPassword"
-                  name="confirmPassword"
-                  type="password"
-                  required
-                  value={formData.confirmPassword}
-                  onChange={handleInputChange}
-                  className="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
-                  placeholder="Confirm your password"
-                />
-              </div>
-            )}
           </div>
 
           <div>
@@ -183,23 +128,15 @@ export default function LoginForm({ onLogin }: LoginFormProps) {
               {isLoading ? (
                 <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
               ) : (
-                isLogin ? 'Sign In' : 'Create Account'
+                'Sign In'
               )}
             </button>
           </div>
 
           <div className="text-center">
-            <button
-              type="button"
-              onClick={() => {
-                setIsLogin(!isLogin);
-                setError('');
-                setFormData({ username: '', email: '', password: '', confirmPassword: '' });
-              }}
-              className="text-blue-600 hover:text-blue-500 text-sm font-medium"
-            >
-              {isLogin ? "Don't have an account? Sign up" : 'Already have an account? Sign in'}
-            </button>
+            <Link href="/register" className="text-blue-600 hover:text-blue-500 text-sm font-medium">
+              Don't have an account? Sign up
+            </Link>
           </div>
         </form>
       </div>

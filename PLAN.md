@@ -1,54 +1,109 @@
-# Frontend Enhancements Plan
+# Career Copilot MVP Implementation Plan
 
-This plan outlines the steps to implement advanced features in the Streamlit frontend of the Career Copilot application.
+This plan outlines the steps to complete the Career Copilot MVP based on the `TODO.md` file.
 
-## 1. Project Structure Analysis
+## Category 1: Frontend Finalization & Integration
 
-1.  **Analyze Frontend Directories:** Review the contents of `frontend/` and `career-copilot-frontend/` to understand the current application structure.
-2.  **Identify Main App File:** Locate the main Streamlit application file (likely `frontend/app.py`).
-3.  **Review Existing Components:** Examine existing UI components, authentication logic, and how the frontend interacts with the backend API.
+### 1.1 Core Application Structure
 
-## 2. Real-time UI Updates (WebSockets)
+1.  **Implement Application Routing:**
+    *   Define all routes in `frontend/src/app/router.tsx`.
+    *   Create a navigation component `frontend/src/components/layout/Navigation.tsx`.
+    *   Implement protected routes using a higher-order component or a similar mechanism.
 
-1.  **Backend (FastAPI):**
-    *   **Choose Library:** Select a WebSocket library (e.g., `FastAPI-WebSocket`).
-    *   **Define Endpoints:** Create WebSocket endpoints in the FastAPI application for real-time communication.
-    *   **Integration:** Connect the WebSocket endpoints to the job matching and application status services.
-2.  **Frontend (Streamlit):**
-    *   **WebSocket Client:** Implement a WebSocket client in the Streamlit frontend.
-    *   **UI Components:**
-        *   Create a notification component for new job matches.
-        *   Develop a component to show live updates to application statuses.
-        *   Build a real-time analytics dashboard.
+2.  **Finalize Layout & Styling:**
+    *   Integrate the main `Layout.tsx` component in all pages.
+    *   Perform a design review and create a list of UI/UX issues to fix.
+    *   Use a CSS-in-JS library like styled-components to fix styling issues.
+    *   Use media queries to ensure responsiveness.
 
-## 3. File Upload and Content Generation UI
+### 1.2 Feature Integration
 
-1.  **Resume Upload:**
-    *   **File Uploader:** Use `st.file_uploader` for the resume upload interface.
-    *   **Drag-and-Drop:** Enhance the file uploader with drag-and-drop functionality.
-    *   **Status Display:** Implement UI elements to show the resume parsing status and progress.
-2.  **Content Generation:**
-    *   **Forms:** Create `st.form` for generating cover letters and tailored resumes.
-    *   **Input Fields:** Add text areas for job descriptions and other required inputs.
-    *   **Preview and Edit:** Develop an interface to allow users to preview and edit the generated content.
+1.  **Integrate User Authentication:**
+    *   Connect `LoginForm.tsx` to the backend's `/api/auth/login` endpoint.
+    *   Use `localStorage` or `sessionStorage` to store JWT tokens.
+    *   Create a `RegistrationForm.tsx` component.
+    *   Connect the registration form to the `/api/users` endpoint.
 
-## 4. Interview Practice UI
+2.  **Integrate Real-time Features:**
+    *   Configure the WebSocket client in `frontend/src/lib/websocket.ts`.
+    *   Implement a notification component to display real-time messages.
+    *   Connect `Dashboard.tsx` to the WebSocket for live data updates.
 
-1.  **Session Interface:**
-    *   **Design UI:** Create an intuitive interface for the interview practice sessions.
-    *   **Q&A Flow:** Implement a real-time question and answer flow, potentially using WebSockets.
-2.  **Feedback and Analytics:**
-    *   **Feedback Display:** Create UI components to show real-time feedback on user performance.
-    *   **History and Analytics:** Develop views for users to review their interview history and track their progress.
+3.  **Integrate Advanced Feature UI:**
+    *   Create a `FileUpload.tsx` component for resume uploads.
+    *   Build a `ContentGeneration.tsx` component for cover letters and resumes.
+    *   Develop an `InterviewPractice.tsx` component for the interview practice system.
 
-## 5. OAuth Login Integration
+## Category 2: Backend Finalization & Activation
 
-1.  **Backend (FastAPI):**
-    *   **OAuth Library:** Integrate an OAuth library like `Authlib` or `FastAPI-Users`.
-    *   **Configure Providers:** Set up OAuth providers (e.g., Google, LinkedIn).
-    *   **Callback Endpoints:** Implement the necessary callback endpoints to handle the OAuth flow.
-2.  **Frontend (Streamlit):**
-    *   **Login Buttons:** Add social login buttons to the UI.
-    *   **Client-Side Flow:** Implement the client-side logic to initiate the OAuth flow.
-    *   **Callback Handling:** Handle the callback from the backend to complete the authentication.
-    *   **Profile Setup:** Create UI for account linking and profile setup for new users.
+### 2.1 Feature Activation
+
+1.  **Enable and Configure Scheduler:**
+    *   Uncomment the scheduler-related code in `backend/app/main.py`.
+    *   Write a test script to verify that scheduled tasks are running.
+    *   Check the cron job logs to ensure the triggers are working.
+
+2.  **Enable and Configure WebSockets:**
+    *   Uncomment the WebSocket-related code in `backend/app/main.py`.
+    *   Use a WebSocket client like `websocat` to test the connection.
+    *   Write a test script to verify WebSocket authentication.
+
+3.  **Enable and Configure OAuth:**
+    *   Add the OAuth credentials to the `.env` file.
+    *   Manually test the login and registration flow for Google, LinkedIn, and GitHub.
+    *   Verify that user profiles are correctly pre-populated with social media data.
+
+## Category 3: Testing & Quality Assurance
+
+### 3.1 Comprehensive Testing
+
+1.  **Write Unit Tests:**
+    *   Write unit tests for `backend/app/services/recommendation_engine.py`.
+    *   Write unit tests for `backend/app/services/skill_gap_analyzer.py`.
+    *   Write unit tests for the new frontend components using Jest and React Testing Library.
+
+2.  **Write Integration Tests:**
+    *   Write integration tests for the user authentication flow.
+    *   Write integration tests for the job and application tracking flow.
+    *   Write integration tests for the resume upload and parsing workflow.
+
+3.  **Write End-to-End (E2E) Tests:**
+    *   Use a framework like Cypress or Playwright to write E2E tests.
+    *   Create test cases that cover the main user workflows.
+
+### 3.2 Validation and Review
+
+1.  **Perform Final System Validation:**
+    *   Deploy the application to a staging environment.
+    *   Manually test all features and workflows.
+    *   Use a log management tool to review application logs.
+
+2.  **Conduct a Security Review:**
+    *   Use a tool like `npm audit` to check for vulnerabilities in dependencies.
+    *   Perform a manual security review of the code.
+    *   Use a tool like `OWASP ZAP` to scan for security vulnerabilities.
+
+## Category 4: Documentation & Deployment
+
+### 4.1 Documentation
+
+1.  **Update README.md:**
+    *   Use a tool like `redoc-cli` to generate API documentation from the OpenAPI schema.
+    *   Add detailed instructions on how to set up and run the project locally.
+    *   Add examples of how to use the API.
+
+2.  **Create Deployment Guide:**
+    *   Create a `DEPLOYMENT.md` file in the `docs` directory.
+    *   Document the deployment process for Render.
+    *   Include instructions for setting up environment variables and running database migrations.
+
+### 4.2 Deployment Preparation
+
+1.  **Create Production Startup Scripts:**
+    *   Create a `start.sh` script that starts the backend and frontend servers.
+    *   Create a `validate.sh` script that checks the production configuration.
+
+2.  **Finalize `render.yaml`:**
+    *   Review the `render.yaml` file and ensure it is correctly configured.
+    *   Add any necessary environment variables to the `render.yaml` file.

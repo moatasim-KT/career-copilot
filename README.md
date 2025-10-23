@@ -1,356 +1,273 @@
-# Career Copilot 🚀
 
-An intelligent, proactive job application tracking system that transforms your job search from a manual activity into a guided, goal-oriented workflow.
-
-[![Version](https://img.shields.io/badge/version-2.0-blue.svg)](https://github.com/yourusername/career-copilot)
-[![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
-[![Build Status](https://img.shields.io/github/actions/workflow/status/yourusername/career-copilot/test-runner.yml?branch=main)](https://github.com/yourusername/career-copilot/actions/workflows/test-runner.yml)
-
----
-
-## 🎯 Quick Start (Local Development)
-
-1.  **Clone repository:**
-    ```bash
-    git clone <repository-url>
-    cd career-copilot
-    ```
-2.  **Set up environment:**
-    ```bash
-    cp backend/.env.example backend/.env
-    # Edit backend/.env with your database URL, API keys, etc.
-    ```
-3.  **Install dependencies:**
-    ```bash
-    pip install .[all]
-    ```
-4.  **Initialize database & migrations:**
-    ```bash
-    # Create the data directory if it doesn't exist
-    mkdir -p backend/data
-    # Create initial database file and stamp it with the first migration
-    python manual_stamp.py
-    # Apply any pending migrations (e.g., if you pull new changes)
-    cd backend && alembic upgrade head && cd ..
-    ```
-5.  **Seed initial data (optional):**
-    ```bash
-    python backend/app/scripts/seed_data.py
-    ```
-6.  **Start Backend API:**
-    ```bash
-    cd backend
-    uvicorn app.main:app --host 0.0.0.0 --port 8002 --reload
-    # Access API Docs at http://localhost:8002/docs
-    ```
-7.  **Start Frontend (Next.js):**
-    ```bash
-    cd frontend
-    npm install
-    npm run dev
-    # Access Frontend at http://localhost:3000
-    ```
-
----
-
-## Table of Contents
-
-- [Overview](#overview)
-- [Features](#features)
-- [Architecture](#architecture)
-- [Installation](#installation)
-- [Configuration](#configuration)
-- [API Reference](#api-reference)
-- [Deployment](#deployment)
-- [Development](#development)
-- [Testing](#testing)
-- [Troubleshooting](#troubleshooting)
-- [Changelog](#changelog)
-
----
-
-## Overview
-
-Career Copilot helps you manage your job search with AI-powered recommendations, skill gap analysis, and automated workflows.
-
-**What Makes It Different?**
-- **Proactive**: Automatically finds and recommends jobs based on your profile
-- **Intelligent**: Analyzes skill gaps and provides learning recommendations
-- **Automated**: Daily email briefings and progress summaries
-- **Data-Driven**: Makes career decisions based on market insights
-
----
 
 ## Features
 
-### Core Features
+- **Dashboard:** Get a quick overview of your job search progress.
+- **Jobs:** Track all your job applications in one place.
+- **Recommendations:** Get personalized job recommendations based on your profile.
+- **Analytics:** Analyze your job search performance with detailed analytics.
+- **Skill Gap:** Identify your skill gaps and get learning recommendations.
+- **Content Generation:** Generate cover letters and resume summaries with AI.
+- **Interview Practice:** Practice your interview skills with an AI-powered interviewer.
 
--   **User Authentication** - Secure JWT-based account management (Register, Login)
--   **User Profile Management** - Manage skills, locations, and experience level (`GET/PUT /api/v1/profile`)
--   **Job Tracking** - Save and organize opportunities with detailed information (Create, List, Update, Delete jobs)
--   **Application Management** - Track status and progress through the pipeline (Create, List, Update applications)
--   **Personalized Job Recommendations** - AI-powered job matching based on profile and job data (`GET /api/v1/recommendations`)
--   **Skill Gap Analysis** - Identify missing skills and market demands, with learning recommendations (`GET /api/v1/skill-gap`)
--   **Analytics Dashboard** - Visualize job search metrics and trends, including daily application goals (`GET /api/v1/analytics/summary`)
--   **Automated Job Ingestion** - Scheduled scraping from external APIs based on user preferences
--   **Daily Notifications** - Morning briefings with recommendations, evening summaries with progress via email
--   **Comprehensive Health Check** - API endpoint to monitor database and scheduler status (`GET /api/v1/health`)
--   **Structured Error Handling** - Consistent JSON error responses for API failures.
--   **Structured Logging** - Detailed logs to console and rotating files.
-
----
-
-## Architecture
-
-### System Overview
-
-```
-┌─────────────────┐     ┌─────────────────┐     ┌─────────────────┐
-│     Frontend    │────▶│     Backend     │────▶│     Database    │
-│    (Next.js)    │     │    (FastAPI)    │     │   (PostgreSQL)  │
-└─────────────────┘     └─────────┬───────┘     └─────────────────┘
-                                  │
-                           ┌──────┴──────┐
-                           │   Services  │
-                           ├─────────────┤
-                           │ • Recommend │
-                           │ • Skill Gap │
-                           │ • Scraper   │
-                           │ • Notifier  │
-                           └──────┬──────┘
-                                  │
-                           ┌──────┴──────┐
-                           │   Scheduler │
-                           ├─────────────┤
-                           │ 4AM: Ingest │
-                           │ 7:30AM: Recs│
-                           │ 8AM: Brief  │
-                           │ 8PM: Summary│
-                           └─────────────┘
-```
-
-### Technology Stack
-
-**Backend**: FastAPI • SQLAlchemy • APScheduler • Pydantic • JWT • Celery
-**Frontend**: Next.js • React • TypeScript • Tailwind CSS
-**Database**: SQLite (dev) / PostgreSQL (prod)
-
-### Project Structure
-
-```
-career-copilot/
-├── backend/
-│   ├── app/
-│   │   ├── api/v1/              # API endpoints (auth, jobs, profile, recommendations, skill-gap, analytics)
-│   │   ├── core/                # Core components (config, database, security, logging)
-│   │   ├── models/              # Database models (user, job, application)
-│   │   ├── services/            # Business logic (recommendation_engine, skill_gap_analyzer, job_scraper, job_analytics_service, notification_service)
-│   │   ├── tasks/               # Celery tasks (job_ingestion_tasks, notification_tasks, recommendation_tasks)
-│   │   ├── scheduler.py         # APScheduler setup
-│   │   └── main.py              # FastAPI application entry point
-│   ├── alembic/                 # Database migrations
-│   └── .env.example             # Environment variables template
-├── frontend/
-│   ├── src/                     # Next.js application source
-│   │   ├── app/                 # App router pages
-│   │   ├── components/          # React components
-│   │   └── lib/                 # Library functions
-│   ├── package.json             # Frontend dependencies
-│   └── next.config.ts           # Next.js configuration
-├── tests/                       # Unit and integration tests
-├── .pre-commit-config.yaml      # Code quality hooks
-├── pyproject.toml               # Project metadata and Python dependencies
-└── README.md                    # Project documentation
-```
-
----
-
-## Installation (Local Development)
 
 ### Prerequisites
 
--   Python 3.11+
--   `pip`
--   `git`
+- Python 3.9+
+- Node.js 16+
+- Docker (optional)
 
-### Setup
+### Installation
 
-1.  **Clone repository:**
-    ```bash
-    git clone <repository-url>
-    cd career-copilot
+1. **Clone the repository:**
+   ```bash
+   git clone https://github.com/your-username/career-copilot.git
+   cd career-copilot
+   ```
+
+2. **Backend Setup:**
+   ```bash
+   cd backend
+   python -m venv venv
+   source venv/bin/activate
+   pip install -r requirements.txt
+   cp .env.example .env
+   # Fill in the .env file with your credentials
+   ```
+
+3. **Frontend Setup:**
+   ```bash
+   cd frontend
+   npm install
+   ```
+
+### Running the Application
+
+1. **Start the backend:**
+   ```bash
+   cd backend
+   uvicorn app.main:app --reload
+   ```
+
+2. **Start the frontend:**
+   ```bash
+   cd frontend
+   npm run dev
+   ```
+
+The application will be available at `http://localhost:3000`.
+
+
+### Profile
+
+- **GET /api/v1/profile**
+  - **Description:** Retrieve the current user's profile.
+  - **Response:**
+    ```json
+    {
+      "id": 1,
+      "username": "testuser",
+      "email": "test@example.com",
+      "skills": ["Python", "FastAPI"],
+      "experience_level": "Mid",
+      "preferred_locations": ["New York", "Remote"],
+      "daily_application_goal": 5
+    }
     ```
-2.  **Set up environment:**
-    ```bash
-    cp backend/.env.example backend/.env
-    # IMPORTANT: Edit backend/.env to configure your database URL, JWT secret, API keys, etc.
-    # For local development, you can keep DATABASE_URL=sqlite:///./data/career_copilot.db
+
+- **PUT /api/v1/profile**
+  - **Description:** Update the current user's profile.
+  - **Request Body:**
+    ```json
+    {
+      "skills": ["Python", "FastAPI", "SQL"],
+      "experience_level": "Senior"
+    }
     ```
-3.  **Install dependencies:**
-    ```bash
-    pip install .[all]
-    ```
-4.  **Initialize database & migrations:**
-    ```bash
-    # Create the data directory if it doesn't exist
-    mkdir -p backend/data
-    # Create initial database file and stamp it with the first migration
-    python manual_stamp.py
-    # Apply any pending migrations (e.g., if you pull new changes)
-    cd backend && alembic upgrade head && cd ..
-    ```
-5.  **Seed initial data (optional):**
-    ```bash
-    python backend/app/scripts/seed_data.py
-    ```
-6.  **Start Backend API:**
-    ```bash
-    cd backend
-    uvicorn app.main:app --host 0.0.0.0 --port 8002 --reload
-    # Access API Docs at http://localhost:8002/docs
-    ```
-7.  **Start Frontend (Next.js):**
-    ```bash
-    cd frontend
-    npm install
-    npm run dev
-    # Access Frontend at http://localhost:3000
-    ```
-
----
-
-## Configuration
-
-All configuration is managed via environment variables, loaded by `pydantic-settings`. Refer to `backend/.env.example` for a comprehensive list and documentation.
-
-**Key Variables:**
--   `ENVIRONMENT`: `development`, `production`, or `testing`
--   `DATABASE_URL`: Connection string for your database.
--   `JWT_SECRET_KEY`: **CRITICAL** for security. Change in production.
--   `SMTP_ENABLED`, `SMTP_HOST`, `SMTP_USER`, `SMTP_PASSWORD`: For email notifications.
--   `ENABLE_SCHEDULER`: `True` to enable background tasks.
--   `ENABLE_JOB_SCRAPING`, `JOB_API_KEY`: For automated job discovery.
-
----
-
-## API Reference
-
-All API endpoints are documented using OpenAPI (Swagger UI) at `/docs` when `DEBUG=True`.
-
-### Authentication
--   `POST /api/v1/auth/register`: Register a new user.
--   `POST /api/v1/auth/login`: Authenticate user and get JWT token.
-
-### User Profile
--   `GET /api/v1/profile`: Retrieve current user's profile.
--   `PUT /api/v1/profile`: Update current user's profile (skills, locations, experience).
+  - **Response:** The updated user profile.
 
 ### Jobs
--   `POST /api/v1/jobs`: Create a new job entry.
--   `GET /api/v1/jobs`: List user's jobs with pagination.
--   `GET /api/v1/jobs/{job_id}`: Retrieve a specific job.
--   `PUT /api/v1/jobs/{job_id}`: Update a job.
--   `DELETE /api/v1/jobs/{job_id}`: Delete a job.
 
-### Applications
--   `POST /api/v1/applications`: Create a new application entry.
--   `GET /api/v1/applications`: List user's applications with pagination.
--   `PUT /api/v1/applications/{app_id}`: Update an application (e.g., status).
+- **GET /api/v1/jobs**
+  - **Description:** List all jobs for the current user.
+  - **Query Parameters:**
+    - `skip` (int, optional): Number of records to skip.
+    - `limit` (int, optional): Maximum number of records to return.
+  - **Response:** A list of job objects.
 
-### Recommendations
--   `GET /api/v1/recommendations`: Get personalized job recommendations based on user profile.
+- **POST /api/v1/jobs**
+  - **Description:** Create a new job.
+  - **Request Body:**
+    ```json
+    {
+      "company": "Tech Corp",
+      "title": "Software Engineer",
+      "tech_stack": ["Python", "FastAPI"]
+    }
+    ```
+  - **Response:** The created job object.
 
-### Skill Gap Analysis
--   `GET /api/v1/skill-gap`: Get analysis of user's skill gaps and learning recommendations.
+- **GET /api/v1/jobs/{job_id}**
+  - **Description:** Get a specific job by ID.
+  - **Response:** The job object.
+
+- **PUT /api/v1/jobs/{job_id}**
+  - **Description:** Update a job.
+  - **Request Body:**
+    ```json
+    {
+      "status": "applied"
+    }
+    ```
+  - **Response:** The updated job object.
+
+- **DELETE /api/v1/jobs/{job_id}**
+  - **Description:** Delete a job.
+  - **Response:** `204 No Content`
+
+### Job Sources
+
+- **GET /api/v1/job-sources**
+  - **Description:** Get all available job sources.
+  - **Response:** A list of job source objects.
+
+- **POST /api/v1/job-sources/preferences**
+  - **Description:** Create job source preferences for the current user.
+  - **Request Body:**
+    ```json
+    {
+      "preferred_sources": ["linkedin", "indeed"],
+      "disabled_sources": ["glassdoor"]
+    }
+    ```
+  - **Response:** The created job source preferences object.
+
+- **PUT /api/v1/job-sources/preferences**
+  - **Description:** Update job source preferences for the current user.
+  - **Request Body:**
+    ```json
+    {
+      "auto_scraping_enabled": true
+    }
+    ```
+  - **Response:** The updated job source preferences object.
+
+- **GET /api/v1/job-sources/preferences**
+  - **Description:** Get current user's job source preferences.
+  - **Response:** The job source preferences object.
 
 ### Analytics
--   `GET /api/v1/analytics/summary`: Get a summary of job application analytics.
 
-### Health Check
--   `GET /api/v1/health`: Get application health status (database, scheduler).
+- **GET /api/v1/analytics/summary**
+  - **Description:** Get a summary of job application analytics for the current user.
+  - **Response:** An analytics summary object.
 
----
+- **GET /api/v1/analytics/interview-trends**
+  - **Description:** Get analysis of interview trends for the current user.
+  - **Response:** An interview trends analysis object.
 
-## Deployment (Zero-Cost Cloud)
+### Recommendations
 
-This project is designed for zero-cost deployment using Render (for backend) and Streamlit Community Cloud (for frontend).
+- **GET /api/v1/recommendations**
+  - **Description:** Get personalized job recommendations.
+  - **Query Parameters:**
+    - `limit` (int, optional): Number of recommendations to return.
+  - **Response:** A list of recommended job objects.
 
-1.  **Backend (FastAPI on Render):**
-    *   Create a free account on [Render](https://render.com).
-    *   Create a **New Blueprint** and connect your GitHub repository.
-    *   Render will automatically detect and use the `render.yaml` file in the project root to provision a free web service for your FastAPI backend and a free PostgreSQL database.
-    *   **Important:** Configure environment variables on Render (e.g., `JWT_SECRET_KEY`, `SMTP_PASSWORD`, `JOB_API_KEY`) matching your `backend/.env` file. Render will automatically set `DATABASE_URL` from its PostgreSQL service.
+### Skill Gap
 
-2.  **Frontend (Next.js on Vercel):**
-    *   Create a free account on [Vercel](https://vercel.com).
-    *   Create a **New Project** and connect your GitHub repository.
-    *   Vercel will automatically detect the Next.js project and configure the build settings.
-    *   **Important:** In the project settings, add an environment variable named `NEXT_PUBLIC_BACKEND_URL` and set its value to the public URL of your deployed Render backend (e.g., `https://your-backend.onrender.com`).
-    *   Deploy the application.
+- **GET /api/v1/skill-gap**
+  - **Description:** Analyze user's skill gaps based on job market.
+  - **Response:** A skill gap analysis object.
 
----
+### Applications
 
-## Development
+- **GET /api/v1/applications**
+  - **Description:** List all applications for the current user.
+  - **Query Parameters:**
+    - `skip` (int, optional): Number of records to skip.
+    - `limit` (int, optional): Maximum number of records to return.
+    - `status` (str, optional): Filter by application status.
+  - **Response:** A list of application objects.
 
-### Running Tests
-```bash
-pytest
-```
+- **POST /api/v1/applications**
+  - **Description:** Create a new application for a job.
+  - **Request Body:**
+    ```json
+    {
+      "job_id": 1,
+      "status": "applied"
+    }
+    ```
+  - **Response:** The created application object.
 
-### Code Quality
-```bash
-# Install pre-commit hooks
-pre-commit install
+- **GET /api/v1/applications/{app_id}**
+  - **Description:** Get a specific application by ID.
+  - **Response:** The application object.
 
-# Run checks manually
-pre-commit run --all-files
-```
+- **PUT /api/v1/applications/{app_id}**
+  - **Description:** Update an application's status and other fields.
+  - **Request Body:**
+    ```json
+    {
+      "status": "interview"
+    }
+    ```
+  - **Response:** The updated application object.
 
----
+- **DELETE /api/v1/applications/{app_id}**
+  - **Description:** Delete an application by ID.
+  - **Response:** `204 No Content`
 
-## Testing
+### Job Recommendation Feedback
 
--   **Unit Tests**: Located in `tests/unit/`. Verify individual components and services.
--   **Integration Tests**: Located in `tests/integration/`. Verify interactions between multiple components and API flows.
+- **POST /api/v1/job-recommendation-feedback**
+  - **Description:** Create new job recommendation feedback.
+  - **Request Body:**
+    ```json
+    {
+      "job_id": 1,
+      "is_helpful": true
+    }
+    ```
+  - **Response:** The created feedback object.
 
----
+- **GET /api/v1/job-recommendation-feedback**
+  - **Description:** Get user's job recommendation feedback.
+  - **Response:** A list of feedback objects.
 
-## Troubleshooting
+### Feedback Analysis
 
--   **Backend not starting**: Check `backend/logs/app.log` for errors. Verify `backend/.env` configuration.
--   **Frontend not connecting**: Ensure `NEXT_PUBLIC_BACKEND_URL` is correctly set in your frontend environment variables.
--   **Scheduler not running**: Check `ENABLE_SCHEDULER=True` in `backend/.env`. Review backend logs for APScheduler messages.
--   **Email not sending**: Verify `SMTP_ENABLED=True` and all SMTP credentials in `backend/.env`.
+- **GET /api/v1/feedback-analysis**
+  - **Description:** Get comprehensive feedback analysis for pattern recognition.
+  - **Response:** A feedback analysis object.
 
----
+### Market Analysis
 
-## Changelog
+- **GET /api/v1/market-analysis/salary-trends**
+  - **Description:** Get comprehensive salary trend analysis for the user's job market.
+  - **Response:** A salary trends analysis object.
 
-### v2.0 (Current) - Feature Blueprint Implementation
+- **GET /api/v1/market-analysis/job-patterns**
+  - **Description:** Get comprehensive job market pattern analysis.
+  - **Response:** A job market patterns analysis object.
 
--   ✨ **User Profile Management**: Comprehensive profile creation and updates.
--   ✨ **Personalized Job Recommendations**: AI-powered matching based on skills, location, and experience.
--   ✨ **Skill Gap Analysis**: Identify missing skills and get learning recommendations.
--   ✨ **Enhanced Job & Application Tracking**: Detailed job fields, application status validation, and job status updates.
--   ✨ **Analytics Dashboard**: Summary metrics, daily application goals, and status breakdown.
--   ✨ **Automated Job Ingestion**: Scheduled scraping from external APIs.
--   ✨ **Daily Notifications**: Morning briefings with recommendations, evening summaries with progress.
--   ✨ **Robust Error Handling**: Structured API error responses and improved logging.
--   ✨ **Comprehensive Health Check**: API endpoint for system health monitoring.
--   ✨ **Zero-Cost Cloud Deployment**: Optimized for Render (backend) and Vercel (frontend).
--   ✨ **Cleaned Codebase**: Consolidated dependencies, removed obsolete scripts and Docker files.
--   ✅ **Automated Testing**: Integrated `pytest` with GitHub Actions for continuous validation.
+### Advanced User Analytics
 
-### v1.1 (Previous) - Initial Blueprint
+- **GET /api/v1/analytics/success-rates**
+  - **Description:** Get detailed application success rate analysis.
+  - **Response:** A success rates analysis object.
 
--   Initial project structure and basic features.
+- **GET /api/v1/analytics/conversion-funnel**
+  - **Description:** Get detailed conversion funnel analysis.
+  - **Response:** A conversion funnel analysis object.
 
----
+### Scheduled Reports
 
-## License
+- **GET /api/v1/reports/weekly**
+  - **Description:** Generate a comprehensive weekly analytics report.
+  - **Response:** A weekly report object.
 
-MIT License - see [LICENSE](LICENSE) file
-
----
-
-**Built with ❤️ for job seekers everywhere**
+- **GET /api/v1/reports/monthly**
+  - **Description:** Generate a comprehensive monthly analytics report.
+  - **Response:** A monthly report object.

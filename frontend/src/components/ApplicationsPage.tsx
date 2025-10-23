@@ -2,6 +2,12 @@
 
 import { useState, useEffect } from 'react';
 import { apiClient, type Application } from '@/lib/api';
+import Card, { CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
+import Button from '@/components/ui/Button';
+import Select from '@/components/ui/Select';
+import Modal, { ModalFooter } from '@/components/ui/Modal';
+import Input from '@/components/ui/Input';
+import Textarea from '@/components/ui/Textarea';
 import { 
   FileText, 
   Calendar, 
@@ -12,19 +18,53 @@ import {
   XCircle,
   AlertCircle,
   Trophy,
-  Eye
+  Eye,
+  Plus,
+  Edit,
+  Filter,
+  Search,
+  SortAsc,
+  SortDesc
 } from 'lucide-react';
 
 const STATUS_OPTIONS = [
-  'interested', 'applied', 'interview', 'offer', 'rejected', 'accepted', 'declined'
+  { value: 'interested', label: 'Interested' },
+  { value: 'applied', label: 'Applied' },
+  { value: 'interview', label: 'Interview' },
+  { value: 'offer', label: 'Offer' },
+  { value: 'rejected', label: 'Rejected' },
+  { value: 'accepted', label: 'Accepted' },
+  { value: 'declined', label: 'Declined' }
+];
+
+const SORT_OPTIONS = [
+  { value: 'created_at_desc', label: 'Newest First' },
+  { value: 'created_at_asc', label: 'Oldest First' },
+  { value: 'applied_date_desc', label: 'Recently Applied' },
+  { value: 'applied_date_asc', label: 'Oldest Applied' },
+  { value: 'status_asc', label: 'Status A-Z' },
+  { value: 'company_asc', label: 'Company A-Z' }
 ];
 
 export default function ApplicationsPage() {
   const [applications, setApplications] = useState<Application[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
-  const [statusFilter, setStatusFilter] = useState('All');
-  const [expandedApp, setExpandedApp] = useState<number | null>(null);
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [sortBy, setSortBy] = useState('created_at_desc');
+  const [showApplicationModal, setShowApplicationModal] = useState(false);
+  const [editingApplication, setEditingApplication] = useState<Application | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const [formData, setFormData] = useState({
+    job_id: 0,
+    status: 'interested' as Application['status'],
+    notes: '',
+    applied_date: '',
+    interview_date: '',
+    response_date: ''
+  });
 
   useEffect(() => {
     loadApplications();
@@ -57,6 +97,73 @@ export default function ApplicationsPage() {
     } catch (err) {
       setError('Failed to update application');
     }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!formData.job_id || formData.job_id === 0) {
+      setError('Please select a job');
+      return;
+    }
+
+    setIsSubmitting(true);
+    setError('');
+
+    try {
+      const response = editingApplication
+        ? await apiClient.updateApplication(editingApplication.id, formData)
+        : await apiClient.createApplication(formData);
+
+      if (response.error) {
+        setError(response.error);
+      } else {
+        setShowApplicationModal(false);
+        setEditingApplication(null);
+        resetForm();
+        loadApplications();
+      }
+    } catch (err) {
+      setError('Failed to save application');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const resetForm = () => {
+    setFormData({
+      job_id: 0,
+      status: 'interested' as Application['status'],
+      notes: '',
+      applied_date: '',
+      interview_date: '',
+      response_date: ''
+    });
+  };
+
+  const openAddModal = () => {
+    setEditingApplication(null);
+    resetForm();
+    setShowApplicationModal(true);
+  };
+
+  const startEdit = (application: Application) => {
+    setEditingApplication(application);
+    setFormData({
+      job_id: application.job_id,
+      status: application.status,
+      notes: application.notes || '',
+      applied_date: application.applied_date ? application.applied_date.split('T')[0] : '',
+      interview_date: application.interview_date ? application.interview_date.split('T')[0] : '',
+      response_date: application.response_date ? application.response_date.split('T')[0] : ''
+    });
+    setShowApplicationModal(true);
+  };
+
+  const closeModal = () => {
+    setShowApplicationModal(false);
+    setEditingApplication(null);
+    resetForm();
   };
 
   const getStatusIcon = (status: string) => {
@@ -101,9 +208,34 @@ export default function ApplicationsPage() {
     }
   };
 
-  const filteredApplications = applications.filter(app =>
-    statusFilter === 'All' || app.status === statusFilter
-  );
+  const filteredAndSortedApplications = applications
+    .filter(app => {
+      const matchesStatus = statusFilter === 'all' || app.status === statusFilter;
+      const matchesSearch = 
+        (app.job?.title || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (app.job?.company || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (app.notes || '').toLowerCase().includes(searchTerm.toLowerCase());
+      
+      return matchesStatus && matchesSearch;
+    })
+    .sort((a, b) => {
+      switch (sortBy) {
+        case 'created_at_desc':
+          return new Date(b.applied_date || '').getTime() - new Date(a.applied_date || '').getTime();
+        case 'created_at_asc':
+          return new Date(a.applied_date || '').getTime() - new Date(b.applied_date || '').getTime();
+        case 'applied_date_desc':
+          return new Date(b.applied_date || '').getTime() - new Date(a.applied_date || '').getTime();
+        case 'applied_date_asc':
+          return new Date(a.applied_date || '').getTime() - new Date(b.applied_date || '').getTime();
+        case 'status_asc':
+          return a.status.localeCompare(b.status);
+        case 'company_asc':
+          return (a.job?.company || '').localeCompare(b.job?.company || '');
+        default:
+          return 0;
+      }
+    });
 
   if (isLoading) {
     return (
@@ -112,11 +244,13 @@ export default function ApplicationsPage() {
           <div className="h-8 bg-gray-200 rounded w-1/4 mb-6"></div>
           <div className="space-y-4">
             {[...Array(3)].map((_, i) => (
-              <div key={i} className="bg-white p-6 rounded-lg shadow-sm border">
-                <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
-                <div className="h-4 bg-gray-200 rounded w-1/2 mb-4"></div>
-                <div className="h-4 bg-gray-200 rounded w-1/4"></div>
-              </div>
+              <Card key={i}>
+                <CardContent className="p-6">
+                  <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
+                  <div className="h-4 bg-gray-200 rounded w-1/2 mb-4"></div>
+                  <div className="h-4 bg-gray-200 rounded w-1/4"></div>
+                </CardContent>
+              </Card>
             ))}
           </div>
         </div>
@@ -126,45 +260,148 @@ export default function ApplicationsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold text-gray-900">Applications</h1>
-        <div className="flex items-center space-x-4">
-          <select
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
-            className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-          >
-            <option value="All">All Status</option>
-            {STATUS_OPTIONS.map(status => (
-              <option key={status} value={status}>
-                {status.charAt(0).toUpperCase() + status.slice(1)}
-              </option>
-            ))}
-          </select>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900">Applications</h1>
+          <p className="text-gray-600 mt-1">
+            Track your job applications and their progress
+          </p>
         </div>
+        <Button onClick={openAddModal} className="flex items-center space-x-2">
+          <Plus className="h-4 w-4" />
+          <span>Add Application</span>
+        </Button>
       </div>
 
       {error && (
-        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-          <div className="flex">
-            <AlertCircle className="h-5 w-5 text-red-400" />
-            <div className="ml-3">
-              <p className="text-sm text-red-800">{error}</p>
-            </div>
-          </div>
-        </div>
+        <Card className="border-red-200 bg-red-50">
+          <CardContent className="flex items-center p-4">
+            <AlertCircle className="h-5 w-5 text-red-400 flex-shrink-0" />
+            <p className="text-sm text-red-800 ml-3">{error}</p>
+          </CardContent>
+        </Card>
       )}
 
-      <div className="text-sm text-gray-600">
-        Showing {filteredApplications.length} application(s)
-        {statusFilter !== 'All' && ` with status: ${statusFilter}`}
-      </div>
+      {/* Search and Filters */}
+      <Card>
+        <CardContent className="p-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <Input
+                type="text"
+                placeholder="Search applications..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10"
+              />
+            </div>
+            
+            <Select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              options={[
+                { value: 'all', label: 'All Status' },
+                ...STATUS_OPTIONS
+              ]}
+            />
+            
+            <Select
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value)}
+              options={SORT_OPTIONS}
+            />
+          </div>
+          
+          <div className="mt-4 pt-4 border-t border-gray-200">
+            <div className="text-sm text-gray-600">
+              Showing {filteredAndSortedApplications.length} of {applications.length} applications
+              {statusFilter !== 'all' && ` with status: ${statusFilter}`}
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
-      {filteredApplications.length > 0 ? (
+      {/* Application Form Modal */}
+      <Modal
+        isOpen={showApplicationModal}
+        onClose={closeModal}
+        title={editingApplication ? 'Edit Application' : 'Add New Application'}
+        size="lg"
+      >
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <Select
+            label="Job *"
+            value={formData.job_id.toString()}
+            onChange={(e) => setFormData(prev => ({ ...prev, job_id: parseInt(e.target.value) || 0 }))}
+            options={[
+              { value: '0', label: 'Select a job...' },
+              // Note: In a real implementation, you'd fetch available jobs
+              // For now, this is a placeholder
+            ]}
+          />
+
+          <Select
+            label="Status"
+            value={formData.status}
+            onChange={(e) => setFormData(prev => ({ ...prev, status: e.target.value as Application['status'] }))}
+            options={STATUS_OPTIONS}
+          />
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <Input
+              label="Applied Date"
+              type="date"
+              value={formData.applied_date}
+              onChange={(e) => setFormData(prev => ({ ...prev, applied_date: e.target.value }))}
+            />
+
+            <Input
+              label="Interview Date"
+              type="date"
+              value={formData.interview_date}
+              onChange={(e) => setFormData(prev => ({ ...prev, interview_date: e.target.value }))}
+            />
+
+            <Input
+              label="Response Date"
+              type="date"
+              value={formData.response_date}
+              onChange={(e) => setFormData(prev => ({ ...prev, response_date: e.target.value }))}
+            />
+          </div>
+
+          <Textarea
+            label="Notes"
+            rows={4}
+            value={formData.notes}
+            onChange={(e) => setFormData(prev => ({ ...prev, notes: e.target.value }))}
+            placeholder="Add any notes about this application..."
+          />
+
+          <ModalFooter>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={closeModal}
+            >
+              Cancel
+            </Button>
+            <Button
+              type="submit"
+              loading={isSubmitting}
+            >
+              {editingApplication ? 'Update Application' : 'Add Application'}
+            </Button>
+          </ModalFooter>
+        </form>
+      </Modal>
+
+      {filteredAndSortedApplications.length > 0 ? (
         <div className="space-y-4">
-          {filteredApplications.map((application) => (
-            <div key={application.id} className="bg-white rounded-lg shadow-sm border hover:shadow-md transition-shadow">
-              <div className="p-6">
+          {filteredAndSortedApplications.map((application) => (
+            <Card key={application.id} hover className="transition-all duration-200">
+              <CardContent className="p-6">
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
                     <div className="flex items-center space-x-3 mb-2">
@@ -179,7 +416,7 @@ export default function ApplicationsPage() {
                       </div>
                     </div>
                     
-                    <div className="flex items-center space-x-4 text-sm text-gray-600 mb-3">
+                    <div className="flex flex-wrap items-center gap-4 text-sm text-gray-600 mb-3">
                       <div className="flex items-center space-x-1">
                         <Building className="h-4 w-4" />
                         <span>{application.job?.company || 'Unknown Company'}</span>
@@ -204,7 +441,7 @@ export default function ApplicationsPage() {
                       </p>
                     )}
 
-                    <div className="flex items-center space-x-4 text-sm text-gray-500">
+                    <div className="flex flex-wrap items-center gap-4 text-sm text-gray-500">
                       {application.interview_date && (
                         <span>Interview: {new Date(application.interview_date).toLocaleDateString()}</span>
                       )}
@@ -214,18 +451,22 @@ export default function ApplicationsPage() {
                     </div>
                   </div>
 
-                  <div className="ml-4">
-                    <select
+                  <div className="flex items-center space-x-2 ml-4">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => startEdit(application)}
+                      title="Edit Application"
+                    >
+                      <Edit className="h-4 w-4" />
+                    </Button>
+                    
+                    <Select
                       value={application.status}
                       onChange={(e) => updateApplicationStatus(application.id, e.target.value)}
-                      className="px-3 py-1 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    >
-                      {STATUS_OPTIONS.map(status => (
-                        <option key={status} value={status}>
-                          {status.charAt(0).toUpperCase() + status.slice(1)}
-                        </option>
-                      ))}
-                    </select>
+                      options={STATUS_OPTIONS}
+                      className="w-32"
+                    />
                   </div>
                 </div>
 
@@ -287,23 +528,33 @@ export default function ApplicationsPage() {
                     </div>
                   </div>
                 )}
-              </div>
-            </div>
+              </CardContent>
+            </Card>
           ))}
         </div>
       ) : (
-        <div className="text-center py-12">
-          <FileText className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-          <p className="text-gray-600 mb-2">
-            {statusFilter === 'All' ? 'No applications yet' : `No applications with status: ${statusFilter}`}
-          </p>
-          <p className="text-sm text-gray-500">
-            {statusFilter === 'All' 
-              ? 'Start by adding jobs and applying to them' 
-              : 'Try selecting a different status filter'
-            }
-          </p>
-        </div>
+        <Card>
+          <CardContent className="text-center py-12">
+            <FileText className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+            <h3 className="text-lg font-medium text-gray-900 mb-2">
+              {searchTerm || statusFilter !== 'all'
+                ? 'No applications found'
+                : 'No applications yet'
+              }
+            </h3>
+            <p className="text-gray-600 mb-4">
+              {searchTerm || statusFilter !== 'all'
+                ? 'Try adjusting your search terms or filters'
+                : 'Start by adding jobs and creating applications to track your progress'
+              }
+            </p>
+            {!searchTerm && statusFilter === 'all' && (
+              <Button onClick={openAddModal}>
+                Add Your First Application
+              </Button>
+            )}
+          </CardContent>
+        </Card>
       )}
     </div>
   );

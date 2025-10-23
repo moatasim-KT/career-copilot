@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { apiClient, type AnalyticsSummary, type Application } from '@/lib/api';
+import { webSocketService } from '@/lib/websocket';
 import { 
   Briefcase, 
   FileText, 
@@ -22,7 +23,25 @@ export default function Dashboard() {
   const [error, setError] = useState('');
 
   useEffect(() => {
+    const token = localStorage.getItem('auth_token');
+    if (token) {
+      webSocketService.connect(token);
+    }
+
     loadDashboardData();
+
+    webSocketService.on('dashboard_update', (data: any) => {
+      if (data.analytics) {
+        setAnalytics(data.analytics);
+      }
+      if (data.recent_applications) {
+        setRecentApplications(data.recent_applications);
+      }
+    });
+
+    return () => {
+      webSocketService.disconnect();
+    };
   }, []);
 
   const loadDashboardData = async () => {

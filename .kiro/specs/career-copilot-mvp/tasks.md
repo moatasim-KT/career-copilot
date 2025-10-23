@@ -582,7 +582,7 @@ This implementation plan covers the complete Career Co-Pilot MVP across all four
   - Integrate with the `GET /api/v1/profile` and `PUT /api/v1/profile` endpoints.
   - _Requirements: 1.2, 1.3, 1.4, 1.5_
 
-- [ ] 33. Implement Job and Application Management
+- [-] 33. Implement Job and Application Management
   - Create a page to display a list of jobs and applications.
   - Implement functionality to create, view, update, and delete jobs and applications.
   - Add a form for creating and editing jobs with all necessary fields.

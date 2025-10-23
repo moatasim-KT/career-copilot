@@ -2,6 +2,12 @@
 
 import { useState, useEffect } from 'react';
 import { apiClient, type Job } from '@/lib/api';
+import Modal, { ModalFooter } from '@/components/ui/Modal';
+import Button from '@/components/ui/Button';
+import Input from '@/components/ui/Input';
+import Select from '@/components/ui/Select';
+import Textarea from '@/components/ui/Textarea';
+import Card, { CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import { 
   Plus, 
   Search, 
@@ -15,10 +21,39 @@ import {
   Clock,
   AlertCircle,
   CheckCircle,
-  X
+  X,
+  Filter,
+  SortAsc,
+  SortDesc,
+  Star,
+  StarOff
 } from 'lucide-react';
 
-const JOB_TYPES = ['full-time', 'part-time', 'contract', 'internship'];
+const JOB_TYPES = [
+  { value: 'full-time', label: 'Full-time' },
+  { value: 'part-time', label: 'Part-time' },
+  { value: 'contract', label: 'Contract' },
+  { value: 'internship', label: 'Internship' }
+];
+
+const JOB_SOURCES = [
+  { value: 'manual', label: 'Manual' },
+  { value: 'scraped', label: 'Scraped' },
+  { value: 'linkedin', label: 'LinkedIn' },
+  { value: 'indeed', label: 'Indeed' },
+  { value: 'glassdoor', label: 'Glassdoor' }
+];
+
+const SORT_OPTIONS = [
+  { value: 'created_at_desc', label: 'Newest First' },
+  { value: 'created_at_asc', label: 'Oldest First' },
+  { value: 'company_asc', label: 'Company A-Z' },
+  { value: 'company_desc', label: 'Company Z-A' },
+  { value: 'title_asc', label: 'Title A-Z' },
+  { value: 'title_desc', label: 'Title Z-A' },
+  { value: 'match_score_desc', label: 'Best Match First' }
+];
+
 const TECH_SKILLS = [
   'Python', 'Java', 'JavaScript', 'TypeScript', 'React', 'Angular', 'Vue.js',
   'Node.js', 'Docker', 'Kubernetes', 'AWS', 'Azure', 'GCP', 'SQL', 'NoSQL',
@@ -33,8 +68,12 @@ export default function JobsPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
-  const [showAddForm, setShowAddForm] = useState(false);
+  const [showJobModal, setShowJobModal] = useState(false);
   const [editingJob, setEditingJob] = useState<Job | null>(null);
+  const [sourceFilter, setSourceFilter] = useState('all');
+  const [typeFilter, setTypeFilter] = useState('all');
+  const [sortBy, setSortBy] = useState('created_at_desc');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const [formData, setFormData] = useState({
     company: '',
@@ -42,13 +81,15 @@ export default function JobsPage() {
     location: '',
     url: '',
     salary_range: '',
-    job_type: 'full-time' as const,
+    job_type: 'full-time',
     description: '',
     remote: false,
     tech_stack: [] as string[],
     responsibilities: '',
     source: 'manual'
   });
+
+  const [formErrors, setFormErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
     loadJobs();
@@ -70,13 +111,43 @@ export default function JobsPage() {
     }
   };
 
+  const validateForm = () => {
+    const errors: Record<string, string> = {};
+    
+    if (!formData.company.trim()) {
+      errors.company = 'Company is required';
+    }
+    
+    if (!formData.title.trim()) {
+      errors.title = 'Job title is required';
+    }
+    
+    if (formData.url && !isValidUrl(formData.url)) {
+      errors.url = 'Please enter a valid URL';
+    }
+    
+    setFormErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
+  const isValidUrl = (string: string) => {
+    try {
+      new URL(string);
+      return true;
+    } catch (_) {
+      return false;
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.company || !formData.title) {
-      setError('Company and Job Title are required');
+    if (!validateForm()) {
       return;
     }
+
+    setIsSubmitting(true);
+    setError('');
 
     try {
       const response = editingJob
@@ -86,13 +157,15 @@ export default function JobsPage() {
       if (response.error) {
         setError(response.error);
       } else {
-        setShowAddForm(false);
+        setShowJobModal(false);
         setEditingJob(null);
         resetForm();
         loadJobs();
       }
     } catch (err) {
       setError('Failed to save job');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -144,6 +217,7 @@ export default function JobsPage() {
       responsibilities: '',
       source: 'manual'
     });
+    setFormErrors({});
   };
 
   const startEdit = (job: Job) => {
@@ -154,21 +228,64 @@ export default function JobsPage() {
       location: job.location || '',
       url: job.url || '',
       salary_range: job.salary_range || '',
-      job_type: job.job_type as any,
+      job_type: job.job_type,
       description: job.description || '',
       remote: job.remote,
       tech_stack: job.tech_stack || [],
       responsibilities: job.responsibilities || '',
       source: job.source
     });
-    setShowAddForm(true);
+    setFormErrors({});
+    setShowJobModal(true);
   };
 
-  const filteredJobs = jobs.filter(job =>
-    job.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    job.company.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (job.location && job.location.toLowerCase().includes(searchTerm.toLowerCase()))
-  );
+  const openAddModal = () => {
+    setEditingJob(null);
+    resetForm();
+    setShowJobModal(true);
+  };
+
+  const closeModal = () => {
+    setShowJobModal(false);
+    setEditingJob(null);
+    resetForm();
+  };
+
+  const filteredAndSortedJobs = jobs
+    .filter(job => {
+      const matchesSearch = 
+        job.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        job.company.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (job.location && job.location.toLowerCase().includes(searchTerm.toLowerCase())) ||
+        (job.tech_stack && job.tech_stack.some(tech => 
+          tech.toLowerCase().includes(searchTerm.toLowerCase())
+        ));
+      
+      const matchesSource = sourceFilter === 'all' || job.source === sourceFilter;
+      const matchesType = typeFilter === 'all' || job.job_type === typeFilter;
+      
+      return matchesSearch && matchesSource && matchesType;
+    })
+    .sort((a, b) => {
+      switch (sortBy) {
+        case 'created_at_desc':
+          return new Date(b.created_at || '').getTime() - new Date(a.created_at || '').getTime();
+        case 'created_at_asc':
+          return new Date(a.created_at || '').getTime() - new Date(b.created_at || '').getTime();
+        case 'company_asc':
+          return a.company.localeCompare(b.company);
+        case 'company_desc':
+          return b.company.localeCompare(a.company);
+        case 'title_asc':
+          return a.title.localeCompare(b.title);
+        case 'title_desc':
+          return b.title.localeCompare(a.title);
+        case 'match_score_desc':
+          return (b.match_score || 0) - (a.match_score || 0);
+        default:
+          return 0;
+      }
+    });
 
   const getSourceBadgeColor = (source: string) => {
     switch (source.toLowerCase()) {
@@ -190,393 +307,376 @@ export default function JobsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold text-gray-900">Job Management</h1>
-        <button
-          onClick={() => {
-            setShowAddForm(true);
-            setEditingJob(null);
-            resetForm();
-          }}
-          className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-        >
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900">Job Management</h1>
+          <p className="text-gray-600 mt-1">
+            Manage your job opportunities and track applications
+          </p>
+        </div>
+        <Button onClick={openAddModal} className="flex items-center space-x-2">
           <Plus className="h-4 w-4" />
           <span>Add Job</span>
-        </button>
+        </Button>
       </div>
 
       {error && (
-        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-          <div className="flex">
-            <AlertCircle className="h-5 w-5 text-red-400" />
-            <div className="ml-3">
-              <p className="text-sm text-red-800">{error}</p>
-            </div>
-          </div>
-        </div>
+        <Card className="border-red-200 bg-red-50">
+          <CardContent className="flex items-center p-4">
+            <AlertCircle className="h-5 w-5 text-red-400 flex-shrink-0" />
+            <p className="text-sm text-red-800 ml-3">{error}</p>
+          </CardContent>
+        </Card>
       )}
 
-      {/* Search */}
-      <div className="relative">
-        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-        <input
-          type="text"
-          placeholder="Search jobs by title, company, or location..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-        />
-      </div>
+      {/* Search and Filters */}
+      <Card>
+        <CardContent className="p-4">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div className="md:col-span-2">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <Input
+                  type="text"
+                  placeholder="Search jobs by title, company, location, or tech stack..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10"
+                />
+              </div>
+            </div>
+            
+            <Select
+              value={sourceFilter}
+              onChange={(e) => setSourceFilter(e.target.value)}
+              options={[
+                { value: 'all', label: 'All Sources' },
+                ...JOB_SOURCES
+              ]}
+            />
+            
+            <Select
+              value={typeFilter}
+              onChange={(e) => setTypeFilter(e.target.value)}
+              options={[
+                { value: 'all', label: 'All Types' },
+                ...JOB_TYPES
+              ]}
+            />
+          </div>
+          
+          <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-200">
+            <div className="text-sm text-gray-600">
+              Showing {filteredAndSortedJobs.length} of {jobs.length} jobs
+            </div>
+            
+            <Select
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value)}
+              options={SORT_OPTIONS}
+              className="w-48"
+            />
+          </div>
+        </CardContent>
+      </Card>
 
-      {/* Add/Edit Job Form */}
-      {showAddForm && (
-        <div className="bg-white p-6 rounded-lg shadow-sm border">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold text-gray-900">
-              {editingJob ? 'Edit Job' : 'Add New Job'}
-            </h2>
-            <button
-              onClick={() => {
-                setShowAddForm(false);
-                setEditingJob(null);
-                resetForm();
-              }}
-              className="text-gray-400 hover:text-gray-600"
+      {/* Job Form Modal */}
+      <Modal
+        isOpen={showJobModal}
+        onClose={closeModal}
+        title={editingJob ? 'Edit Job' : 'Add New Job'}
+        size="xl"
+      >
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <Input
+              label="Company *"
+              value={formData.company}
+              onChange={(e) => setFormData(prev => ({ ...prev, company: e.target.value }))}
+              error={formErrors.company}
+              placeholder="Enter company name"
+            />
+
+            <Input
+              label="Job Title *"
+              value={formData.title}
+              onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
+              error={formErrors.title}
+              placeholder="Enter job title"
+            />
+
+            <Input
+              label="Location"
+              value={formData.location}
+              onChange={(e) => setFormData(prev => ({ ...prev, location: e.target.value }))}
+              placeholder="e.g., San Francisco, CA or Remote"
+            />
+
+            <Select
+              label="Job Type"
+              value={formData.job_type}
+              onChange={(e) => setFormData(prev => ({ ...prev, job_type: e.target.value }))}
+              options={JOB_TYPES}
+            />
+
+            <Input
+              label="Salary Range"
+              value={formData.salary_range}
+              onChange={(e) => setFormData(prev => ({ ...prev, salary_range: e.target.value }))}
+              placeholder="e.g., $80k-$120k"
+            />
+
+            <Input
+              label="Job URL"
+              type="url"
+              value={formData.url}
+              onChange={(e) => setFormData(prev => ({ ...prev, url: e.target.value }))}
+              error={formErrors.url}
+              placeholder="https://..."
+            />
+          </div>
+
+          <div>
+            <label className="flex items-center space-x-2">
+              <input
+                type="checkbox"
+                checked={formData.remote}
+                onChange={(e) => setFormData(prev => ({ ...prev, remote: e.target.checked }))}
+                className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+              />
+              <span className="text-sm font-medium text-gray-700">Remote Position</span>
+            </label>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Tech Stack
+            </label>
+            <div className="grid grid-cols-3 md:grid-cols-4 gap-2 max-h-40 overflow-y-auto border border-gray-300 rounded-md p-3">
+              {TECH_SKILLS.map(skill => (
+                <label key={skill} className="flex items-center space-x-2 text-sm">
+                  <input
+                    type="checkbox"
+                    checked={formData.tech_stack.includes(skill)}
+                    onChange={(e) => {
+                      if (e.target.checked) {
+                        setFormData(prev => ({
+                          ...prev,
+                          tech_stack: [...prev.tech_stack, skill]
+                        }));
+                      } else {
+                        setFormData(prev => ({
+                          ...prev,
+                          tech_stack: prev.tech_stack.filter(s => s !== skill)
+                        }));
+                      }
+                    }}
+                    className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                  />
+                  <span>{skill}</span>
+                </label>
+              ))}
+            </div>
+            <p className="text-xs text-gray-500 mt-1">
+              Selected: {formData.tech_stack.length} skills
+            </p>
+          </div>
+
+          <Textarea
+            label="Responsibilities"
+            rows={3}
+            value={formData.responsibilities}
+            onChange={(e) => setFormData(prev => ({ ...prev, responsibilities: e.target.value }))}
+            placeholder="Key responsibilities for this role..."
+          />
+
+          <Textarea
+            label="Description"
+            rows={4}
+            value={formData.description}
+            onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+            placeholder="Full job description..."
+          />
+
+          <ModalFooter>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={closeModal}
             >
-              <X className="h-5 w-5" />
-            </button>
-          </div>
-
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Company *
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={formData.company}
-                  onChange={(e) => setFormData(prev => ({ ...prev, company: e.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Job Title *
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={formData.title}
-                  onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Location
-                </label>
-                <input
-                  type="text"
-                  value={formData.location}
-                  onChange={(e) => setFormData(prev => ({ ...prev, location: e.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Job Type
-                </label>
-                <select
-                  value={formData.job_type}
-                  onChange={(e) => setFormData(prev => ({ ...prev, job_type: e.target.value as any }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                >
-                  {JOB_TYPES.map(type => (
-                    <option key={type} value={type}>
-                      {type.charAt(0).toUpperCase() + type.slice(1)}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Salary Range
-                </label>
-                <input
-                  type="text"
-                  placeholder="e.g., $80k-$120k"
-                  value={formData.salary_range}
-                  onChange={(e) => setFormData(prev => ({ ...prev, salary_range: e.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Job URL
-                </label>
-                <input
-                  type="url"
-                  value={formData.url}
-                  onChange={(e) => setFormData(prev => ({ ...prev, url: e.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                />
-              </div>
-            </div>
-
-            <div>
-              <label className="flex items-center space-x-2">
-                <input
-                  type="checkbox"
-                  checked={formData.remote}
-                  onChange={(e) => setFormData(prev => ({ ...prev, remote: e.target.checked }))}
-                  className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                />
-                <span className="text-sm font-medium text-gray-700">Remote Position</span>
-              </label>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Tech Stack
-              </label>
-              <div className="grid grid-cols-3 md:grid-cols-6 gap-2 max-h-32 overflow-y-auto border border-gray-300 rounded-md p-2">
-                {TECH_SKILLS.map(skill => (
-                  <label key={skill} className="flex items-center space-x-1 text-xs">
-                    <input
-                      type="checkbox"
-                      checked={formData.tech_stack.includes(skill)}
-                      onChange={(e) => {
-                        if (e.target.checked) {
-                          setFormData(prev => ({
-                            ...prev,
-                            tech_stack: [...prev.tech_stack, skill]
-                          }));
-                        } else {
-                          setFormData(prev => ({
-                            ...prev,
-                            tech_stack: prev.tech_stack.filter(s => s !== skill)
-                          }));
-                        }
-                      }}
-                      className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                    />
-                    <span>{skill}</span>
-                  </label>
-                ))}
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Responsibilities
-              </label>
-              <textarea
-                rows={3}
-                value={formData.responsibilities}
-                onChange={(e) => setFormData(prev => ({ ...prev, responsibilities: e.target.value }))}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                placeholder="Key responsibilities for this role..."
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Description
-              </label>
-              <textarea
-                rows={4}
-                value={formData.description}
-                onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                placeholder="Full job description..."
-              />
-            </div>
-
-            <div className="flex space-x-3">
-              <button
-                type="submit"
-                className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-              >
-                <CheckCircle className="h-4 w-4" />
-                <span>{editingJob ? 'Update Job' : 'Add Job'}</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setShowAddForm(false);
-                  setEditingJob(null);
-                  resetForm();
-                }}
-                className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
-              >
-                Cancel
-              </button>
-            </div>
-          </form>
-        </div>
-      )}
+              Cancel
+            </Button>
+            <Button
+              type="submit"
+              loading={isSubmitting}
+            >
+              {editingJob ? 'Update Job' : 'Add Job'}
+            </Button>
+          </ModalFooter>
+        </form>
+      </Modal>
 
       {/* Jobs List */}
       {isLoading ? (
         <div className="space-y-4">
           {[...Array(3)].map((_, i) => (
-            <div key={i} className="bg-white p-6 rounded-lg shadow-sm border animate-pulse">
-              <div className="h-4 bg-gray-200 rounded w-1/4 mb-2"></div>
-              <div className="h-6 bg-gray-200 rounded w-1/2 mb-4"></div>
-              <div className="h-4 bg-gray-200 rounded w-3/4"></div>
-            </div>
+            <Card key={i} className="animate-pulse">
+              <CardContent className="p-6">
+                <div className="h-4 bg-gray-200 rounded w-1/4 mb-2"></div>
+                <div className="h-6 bg-gray-200 rounded w-1/2 mb-4"></div>
+                <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+              </CardContent>
+            </Card>
           ))}
         </div>
-      ) : filteredJobs.length > 0 ? (
+      ) : filteredAndSortedJobs.length > 0 ? (
         <div className="space-y-4">
-          {filteredJobs.map((job) => (
-            <div key={job.id} className="bg-white p-6 rounded-lg shadow-sm border hover:shadow-md transition-shadow">
-              <div className="flex items-start justify-between">
-                <div className="flex-1">
-                  <div className="flex items-center space-x-3 mb-2">
-                    <h3 className="text-lg font-semibold text-gray-900">
-                      {job.title}
-                    </h3>
-                    <span className={`px-2 py-1 text-xs font-medium rounded-full ${getSourceBadgeColor(job.source)}`}>
-                      {job.source.toUpperCase()}
-                    </span>
-                    {job.match_score && (
-                      <span className={`text-sm font-medium ${getMatchScoreColor(job.match_score)}`}>
-                        {job.match_score.toFixed(0)}% Match
+          {filteredAndSortedJobs.map((job) => (
+            <Card key={job.id} hover className="transition-all duration-200">
+              <CardContent className="p-6">
+                <div className="flex items-start justify-between">
+                  <div className="flex-1">
+                    <div className="flex items-center space-x-3 mb-2">
+                      <h3 className="text-lg font-semibold text-gray-900">
+                        {job.title}
+                      </h3>
+                      <span className={`px-2 py-1 text-xs font-medium rounded-full ${getSourceBadgeColor(job.source)}`}>
+                        {job.source.toUpperCase()}
                       </span>
+                      {job.match_score && (
+                        <span className={`text-sm font-medium ${getMatchScoreColor(job.match_score)}`}>
+                          {job.match_score.toFixed(0)}% Match
+                        </span>
+                      )}
+                    </div>
+                    
+                    <div className="flex flex-wrap items-center gap-4 text-sm text-gray-600 mb-3">
+                      <div className="flex items-center space-x-1">
+                        <Building className="h-4 w-4" />
+                        <span>{job.company}</span>
+                      </div>
+                      {job.location && (
+                        <div className="flex items-center space-x-1">
+                          <MapPin className="h-4 w-4" />
+                          <span>{job.location}</span>
+                        </div>
+                      )}
+                      <div className="flex items-center space-x-1">
+                        <Briefcase className="h-4 w-4" />
+                        <span className="capitalize">{job.job_type.replace('-', ' ')}</span>
+                      </div>
+                      {job.remote && (
+                        <span className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full">
+                          Remote
+                        </span>
+                      )}
+                      {job.salary_range && (
+                        <div className="flex items-center space-x-1">
+                          <DollarSign className="h-4 w-4" />
+                          <span>{job.salary_range}</span>
+                        </div>
+                      )}
+                    </div>
+
+                    {job.tech_stack && job.tech_stack.length > 0 && (
+                      <div className="mb-3">
+                        <div className="flex flex-wrap gap-1">
+                          {job.tech_stack.slice(0, 8).map((tech) => (
+                            <span
+                              key={tech}
+                              className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full"
+                            >
+                              {tech}
+                            </span>
+                          ))}
+                          {job.tech_stack.length > 8 && (
+                            <span className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded-full">
+                              +{job.tech_stack.length - 8} more
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                    {job.responsibilities && (
+                      <p className="text-sm text-gray-600 mb-3 line-clamp-2">
+                        {job.responsibilities}
+                      </p>
                     )}
                   </div>
-                  
-                  <div className="flex items-center space-x-4 text-sm text-gray-600 mb-3">
-                    <div className="flex items-center space-x-1">
-                      <Building className="h-4 w-4" />
-                      <span>{job.company}</span>
-                    </div>
-                    {job.location && (
-                      <div className="flex items-center space-x-1">
-                        <MapPin className="h-4 w-4" />
-                        <span>{job.location}</span>
-                      </div>
-                    )}
-                    <div className="flex items-center space-x-1">
-                      <Briefcase className="h-4 w-4" />
-                      <span className="capitalize">{job.job_type}</span>
-                    </div>
-                    {job.remote && (
-                      <span className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full">
-                        Remote
-                      </span>
-                    )}
-                    {job.salary_range && (
-                      <div className="flex items-center space-x-1">
-                        <DollarSign className="h-4 w-4" />
-                        <span>{job.salary_range}</span>
-                      </div>
-                    )}
-                  </div>
 
-                  {job.tech_stack && job.tech_stack.length > 0 && (
-                    <div className="mb-3">
-                      <div className="flex flex-wrap gap-1">
-                        {job.tech_stack.slice(0, 8).map((tech) => (
-                          <span
-                            key={tech}
-                            className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full"
-                          >
-                            {tech}
-                          </span>
-                        ))}
-                        {job.tech_stack.length > 8 && (
-                          <span className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded-full">
-                            +{job.tech_stack.length - 8} more
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                  )}
-
-                  {job.responsibilities && (
-                    <p className="text-sm text-gray-600 mb-3 line-clamp-2">
-                      {job.responsibilities}
-                    </p>
-                  )}
-                </div>
-
-                <div className="flex items-center space-x-2 ml-4">
-                  {job.url && (
-                    <a
-                      href={job.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="p-2 text-gray-400 hover:text-gray-600 transition-colors"
-                      title="View Job Posting"
+                  <div className="flex items-center space-x-2 ml-4">
+                    {job.url && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => window.open(job.url, '_blank')}
+                        title="View Job Posting"
+                      >
+                        <ExternalLink className="h-4 w-4" />
+                      </Button>
+                    )}
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => startEdit(job)}
+                      title="Edit Job"
                     >
-                      <ExternalLink className="h-4 w-4" />
-                    </a>
-                  )}
-                  <button
-                    onClick={() => startEdit(job)}
-                    className="p-2 text-gray-400 hover:text-blue-600 transition-colors"
-                    title="Edit Job"
-                  >
-                    <Edit className="h-4 w-4" />
-                  </button>
-                  <button
-                    onClick={() => handleDelete(job.id)}
-                    className="p-2 text-gray-400 hover:text-red-600 transition-colors"
-                    title="Delete Job"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </button>
+                      <Edit className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleDelete(job.id)}
+                      title="Delete Job"
+                      className="text-red-600 hover:text-red-700"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
                 </div>
-              </div>
 
-              <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-200">
-                <div className="flex items-center space-x-2 text-sm text-gray-500">
-                  <Clock className="h-4 w-4" />
-                  <span>
-                    Added {job.created_at ? new Date(job.created_at).toLocaleDateString() : 'Recently'}
-                  </span>
+                <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-200">
+                  <div className="flex items-center space-x-2 text-sm text-gray-500">
+                    <Clock className="h-4 w-4" />
+                    <span>
+                      Added {job.created_at ? new Date(job.created_at).toLocaleDateString() : 'Recently'}
+                    </span>
+                  </div>
+                  <Button
+                    onClick={() => handleApply(job)}
+                    size="sm"
+                  >
+                    Apply
+                  </Button>
                 </div>
-                <button
-                  onClick={() => handleApply(job)}
-                  className="px-4 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition-colors"
-                >
-                  Apply
-                </button>
-              </div>
-            </div>
+              </CardContent>
+            </Card>
           ))}
         </div>
       ) : (
-        <div className="text-center py-12">
-          <Briefcase className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-          <p className="text-gray-600 mb-2">
-            {searchTerm ? 'No jobs found matching your search' : 'No jobs added yet'}
-          </p>
-          <p className="text-sm text-gray-500 mb-4">
-            {searchTerm ? 'Try adjusting your search terms' : 'Start by adding your first job opportunity'}
-          </p>
-          {!searchTerm && (
-            <button
-              onClick={() => {
-                setShowAddForm(true);
-                setEditingJob(null);
-                resetForm();
-              }}
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-            >
-              Add Your First Job
-            </button>
-          )}
-        </div>
+        <Card>
+          <CardContent className="text-center py-12">
+            <Briefcase className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+            <h3 className="text-lg font-medium text-gray-900 mb-2">
+              {searchTerm || sourceFilter !== 'all' || typeFilter !== 'all' 
+                ? 'No jobs found' 
+                : 'No jobs added yet'
+              }
+            </h3>
+            <p className="text-gray-600 mb-4">
+              {searchTerm || sourceFilter !== 'all' || typeFilter !== 'all'
+                ? 'Try adjusting your search terms or filters'
+                : 'Start by adding your first job opportunity to track your applications'
+              }
+            </p>
+            {!searchTerm && sourceFilter === 'all' && typeFilter === 'all' && (
+              <Button onClick={openAddModal}>
+                Add Your First Job
+              </Button>
+            )}
+          </CardContent>
+        </Card>
       )}
     </div>
   );
