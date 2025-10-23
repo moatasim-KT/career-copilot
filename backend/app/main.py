@@ -170,7 +170,7 @@ def create_app() -> FastAPI:
 
     
     # Include routers
-    from .api.v1 import health, auth, jobs, applications, analytics, recommendations, skill_gap, profile, job_sources, job_recommendation_feedback, feedback_analysis, market_analysis, advanced_user_analytics, scheduled_reports
+    from .api.v1 import health, auth, jobs, applications, analytics, recommendations, skill_gap, profile, job_sources, job_recommendation_feedback, feedback_analysis, market_analysis, advanced_user_analytics, scheduled_reports, tasks, database_optimization
     app.include_router(health.router)
     app.include_router(auth.router)
     app.include_router(profile.router)
@@ -185,6 +185,11 @@ def create_app() -> FastAPI:
     app.include_router(market_analysis.router)
     app.include_router(advanced_user_analytics.router)
     app.include_router(scheduled_reports.router)
+    app.include_router(tasks.router)
+    app.include_router(database_optimization.router)
+
+    from .api.v1 import interview
+    app.include_router(interview.router)
     
     @app.on_event("startup")
     async def startup_event():
@@ -196,11 +201,22 @@ def create_app() -> FastAPI:
         init_db()
         logger.info("✅ Database initialized")
         
+        # Initialize cache service
+        from .services.cache_service import cache_service
+        if cache_service.enabled:
+            logger.info("✅ Redis cache service initialized")
+        else:
+            logger.warning("⚠️ Redis cache service disabled")
+        
         # Start scheduler
         if settings.enable_scheduler:
             from .scheduler import start_scheduler
             start_scheduler()
             logger.info("✅ Scheduler started")
+        
+        # Initialize Celery (workers should be started separately)
+        from .core.celery_app import celery_app
+        logger.info("✅ Celery application configured")
     
     @app.on_event("shutdown")
     async def shutdown_event():

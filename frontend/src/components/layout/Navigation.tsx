@@ -12,7 +12,8 @@ import {
   TrendingUp,
   Menu,
   X,
-  LogOut
+  LogOut,
+  MessageSquare
 } from 'lucide-react';
 
 interface NavigationProps {
@@ -26,6 +27,8 @@ const navigationItems = [
   { href: '/applications', label: 'Applications', icon: FileText },
   { href: '/recommendations', label: 'Recommendations', icon: Sparkles },
   { href: '/analytics', label: 'Analytics', icon: TrendingUp },
+  { href: '/content-generation', label: 'Content', icon: Sparkles },
+  { href: '/interview-practice', label: 'Interview', icon: MessageSquare },
   { href: '/profile', label: 'Profile', icon: User },
 ];
 

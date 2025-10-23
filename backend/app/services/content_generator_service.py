@@ -10,7 +10,7 @@ from ..models.content_generation import ContentGeneration
 from ..models.content_version import ContentVersion
 from ..models.job import Job
 from ..models.user import User
-from ..utils.redis_client import redis_client
+from .cache_service import cache_service
 
 logger = logging.getLogger(__name__)
 
@@ -109,11 +109,12 @@ class ContentGeneratorService:
         Returns:
             ContentGeneration object with the generated cover letter
         """
-        cache_key = f"cover_letter:{user.id}:{job.id}:{tone}:{custom_instructions}"
-        if redis_client:
-            cached_result = redis_client.get(cache_key)
-            if cached_result:
-                return ContentGeneration(**json.loads(cached_result))
+        # Check cache for existing cover letter
+        cache_key = cache_service._generate_cache_key("cover_letter", user.id, job.id, tone, custom_instructions or "")
+        cached_result = await cache_service.aget(cache_key)
+        if cached_result:
+            logger.info(f"Retrieved cached cover letter for user {user.id} and job {job.id}")
+            return ContentGeneration(**cached_result)
 
         try:
             # Prepare context for LLM
@@ -136,8 +137,20 @@ class ContentGeneratorService:
                 custom_instructions=custom_instructions,
             )
 
-            # Generate content using LLM
-            generated_content = await self.llm_manager.generate_response(prompt)
+            # Check if LLM response is cached
+            llm_cache_key = cache_service._generate_cache_key("llm_response", "cover_letter", prompt)
+            cached_llm_response = await cache_service.aget(llm_cache_key)
+            
+            if cached_llm_response:
+                generated_content = cached_llm_response
+                logger.info("Using cached LLM response for cover letter generation")
+            else:
+                # Generate content using LLM
+                generated_content = await self.llm_manager.generate_response(prompt)
+                
+                # Cache the LLM response
+                if generated_content and len(generated_content.strip()) >= 100:
+                    await cache_service.aset(llm_cache_key, generated_content, ttl=86400)  # 24 hours
 
             # Fallback to template if LLM fails
             if not generated_content or len(generated_content.strip()) < 100:
@@ -177,8 +190,20 @@ class ContentGeneratorService:
                     db=db,
                 )
 
-            if redis_client:
-                redis_client.set(cache_key, content_generation.json(), ex=3600)
+            # Cache the content generation result
+            content_dict = {
+                "id": content_generation.id,
+                "user_id": content_generation.user_id,
+                "job_id": content_generation.job_id,
+                "content_type": content_generation.content_type,
+                "generated_content": content_generation.generated_content,
+                "generation_prompt": content_generation.generation_prompt,
+                "tone": getattr(content_generation, 'tone', None),
+                "template_used": getattr(content_generation, 'template_used', None),
+                "status": content_generation.status,
+                "created_at": content_generation.created_at.isoformat() if content_generation.created_at else None
+            }
+            await cache_service.aset(cache_key, content_dict, ttl=3600)
 
             logger.info(f"Generated cover letter for user {user.id} and job {job.id}")
             return content_generation
@@ -202,18 +227,32 @@ class ContentGeneratorService:
         Returns:
             ContentGeneration object with tailoring suggestions
         """
-        cache_key = f"resume_tailoring:{user.id}:{job.id}:{json.dumps(resume_sections)}"
-        if redis_client:
-            cached_result = redis_client.get(cache_key)
-            if cached_result:
-                return ContentGeneration(**json.loads(cached_result))
+        # Check cache for existing resume tailoring
+        sections_hash = cache_service._generate_cache_key("sections", json.dumps(resume_sections, sort_keys=True))
+        cache_key = cache_service._generate_cache_key("resume_tailoring", user.id, job.id, sections_hash)
+        cached_result = await cache_service.aget(cache_key)
+        if cached_result:
+            logger.info(f"Retrieved cached resume tailoring for user {user.id} and job {job.id}")
+            return ContentGeneration(**cached_result)
 
         try:
             # Create the prompt for resume tailoring
             prompt = self._create_resume_tailoring_prompt(user, job, resume_sections)
 
-            # Generate suggestions using LLM
-            generated_content = await self.llm_manager.generate_response(prompt)
+            # Check if LLM response is cached
+            llm_cache_key = cache_service._generate_cache_key("llm_response", "resume_tailoring", prompt)
+            cached_llm_response = await cache_service.aget(llm_cache_key)
+            
+            if cached_llm_response:
+                generated_content = cached_llm_response
+                logger.info("Using cached LLM response for resume tailoring")
+            else:
+                # Generate suggestions using LLM
+                generated_content = await self.llm_manager.generate_response(prompt)
+                
+                # Cache the LLM response
+                if generated_content and len(generated_content.strip()) >= 50:
+                    await cache_service.aset(llm_cache_key, generated_content, ttl=86400)  # 24 hours
 
             # Fallback to basic suggestions if LLM fails
             if not generated_content or len(generated_content.strip()) < 50:
@@ -249,8 +288,18 @@ class ContentGeneratorService:
                     db=db,
                 )
 
-            if redis_client:
-                redis_client.set(cache_key, content_generation.json(), ex=3600)
+            # Cache the content generation result
+            content_dict = {
+                "id": content_generation.id,
+                "user_id": content_generation.user_id,
+                "job_id": content_generation.job_id,
+                "content_type": content_generation.content_type,
+                "generated_content": content_generation.generated_content,
+                "generation_prompt": content_generation.generation_prompt,
+                "status": content_generation.status,
+                "created_at": content_generation.created_at.isoformat() if content_generation.created_at else None
+            }
+            await cache_service.aset(cache_key, content_dict, ttl=3600)
 
             logger.info(
                 f"Generated resume tailoring for user {user.id} and job {job.id}"
@@ -282,13 +331,12 @@ class ContentGeneratorService:
         Returns:
             ContentGeneration object with the email template
         """
-        cache_key = (
-            f"email_template:{user.id}:{job.id}:{template_type}:{custom_instructions}"
-        )
-        if redis_client:
-            cached_result = redis_client.get(cache_key)
-            if cached_result:
-                return ContentGeneration(**json.loads(cached_result))
+        # Check cache for existing email template
+        cache_key = cache_service._generate_cache_key("email_template", user.id, job.id, template_type, custom_instructions or "")
+        cached_result = await cache_service.aget(cache_key)
+        if cached_result:
+            logger.info(f"Retrieved cached email template for user {user.id} and job {job.id}")
+            return ContentGeneration(**cached_result)
 
         try:
             # Create the prompt for email template
@@ -296,8 +344,20 @@ class ContentGeneratorService:
                 user, job, template_type, custom_instructions
             )
 
-            # Generate content using LLM
-            generated_content = await self.llm_manager.generate_response(prompt)
+            # Check if LLM response is cached
+            llm_cache_key = cache_service._generate_cache_key("llm_response", "email_template", prompt)
+            cached_llm_response = await cache_service.aget(llm_cache_key)
+            
+            if cached_llm_response:
+                generated_content = cached_llm_response
+                logger.info("Using cached LLM response for email template")
+            else:
+                # Generate content using LLM
+                generated_content = await self.llm_manager.generate_response(prompt)
+                
+                # Cache the LLM response
+                if generated_content and len(generated_content.strip()) >= 50:
+                    await cache_service.aset(llm_cache_key, generated_content, ttl=86400)  # 24 hours
 
             # Fallback to basic template if LLM fails
             if not generated_content or len(generated_content.strip()) < 50:
@@ -332,8 +392,19 @@ class ContentGeneratorService:
                     db=db,
                 )
 
-            if redis_client:
-                redis_client.set(cache_key, content_generation.json(), ex=3600)
+            # Cache the content generation result
+            content_dict = {
+                "id": content_generation.id,
+                "user_id": content_generation.user_id,
+                "job_id": content_generation.job_id,
+                "content_type": content_generation.content_type,
+                "generated_content": content_generation.generated_content,
+                "generation_prompt": content_generation.generation_prompt,
+                "template_used": getattr(content_generation, 'template_used', template_type),
+                "status": content_generation.status,
+                "created_at": content_generation.created_at.isoformat() if content_generation.created_at else None
+            }
+            await cache_service.aset(cache_key, content_dict, ttl=3600)
 
             logger.info(
                 f"Generated {template_type} email template for user {user.id} and job {job.id}"

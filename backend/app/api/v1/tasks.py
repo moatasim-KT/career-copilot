@@ -1,276 +1,296 @@
 """
-API endpoints for Celery task management and monitoring
+Task monitoring and management API endpoints
 """
 
-from typing import Dict, Any, List, Optional
-from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
+from typing import List, Dict, Any, Optional
+from pydantic import BaseModel
 
-from app.core.dependencies import get_current_user, get_db
+from app.core.database import get_db
+from app.core.auth import get_current_user
 from app.models.user import User
-from app.tasks.job_ingestion_tasks import (
-    ingest_jobs_enhanced,
-    ingest_jobs_for_user_enhanced,
-    test_job_sources,
-    get_ingestion_statistics
-)
-from app.tasks.monitoring import (
-    monitor_task_health,
-    get_task_status,
-    cleanup_task_metrics
-)
-from app.celery import celery_app
+from app.services.task_queue_manager import task_queue_manager
+from app.core.logging import get_logger
+
+logger = get_logger(__name__)
+
+router = APIRouter(prefix="/api/v1/tasks", tags=["tasks"])
 
 
-router = APIRouter(prefix="/tasks", tags=["tasks"])
+class TaskStatusResponse(BaseModel):
+    task_id: str
+    status: str
+    result: Optional[Dict[str, Any]] = None
+    metadata: Optional[Dict[str, Any]] = None
+    progress: Optional[Dict[str, Any]] = None
+    traceback: Optional[str] = None
+    error: Optional[str] = None
 
 
-@router.post("/job-ingestion/start")
-async def start_job_ingestion(
-    user_ids: Optional[List[int]] = None,
-    max_jobs_per_user: int = 50,
-    current_user: User = Depends(get_current_user)
-) -> Dict[str, Any]:
-    """
-    Start job ingestion task for specified users or all users
-    """
-    try:
-        # Start the enhanced job ingestion task
-        task = ingest_jobs_enhanced.delay(
-            user_ids=user_ids,
-            max_jobs_per_user=max_jobs_per_user
-        )
-        
-        return {
-            "task_id": task.id,
-            "status": "started",
-            "message": f"Job ingestion started for {len(user_ids) if user_ids else 'all'} users",
-            "user_ids": user_ids,
-            "max_jobs_per_user": max_jobs_per_user
-        }
-        
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to start job ingestion: {str(e)}")
+class QueueStatsResponse(BaseModel):
+    queue_stats: Dict[str, Dict[str, int]]
+    total_active: int
+    total_scheduled: int
+    total_reserved: int
+    timestamp: str
 
 
-@router.post("/job-ingestion/user/{user_id}")
-async def start_user_job_ingestion(
-    user_id: int,
-    max_jobs: int = 50,
-    current_user: User = Depends(get_current_user)
-) -> Dict[str, Any]:
-    """
-    Start job ingestion task for a specific user
-    """
-    try:
-        # Verify user has permission (admin or own user)
-        if current_user.id != user_id and not getattr(current_user, 'is_admin', False):
-            raise HTTPException(status_code=403, detail="Not authorized to start ingestion for this user")
-        
-        # Start the user-specific job ingestion task
-        task = ingest_jobs_for_user_enhanced.delay(
-            user_id=user_id,
-            max_jobs=max_jobs
-        )
-        
-        return {
-            "task_id": task.id,
-            "status": "started",
-            "message": f"Job ingestion started for user {user_id}",
-            "user_id": user_id,
-            "max_jobs": max_jobs
-        }
-        
-    except HTTPException:
-        raise
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to start user job ingestion: {str(e)}")
+class TaskSubmissionRequest(BaseModel):
+    task_type: str
+    parameters: Dict[str, Any]
+    priority: str = "normal"
 
 
-@router.get("/status/{task_id}")
-async def get_task_status_endpoint(
+class TaskSubmissionResponse(BaseModel):
+    task_id: str
+    task_type: str
+    status: str
+    message: str
+
+
+@router.get("/status/{task_id}", response_model=TaskStatusResponse)
+async def get_task_status(
     task_id: str,
     current_user: User = Depends(get_current_user)
-) -> Dict[str, Any]:
-    """
-    Get status of a specific task
-    """
+):
+    """Get the status of a specific task"""
     try:
-        # Get task status using monitoring function
-        task_status = get_task_status.delay(task_id)
-        status_result = task_status.get(timeout=10)
+        status_info = task_queue_manager.get_task_status(task_id)
         
-        return status_result
+        # Check if user has permission to view this task
+        metadata = status_info.get("metadata", {})
+        task_user_id = metadata.get("user_id")
         
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to get task status: {str(e)}")
-
-
-@router.get("/health")
-async def get_task_system_health(
-    current_user: User = Depends(get_current_user)
-) -> Dict[str, Any]:
-    """
-    Get overall task system health
-    """
-    try:
-        # Get health report using monitoring function
-        health_task = monitor_task_health.delay()
-        health_report = health_task.get(timeout=30)
+        if task_user_id and task_user_id != current_user.id:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="You don't have permission to view this task"
+            )
         
-        return health_report
-        
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to get task health: {str(e)}")
-
-
-@router.get("/statistics/ingestion")
-async def get_ingestion_stats(
-    user_id: Optional[int] = None,
-    days: int = 7,
-    current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db)
-) -> Dict[str, Any]:
-    """
-    Get job ingestion statistics
-    """
-    try:
-        # Verify user has permission
-        if user_id and current_user.id != user_id and not getattr(current_user, 'is_admin', False):
-            raise HTTPException(status_code=403, detail="Not authorized to view statistics for this user")
-        
-        # Get statistics using task
-        stats_task = get_ingestion_statistics.delay(user_id=user_id, days=days)
-        statistics = stats_task.get(timeout=15)
-        
-        return statistics
+        return TaskStatusResponse(**status_info)
         
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to get ingestion statistics: {str(e)}")
+        logger.error(f"Error getting task status for {task_id}: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Error retrieving task status"
+        )
 
 
-@router.post("/test/job-sources")
-async def test_job_sources_endpoint(
-    current_user: User = Depends(get_current_user)
-) -> Dict[str, Any]:
-    """
-    Test all job ingestion sources
-    """
+@router.get("/user/{user_id}", response_model=List[TaskStatusResponse])
+async def get_user_tasks(
+    user_id: int,
+    limit: int = 20,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Get recent tasks for a specific user"""
+    # Check permission
+    if user_id != current_user.id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You can only view your own tasks"
+        )
+    
     try:
-        # Start job sources test
-        test_task = test_job_sources.delay()
+        user_tasks = task_queue_manager.get_user_tasks(user_id, limit)
         
-        return {
-            "task_id": test_task.id,
-            "status": "started",
-            "message": "Job sources test started"
-        }
+        # Convert to response models
+        task_responses = []
+        for task_info in user_tasks:
+            task_responses.append(TaskStatusResponse(**task_info))
+        
+        return task_responses
         
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to start job sources test: {str(e)}")
+        logger.error(f"Error getting user tasks for {user_id}: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Error retrieving user tasks"
+        )
 
 
-@router.get("/active")
-async def get_active_tasks(
+@router.get("/my-tasks", response_model=List[TaskStatusResponse])
+async def get_my_tasks(
+    limit: int = 20,
     current_user: User = Depends(get_current_user)
-) -> Dict[str, Any]:
-    """
-    Get list of currently active tasks
-    """
+):
+    """Get current user's recent tasks"""
+    return await get_user_tasks(current_user.id, limit, current_user)
+
+
+@router.post("/submit", response_model=TaskSubmissionResponse)
+async def submit_task(
+    request: TaskSubmissionRequest,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Submit a new background task"""
     try:
-        # Get active tasks from Celery
-        inspect = celery_app.control.inspect()
+        task_type = request.task_type
+        parameters = request.parameters
+        priority = request.priority
         
-        active_tasks = inspect.active()
-        scheduled_tasks = inspect.scheduled()
-        reserved_tasks = inspect.reserved()
+        # Validate task type and parameters
+        if task_type == "resume_parsing":
+            required_params = ["resume_upload_id", "file_path", "filename"]
+            for param in required_params:
+                if param not in parameters:
+                    raise HTTPException(
+                        status_code=status.HTTP_400_BAD_REQUEST,
+                        detail=f"Missing required parameter: {param}"
+                    )
+            
+            task_id = task_queue_manager.submit_resume_parsing(
+                resume_upload_id=parameters["resume_upload_id"],
+                file_path=parameters["file_path"],
+                filename=parameters["filename"],
+                user_id=current_user.id,
+                priority=priority
+            )
+            
+        elif task_type == "cover_letter_generation":
+            required_params = ["job_id"]
+            for param in required_params:
+                if param not in parameters:
+                    raise HTTPException(
+                        status_code=status.HTTP_400_BAD_REQUEST,
+                        detail=f"Missing required parameter: {param}"
+                    )
+            
+            task_id = task_queue_manager.submit_cover_letter_generation(
+                user_id=current_user.id,
+                job_id=parameters["job_id"],
+                tone=parameters.get("tone", "professional"),
+                custom_instructions=parameters.get("custom_instructions"),
+                priority=priority
+            )
+            
+        elif task_type == "resume_tailoring":
+            required_params = ["job_id", "resume_sections"]
+            for param in required_params:
+                if param not in parameters:
+                    raise HTTPException(
+                        status_code=status.HTTP_400_BAD_REQUEST,
+                        detail=f"Missing required parameter: {param}"
+                    )
+            
+            task_id = task_queue_manager.submit_resume_tailoring(
+                user_id=current_user.id,
+                job_id=parameters["job_id"],
+                resume_sections=parameters["resume_sections"],
+                priority=priority
+            )
+            
+        elif task_type == "job_scraping":
+            task_id = task_queue_manager.submit_job_scraping_for_user(
+                user_id=current_user.id,
+                priority=priority
+            )
+            
+        elif task_type == "user_analytics":
+            task_id = task_queue_manager.submit_user_analytics_generation(
+                user_id=current_user.id
+            )
+            
+        else:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Unsupported task type: {task_type}"
+            )
         
-        return {
-            "active": active_tasks or {},
-            "scheduled": scheduled_tasks or {},
-            "reserved": reserved_tasks or {},
-            "timestamp": "2024-01-01T00:00:00Z"  # Would use actual timestamp
-        }
+        return TaskSubmissionResponse(
+            task_id=task_id,
+            task_type=task_type,
+            status="submitted",
+            message="Task submitted successfully"
+        )
         
+    except HTTPException:
+        raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to get active tasks: {str(e)}")
+        logger.error(f"Error submitting task: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Error submitting task"
+        )
 
 
-@router.post("/cancel/{task_id}")
+@router.delete("/cancel/{task_id}")
 async def cancel_task(
     task_id: str,
     current_user: User = Depends(get_current_user)
-) -> Dict[str, Any]:
-    """
-    Cancel a running task
-    """
+):
+    """Cancel a running task"""
     try:
-        # Revoke the task
-        celery_app.control.revoke(task_id, terminate=True)
+        # Get task info to check permissions
+        status_info = task_queue_manager.get_task_status(task_id)
+        metadata = status_info.get("metadata", {})
+        task_user_id = metadata.get("user_id")
         
-        return {
-            "task_id": task_id,
-            "status": "cancelled",
-            "message": f"Task {task_id} has been cancelled"
-        }
+        if task_user_id and task_user_id != current_user.id:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="You don't have permission to cancel this task"
+            )
         
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to cancel task: {str(e)}")
-
-
-@router.post("/maintenance/cleanup-metrics")
-async def cleanup_metrics(
-    current_user: User = Depends(get_current_user)
-) -> Dict[str, Any]:
-    """
-    Manually trigger cleanup of old task metrics
-    """
-    try:
-        # Check if user is admin (in a real app, you'd have proper admin checks)
-        if not getattr(current_user, 'is_admin', False):
-            raise HTTPException(status_code=403, detail="Admin access required")
+        success = task_queue_manager.cancel_task(task_id)
         
-        # Start cleanup task
-        cleanup_task = cleanup_task_metrics.delay()
-        
-        return {
-            "task_id": cleanup_task.id,
-            "status": "started",
-            "message": "Task metrics cleanup started"
-        }
-        
+        if success:
+            return {"message": "Task cancelled successfully"}
+        else:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Failed to cancel task"
+            )
+            
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to start cleanup: {str(e)}")
+        logger.error(f"Error cancelling task {task_id}: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Error cancelling task"
+        )
 
 
-@router.get("/schedule")
-async def get_task_schedule(
+@router.get("/queue-stats", response_model=QueueStatsResponse)
+async def get_queue_stats(
     current_user: User = Depends(get_current_user)
-) -> Dict[str, Any]:
-    """
-    Get the current task schedule configuration
-    """
+):
+    """Get task queue statistics (admin only for now)"""
     try:
-        # Get beat schedule from Celery configuration
-        schedule = celery_app.conf.beat_schedule
+        stats = task_queue_manager.get_queue_stats()
+        return QueueStatsResponse(**stats)
         
-        # Format schedule for API response
-        formatted_schedule = {}
-        for task_name, config in schedule.items():
-            formatted_schedule[task_name] = {
-                "task": config["task"],
-                "schedule": str(config["schedule"]),
-                "options": config.get("options", {})
-            }
+    except Exception as e:
+        logger.error(f"Error getting queue stats: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Error retrieving queue statistics"
+        )
+
+
+@router.post("/cleanup")
+async def cleanup_completed_tasks(
+    days_old: int = 7,
+    current_user: User = Depends(get_current_user)
+):
+    """Clean up completed tasks (admin only for now)"""
+    try:
+        cleaned_count = task_queue_manager.cleanup_completed_tasks(days_old)
         
         return {
-            "schedule": formatted_schedule,
-            "timezone": celery_app.conf.timezone
+            "message": f"Cleaned up {cleaned_count} completed tasks",
+            "days_old": days_old
         }
         
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to get task schedule: {str(e)}")
+        logger.error(f"Error cleaning up tasks: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Error cleaning up tasks"
+        )

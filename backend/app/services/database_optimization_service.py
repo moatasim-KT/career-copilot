@@ -1,667 +1,670 @@
 """
-Database optimization service for query analysis and performance improvements.
+Database optimization service for performance improvements
 """
 
-import asyncio
-import hashlib
-import re
+from sqlalchemy import text, Index, create_engine
+from sqlalchemy.orm import Session
+from sqlalchemy.pool import QueuePool
+from typing import Dict, Any, List
 import time
 from datetime import datetime, timedelta
-from typing import Any, Dict, List, Optional, Tuple
-from dataclasses import dataclass
 
-from sqlalchemy import text, inspect
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.sql import Select
-
-from ..core.database import get_db_session
-from ..core.logging import get_logger
-from ..repositories.base_repository import BaseRepository
+from app.core.database import get_db, engine
+from app.core.config import get_settings
+from app.core.logging import get_logger
+from app.models import *  # Import all models
 
 logger = get_logger(__name__)
 
 
-@dataclass
-class QueryOptimizationResult:
-    """Result of query optimization analysis."""
-    original_query: str
-    optimized_query: Optional[str]
-    suggestions: List[str]
-    estimated_improvement: Optional[float]
-    complexity_score: int
-    affected_tables: List[str]
-    recommended_indexes: List[str]
-
-
-@dataclass
-class TableAnalysisResult:
-    """Result of table performance analysis."""
-    table_name: str
-    row_count: int
-    table_size_mb: float
-    index_size_mb: float
-    fragmentation_percent: float
-    most_expensive_queries: List[str]
-    recommended_optimizations: List[str]
-
-
 class DatabaseOptimizationService:
-    """Service for database performance optimization and analysis."""
+    """Service for database performance optimization"""
     
     def __init__(self):
-        self.query_cache = {}
-        self.optimization_cache = {}
-        self.table_stats_cache = {}
-        self.cache_ttl = 3600  # 1 hour
+        self.settings = get_settings()
+        self.db_engine = engine
     
-    async def analyze_query_performance(
-        self, 
-        query: str, 
-        session: AsyncSession
-    ) -> QueryOptimizationResult:
+    def create_performance_indexes(self, db: Session) -> Dict[str, Any]:
         """
-        Analyze query performance and provide optimization suggestions.
+        Create performance indexes for enhanced features
         
-        Args:
-            query: SQL query to analyze
-            session: Database session
-            
         Returns:
-            Query optimization analysis result
+            Dictionary with index creation results
         """
-        query_hash = self._hash_query(query)
+        indexes_created = []
+        indexes_failed = []
         
-        # Check cache first
-        if query_hash in self.optimization_cache:
-            cached_result, timestamp = self.optimization_cache[query_hash]
-            if datetime.utcnow() - timestamp < timedelta(seconds=self.cache_ttl):
-                return cached_result
+        # Define indexes to create
+        indexes_to_create = [
+            # User table indexes
+            {
+                "name": "idx_users_oauth_provider_id",
+                "table": "users",
+                "columns": ["oauth_provider", "oauth_id"],
+                "unique": True,
+                "condition": "oauth_provider IS NOT NULL AND oauth_id IS NOT NULL"
+            },
+            {
+                "name": "idx_users_skills_gin",
+                "table": "users", 
+                "columns": ["skills"],
+                "type": "gin",
+                "condition": "skills IS NOT NULL"
+            },
+            {
+                "name": "idx_users_preferred_locations_gin",
+                "table": "users",
+                "columns": ["preferred_locations"],
+                "type": "gin",
+                "condition": "preferred_locations IS NOT NULL"
+            },
+            {
+                "name": "idx_users_experience_level",
+                "table": "users",
+                "columns": ["experience_level"],
+                "condition": "experience_level IS NOT NULL"
+            },
+            
+            # Job table indexes
+            {
+                "name": "idx_jobs_user_status",
+                "table": "jobs",
+                "columns": ["user_id", "status"]
+            },
+            {
+                "name": "idx_jobs_source_created",
+                "table": "jobs",
+                "columns": ["source", "created_at"]
+            },
+            {
+                "name": "idx_jobs_tech_stack_gin",
+                "table": "jobs",
+                "columns": ["tech_stack"],
+                "type": "gin",
+                "condition": "tech_stack IS NOT NULL"
+            },
+            {
+                "name": "idx_jobs_company_title",
+                "table": "jobs",
+                "columns": ["company", "title"]
+            },
+            {
+                "name": "idx_jobs_location",
+                "table": "jobs",
+                "columns": ["location"],
+                "condition": "location IS NOT NULL"
+            },
+            {
+                "name": "idx_jobs_salary_range",
+                "table": "jobs",
+                "columns": ["salary_min", "salary_max"],
+                "condition": "salary_min IS NOT NULL OR salary_max IS NOT NULL"
+            },
+            {
+                "name": "idx_jobs_remote_option",
+                "table": "jobs",
+                "columns": ["remote_option"],
+                "condition": "remote_option IS NOT NULL"
+            },
+            
+            # Application table indexes
+            {
+                "name": "idx_applications_user_status",
+                "table": "applications",
+                "columns": ["user_id", "status"]
+            },
+            {
+                "name": "idx_applications_status_created",
+                "table": "applications",
+                "columns": ["status", "created_at"]
+            },
+            {
+                "name": "idx_applications_applied_date",
+                "table": "applications",
+                "columns": ["applied_date"],
+                "condition": "applied_date IS NOT NULL"
+            },
+            {
+                "name": "idx_applications_interview_date",
+                "table": "applications",
+                "columns": ["interview_date"],
+                "condition": "interview_date IS NOT NULL"
+            },
+            
+            # Content generation indexes
+            {
+                "name": "idx_content_generations_user_type",
+                "table": "content_generations",
+                "columns": ["user_id", "content_type"]
+            },
+            {
+                "name": "idx_content_generations_job_type",
+                "table": "content_generations",
+                "columns": ["job_id", "content_type"],
+                "condition": "job_id IS NOT NULL"
+            },
+            {
+                "name": "idx_content_generations_status",
+                "table": "content_generations",
+                "columns": ["status"]
+            },
+            {
+                "name": "idx_content_generations_created",
+                "table": "content_generations",
+                "columns": ["created_at"]
+            },
+            
+            # Resume upload indexes
+            {
+                "name": "idx_resume_uploads_user_status",
+                "table": "resume_uploads",
+                "columns": ["user_id", "parsing_status"]
+            },
+            {
+                "name": "idx_resume_uploads_status_created",
+                "table": "resume_uploads",
+                "columns": ["parsing_status", "created_at"]
+            },
+            {
+                "name": "idx_resume_uploads_extracted_skills_gin",
+                "table": "resume_uploads",
+                "columns": ["extracted_skills"],
+                "type": "gin",
+                "condition": "extracted_skills IS NOT NULL"
+            },
+            
+            # Feedback indexes
+            {
+                "name": "idx_job_recommendation_feedback_user_job",
+                "table": "job_recommendation_feedback",
+                "columns": ["user_id", "job_id"]
+            },
+            {
+                "name": "idx_job_recommendation_feedback_helpful",
+                "table": "job_recommendation_feedback",
+                "columns": ["is_helpful", "created_at"]
+            },
+            {
+                "name": "idx_feedback_user_type_status",
+                "table": "feedback",
+                "columns": ["user_id", "type", "status"]
+            },
+            {
+                "name": "idx_feedback_type_priority",
+                "table": "feedback",
+                "columns": ["type", "priority"]
+            },
+            {
+                "name": "idx_feedback_status_created",
+                "table": "feedback",
+                "columns": ["status", "created_at"]
+            },
+            
+            # Interview session indexes (if exists)
+            {
+                "name": "idx_interview_sessions_user_type",
+                "table": "interview_sessions",
+                "columns": ["user_id", "session_type"],
+                "optional": True  # Only create if table exists
+            },
+            {
+                "name": "idx_interview_sessions_job_user",
+                "table": "interview_sessions", 
+                "columns": ["job_id", "user_id"],
+                "condition": "job_id IS NOT NULL",
+                "optional": True
+            },
+            
+            # Help article indexes
+            {
+                "name": "idx_help_articles_category_published",
+                "table": "help_articles",
+                "columns": ["category", "is_published"],
+                "optional": True
+            },
+            {
+                "name": "idx_help_articles_slug",
+                "table": "help_articles",
+                "columns": ["slug"],
+                "unique": True,
+                "optional": True
+            }
+        ]
         
-        try:
-            # Analyze query structure
-            suggestions = self._analyze_query_structure(query)
-            affected_tables = self._extract_table_names(query)
-            complexity_score = self._calculate_complexity_score(query)
-            
-            # Get execution plan
-            execution_plan = await self._get_execution_plan(query, session)
-            
-            # Analyze execution plan for optimization opportunities
-            plan_suggestions = self._analyze_execution_plan(execution_plan)
-            suggestions.extend(plan_suggestions)
-            
-            # Generate recommended indexes
-            recommended_indexes = await self._generate_index_recommendations(
-                query, affected_tables, session
-            )
-            
-            # Attempt to optimize query
-            optimized_query = self._optimize_query_structure(query)
-            
-            result = QueryOptimizationResult(
-                original_query=query,
-                optimized_query=optimized_query,
-                suggestions=list(set(suggestions)),  # Remove duplicates
-                estimated_improvement=None,  # Would need benchmarking
-                complexity_score=complexity_score,
-                affected_tables=affected_tables,
-                recommended_indexes=recommended_indexes
-            )
-            
-            # Cache result
-            self.optimization_cache[query_hash] = (result, datetime.utcnow())
-            
-            return result
-            
-        except Exception as e:
-            logger.error(f"Query analysis failed: {e}")
-            return QueryOptimizationResult(
-                original_query=query,
-                optimized_query=None,
-                suggestions=[f"Analysis failed: {str(e)}"],
-                estimated_improvement=None,
-                complexity_score=0,
-                affected_tables=[],
-                recommended_indexes=[]
-            )
-    
-    async def analyze_table_performance(
-        self, 
-        table_name: str, 
-        session: AsyncSession
-    ) -> TableAnalysisResult:
-        """
-        Analyze table performance and provide optimization recommendations.
-        
-        Args:
-            table_name: Name of the table to analyze
-            session: Database session
-            
-        Returns:
-            Table analysis result
-        """
-        cache_key = f"table_{table_name}"
-        
-        # Check cache
-        if cache_key in self.table_stats_cache:
-            cached_result, timestamp = self.table_stats_cache[cache_key]
-            if datetime.utcnow() - timestamp < timedelta(seconds=self.cache_ttl):
-                return cached_result
-        
-        try:
-            # Get table statistics
-            stats = await self._get_table_statistics(table_name, session)
-            
-            # Analyze table structure
-            recommendations = await self._analyze_table_structure(table_name, session)
-            
-            # Get most expensive queries for this table
-            expensive_queries = await self._get_expensive_queries_for_table(
-                table_name, session
-            )
-            
-            result = TableAnalysisResult(
-                table_name=table_name,
-                row_count=stats.get('row_count', 0),
-                table_size_mb=stats.get('table_size_mb', 0.0),
-                index_size_mb=stats.get('index_size_mb', 0.0),
-                fragmentation_percent=stats.get('fragmentation_percent', 0.0),
-                most_expensive_queries=expensive_queries,
-                recommended_optimizations=recommendations
-            )
-            
-            # Cache result
-            self.table_stats_cache[cache_key] = (result, datetime.utcnow())
-            
-            return result
-            
-        except Exception as e:
-            logger.error(f"Table analysis failed for {table_name}: {e}")
-            return TableAnalysisResult(
-                table_name=table_name,
-                row_count=0,
-                table_size_mb=0.0,
-                index_size_mb=0.0,
-                fragmentation_percent=0.0,
-                most_expensive_queries=[],
-                recommended_optimizations=[f"Analysis failed: {str(e)}"]
-            )
-    
-    async def optimize_repository_queries(
-        self, 
-        repository: BaseRepository, 
-        session: AsyncSession
-    ) -> Dict[str, Any]:
-        """
-        Analyze and optimize queries used by a repository.
-        
-        Args:
-            repository: Repository instance to optimize
-            session: Database session
-            
-        Returns:
-            Optimization results and recommendations
-        """
-        table_name = repository.model.__tablename__
-        
-        # Analyze the table
-        table_analysis = await self.analyze_table_performance(table_name, session)
-        
-        # Get common query patterns for this repository
-        common_queries = self._get_repository_query_patterns(repository)
-        
-        query_optimizations = []
-        for query in common_queries:
-            optimization = await self.analyze_query_performance(query, session)
-            query_optimizations.append(optimization)
-        
-        # Generate repository-specific recommendations
-        repo_recommendations = self._generate_repository_recommendations(
-            repository, table_analysis, query_optimizations
-        )
+        for index_def in indexes_to_create:
+            try:
+                # Check if table exists (for optional indexes)
+                if index_def.get("optional", False):
+                    table_exists = self._table_exists(db, index_def["table"])
+                    if not table_exists:
+                        logger.info(f"Skipping index {index_def['name']} - table {index_def['table']} does not exist")
+                        continue
+                
+                # Check if index already exists
+                if self._index_exists(db, index_def["name"]):
+                    logger.info(f"Index {index_def['name']} already exists, skipping")
+                    continue
+                
+                # Create the index
+                success = self._create_index(db, index_def)
+                if success:
+                    indexes_created.append(index_def["name"])
+                    logger.info(f"✅ Created index: {index_def['name']}")
+                else:
+                    indexes_failed.append(index_def["name"])
+                    
+            except Exception as e:
+                logger.error(f"❌ Failed to create index {index_def['name']}: {e}")
+                indexes_failed.append(index_def["name"])
         
         return {
-            "table_analysis": table_analysis,
-            "query_optimizations": query_optimizations,
-            "repository_recommendations": repo_recommendations,
-            "optimization_priority": self._calculate_optimization_priority(
-                table_analysis, query_optimizations
-            )
+            "indexes_created": indexes_created,
+            "indexes_failed": indexes_failed,
+            "total_attempted": len(indexes_to_create)
         }
     
-    def _hash_query(self, query: str) -> str:
-        """Create a hash for query caching."""
-        normalized = re.sub(r'\s+', ' ', query.lower().strip())
-        return hashlib.md5(normalized.encode()).hexdigest()
-    
-    def _analyze_query_structure(self, query: str) -> List[str]:
-        """Analyze query structure for common performance issues."""
-        suggestions = []
-        query_lower = query.lower()
-        
-        # Check for SELECT *
-        if "select *" in query_lower:
-            suggestions.append("Avoid SELECT * - specify only needed columns")
-        
-        # Check for missing LIMIT with ORDER BY
-        if "order by" in query_lower and "limit" not in query_lower:
-            suggestions.append("Consider adding LIMIT clause with ORDER BY")
-        
-        # Check for leading wildcards in LIKE
-        if re.search(r"like\s+['\"]%", query_lower):
-            suggestions.append("Leading wildcards in LIKE are slow - consider full-text search")
-        
-        # Check for multiple JOINs
-        join_count = query_lower.count("join")
-        if join_count > 3:
-            suggestions.append(f"Query has {join_count} JOINs - verify indexes on join columns")
-        
-        # Check for subqueries
-        if "(" in query and "select" in query_lower:
-            subquery_count = query_lower.count("select") - 1
-            if subquery_count > 0:
-                suggestions.append("Consider rewriting subqueries as JOINs when possible")
-        
-        # Check for DISTINCT
-        if "distinct" in query_lower:
-            suggestions.append("DISTINCT can be expensive - verify if it's necessary")
-        
-        # Check for functions in WHERE clause
-        if re.search(r"where.*\w+\s*\(", query_lower):
-            suggestions.append("Functions in WHERE clause prevent index usage")
-        
-        # Check for OR conditions
-        if " or " in query_lower:
-            suggestions.append("OR conditions can be slow - consider UNION or separate queries")
-        
-        return suggestions
-    
-    def _extract_table_names(self, query: str) -> List[str]:
-        """Extract table names from query."""
-        # Simple regex to find table names after FROM and JOIN
-        pattern = r'\b(?:from|join)\s+([a-zA-Z_][a-zA-Z0-9_]*)'
-        matches = re.findall(pattern, query.lower())
-        return list(set(matches))
-    
-    def _calculate_complexity_score(self, query: str) -> int:
-        """Calculate query complexity score (1-10)."""
-        score = 1
-        query_lower = query.lower()
-        
-        # Add points for various complexity factors
-        score += query_lower.count("join")
-        score += query_lower.count("subquery") * 2
-        score += query_lower.count("union") * 2
-        score += query_lower.count("group by")
-        score += query_lower.count("order by")
-        score += query_lower.count("having")
-        score += len(re.findall(r"case\s+when", query_lower)) * 2
-        
-        return min(score, 10)
-    
-    async def _get_execution_plan(
-        self, 
-        query: str, 
-        session: AsyncSession
-    ) -> Dict[str, Any]:
-        """Get query execution plan."""
+    def _table_exists(self, db: Session, table_name: str) -> bool:
+        """Check if a table exists in the database"""
         try:
-            # Use EXPLAIN (ANALYZE, BUFFERS) for detailed plan
-            explain_query = f"EXPLAIN (ANALYZE, BUFFERS, FORMAT JSON) {query}"
-            result = await session.execute(text(explain_query))
-            plan_data = result.fetchone()
+            if "postgresql" in str(self.db_engine.url):
+                result = db.execute(text("""
+                    SELECT EXISTS (
+                        SELECT FROM information_schema.tables 
+                        WHERE table_schema = 'public' 
+                        AND table_name = :table_name
+                    )
+                """), {"table_name": table_name})
+            else:  # SQLite
+                result = db.execute(text("""
+                    SELECT name FROM sqlite_master 
+                    WHERE type='table' AND name=:table_name
+                """), {"table_name": table_name})
             
-            if plan_data and plan_data[0]:
-                return plan_data[0][0] if isinstance(plan_data[0], list) else plan_data[0]
+            return bool(result.fetchone())
+        except Exception as e:
+            logger.error(f"Error checking if table {table_name} exists: {e}")
+            return False
+    
+    def _index_exists(self, db: Session, index_name: str) -> bool:
+        """Check if an index already exists"""
+        try:
+            if "postgresql" in str(self.db_engine.url):
+                result = db.execute(text("""
+                    SELECT EXISTS (
+                        SELECT FROM pg_indexes 
+                        WHERE indexname = :index_name
+                    )
+                """), {"index_name": index_name})
+            else:  # SQLite
+                result = db.execute(text("""
+                    SELECT name FROM sqlite_master 
+                    WHERE type='index' AND name=:index_name
+                """), {"index_name": index_name})
             
-            return {}
+            return bool(result.fetchone())
+        except Exception as e:
+            logger.error(f"Error checking if index {index_name} exists: {e}")
+            return False
+    
+    def _create_index(self, db: Session, index_def: Dict[str, Any]) -> bool:
+        """Create a single index based on definition"""
+        try:
+            name = index_def["name"]
+            table = index_def["table"]
+            columns = index_def["columns"]
+            unique = index_def.get("unique", False)
+            condition = index_def.get("condition")
+            index_type = index_def.get("type", "btree")
+            
+            # Build the CREATE INDEX statement
+            sql_parts = []
+            
+            if unique:
+                sql_parts.append("CREATE UNIQUE INDEX")
+            else:
+                sql_parts.append("CREATE INDEX")
+            
+            sql_parts.append(f"{name} ON {table}")
+            
+            # Add index type for PostgreSQL
+            if "postgresql" in str(self.db_engine.url) and index_type != "btree":
+                sql_parts.append(f"USING {index_type}")
+            
+            # Add columns
+            columns_str = ", ".join(columns)
+            sql_parts.append(f"({columns_str})")
+            
+            # Add condition if specified
+            if condition:
+                sql_parts.append(f"WHERE {condition}")
+            
+            sql = " ".join(sql_parts)
+            
+            # Execute the CREATE INDEX statement
+            db.execute(text(sql))
+            db.commit()
+            
+            return True
             
         except Exception as e:
-            logger.warning(f"Could not get execution plan: {e}")
-            return {}
+            logger.error(f"Error creating index {index_def['name']}: {e}")
+            db.rollback()
+            return False
     
-    def _analyze_execution_plan(self, plan: Dict[str, Any]) -> List[str]:
-        """Analyze execution plan for optimization opportunities."""
-        suggestions = []
+    def optimize_queries(self, db: Session) -> Dict[str, Any]:
+        """
+        Optimize complex queries used by the application
         
-        if not plan:
-            return suggestions
+        Returns:
+            Dictionary with optimization results
+        """
+        optimizations = []
         
         try:
-            # Look for expensive operations
-            if "Plan" in plan:
-                self._analyze_plan_node(plan["Plan"], suggestions)
+            # Update table statistics (PostgreSQL)
+            if "postgresql" in str(self.db_engine.url):
+                db.execute(text("ANALYZE;"))
+                optimizations.append("Updated table statistics")
+            
+            # Vacuum analyze (PostgreSQL) - be careful in production
+            # db.execute(text("VACUUM ANALYZE;"))
+            # optimizations.append("Performed vacuum analyze")
+            
+            db.commit()
+            
+            logger.info(f"Query optimizations completed: {optimizations}")
+            
+            return {
+                "optimizations_applied": optimizations,
+                "status": "success"
+            }
             
         except Exception as e:
-            logger.warning(f"Execution plan analysis failed: {e}")
-        
-        return suggestions
+            logger.error(f"Error optimizing queries: {e}")
+            db.rollback()
+            return {
+                "optimizations_applied": optimizations,
+                "status": "error",
+                "error": str(e)
+            }
     
-    def _analyze_plan_node(self, node: Dict[str, Any], suggestions: List[str]):
-        """Recursively analyze execution plan nodes."""
-        node_type = node.get("Node Type", "")
+    def implement_connection_pooling(self) -> Dict[str, Any]:
+        """
+        Configure database connection pooling for better performance
         
-        # Check for sequential scans
-        if node_type == "Seq Scan":
-            suggestions.append(f"Sequential scan detected on {node.get('Relation Name', 'unknown table')} - consider adding index")
-        
-        # Check for expensive sorts
-        if node_type == "Sort" and node.get("Actual Total Time", 0) > 100:
-            suggestions.append("Expensive sort operation - consider adding index for ORDER BY")
-        
-        # Check for hash joins without indexes
-        if node_type == "Hash Join":
-            suggestions.append("Hash join detected - verify indexes on join columns")
-        
-        # Check for nested loops with high cost
-        if node_type == "Nested Loop" and node.get("Total Cost", 0) > 1000:
-            suggestions.append("Expensive nested loop - consider rewriting query or adding indexes")
-        
-        # Recursively analyze child nodes
-        for child in node.get("Plans", []):
-            self._analyze_plan_node(child, suggestions)
+        Returns:
+            Dictionary with pooling configuration results
+        """
+        try:
+            # Get current engine configuration
+            current_pool_size = getattr(self.db_engine.pool, 'size', 'unknown')
+            current_max_overflow = getattr(self.db_engine.pool, 'max_overflow', 'unknown')
+            
+            # Recommended pool settings based on application type
+            recommended_settings = {
+                "pool_size": 20,  # Base number of connections to maintain
+                "max_overflow": 30,  # Additional connections when needed
+                "pool_timeout": 30,  # Seconds to wait for connection
+                "pool_recycle": 3600,  # Recycle connections after 1 hour
+                "pool_pre_ping": True,  # Validate connections before use
+            }
+            
+            # Create optimized engine (this would typically be done at startup)
+            # For now, we'll just return the recommended configuration
+            
+            logger.info("Connection pooling configuration analyzed")
+            
+            return {
+                "status": "analyzed",
+                "current_pool_size": current_pool_size,
+                "current_max_overflow": current_max_overflow,
+                "recommended_settings": recommended_settings,
+                "message": "Connection pooling settings analyzed. Apply at application startup."
+            }
+            
+        except Exception as e:
+            logger.error(f"Error analyzing connection pooling: {e}")
+            return {
+                "status": "error",
+                "error": str(e)
+            }
     
-    async def _generate_index_recommendations(
-        self, 
-        query: str, 
-        tables: List[str], 
-        session: AsyncSession
-    ) -> List[str]:
-        """Generate index recommendations based on query analysis."""
+    def analyze_query_performance(self, db: Session) -> Dict[str, Any]:
+        """
+        Analyze query performance and identify slow queries
+        
+        Returns:
+            Dictionary with performance analysis results
+        """
+        try:
+            performance_data = {}
+            
+            # Test common query patterns
+            query_tests = [
+                {
+                    "name": "user_jobs_lookup",
+                    "description": "User jobs with status filter",
+                    "query": "SELECT COUNT(*) FROM jobs WHERE user_id = 1 AND status = 'not_applied'"
+                },
+                {
+                    "name": "job_recommendations",
+                    "description": "Jobs for recommendations (tech stack filter)",
+                    "query": "SELECT COUNT(*) FROM jobs WHERE tech_stack IS NOT NULL AND status = 'not_applied'"
+                },
+                {
+                    "name": "application_analytics",
+                    "description": "Application status breakdown",
+                    "query": "SELECT status, COUNT(*) FROM applications GROUP BY status"
+                },
+                {
+                    "name": "content_generation_lookup",
+                    "description": "User content by type",
+                    "query": "SELECT COUNT(*) FROM content_generations WHERE user_id = 1 AND content_type = 'cover_letter'"
+                },
+                {
+                    "name": "feedback_analysis",
+                    "description": "Job recommendation feedback",
+                    "query": "SELECT COUNT(*) FROM job_recommendation_feedback WHERE is_helpful = true"
+                }
+            ]
+            
+            for test in query_tests:
+                try:
+                    start_time = time.time()
+                    result = db.execute(text(test["query"]))
+                    result.fetchall()  # Ensure query is fully executed
+                    end_time = time.time()
+                    
+                    execution_time = (end_time - start_time) * 1000  # Convert to milliseconds
+                    
+                    performance_data[test["name"]] = {
+                        "description": test["description"],
+                        "execution_time_ms": round(execution_time, 2),
+                        "status": "fast" if execution_time < 100 else "slow" if execution_time < 1000 else "very_slow"
+                    }
+                    
+                except Exception as e:
+                    performance_data[test["name"]] = {
+                        "description": test["description"],
+                        "error": str(e),
+                        "status": "error"
+                    }
+            
+            # Analyze results
+            slow_queries = [name for name, data in performance_data.items() 
+                          if data.get("status") in ["slow", "very_slow"]]
+            
+            avg_execution_time = sum(
+                data.get("execution_time_ms", 0) 
+                for data in performance_data.values() 
+                if "execution_time_ms" in data
+            ) / len([d for d in performance_data.values() if "execution_time_ms" in d])
+            
+            logger.info(f"Query performance analysis completed. Average execution time: {avg_execution_time:.2f}ms")
+            
+            return {
+                "status": "success",
+                "performance_data": performance_data,
+                "slow_queries": slow_queries,
+                "average_execution_time_ms": round(avg_execution_time, 2),
+                "recommendations": self._get_performance_recommendations(performance_data)
+            }
+            
+        except Exception as e:
+            logger.error(f"Error analyzing query performance: {e}")
+            return {
+                "status": "error",
+                "error": str(e)
+            }
+    
+    def _get_performance_recommendations(self, performance_data: Dict[str, Any]) -> List[str]:
+        """Generate performance recommendations based on analysis"""
         recommendations = []
         
+        for query_name, data in performance_data.items():
+            if data.get("status") == "very_slow":
+                recommendations.append(f"Critical: {query_name} is very slow ({data.get('execution_time_ms')}ms) - needs immediate optimization")
+            elif data.get("status") == "slow":
+                recommendations.append(f"Warning: {query_name} is slow ({data.get('execution_time_ms')}ms) - consider adding indexes")
+        
+        # General recommendations
+        if len([d for d in performance_data.values() if d.get("status") in ["slow", "very_slow"]]) > 2:
+            recommendations.append("Consider implementing query result caching for frequently accessed data")
+            recommendations.append("Review database connection pooling settings")
+        
+        if not recommendations:
+            recommendations.append("Query performance looks good! No immediate optimizations needed.")
+        
+        return recommendations
+    
+    def cleanup_old_data(self, db: Session, days_old: int = 90) -> Dict[str, Any]:
+        """
+        Clean up old data to improve performance
+        
+        Args:
+            days_old: Delete data older than this many days
+            
+        Returns:
+            Dictionary with cleanup results
+        """
         try:
-            # Analyze WHERE clauses for index opportunities
-            where_columns = self._extract_where_columns(query)
+            cutoff_date = datetime.utcnow() - timedelta(days=days_old)
+            cleanup_results = {}
+            
+            # Clean up old content generations (keep user-modified ones)
+            old_content = db.execute(text("""
+                DELETE FROM content_generations 
+                WHERE created_at < :cutoff_date 
+                AND user_modifications IS NULL 
+                AND status NOT IN ('approved', 'used')
+            """), {"cutoff_date": cutoff_date})
+            cleanup_results["content_generations_deleted"] = old_content.rowcount
+            
+            # Clean up old resume uploads (keep successful ones)
+            old_resumes = db.execute(text("""
+                DELETE FROM resume_uploads 
+                WHERE created_at < :cutoff_date 
+                AND parsing_status = 'failed'
+            """), {"cutoff_date": cutoff_date})
+            cleanup_results["failed_resume_uploads_deleted"] = old_resumes.rowcount
+            
+            # Clean up old feedback votes (keep recent ones)
+            old_votes = db.execute(text("""
+                DELETE FROM feedback_votes 
+                WHERE created_at < :cutoff_date
+            """), {"cutoff_date": cutoff_date})
+            cleanup_results["old_feedback_votes_deleted"] = old_votes.rowcount
+            
+            db.commit()
+            
+            total_deleted = sum(cleanup_results.values())
+            logger.info(f"Data cleanup completed: {total_deleted} records deleted")
+            
+            return {
+                "status": "success",
+                "cleanup_results": cleanup_results,
+                "total_deleted": total_deleted,
+                "cutoff_date": cutoff_date.isoformat()
+            }
+            
+        except Exception as e:
+            logger.error(f"Error cleaning up old data: {e}")
+            db.rollback()
+            return {
+                "status": "error",
+                "error": str(e)
+            }
+    
+    def get_database_stats(self, db: Session) -> Dict[str, Any]:
+        """
+        Get database statistics and health metrics
+        
+        Returns:
+            Dictionary with database statistics
+        """
+        try:
+            stats = {}
+            
+            # Table row counts
+            tables = [
+                "users", "jobs", "applications", "content_generations", 
+                "resume_uploads", "job_recommendation_feedback", "feedback"
+            ]
             
             for table in tables:
-                # Check existing indexes
-                existing_indexes = await self._get_existing_indexes(table, session)
-                
-                for column in where_columns.get(table, []):
-                    if not self._column_has_index(column, existing_indexes):
-                        recommendations.append(
-                            f"CREATE INDEX CONCURRENTLY idx_{table}_{column} ON {table} ({column});"
-                        )
+                try:
+                    result = db.execute(text(f"SELECT COUNT(*) FROM {table}"))
+                    count = result.scalar()
+                    stats[f"{table}_count"] = count
+                except Exception as e:
+                    stats[f"{table}_count"] = f"Error: {str(e)}"
             
-            # Analyze JOIN conditions
-            join_conditions = self._extract_join_conditions(query)
-            for table, columns in join_conditions.items():
-                existing_indexes = await self._get_existing_indexes(table, session)
-                
-                for column in columns:
-                    if not self._column_has_index(column, existing_indexes):
-                        recommendations.append(
-                            f"CREATE INDEX CONCURRENTLY idx_{table}_{column}_join ON {table} ({column});"
-                        )
-        
-        except Exception as e:
-            logger.warning(f"Index recommendation generation failed: {e}")
-        
-        return recommendations
-    
-    def _extract_where_columns(self, query: str) -> Dict[str, List[str]]:
-        """Extract columns used in WHERE clauses by table."""
-        # Simplified extraction - would need more sophisticated parsing for production
-        where_columns = {}
-        
-        # Basic regex to find WHERE conditions
-        where_pattern = r"where\s+(\w+)\.(\w+)\s*[=<>!]"
-        matches = re.findall(where_pattern, query.lower())
-        
-        for table, column in matches:
-            if table not in where_columns:
-                where_columns[table] = []
-            where_columns[table].append(column)
-        
-        return where_columns
-    
-    def _extract_join_conditions(self, query: str) -> Dict[str, List[str]]:
-        """Extract columns used in JOIN conditions by table."""
-        join_columns = {}
-        
-        # Basic regex to find JOIN conditions
-        join_pattern = r"join\s+(\w+)\s+.*?on\s+\w+\.(\w+)\s*=\s*\w+\.(\w+)"
-        matches = re.findall(join_pattern, query.lower())
-        
-        for table, col1, col2 in matches:
-            if table not in join_columns:
-                join_columns[table] = []
-            join_columns[table].extend([col1, col2])
-        
-        return join_columns
-    
-    async def _get_existing_indexes(
-        self, 
-        table_name: str, 
-        session: AsyncSession
-    ) -> List[Dict[str, Any]]:
-        """Get existing indexes for a table."""
-        try:
-            query = text("""
-                SELECT indexname, indexdef 
-                FROM pg_indexes 
-                WHERE tablename = :table_name
-            """)
+            # Database size (PostgreSQL specific)
+            if "postgresql" in str(self.db_engine.url):
+                try:
+                    result = db.execute(text("""
+                        SELECT pg_size_pretty(pg_database_size(current_database())) as size
+                    """))
+                    size = result.scalar()
+                    stats["database_size"] = size
+                except Exception as e:
+                    stats["database_size"] = f"Error: {str(e)}"
             
-            result = await session.execute(query, {"table_name": table_name})
-            return [{"name": row[0], "definition": row[1]} for row in result]
+            # Index usage (PostgreSQL specific)
+            if "postgresql" in str(self.db_engine.url):
+                try:
+                    result = db.execute(text("""
+                        SELECT schemaname, tablename, indexname, idx_tup_read, idx_tup_fetch
+                        FROM pg_stat_user_indexes 
+                        ORDER BY idx_tup_read DESC 
+                        LIMIT 10
+                    """))
+                    index_stats = [dict(row) for row in result.fetchall()]
+                    stats["top_used_indexes"] = index_stats
+                except Exception as e:
+                    stats["index_usage_error"] = str(e)
+            
+            # Connection info
+            stats["database_url"] = str(self.db_engine.url).split('@')[0] + '@[hidden]'  # Hide credentials
+            stats["pool_size"] = getattr(self.db_engine.pool, 'size', 'unknown')
+            stats["checked_in_connections"] = getattr(self.db_engine.pool, 'checkedin', 'unknown')
+            stats["checked_out_connections"] = getattr(self.db_engine.pool, 'checkedout', 'unknown')
+            
+            logger.info("Database statistics collected successfully")
+            
+            return {
+                "status": "success",
+                "stats": stats,
+                "collected_at": datetime.utcnow().isoformat()
+            }
             
         except Exception as e:
-            logger.warning(f"Could not get indexes for {table_name}: {e}")
-            return []
-    
-    def _column_has_index(self, column: str, indexes: List[Dict[str, Any]]) -> bool:
-        """Check if column has an index."""
-        for index in indexes:
-            if column in index["definition"].lower():
-                return True
-        return False
-    
-    def _optimize_query_structure(self, query: str) -> Optional[str]:
-        """Attempt to optimize query structure."""
-        optimized = query
-        
-        # Replace SELECT * with specific columns (placeholder)
-        if "select *" in query.lower():
-            # This would need table schema information to be properly implemented
-            optimized = query.replace("SELECT *", "SELECT /* specify columns */")
-        
-        # Add LIMIT to ORDER BY queries without it
-        if "order by" in query.lower() and "limit" not in query.lower():
-            optimized += " LIMIT 1000"
-        
-        return optimized if optimized != query else None
-    
-    async def _get_table_statistics(
-        self, 
-        table_name: str, 
-        session: AsyncSession
-    ) -> Dict[str, Any]:
-        """Get comprehensive table statistics."""
-        try:
-            stats_query = text("""
-                SELECT 
-                    (SELECT reltuples::bigint FROM pg_class WHERE relname = :table_name) as row_count,
-                    pg_size_pretty(pg_total_relation_size(:table_name)) as total_size,
-                    pg_size_pretty(pg_relation_size(:table_name)) as table_size,
-                    pg_size_pretty(pg_total_relation_size(:table_name) - pg_relation_size(:table_name)) as index_size,
-                    (pg_relation_size(:table_name) / 1024.0 / 1024.0) as table_size_mb,
-                    ((pg_total_relation_size(:table_name) - pg_relation_size(:table_name)) / 1024.0 / 1024.0) as index_size_mb
-            """)
-            
-            result = await session.execute(stats_query, {"table_name": table_name})
-            row = result.fetchone()
-            
-            if row:
-                return {
-                    "row_count": row[0] or 0,
-                    "total_size": row[1],
-                    "table_size": row[2],
-                    "index_size": row[3],
-                    "table_size_mb": float(row[4] or 0),
-                    "index_size_mb": float(row[5] or 0),
-                    "fragmentation_percent": 0.0  # Would need more complex calculation
-                }
-            
-            return {}
-            
-        except Exception as e:
-            logger.warning(f"Could not get table statistics for {table_name}: {e}")
-            return {}
-    
-    async def _analyze_table_structure(
-        self, 
-        table_name: str, 
-        session: AsyncSession
-    ) -> List[str]:
-        """Analyze table structure for optimization opportunities."""
-        recommendations = []
-        
-        try:
-            # Get column statistics
-            stats_query = text("""
-                SELECT attname, n_distinct, correlation
-                FROM pg_stats 
-                WHERE tablename = :table_name
-                ORDER BY n_distinct DESC NULLS LAST
-            """)
-            
-            result = await session.execute(stats_query, {"table_name": table_name})
-            
-            for row in result:
-                column_name, n_distinct, correlation = row
-                
-                # Recommend indexes for high-cardinality columns
-                if n_distinct and n_distinct > 100:
-                    recommendations.append(
-                        f"Consider index on high-cardinality column: {column_name}"
-                    )
-                
-                # Recommend clustering for highly correlated columns
-                if correlation and abs(correlation) > 0.8:
-                    recommendations.append(
-                        f"Consider clustering on correlated column: {column_name}"
-                    )
-        
-        except Exception as e:
-            logger.warning(f"Table structure analysis failed for {table_name}: {e}")
-        
-        return recommendations
-    
-    async def _get_expensive_queries_for_table(
-        self, 
-        table_name: str, 
-        session: AsyncSession
-    ) -> List[str]:
-        """Get most expensive queries for a table from pg_stat_statements."""
-        try:
-            # This requires pg_stat_statements extension
-            query = text("""
-                SELECT query, mean_time, calls
-                FROM pg_stat_statements 
-                WHERE query ILIKE :pattern
-                ORDER BY mean_time DESC
-                LIMIT 5
-            """)
-            
-            result = await session.execute(
-                query, 
-                {"pattern": f"%{table_name}%"}
-            )
-            
-            return [row[0] for row in result]
-            
-        except Exception as e:
-            logger.warning(f"Could not get expensive queries for {table_name}: {e}")
-            return []
-    
-    def _get_repository_query_patterns(
-        self, 
-        repository: BaseRepository
-    ) -> List[str]:
-        """Get common query patterns for a repository."""
-        # This would analyze the repository methods to extract common queries
-        # For now, return some common patterns
-        table_name = repository.model.__tablename__
-        
-        return [
-            f"SELECT * FROM {table_name} WHERE id = ?",
-            f"SELECT * FROM {table_name} ORDER BY created_at DESC LIMIT 20",
-            f"SELECT COUNT(*) FROM {table_name}",
-            f"SELECT * FROM {table_name} WHERE user_id = ? ORDER BY created_at DESC"
-        ]
-    
-    def _generate_repository_recommendations(
-        self,
-        repository: BaseRepository,
-        table_analysis: TableAnalysisResult,
-        query_optimizations: List[QueryOptimizationResult]
-    ) -> List[str]:
-        """Generate repository-specific optimization recommendations."""
-        recommendations = []
-        
-        # Analyze table size
-        if table_analysis.table_size_mb > 1000:  # > 1GB
-            recommendations.append("Large table detected - consider partitioning")
-        
-        # Analyze index usage
-        if table_analysis.index_size_mb > table_analysis.table_size_mb * 0.5:
-            recommendations.append("High index overhead - review index necessity")
-        
-        # Analyze query complexity
-        avg_complexity = sum(q.complexity_score for q in query_optimizations) / len(query_optimizations) if query_optimizations else 0
-        
-        if avg_complexity > 6:
-            recommendations.append("High query complexity - consider query optimization")
-        
-        return recommendations
-    
-    def _calculate_optimization_priority(
-        self,
-        table_analysis: TableAnalysisResult,
-        query_optimizations: List[QueryOptimizationResult]
-    ) -> str:
-        """Calculate optimization priority based on analysis results."""
-        priority_score = 0
-        
-        # Table size factor
-        if table_analysis.table_size_mb > 1000:
-            priority_score += 3
-        elif table_analysis.table_size_mb > 100:
-            priority_score += 2
-        elif table_analysis.table_size_mb > 10:
-            priority_score += 1
-        
-        # Query complexity factor
-        if query_optimizations:
-            avg_complexity = sum(q.complexity_score for q in query_optimizations) / len(query_optimizations)
-            if avg_complexity > 7:
-                priority_score += 3
-            elif avg_complexity > 5:
-                priority_score += 2
-            elif avg_complexity > 3:
-                priority_score += 1
-        
-        # Number of optimization suggestions
-        total_suggestions = sum(len(q.suggestions) for q in query_optimizations)
-        if total_suggestions > 10:
-            priority_score += 2
-        elif total_suggestions > 5:
-            priority_score += 1
-        
-        if priority_score >= 6:
-            return "high"
-        elif priority_score >= 3:
-            return "medium"
-        else:
-            return "low"
+            logger.error(f"Error collecting database statistics: {e}")
+            return {
+                "status": "error",
+                "error": str(e)
+            }
 
 
-# Global service instance
-database_optimization_service = DatabaseOptimizationService()
-
-
-def get_database_optimization_service() -> DatabaseOptimizationService:
-    """Get the database optimization service instance."""
-    return database_optimization_service
+# Global database optimization service instance
+db_optimization_service = DatabaseOptimizationService()

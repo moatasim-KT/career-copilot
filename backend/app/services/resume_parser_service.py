@@ -16,7 +16,8 @@ from ..services.llm_manager import LLMManager
 from ..models.resume_upload import ResumeUpload
 from ..core.database import get_db
 from sqlalchemy.orm import Session
-from ..utils.redis_client import redis_client
+from .cache_service import cache_service
+import hashlib
 
 logger = logging.getLogger(__name__)
 
@@ -63,11 +64,12 @@ class ResumeParserService:
         Returns:
             Dictionary containing extracted data
         """
-        cache_key = f"resume:{user_id}:{file_path}"
-        if redis_client:
-            cached_result = redis_client.get(cache_key)
-            if cached_result:
-                return json.loads(cached_result)
+        # Generate file hash for caching
+        file_hash = self._generate_file_hash(file_path)
+        cached_result = cache_service.get_cached_resume_parsing(user_id, file_hash)
+        if cached_result:
+            logger.info(f"Retrieved cached resume parsing for user {user_id}")
+            return cached_result
 
         try:
             # Validate file format
@@ -106,8 +108,8 @@ class ResumeParserService:
                 "parsing_method": "llm" if llm_result.get("skills") else "rules",
             }
 
-            if redis_client:
-                redis_client.set(cache_key, json.dumps(parsed_data), ex=3600)
+            # Cache the parsed data
+            cache_service.cache_resume_parsing(user_id, file_hash, parsed_data, ttl=86400)
 
             logger.info(f"Successfully parsed resume {filename} for user {user_id}")
             return parsed_data
@@ -423,3 +425,15 @@ class ResumeParserService:
 
         except Exception as e:
             return False, f"File validation error: {str(e)}"
+
+    def _generate_file_hash(self, file_path: str) -> str:
+        """Generate a hash for the file content for caching purposes"""
+        try:
+            with open(file_path, 'rb') as f:
+                file_content = f.read()
+                return hashlib.md5(file_content).hexdigest()
+        except Exception as e:
+            logger.error(f"Error generating file hash: {str(e)}")
+            # Fallback to filename + size + mtime
+            stat = os.stat(file_path)
+            return hashlib.md5(f"{file_path}:{stat.st_size}:{stat.st_mtime}".encode()).hexdigest()

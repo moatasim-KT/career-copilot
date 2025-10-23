@@ -1,25 +1,21 @@
-
 'use client';
 
 import { useState } from 'react';
 import { apiClient } from '@/lib/api';
-import { Sparkles, Loader, AlertCircle } from 'lucide-react';
+import Card from './Card';
+import { Copy } from 'lucide-react';
 
 export default function ContentGeneration() {
-  const [contentType, setContentType] = useState<'cover_letter' | 'resume_summary'>('cover_letter');
+  const [contentType, setContentType] = useState('cover_letter');
   const [context, setContext] = useState('');
   const [generatedContent, setGeneratedContent] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [generating, setGenerating] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
 
   const handleGenerate = async () => {
-    if (!context) {
-      setError('Please provide some context for generation.');
-      return;
-    }
-
-    setIsLoading(true);
-    setError('');
+    setGenerating(true);
+    setError(null);
     setGeneratedContent('');
 
     try {
@@ -30,87 +26,63 @@ export default function ContentGeneration() {
         setGeneratedContent(response.data.generated_content);
       }
     } catch (err) {
-      setError('An unexpected error occurred');
+      setError('An unknown error occurred');
     } finally {
-      setIsLoading(false);
+      setGenerating(false);
     }
   };
 
+  const handleCopy = () => {
+    navigator.clipboard.writeText(generatedContent);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
   return (
-    <div className="w-full max-w-2xl mx-auto">
-      <div className="bg-white p-6 rounded-lg shadow-sm border">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-          <Sparkles className="h-5 w-5 text-blue-600 mr-2" />
-          AI Content Generation
-        </h3>
-
-        {error && (
-          <div className="bg-red-50 border border-red-200 rounded-md p-4 mb-4">
-            <div className="flex">
-              <AlertCircle className="h-5 w-5 text-red-400" />
-              <div className="ml-3">
-                <p className="text-sm text-red-800">{error}</p>
-              </div>
-            </div>
-          </div>
-        )}
-
-        <div className="space-y-4">
-          <div>
-            <label htmlFor="contentType" className="block text-sm font-medium text-gray-700">
-              Content Type
-            </label>
-            <select
-              id="contentType"
-              name="contentType"
-              value={contentType}
-              onChange={(e) => setContentType(e.target.value as any)}
-              className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md"
-            >
-              <option value="cover_letter">Cover Letter</option>
-              <option value="resume_summary">Resume Summary</option>
-            </select>
-          </div>
-
-          <div>
-            <label htmlFor="context" className="block text-sm font-medium text-gray-700">
-              Context (e.g., job description, key skills)
-            </label>
-            <textarea
-              id="context"
-              name="context"
-              rows={6}
-              value={context}
-              onChange={(e) => setContext(e.target.value)}
-              className="mt-1 shadow-sm block w-full sm:text-sm border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
-              placeholder="Paste a job description or describe your desired role..."
-            />
-          </div>
-        </div>
-
-        <div className="mt-6">
-          <button
-            onClick={handleGenerate}
-            disabled={isLoading}
-            className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+    <div className="p-6">
+      <h2 className="text-xl font-bold text-gray-900 mb-4">Content Generation</h2>
+      <div className="space-y-4">
+        <div>
+          <label htmlFor="contentType" className="block text-sm font-medium text-gray-700">Content Type</label>
+          <select
+            id="contentType"
+            name="contentType"
+            value={contentType}
+            onChange={(e) => setContentType(e.target.value)}
+            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
           >
-            {isLoading ? (
-              <>
-                <Loader className="animate-spin h-5 w-5 mr-3" />
-                Generating...
-              </>
-            ) : (
-              'Generate Content'
-            )}
-          </button>
+            <option value="cover_letter">Cover Letter</option>
+            <option value="resume_summary">Resume Summary</option>
+          </select>
         </div>
-
+        <div>
+          <label htmlFor="context" className="block text-sm font-medium text-gray-700">Context</label>
+          <textarea
+            id="context"
+            name="context"
+            rows={5}
+            value={context}
+            onChange={(e) => setContext(e.target.value)}
+            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+            placeholder="Provide context for the content generation, such as job description, company details, etc."
+          />
+        </div>
+        <button
+          onClick={handleGenerate}
+          disabled={generating}
+          className="px-4 py-2 bg-blue-500 text-white rounded-md disabled:bg-gray-400"
+        >
+          {generating ? 'Generating...' : 'Generate'}
+        </button>
+        {error && <p className="text-red-500 text-sm">{error}</p>}
         {generatedContent && (
-          <div className="mt-6 border-t pt-6">
-            <h4 className="text-md font-semibold text-gray-800 mb-2">Generated Content:</h4>
-            <div className="prose prose-sm max-w-none p-4 bg-gray-50 rounded-md border">
-              {generatedContent}
-            </div>
+          <div className="mt-4 p-4 bg-gray-100 rounded-md relative">
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">Generated Content</h3>
+            <p className="text-sm text-gray-700 whitespace-pre-wrap">{generatedContent}</p>
+            <button onClick={handleCopy} className="absolute top-2 right-2 p-1 bg-gray-200 rounded-md hover:bg-gray-300">
+              <Copy className="w-4 h-4" />
+            </button>
+            {copied && <span className="absolute top-2 right-10 text-xs bg-gray-800 text-white px-2 py-1 rounded">Copied!</span>}
           </div>
         )}
       </div>

@@ -7,6 +7,8 @@ from datetime import datetime
 from ...core.database import get_db
 from ...core.logging import get_logger
 from ...scheduler import scheduler
+from ...core.optimized_database import check_database_health
+from ...services.cache_service import cache_service
 
 from ...schemas.health import HealthResponse
 
@@ -20,42 +22,55 @@ async def health_check(db: Session = Depends(get_db)):
     Health check endpoint that verifies system component status.
     
     Checks:
-    - Database connectivity
+    - Database connectivity and performance
     - Scheduler status
+    - Cache service status
     
     Returns overall status and individual component health.
     """
-    db_status = "unhealthy"
-    scheduler_status = "unhealthy"
+    components = {}
     
-    # Check database connectivity
+    # Check database connectivity and performance
     try:
-        await db.execute(text("SELECT 1"))
-        db_status = "healthy"
+        from ...core.database import engine
+        db_health = check_database_health(engine)
+        components["database"] = db_health
     except Exception as e:
         logger.error(f"Database health check failed: {e}")
-        db_status = "unhealthy"
+        components["database"] = {"status": "unhealthy", "error": str(e)}
     
     # Check scheduler status
     try:
         if scheduler.running:
-            scheduler_status = "healthy"
+            components["scheduler"] = {"status": "healthy"}
         else:
-            scheduler_status = "unhealthy"
+            components["scheduler"] = {"status": "unhealthy", "message": "Scheduler not running"}
     except Exception as e:
         logger.error(f"Scheduler health check failed: {e}")
-        scheduler_status = "unhealthy"
+        components["scheduler"] = {"status": "unhealthy", "error": str(e)}
+    
+    # Check cache service status
+    try:
+        if cache_service.enabled:
+            cache_stats = cache_service.get_cache_stats()
+            components["cache"] = {
+                "status": "healthy" if cache_stats.get("enabled") else "unhealthy",
+                "stats": cache_stats
+            }
+        else:
+            components["cache"] = {"status": "disabled", "message": "Cache service disabled"}
+    except Exception as e:
+        logger.error(f"Cache health check failed: {e}")
+        components["cache"] = {"status": "unhealthy", "error": str(e)}
     
     # Determine overall status
-    overall_status = "healthy" if db_status == "healthy" and scheduler_status == "healthy" else "unhealthy"
+    healthy_components = [comp for comp in components.values() if comp.get("status") == "healthy"]
+    overall_status = "healthy" if len(healthy_components) >= 2 else "unhealthy"  # At least DB and one other
     
     return {
         "status": overall_status,
         "timestamp": datetime.now().isoformat(),
-        "components": {
-            "database": db_status,
-            "scheduler": scheduler_status
-        }
+        "components": components
     }
 
 

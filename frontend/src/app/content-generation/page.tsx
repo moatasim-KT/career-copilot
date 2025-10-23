@@ -1,16 +1,16 @@
-
 'use client';
 
 import ContentGeneration from '@/components/ui/ContentGeneration';
-import withAuth from '@/components/auth/withAuth';
+import Card from '@/components/ui/Card';
+import Card from '@/components/ui/Card';
 
-function ContentGenerationPage() {
+export default function ContentGenerationPage() {
   return (
-    <div className="space-y-8">
-      <h1 className="text-3xl font-bold text-gray-900">AI Content Generation</h1>
-      <ContentGeneration />
+    <div className="space-y-6">
+      <h1 className="text-3xl font-bold text-gray-900">Content Generation</h1>
+      <Card>
+        <ContentGeneration />
+      </Card>
     </div>
   );
 }
-
-export default withAuth(ContentGenerationPage);
