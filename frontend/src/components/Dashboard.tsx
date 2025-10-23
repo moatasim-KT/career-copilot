@@ -286,11 +286,11 @@ export default function Dashboard() {
       </div>
 
       {/* Status Breakdown */}
-      {analytics?.status_breakdown && Object.keys(analytics.status_breakdown).length > 0 && (
+      {analytics?.application_status_breakdown && Object.keys(analytics.application_status_breakdown).length > 0 && (
         <div className="bg-white p-6 rounded-lg shadow-sm border">
           <h2 className="text-lg font-semibold text-gray-900 mb-4">Application Status Breakdown</h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {Object.entries(analytics.status_breakdown).map(([status, count]) => (
+            {Object.entries(analytics.application_status_breakdown).map(([status, count]) => (
               <div key={status} className="text-center">
                 <div className="flex justify-center mb-2">
                   {getStatusIcon(status)}

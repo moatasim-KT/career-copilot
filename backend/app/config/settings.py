@@ -1,6 +1,6 @@
 from pydantic_settings import BaseSettings
 from typing import List, Optional, Dict, Any
-from pydantic import model_validator
+from pydantic import model_validator, SecretStr
 
 class Settings(BaseSettings):
     # Application Settings
@@ -13,7 +13,7 @@ class Settings(BaseSettings):
     database_url: Optional[str] = "sqlite:///./data/career_copilot.db"
 
     # Authentication & Security
-    jwt_secret_key: Optional[str] = "your-super-secret-key-min-32-chars"
+    jwt_secret_key: SecretStr = "your-super-secret-key-min-32-chars"
     jwt_algorithm: Optional[str] = "HS256"
     jwt_expiration_hours: Optional[int] = 24
     disable_auth: Optional[bool] = False
@@ -71,6 +71,8 @@ class Settings(BaseSettings):
 
     # OAuth Social Authentication
     oauth_enabled: Optional[bool] = False
+    firebase_project_id: Optional[str] = None
+    firebase_service_account_key: Optional[str] = None
 
     # Google OAuth Configuration
     google_client_id: Optional[str] = None

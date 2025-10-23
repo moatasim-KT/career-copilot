@@ -582,7 +582,7 @@ This implementation plan covers the complete Career Co-Pilot MVP across all four
   - Integrate with the `GET /api/v1/profile` and `PUT /api/v1/profile` endpoints.
   - _Requirements: 1.2, 1.3, 1.4, 1.5_
 
-- [-] 33. Implement Job and Application Management
+- [x] 33. Implement Job and Application Management
   - Create a page to display a list of jobs and applications.
   - Implement functionality to create, view, update, and delete jobs and applications.
   - Add a form for creating and editing jobs with all necessary fields.
@@ -595,7 +595,7 @@ This implementation plan covers the complete Career Co-Pilot MVP across all four
   - Integrate with the `GET /api/v1/skill-gap` endpoint.
   - _Requirements: 3.5, 4.5_
 
-- [ ] 35. Implement Analytics Dashboard
+- [-] 35. Implement Analytics Dashboard
   - Create a dashboard to display user analytics.
   - Integrate with the `GET /api/v1/analytics/summary` endpoint.
   - Use a charting library (e.g., Recharts, Chart.js) to visualize data.

@@ -12,6 +12,8 @@ from ..core.websocket_manager import websocket_manager
 from ..core.logging import get_logger
 from ..services.authentication_service import get_authentication_service
 from ..repositories.user_repository import UserRepository
+from ..core.config import get_settings
+from ..services.firebase_auth_service import get_firebase_auth_service
 
 logger = get_logger(__name__)
 
@@ -21,6 +23,8 @@ class WebSocketService:
     
     def __init__(self):
         self.manager = websocket_manager
+        self.settings = get_settings()
+        self.firebase_service = get_firebase_auth_service()
     
     async def authenticate_websocket(self, websocket: WebSocket, token: str, session: Session) -> Optional[int]:
         """
@@ -38,7 +42,7 @@ class WebSocketService:
             auth_service = get_authentication_service()
             
             # Validate token
-            token_data = await auth_service.validate_access_token(token)
+            token_data = auth_service.verify_access_token(token)
             
             if not token_data:
                 await websocket.close(code=status.WS_1008_POLICY_VIOLATION, reason="Invalid token")
@@ -143,7 +147,9 @@ class WebSocketService:
             logger.error(f"Error handling client message from user {user_id}: {e}")
     
     async def send_pong(self, user_id: int):
-        """Send pong response to client ping."""
+        """
+        Send pong response to client ping.
+        """
         pong_message = {
             "type": "pong",
             "timestamp": datetime.now().isoformat()
@@ -151,7 +157,9 @@ class WebSocketService:
         await self.manager.send_personal_message(user_id, pong_message)
     
     async def send_subscription_confirmation(self, user_id: int, channel: str, subscribed: bool):
-        """Send subscription confirmation to client."""
+        """
+        Send subscription confirmation to client.
+        """
         confirmation_message = {
             "type": "subscription_confirmation",
             "channel": channel,
@@ -271,7 +279,9 @@ class WebSocketService:
     # Connection management methods
     
     def get_connection_stats(self) -> Dict[str, Any]:
-        """Get WebSocket connection statistics."""
+        """
+        Get WebSocket connection statistics.
+        """
         return {
             "active_connections": self.manager.get_connection_count(),
             "channels": list(self.manager.channels.keys()),
@@ -279,11 +289,15 @@ class WebSocketService:
         }
     
     def is_user_online(self, user_id: int) -> bool:
-        """Check if a user is currently connected."""
+        """
+        Check if a user is currently connected.
+        """
         return self.manager.is_user_connected(user_id)
     
     async def disconnect_user(self, user_id: int):
-        """Forcefully disconnect a user."""
+        """
+        Forcefully disconnect a user.
+        """
         await self.manager.disconnect(user_id)
 
 
