@@ -5,6 +5,7 @@ import { useRouter, usePathname } from 'next/navigation';
 import Navigation from './Navigation';
 import Footer from './Footer';
 import Notification from '@/components/ui/Notification';
+import { webSocketService } from '@/lib/websocket';
 
 interface AppLayoutProps {
   children: ReactNode;
@@ -17,19 +18,24 @@ export default function AppLayout({ children }: AppLayoutProps) {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Check authentication
     const token = localStorage.getItem('auth_token');
-    if (!token && pathname !== '/login') {
+    if (token) {
+      webSocketService.connect(token);
+    } else if (pathname !== '/login') {
       router.push('/login');
       return;
     }
-    
+
     if (token) {
       // You could fetch user data here
       setUser({ username: 'User' }); // Placeholder
     }
-    
+
     setIsLoading(false);
+
+    return () => {
+      webSocketService.disconnect();
+    };
   }, [pathname, router]);
 
   const handleLogout = () => {

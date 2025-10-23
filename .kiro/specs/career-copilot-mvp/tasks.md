@@ -595,7 +595,7 @@ This implementation plan covers the complete Career Co-Pilot MVP across all four
   - Integrate with the `GET /api/v1/skill-gap` endpoint.
   - _Requirements: 3.5, 4.5_
 
-- [-] 35. Implement Analytics Dashboard
+- [ ] 35. Implement Analytics Dashboard
   - Create a dashboard to display user analytics.
   - Integrate with the `GET /api/v1/analytics/summary` endpoint.
   - Use a charting library (e.g., Recharts, Chart.js) to visualize data.

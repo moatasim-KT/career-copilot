@@ -11,10 +11,12 @@ from .feedback import (
     JobRecommendationFeedback, Feedback, FeedbackVote, OnboardingProgress,
     HelpArticle, HelpArticleVote, FeedbackType, FeedbackPriority, FeedbackStatus
 )
+from .interview import InterviewSession, InterviewQuestion, InterviewStatus, InterviewType
 
 __all__ = [
     "Base", "User", "Job", "Application", "Analytics", "ResumeUpload", 
     "ContentGeneration", "ContentVersion", "UserJobPreferences",
     "JobRecommendationFeedback", "Feedback", "FeedbackVote", "OnboardingProgress",
-    "HelpArticle", "HelpArticleVote", "FeedbackType", "FeedbackPriority", "FeedbackStatus"
+    "HelpArticle", "HelpArticleVote", "FeedbackType", "FeedbackPriority", "FeedbackStatus",
+    "InterviewSession", "InterviewQuestion", "InterviewStatus", "InterviewType"
 ]

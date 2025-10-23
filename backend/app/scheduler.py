@@ -22,6 +22,17 @@ settings = get_settings()
 def run_async(task):
     asyncio.run(task)
 
+def run_ingest_jobs():
+    """Wrapper function for ingest_jobs task"""
+    run_async(ingest_jobs())
+
+def run_morning_briefing():
+    """Wrapper function for send_morning_briefing task"""
+    run_async(send_morning_briefing())
+
+def run_evening_summary():
+    """Wrapper function for send_evening_summary task"""
+    run_async(send_evening_summary())
 
 # Configure job stores
 jobstores = {
@@ -62,7 +73,7 @@ def start_scheduler():
         
         # Register ingest_jobs task - runs at 4:00 AM daily
         scheduler.add_job(
-            func=lambda: run_async(ingest_jobs()),
+            func=run_ingest_jobs,
             trigger=CronTrigger(hour=4, minute=0, timezone=utc),
             id="ingest_jobs",
             name="Nightly Job Ingestion",
@@ -72,7 +83,7 @@ def start_scheduler():
         
         # Register send_morning_briefing task - runs at 8:00 AM daily
         scheduler.add_job(
-            func=lambda: run_async(send_morning_briefing()),
+            func=run_morning_briefing,
             trigger=CronTrigger(hour=8, minute=0, timezone=utc),
             id="send_morning_briefing",
             name="Morning Job Briefing",
@@ -82,7 +93,7 @@ def start_scheduler():
         
         # Register send_evening_summary task - runs at 8:00 PM daily
         scheduler.add_job(
-            func=lambda: run_async(send_evening_summary()),
+            func=run_evening_summary,
             trigger=CronTrigger(hour=20, minute=0, timezone=utc),
             id="send_evening_summary",
             name="Evening Progress Summary",

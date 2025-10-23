@@ -36,7 +36,7 @@ async def get_analytics_summary(
             return cached_data
     
     # Generate fresh analytics data
-    analytics_service = JobAnalyticsService(db=db)
+    analytics_service = AnalyticsService(db=db)
     summary = analytics_service.get_user_analytics(current_user)
     
     # Cache the result
@@ -93,3 +93,76 @@ async def get_interview_trends(
     analytics_service = AnalyticsService(db=db)
     trends = analytics_service.get_interview_trends(current_user)
     return trends
+
+
+@router.get("/api/v1/analytics/comprehensive-dashboard")
+async def get_comprehensive_dashboard(
+    days: int = 90,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Get comprehensive analytics data for dashboard visualization."""
+    analytics_service = AnalyticsService(db=db)
+    
+    # Get basic summary
+    summary = analytics_service.get_user_analytics(current_user)
+    
+    # Get time-based trends
+    end_date = datetime.utcnow().date()
+    start_date = end_date - timedelta(days=days)
+    
+    # Application trends over time
+    applications_by_date = db.query(
+        func.date(Application.applied_date).label('date'),
+        func.count(Application.id).label('count')
+    ).filter(
+        Application.user_id == current_user.id,
+        Application.applied_date >= start_date,
+        Application.applied_date <= end_date
+    ).group_by(func.date(Application.applied_date)).all()
+    
+    # Success rate trends (weekly)
+    weekly_stats = []
+    for i in range(0, days, 7):
+        week_start = end_date - timedelta(days=i+7)
+        week_end = end_date - timedelta(days=i)
+        
+        week_applications = db.query(Application).filter(
+            Application.user_id == current_user.id,
+            Application.applied_date >= week_start,
+            Application.applied_date <= week_end
+        ).count()
+        
+        week_interviews = db.query(Application).filter(
+            Application.user_id == current_user.id,
+            Application.applied_date >= week_start,
+            Application.applied_date <= week_end,
+            Application.status == 'interview'
+        ).count()
+        
+        week_offers = db.query(Application).filter(
+            Application.user_id == current_user.id,
+            Application.applied_date >= week_start,
+            Application.applied_date <= week_end,
+            Application.status.in_(['offer', 'accepted'])
+        ).count()
+        
+        weekly_stats.append({
+            'week_start': week_start.isoformat(),
+            'week_end': week_end.isoformat(),
+            'applications': week_applications,
+            'interviews': week_interviews,
+            'offers': week_offers,
+            'interview_rate': (week_interviews / week_applications * 100) if week_applications > 0 else 0,
+            'offer_rate': (week_offers / week_applications * 100) if week_applications > 0 else 0
+        })
+    
+    return {
+        'summary': summary,
+        'application_trends': [
+            {'date': date.isoformat(), 'applications': count}
+            for date, count in applications_by_date
+        ],
+        'weekly_performance': weekly_stats[:12],  # Last 12 weeks
+        'generated_at': datetime.utcnow().isoformat()
+    }

@@ -1,5 +1,5 @@
 import redis
-from backend.app.config.settings import get_settings
+from ..config.settings import get_settings
 
 settings = get_settings()
 

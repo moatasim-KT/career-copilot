@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { apiClient, AnalyticsSummary } from '../lib/api';
+import { webSocketService } from '@/lib/websocket';
 import Card from './ui/Card';
 import { 
   BarChart, 
@@ -16,7 +16,8 @@ import {
   Cell,
   LineChart,
   Line,
-  Legend
+  Legend,
+  ComposedChart
 } from 'recharts';
 import { 
   TrendingUp, 
@@ -28,6 +29,7 @@ import {
   Activity,
   BarChart3
 } from 'lucide-react';
+import { AnalyticsSummary } from '@/lib/api';
 
 interface StatusBreakdownData {
   status: string;
@@ -67,29 +69,24 @@ const STATUS_LABELS = {
 
 export default function AnalyticsPage() {
   const [analytics, setAnalytics] = useState<AnalyticsSummary | null>(null);
+  const [comprehensiveData, setComprehensiveData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [timeframe, setTimeframe] = useState(90);
 
   useEffect(() => {
-    loadAnalytics();
-  }, []);
-
-  const loadAnalytics = async () => {
-    try {
-      setLoading(true);
-      const response = await apiClient.getAnalyticsSummary();
-      
-      if (response.error) {
-        setError(response.error);
-      } else if (response.data) {
-        setAnalytics(response.data);
-      }
-    } catch (err) {
-      setError('Failed to load analytics data');
-    } finally {
+    webSocketService.on('analytics_update', (data) => {
+      setAnalytics(data.summary);
+      setComprehensiveData(data.comprehensive);
       setLoading(false);
-    }
-  };
+    });
+
+    webSocketService.emit('request_analytics_update', { timeframe });
+
+    return () => {
+      webSocketService.off('analytics_update');
+    };
+  }, [timeframe]);
 
   if (loading) {
     return (
@@ -118,7 +115,6 @@ export default function AnalyticsPage() {
             <div className="text-red-500 mb-2">⚠️</div>
             <p className="text-gray-600">Error loading analytics: {error}</p>
             <button 
-              onClick={loadAnalytics}
               className="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
             >
               Retry
@@ -168,13 +164,6 @@ export default function AnalyticsPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold text-gray-900">Analytics Dashboard</h1>
-        <button 
-          onClick={loadAnalytics}
-          className="flex items-center gap-2 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-        >
-          <Activity className="w-4 h-4" />
-          Refresh
-        </button>
       </div>
 
       {/* Key Metrics Cards */}
@@ -274,6 +263,28 @@ export default function AnalyticsPage() {
         </Card>
       </div>
 
+      {/* Time Range Selector */}
+      <Card className="p-4">
+        <div className="flex items-center justify-between">
+          <h3 className="text-lg font-semibold text-gray-900">Analytics Timeframe</h3>
+          <div className="flex gap-2">
+            {[30, 60, 90, 180].map((days) => (
+              <button
+                key={days}
+                onClick={() => setTimeframe(days)}
+                className={`px-3 py-1 rounded text-sm ${
+                  timeframe === days
+                    ? 'bg-blue-500 text-white'
+                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                }`}
+              >
+                {days}d
+              </button>
+            ))}
+          </div>
+        </div>
+      </Card>
+
       {/* Charts Section */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Application Status Breakdown */}
@@ -320,6 +331,89 @@ export default function AnalyticsPage() {
           </ResponsiveContainer>
         </Card>
       </div>
+
+      {/* Application Timeline and Performance Trends */}
+      {comprehensiveData && (
+        <div className="grid grid-cols-1 gap-6">
+          {/* Application Timeline */}
+          <Card className="p-6">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">Application Timeline</h3>
+            {comprehensiveData.application_trends && comprehensiveData.application_trends.length > 0 ? (
+              <ResponsiveContainer width="100%" height={300}>
+                <LineChart data={comprehensiveData.application_trends}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis 
+                    dataKey="date" 
+                    tickFormatter={(date) => new Date(date).toLocaleDateString()}
+                  />
+                  <YAxis />
+                  <Tooltip 
+                    labelFormatter={(date) => new Date(date).toLocaleDateString()}
+                  />
+                  <Line 
+                    type="monotone" 
+                    dataKey="applications" 
+                    stroke="#3B82F6" 
+                    strokeWidth={2}
+                    dot={{ fill: '#3B82F6', strokeWidth: 2, r: 4 }}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="flex items-center justify-center h-64 text-gray-500">
+                No timeline data available
+              </div>
+            )}
+          </Card>
+
+          {/* Weekly Performance Trends */}
+          <Card className="p-6">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">Weekly Performance Trends</h3>
+            {comprehensiveData.weekly_performance && comprehensiveData.weekly_performance.length > 0 ? (
+              <ResponsiveContainer width="100%" height={400}>
+                <ComposedChart data={comprehensiveData.weekly_performance.reverse()}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis 
+                    dataKey="week_start" 
+                    tickFormatter={(date) => new Date(date).toLocaleDateString()}
+                  />
+                  <YAxis yAxisId="left" />
+                  <YAxis yAxisId="right" orientation="right" />
+                  <Tooltip 
+                    labelFormatter={(date) => `Week of ${new Date(date).toLocaleDateString()}`}
+                    formatter={(value, name) => [
+                      name.includes('rate') ? `${value.toFixed(1)}%` : value,
+                      name
+                    ]}
+                  />
+                  <Legend />
+                  <Bar yAxisId="left" dataKey="applications" fill="#3B82F6" name="Applications" />
+                  <Line 
+                    yAxisId="right" 
+                    type="monotone" 
+                    dataKey="interview_rate" 
+                    stroke="#10B981" 
+                    strokeWidth={2}
+                    name="Interview Rate (%)"
+                  />
+                  <Line 
+                    yAxisId="right" 
+                    type="monotone" 
+                    dataKey="offer_rate" 
+                    stroke="#F59E0B" 
+                    strokeWidth={2}
+                    name="Offer Rate (%)"
+                  />
+                </ComposedChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="flex items-center justify-center h-64 text-gray-500">
+                No performance trend data available
+              </div>
+            )}
+          </Card>
+        </div>
+      )}
 
       {/* Skills and Companies */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

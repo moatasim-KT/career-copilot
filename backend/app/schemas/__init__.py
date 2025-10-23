@@ -8,6 +8,10 @@ from .job_recommendation_feedback import (
     JobRecommendationFeedbackResponse, JobRecommendationFeedbackSummary,
     FeedbackAnalytics, BulkFeedbackCreate
 )
+from .interview import (
+    InterviewSessionCreate, InterviewSessionUpdate, InterviewSessionResponse,
+    InterviewQuestionCreate, InterviewQuestionUpdate, InterviewQuestionResponse
+)
 
 __all__ = [
     "UserCreate", "UserLogin", "UserResponse",
@@ -15,5 +19,7 @@ __all__ = [
     "ApplicationCreate", "ApplicationUpdate", "ApplicationResponse",
     "JobRecommendationFeedbackCreate", "JobRecommendationFeedbackUpdate",
     "JobRecommendationFeedbackResponse", "JobRecommendationFeedbackSummary",
-    "FeedbackAnalytics", "BulkFeedbackCreate"
+    "FeedbackAnalytics", "BulkFeedbackCreate",
+    "InterviewSessionCreate", "InterviewSessionUpdate", "InterviewSessionResponse",
+    "InterviewQuestionCreate", "InterviewQuestionUpdate", "InterviewQuestionResponse"
 ]
