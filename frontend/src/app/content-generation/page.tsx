@@ -2,7 +2,6 @@
 
 import ContentGeneration from '@/components/ui/ContentGeneration';
 import Card from '@/components/ui/Card';
-import Card from '@/components/ui/Card';
 
 export default function ContentGenerationPage() {
   return (

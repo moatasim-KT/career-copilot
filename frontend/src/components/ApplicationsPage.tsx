@@ -1,7 +1,8 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { apiClient, type Application } from '@/lib/api';
+import { useApplicationStatusUpdates } from '@/hooks/useWebSocket';
 import Card, { CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
 import Select from '@/components/ui/Select';
@@ -56,6 +57,25 @@ export default function ApplicationsPage() {
   const [showApplicationModal, setShowApplicationModal] = useState(false);
   const [editingApplication, setEditingApplication] = useState<Application | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
+
+  // Handle real-time application status updates
+  const handleApplicationUpdate = useCallback((data: any) => {
+    console.log('Application update received:', data);
+    if (data.application) {
+      setApplications(prev => 
+        prev.map(app => 
+          app.id === data.application.id 
+            ? { ...app, ...data.application }
+            : app
+        )
+      );
+      setLastUpdated(new Date());
+    }
+  }, []);
+
+  // Set up WebSocket listener for application updates
+  useApplicationStatusUpdates(handleApplicationUpdate);
 
   const [formData, setFormData] = useState({
     job_id: 0,
@@ -78,6 +98,7 @@ export default function ApplicationsPage() {
         setError(response.error);
       } else if (response.data) {
         setApplications(response.data);
+        setLastUpdated(new Date());
       }
     } catch (err) {
       setError('Failed to load applications');
@@ -266,11 +287,27 @@ export default function ApplicationsPage() {
           <p className="text-gray-600 mt-1">
             Track your job applications and their progress
           </p>
+          {lastUpdated && (
+            <p className="text-sm text-gray-500 mt-1">
+              Last updated: {lastUpdated.toLocaleTimeString()}
+            </p>
+          )}
         </div>
-        <Button onClick={openAddModal} className="flex items-center space-x-2">
-          <Plus className="h-4 w-4" />
-          <span>Add Application</span>
-        </Button>
+        <div className="flex items-center space-x-3">
+          <Button 
+            variant="outline" 
+            onClick={loadApplications}
+            disabled={isLoading}
+            className="flex items-center space-x-2"
+          >
+            <FileText className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
+            <span>{isLoading ? 'Loading...' : 'Refresh'}</span>
+          </Button>
+          <Button onClick={openAddModal} className="flex items-center space-x-2">
+            <Plus className="h-4 w-4" />
+            <span>Add Application</span>
+          </Button>
+        </div>
       </div>
 
       {error && (

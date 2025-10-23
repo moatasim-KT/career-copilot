@@ -8,14 +8,18 @@ from app.schemas.interview import (
     InterviewSessionCreate, InterviewSessionUpdate, InterviewSessionResponse,
     InterviewQuestionCreate, InterviewQuestionUpdate, InterviewQuestionResponse
 )
-from app.services.ai_service_manager import AIServiceManager, ModelType
+from app.services.ai_service_manager import AIServiceManager
+from app.services.job_service import JobService, ModelType
 from .cache_service import cache_service
 from app.core.logging import get_logger
 
 logger = get_logger(__name__)
 
 class InterviewPracticeService:
-    def __init__(self, db: Session, ai_service_manager: AIServiceManager):
+    def __init__(self, db: Session, ai_service_manager: AIServiceManager, job_service: JobService):
+        self.db = db
+        self.ai_service_manager = ai_service_manager
+        self.job_service = job_service
         self.db = db
         self.ai_service_manager = ai_service_manager
 
@@ -98,13 +102,41 @@ class InterviewPracticeService:
             if session.score:
                 score_trend.append({"date": session.started_at, "score": session.score})
 
-        # TODO: Add more advanced analytics and personalized recommendations
+        # Personalized improvement recommendations
+        personalized_recommendations = []
+        if scores_by_type:
+            lowest_score_type = min(scores_by_type, key=scores_by_type.get)
+            personalized_recommendations.append(
+                f"Focus on improving your {lowest_score_type} interview skills. Your average score for this type is {scores_by_type[lowest_score_type]:.2f}."
+            )
+        if avg_score < 3.0:
+            personalized_recommendations.append("Review common interview questions and practice structuring your answers using the STAR method.")
+
+        # Interview preparation suggestions based on job context
+        preparation_suggestions = []
+        job_ids = [session.job_id for session in sessions if session.job_id]
+        if job_ids:
+            # Assuming a JobService exists to fetch job details
+            from app.services.job_service import JobService
+            job_service = JobService(self.db)
+            for job_id in list(set(job_ids)): # Process unique job IDs
+                job = job_service.get_job(job_id) # Assuming get_job method exists
+                if job and job.requirements:
+                    preparation_suggestions.append(
+                        f"For roles like '{job.title}', focus on these requirements: {job.requirements[:100]}..."
+                    )
+                    if job.tech_stack:
+                        preparation_suggestions.append(
+                            f"Brush up on technical skills like: {', '.join(job.tech_stack[:3])}."
+                        )
 
         return {
             "total_sessions": total_sessions,
             "average_score": avg_score,
             "scores_by_type": scores_by_type,
             "score_trend": score_trend,
+            "personalized_recommendations": personalized_recommendations,
+            "preparation_suggestions": preparation_suggestions,
         }
 
     async def generate_ai_question(self, session_id: int) -> InterviewQuestionResponse:

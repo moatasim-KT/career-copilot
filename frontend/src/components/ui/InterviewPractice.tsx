@@ -68,6 +68,15 @@ export default function InterviewPractice() {
     }
   };
 
+  const practiceAgain = () => {
+    setInterviewSession(null);
+    setCurrentQuestionIndex(0);
+    setUserAnswer('');
+    setQuestions([]);
+    setFinished(false);
+    setError(null);
+  };
+
   if (finished) {
     return (
       <div className="p-6">

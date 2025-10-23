@@ -1,8 +1,13 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { apiClient, type AnalyticsSummary, type Application } from '@/lib/api';
-import { webSocketService } from '@/lib/websocket';
+import { 
+  useWebSocket, 
+  useAnalyticsUpdates, 
+  useApplicationStatusUpdates,
+  useJobMatchNotifications 
+} from '@/hooks/useWebSocket';
 import { 
   Briefcase, 
   FileText, 
@@ -13,7 +18,9 @@ import {
   AlertCircle,
   CheckCircle,
   Clock,
-  XCircle
+  XCircle,
+  Wifi,
+  WifiOff
 } from 'lucide-react';
 
 export default function Dashboard() {
@@ -21,46 +28,96 @@ export default function Dashboard() {
   const [recentApplications, setRecentApplications] = useState<Application[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
+  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
+
+  // WebSocket connection for real-time updates
+  const { connected, connecting, error: wsError } = useWebSocket({
+    autoConnect: true,
+    onConnect: () => {
+      console.log('Dashboard WebSocket connected');
+      setLastUpdated(new Date());
+    },
+    onDisconnect: () => {
+      console.log('Dashboard WebSocket disconnected');
+    }
+  });
+
+  // Handle real-time analytics updates
+  const handleAnalyticsUpdate = useCallback((data: any) => {
+    console.log('Analytics update received:', data);
+    if (data.analytics) {
+      setAnalytics(data.analytics);
+      setLastUpdated(new Date());
+    }
+  }, []);
+
+  // Handle real-time application status updates
+  const handleApplicationUpdate = useCallback((data: any) => {
+    console.log('Application update received:', data);
+    if (data.application) {
+      // Update the specific application in the list
+      setRecentApplications(prev => 
+        prev.map(app => 
+          app.id === data.application.id 
+            ? { ...app, ...data.application }
+            : app
+        )
+      );
+      // Refresh analytics to reflect the change
+      loadAnalytics();
+      setLastUpdated(new Date());
+    }
+  }, []);
+
+  // Handle job match notifications
+  const handleJobMatch = useCallback((data: any) => {
+    console.log('Job match received:', data);
+    // The notification system will handle displaying the notification
+    // We might want to refresh recommendations or show a badge
+    setLastUpdated(new Date());
+  }, []);
+
+  // Set up WebSocket event listeners
+  useAnalyticsUpdates(handleAnalyticsUpdate);
+  useApplicationStatusUpdates(handleApplicationUpdate);
+  useJobMatchNotifications(handleJobMatch);
+
+  const loadAnalytics = async () => {
+    try {
+      const response = await apiClient.getAnalyticsSummary();
+      if (response.error) {
+        setError(response.error);
+      } else if (response.data) {
+        setAnalytics(response.data);
+      }
+    } catch (err) {
+      setError('Failed to load analytics');
+    }
+  };
+
+  const loadRecentApplications = async () => {
+    try {
+      const response = await apiClient.getApplications(0, 5);
+      if (response.data) {
+        setRecentApplications(response.data);
+      }
+    } catch (err) {
+      console.error('Failed to load recent applications:', err);
+    }
+  };
 
   useEffect(() => {
-    const token = localStorage.getItem('auth_token');
-    if (token) {
-      webSocketService.connect(token);
-    }
-
     loadDashboardData();
-
-    webSocketService.on('dashboard_update', (data: any) => {
-      if (data.analytics) {
-        setAnalytics(data.analytics);
-      }
-      if (data.recent_applications) {
-        setRecentApplications(data.recent_applications);
-      }
-    });
-
-    return () => {
-      webSocketService.disconnect();
-    };
   }, []);
 
   const loadDashboardData = async () => {
     setIsLoading(true);
     try {
-      const [analyticsResponse, applicationsResponse] = await Promise.all([
-        apiClient.getAnalyticsSummary(),
-        apiClient.getApplications(0, 5)
+      await Promise.all([
+        loadAnalytics(),
+        loadRecentApplications()
       ]);
-
-      if (analyticsResponse.error) {
-        setError(analyticsResponse.error);
-      } else if (analyticsResponse.data) {
-        setAnalytics(analyticsResponse.data);
-      }
-
-      if (applicationsResponse.data) {
-        setRecentApplications(applicationsResponse.data);
-      }
+      setLastUpdated(new Date());
     } catch (err) {
       setError('Failed to load dashboard data');
     } finally {
@@ -131,14 +188,45 @@ export default function Dashboard() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
-        <button
-          onClick={loadDashboardData}
-          className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-        >
-          <TrendingUp className="h-4 w-4" />
-          <span>Refresh</span>
-        </button>
+        <div className="flex items-center space-x-4">
+          <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
+          
+          {/* Real-time connection indicator */}
+          <div className="flex items-center space-x-2">
+            {connected ? (
+              <div className="flex items-center space-x-1 text-green-600">
+                <Wifi className="h-4 w-4" />
+                <span className="text-sm font-medium">Live</span>
+              </div>
+            ) : connecting ? (
+              <div className="flex items-center space-x-1 text-yellow-600">
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-yellow-600"></div>
+                <span className="text-sm font-medium">Connecting...</span>
+              </div>
+            ) : (
+              <div className="flex items-center space-x-1 text-red-600">
+                <WifiOff className="h-4 w-4" />
+                <span className="text-sm font-medium">Offline</span>
+              </div>
+            )}
+          </div>
+        </div>
+
+        <div className="flex items-center space-x-3">
+          {lastUpdated && (
+            <span className="text-sm text-gray-500">
+              Updated: {lastUpdated.toLocaleTimeString()}
+            </span>
+          )}
+          <button
+            onClick={loadDashboardData}
+            disabled={isLoading}
+            className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <TrendingUp className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
+            <span>{isLoading ? 'Loading...' : 'Refresh'}</span>
+          </button>
+        </div>
       </div>
 
       {error && (

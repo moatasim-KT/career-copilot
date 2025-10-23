@@ -4,8 +4,7 @@ import { ReactNode, useEffect, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import Navigation from './Navigation';
 import Footer from './Footer';
-import Notification from '@/components/ui/Notification';
-import { webSocketService } from '@/lib/websocket';
+import NotificationSystem from '@/components/NotificationSystem';
 
 interface AppLayoutProps {
   children: ReactNode;
@@ -19,9 +18,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
 
   useEffect(() => {
     const token = localStorage.getItem('auth_token');
-    if (token) {
-      webSocketService.connect(token);
-    } else if (pathname !== '/login') {
+    if (!token && pathname !== '/login') {
       router.push('/login');
       return;
     }
@@ -32,10 +29,6 @@ export default function AppLayout({ children }: AppLayoutProps) {
     }
 
     setIsLoading(false);
-
-    return () => {
-      webSocketService.disconnect();
-    };
   }, [pathname, router]);
 
   const handleLogout = () => {
@@ -59,7 +52,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
-      <Notification />
+      <NotificationSystem />
       <Navigation user={user} onLogout={handleLogout} />
       <main className="flex-1 container mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {children}

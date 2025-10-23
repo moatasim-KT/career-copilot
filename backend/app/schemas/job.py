@@ -12,7 +12,8 @@ class JobCreate(BaseModel):
     description: Optional[str] = None
     requirements: Optional[str] = None
     responsibilities: Optional[str] = None
-    salary_range: Optional[str] = None
+    salary_min: Optional[int] = None
+    salary_max: Optional[int] = None
     job_type: Optional[str] = None
     remote_option: Optional[str] = None
     tech_stack: Optional[List[str]] = Field(default_factory=list, description="List of technologies/skills")
@@ -33,7 +34,7 @@ class JobCreate(BaseModel):
     def validate_source(cls, v):
         allowed_sources = [
             "manual", "scraped", "api", "linkedin", "indeed", 
-            "glassdoor", "adzuna", "usajobs", "github_jobs", "remoteok"
+            "glassdoor", "adzuna", "usajuna", "github_jobs", "remoteok"
         ]
         if v and v not in allowed_sources:
             return "manual"
@@ -47,7 +48,8 @@ class JobUpdate(BaseModel):
     description: Optional[str] = None
     requirements: Optional[str] = None
     responsibilities: Optional[str] = None
-    salary_range: Optional[str] = None
+    salary_min: Optional[int] = None
+    salary_max: Optional[int] = None
     job_type: Optional[str] = None
     remote_option: Optional[str] = None
     tech_stack: Optional[List[str]] = None
@@ -64,7 +66,7 @@ class JobUpdate(BaseModel):
         if v is not None:
             allowed_sources = [
                 "manual", "scraped", "api", "linkedin", "indeed", 
-                "glassdoor", "adzuna", "usajobs", "github_jobs", "remoteok"
+                "glassdoor", "adzuna", "usajuna", "github_jobs", "remoteok"
             ]
             if v not in allowed_sources:
                 raise ValueError(f"Source must be one of: {', '.join(allowed_sources)}")
@@ -89,7 +91,8 @@ class JobResponse(BaseModel):
     description: Optional[str]
     requirements: Optional[str]
     responsibilities: Optional[str]
-    salary_range: Optional[str]
+    salary_min: Optional[int]
+    salary_max: Optional[int]
     job_type: Optional[str]
     remote_option: Optional[str]
     tech_stack: Optional[List[str]]
@@ -101,6 +104,3 @@ class JobResponse(BaseModel):
     notes: Optional[str]
     created_at: datetime
     updated_at: datetime
-    
-    class Config:
-        from_attributes = True

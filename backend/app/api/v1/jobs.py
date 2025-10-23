@@ -323,74 +323,32 @@ async def get_job_source_info(
 
 @router.post("/api/v1/jobs/scrape")
 async def trigger_job_scraping(
-    keywords: List[str],
-    location: str = "Remote",
-    max_results: int = 20,
-    sources: List[str] = None,
+    search_params: dict,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
     """
     Manually trigger job scraping from multiple sources.
     
-    - **keywords**: List of keywords to search for
-    - **location**: Location to search in (default: "Remote")
-    - **max_results**: Maximum number of results to return (default: 20)
-    - **sources**: Specific sources to search (optional, defaults to all available)
+    - **search_params**: Dictionary of search parameters (e.g., {"what": "software engineer", "where": "remote"})
     
     Returns scraped jobs that were added to the user's job list.
     """
     try:
-        from ...services.job_scraper_service import JobScraperService
-        from ...services.job_source_manager import JobSourceManager
+        from ...services.job_scraper_service import JobScraper
+        scraper = JobScraper(db)
         
-        scraper = JobScraperService(db)
-        source_manager = JobSourceManager(db)
-        
-        # Filter sources based on user preferences
-        if not sources:
-            available_sources = list(source_manager.source_metadata.keys())
-            sources = source_manager.filter_sources_by_user_preferences(current_user.id, available_sources)
-        
-        # If specific sources are requested, filter the search
-        if sources:
-            scraped_jobs = []
-            for source in sources:
-                if hasattr(scraper, f'search_{source}'):
-                    method = getattr(scraper, f'search_{source}')
-                    if source in ['linkedin', 'indeed', 'glassdoor']:
-                        jobs = await method(keywords, location, max_results // len(sources))
-                    else:
-                        jobs = await method(keywords, max_results // len(sources))
-                    scraped_jobs.extend(jobs)
-        else:
-            # Search all available APIs
-            scraped_jobs = await scraper.search_all_apis(keywords, location, max_results)
-        
-        # Deduplicate against existing user jobs
-        unique_jobs = scraper.deduplicate_against_db(scraped_jobs, current_user.id)
-        
-        # Create job records
-        created_jobs = []
-        for job_data in unique_jobs:
-            job_dict = job_data.model_dump()
-            job = Job(**job_dict, user_id=current_user.id)
-            db.add(job)
-            created_jobs.append(job)
-        
-        db.commit()
+        new_jobs = await scraper.scrape_jobs(current_user.id, search_params)
         
         # Invalidate cache
         cache_service.invalidate_user_cache(current_user.id)
         
         return {
-            "message": f"Successfully scraped {len(created_jobs)} new jobs",
-            "jobs_added": len(created_jobs),
-            "jobs_scraped": len(scraped_jobs),
-            "jobs_deduplicated": len(scraped_jobs) - len(unique_jobs),
-            "keywords": keywords,
-            "location": location,
-            "sources_used": sources or "all"
+            "message": f"Successfully scraped {len(new_jobs)} new jobs",
+            "jobs_added": len(new_jobs),
+            "keywords": search_params.get("what"),
+            "location": search_params.get("where"),
+            "sources_used": "adzuna" # For now, only Adzuna is integrated
         }
     except Exception as e:
         db.rollback()

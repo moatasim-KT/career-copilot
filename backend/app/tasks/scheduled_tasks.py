@@ -36,7 +36,8 @@ async def ingest_jobs():
             logger.info("Job scraping is disabled. Skipping job ingestion.")
             return
         
-        scraper = JobScraperService(db=db, settings=settings)
+        from ..services.job_scraper_service import JobScraper
+        scraper = JobScraper(db=db)
         
         # Query all users with skills and preferred_locations
         users = db.query(User).filter(
@@ -63,13 +64,16 @@ async def ingest_jobs():
                     target_users={user.id}
                 )
 
+                # Prepare search parameters based on user preferences
+                search_params = {
+                    "what": " ".join(user.skills), # Join skills for API query
+                    "where": " ".join(user.preferred_locations), # Join locations for API query
+                    "results_per_page": 20 # Limit results per user
+                }
+
                 # Scrape jobs based on user preferences
                 logger.info(f"Scraping jobs for user {user.username} with {len(user.skills)} skills and {len(user.preferred_locations)} locations")
-                new_jobs = await scraper.search_all_apis(
-                    keywords=user.skills,
-                    location=" ".join(user.preferred_locations), # Join locations for API query
-                    max_results=20
-                )
+                new_jobs = await scraper.scrape_jobs(user.id, search_params)
                 
                 if not new_jobs:
                     logger.info(f"No new jobs found for user {user.username}")
@@ -80,64 +84,21 @@ async def ingest_jobs():
                     users_processed += 1
                     continue
                 
-                # Deduplicate against existing jobs for this user
-                unique_jobs = scraper.deduplicate_against_db(new_jobs, user_id=user.id)
-                logger.info(f"Found {len(unique_jobs)} unique jobs for user {user.username} after deduplication")
-                await websocket_service.send_system_notification(
-                    message=f"Found {len(unique_jobs)} unique jobs for {user.username}.",
-                    target_users={user.id}
-                )
-
-                # Create Job entities with source="scraped"
-                jobs_added = 0
-                created_jobs = []
-                for job_data in unique_jobs:
-                    try:
-                        job = Job(
-                            user_id=user.id,
-                            company=job_data.company,
-                            title=job_data.title,
-                            location=job_data.location,
-                            description=job_data.description,
-                            requirements=job_data.requirements if hasattr(job_data, 'requirements') else None,
-                            tech_stack=job_data.tech_stack or [],
-                            responsibilities=job_data.responsibilities if hasattr(job_data, 'responsibilities') else None,
-                            salary_range=job_data.salary_range,
-                            job_type=job_data.job_type,
-                            remote_option=job_data.remote_option,
-                            link=job_data.link if hasattr(job_data, 'link') else None,
-                            source="scraped",
-                            status="not_applied"
-                        )
-                        db.add(job)
-                        created_jobs.append(job)
-                        jobs_added += 1
-                    except Exception as e:
-                        logger.error(f"Error creating job for user {user.username}: {str(e)}", exc_info=True)
-                        continue
-                
-                # Commit jobs for this user
-                db.commit()
-                
-                # Refresh job objects to get IDs
-                for job in created_jobs:
-                    db.refresh(job)
-                
-                total_jobs_added += jobs_added
+                total_jobs_added += len(new_jobs)
                 users_processed += 1
                 
                 # Log number of jobs added per user
-                logger.info(f"✓ Added {jobs_added} new jobs for user {user.username}")
+                logger.info(f"✓ Added {len(new_jobs)} new jobs for user {user.username}")
                 await websocket_service.send_system_notification(
-                    message=f"Added {jobs_added} new jobs for {user.username}.",
+                    message=f"Added {len(new_jobs)} new jobs for {user.username}.",
                     target_users={user.id}
                 )
 
                 # Process real-time job matching for new jobs
-                if created_jobs:
+                if new_jobs:
                     try:
                         matching_service = get_job_matching_service(db)
-                        await matching_service.process_new_jobs_for_matching(created_jobs)
+                        await matching_service.process_new_jobs_for_matching(new_jobs)
                     except Exception as e:
                         logger.error(f"Error processing job matching for user {user.username}: {e}")
 

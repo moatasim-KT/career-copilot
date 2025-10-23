@@ -2,7 +2,6 @@
 
 import InterviewPractice from '@/components/ui/InterviewPractice';
 import Card from '@/components/ui/Card';
-import Card from '@/components/ui/Card';
 
 export default function InterviewPracticePage() {
   return (

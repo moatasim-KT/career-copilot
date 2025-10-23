@@ -94,8 +94,10 @@ def scrape_jobs_for_user_async(self, user_id: int) -> Dict[str, Any]:
             meta={"current": 80, "total": 100, "status": "Saving new jobs..."}
         )
         
-        # Save new jobs to database
+        # Save new jobs to database and check for high-scoring matches
         jobs_added = 0
+        high_match_jobs = []
+        
         for job_data in new_jobs:
             try:
                 job = Job(
@@ -113,12 +115,59 @@ def scrape_jobs_for_user_async(self, user_id: int) -> Dict[str, Any]:
                 )
                 
                 db.add(job)
+                db.flush()  # Get the job ID
+                
+                # Calculate match score for real-time notification
+                try:
+                    from app.services.recommendation_engine import RecommendationEngine
+                    rec_engine = RecommendationEngine(db=db)
+                    match_score = rec_engine.calculate_match_score(job, user)
+                    
+                    # If match score is high (>= 75%), prepare for real-time notification
+                    if match_score >= 75.0:
+                        high_match_jobs.append({
+                            "job": job,
+                            "match_score": match_score
+                        })
+                        
+                except Exception as e:
+                    logger.error(f"Error calculating match score for job {job.id}: {e}")
+                
                 jobs_added += 1
                 
             except Exception as e:
                 logger.error(f"Error saving job for user {user_id}: {e}")
         
         db.commit()
+        
+        # Send real-time notifications for high-scoring job matches
+        if high_match_jobs:
+            try:
+                from app.services.websocket_service import websocket_service
+                
+                for match in high_match_jobs:
+                    job = match["job"]
+                    match_score = match["match_score"]
+                    
+                    job_data = {
+                        "id": job.id,
+                        "company": job.company,
+                        "title": job.title,
+                        "location": job.location,
+                        "tech_stack": job.tech_stack,
+                        "salary_range": job.salary_range,
+                        "source": job.source,
+                        "created_at": job.created_at.isoformat() if job.created_at else None
+                    }
+                    
+                    await websocket_service.send_job_match_notification(
+                        user_id, job_data, match_score
+                    )
+                    
+                logger.info(f"Sent {len(high_match_jobs)} job match notifications to user {user_id}")
+                
+            except Exception as e:
+                logger.error(f"Error sending job match notifications for user {user_id}: {e}")
         
         # Invalidate user cache since new jobs were added
         if jobs_added > 0:

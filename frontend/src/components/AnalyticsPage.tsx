@@ -1,7 +1,8 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { webSocketService } from '@/lib/websocket';
+import { useState, useEffect, useCallback } from 'react';
+import { useAnalyticsUpdates } from '@/hooks/useWebSocket';
+import { apiClient } from '@/lib/api';
 import Card from './ui/Card';
 import { 
   BarChart, 
@@ -73,19 +74,54 @@ export default function AnalyticsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [timeframe, setTimeframe] = useState(90);
+  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
+
+  // Handle real-time analytics updates
+  const handleAnalyticsUpdate = useCallback((data: any) => {
+    console.log('Analytics page received update:', data);
+    if (data.analytics) {
+      setAnalytics(data.analytics);
+      setLastUpdated(new Date());
+    }
+    if (data.comprehensive) {
+      setComprehensiveData(data.comprehensive);
+    }
+    setLoading(false);
+  }, []);
+
+  // Set up WebSocket listener for analytics updates
+  useAnalyticsUpdates(handleAnalyticsUpdate);
+
+  const loadAnalyticsData = async () => {
+    setLoading(true);
+    setError(null);
+    
+    try {
+      const [analyticsResponse, comprehensiveResponse] = await Promise.all([
+        apiClient.getAnalyticsSummary(),
+        apiClient.getComprehensiveAnalytics(timeframe)
+      ]);
+
+      if (analyticsResponse.error) {
+        setError(analyticsResponse.error);
+      } else if (analyticsResponse.data) {
+        setAnalytics(analyticsResponse.data);
+      }
+
+      if (comprehensiveResponse.data) {
+        setComprehensiveData(comprehensiveResponse.data);
+      }
+
+      setLastUpdated(new Date());
+    } catch (err) {
+      setError('Failed to load analytics data');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    webSocketService.on('analytics_update', (data) => {
-      setAnalytics(data.summary);
-      setComprehensiveData(data.comprehensive);
-      setLoading(false);
-    });
-
-    webSocketService.emit('request_analytics_update', { timeframe });
-
-    return () => {
-      webSocketService.off('analytics_update');
-    };
+    loadAnalyticsData();
   }, [timeframe]);
 
   if (loading) {
@@ -164,6 +200,21 @@ export default function AnalyticsPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold text-gray-900">Analytics Dashboard</h1>
+        <div className="flex items-center space-x-3">
+          {lastUpdated && (
+            <span className="text-sm text-gray-500">
+              Updated: {lastUpdated.toLocaleTimeString()}
+            </span>
+          )}
+          <button
+            onClick={loadAnalyticsData}
+            disabled={loading}
+            className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <TrendingUp className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+            <span>{loading ? 'Loading...' : 'Refresh'}</span>
+          </button>
+        </div>
       </div>
 
       {/* Key Metrics Cards */}
@@ -382,7 +433,7 @@ export default function AnalyticsPage() {
                   <Tooltip 
                     labelFormatter={(date) => `Week of ${new Date(date).toLocaleDateString()}`}
                     formatter={(value, name) => [
-                      name.includes('rate') ? `${value.toFixed(1)}%` : value,
+                      typeof name === 'string' && name.includes('rate') ? `${(value as number).toFixed(1)}%` : value,
                       name
                     ]}
                   />

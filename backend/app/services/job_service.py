@@ -12,3 +12,6 @@ class JobService:
         self.db.commit()
         self.db.refresh(job)
         return job
+
+    def get_job(self, job_id: int) -> Job:
+        return self.db.query(Job).filter(Job.id == job_id).first()

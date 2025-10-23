@@ -12,7 +12,8 @@ from app.schemas.interview import (
     InterviewQuestionCreate, InterviewQuestionUpdate, InterviewQuestionResponse
 )
 from app.services.interview_practice_service import InterviewPracticeService
-from app.services.ai_service_manager import AIServiceManager
+from app.services.ai_service_manager import AIServiceManager, ModelType
+from app.services.job_service import JobService
 
 router = APIRouter(
     prefix="/api/v1/interview",
@@ -22,7 +23,8 @@ router = APIRouter(
 
 def get_interview_practice_service(db: Session = Depends(get_db)) -> InterviewPracticeService:
     ai_service_manager = AIServiceManager()
-    return InterviewPracticeService(db=db, ai_service_manager=ai_service_manager)
+    job_service = JobService(db)
+    return InterviewPracticeService(db=db, ai_service_manager=ai_service_manager, job_service=job_service)
 
 @router.post("/sessions", response_model=InterviewSessionResponse)
 async def create_interview_session(

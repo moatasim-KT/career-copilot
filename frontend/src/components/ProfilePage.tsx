@@ -2,8 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { apiClient, UserProfile } from '@/lib/api';
-import Card from './ui/Card';
 import FileUpload from './ui/FileUpload';
+import Card from './ui/Card';
 
 export default function ProfilePage() {
   const [profile, setProfile] = useState<Partial<UserProfile>>({});
@@ -59,6 +59,7 @@ export default function ProfilePage() {
     <div className="space-y-6">
       <h1 className="text-3xl font-bold text-gray-900">Profile</h1>
       <Card className="p-6">
+        <h2 className="text-xl font-bold text-gray-900 mb-4">User Information</h2>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label htmlFor="full_name" className="block text-sm font-medium text-gray-700">Full Name</label>
@@ -79,6 +80,39 @@ export default function ProfilePage() {
               id="email"
               value={profile.email || ''}
               onChange={handleInputChange}
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+            />
+          </div>
+          <div>
+            <label htmlFor="experience_level" className="block text-sm font-medium text-gray-700">Experience Level</label>
+            <input
+              type="text"
+              name="experience_level"
+              id="experience_level"
+              value={profile.experience_level || ''}
+              onChange={handleInputChange}
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+            />
+          </div>
+          <div>
+            <label htmlFor="location" className="block text-sm font-medium text-gray-700">Preferred Location</label>
+            <input
+              type="text"
+              name="location"
+              id="location"
+              value={profile.location || ''}
+              onChange={handleInputChange}
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+            />
+          </div>
+          <div>
+            <label htmlFor="skills" className="block text-sm font-medium text-gray-700">Skills (comma-separated)</label>
+            <input
+              type="text"
+              name="skills"
+              id="skills"
+              value={profile.skills?.join(', ') || ''}
+              onChange={(e) => setProfile(prev => ({ ...prev, skills: e.target.value.split(',').map(s => s.trim()) }))}
               className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
             />
           </div>
