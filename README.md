@@ -43,10 +43,12 @@ An intelligent, proactive job application tracking system that transforms your j
     uvicorn app.main:app --host 0.0.0.0 --port 8002 --reload
     # Access API Docs at http://localhost:8002/docs
     ```
-7.  **Start Frontend (Streamlit):**
+7.  **Start Frontend (Next.js):**
     ```bash
-    streamlit run frontend/app.py --server.port 8501
-    # Access Frontend at http://localhost:8501
+    cd frontend
+    npm install
+    npm run dev
+    # Access Frontend at http://localhost:3000
     ```
 
 ---
@@ -105,7 +107,7 @@ Career Copilot helps you manage your job search with AI-powered recommendations,
 ```
 ┌─────────────────┐     ┌─────────────────┐     ┌─────────────────┐
 │     Frontend    │────▶│     Backend     │────▶│     Database    │
-│   (Streamlit)   │     │    (FastAPI)    │     │   (PostgreSQL)  │
+│    (Next.js)    │     │    (FastAPI)    │     │   (PostgreSQL)  │
 └─────────────────┘     └─────────┬───────┘     └─────────────────┘
                                   │
                            ┌──────┴──────┐
@@ -130,7 +132,7 @@ Career Copilot helps you manage your job search with AI-powered recommendations,
 ### Technology Stack
 
 **Backend**: FastAPI • SQLAlchemy • APScheduler • Pydantic • JWT • Celery
-**Frontend**: Streamlit • Requests
+**Frontend**: Next.js • React • TypeScript • Tailwind CSS
 **Database**: SQLite (dev) / PostgreSQL (prod)
 
 ### Project Structure
@@ -149,8 +151,12 @@ career-copilot/
 │   ├── alembic/                 # Database migrations
 │   └── .env.example             # Environment variables template
 ├── frontend/
-│   └── app.py                   # Streamlit application
-│   └── requirements.txt         # Streamlit app dependencies
+│   ├── src/                     # Next.js application source
+│   │   ├── app/                 # App router pages
+│   │   ├── components/          # React components
+│   │   └── lib/                 # Library functions
+│   ├── package.json             # Frontend dependencies
+│   └── next.config.ts           # Next.js configuration
 ├── tests/                       # Unit and integration tests
 ├── .pre-commit-config.yaml      # Code quality hooks
 ├── pyproject.toml               # Project metadata and Python dependencies
@@ -203,10 +209,12 @@ career-copilot/
     uvicorn app.main:app --host 0.0.0.0 --port 8002 --reload
     # Access API Docs at http://localhost:8002/docs
     ```
-7.  **Start Frontend (Streamlit):**
+7.  **Start Frontend (Next.js):**
     ```bash
-    streamlit run frontend/app.py --server.port 8501
-    # Access Frontend at http://localhost:8501
+    cd frontend
+    npm install
+    npm run dev
+    # Access Frontend at http://localhost:3000
     ```
 
 ---
@@ -273,11 +281,11 @@ This project is designed for zero-cost deployment using Render (for backend) and
     *   Render will automatically detect and use the `render.yaml` file in the project root to provision a free web service for your FastAPI backend and a free PostgreSQL database.
     *   **Important:** Configure environment variables on Render (e.g., `JWT_SECRET_KEY`, `SMTP_PASSWORD`, `JOB_API_KEY`) matching your `backend/.env` file. Render will automatically set `DATABASE_URL` from its PostgreSQL service.
 
-2.  **Frontend (Streamlit on Streamlit Community Cloud):**
-    *   Create a free account on [Streamlit Community Cloud](https://streamlit.io/cloud).
-    *   Click **New app** and connect your GitHub repository.
-    *   Set the "Main file path" to `frontend/app.py`.
-    *   **Important:** In the app settings, add a secret/environment variable named `BACKEND_URL` and set its value to the public URL of your deployed Render backend (e.g., `https://your-backend.onrender.com`).
+2.  **Frontend (Next.js on Vercel):**
+    *   Create a free account on [Vercel](https://vercel.com).
+    *   Create a **New Project** and connect your GitHub repository.
+    *   Vercel will automatically detect the Next.js project and configure the build settings.
+    *   **Important:** In the project settings, add an environment variable named `NEXT_PUBLIC_BACKEND_URL` and set its value to the public URL of your deployed Render backend (e.g., `https://your-backend.onrender.com`).
     *   Deploy the application.
 
 ---
@@ -310,7 +318,7 @@ pre-commit run --all-files
 ## Troubleshooting
 
 -   **Backend not starting**: Check `backend/logs/app.log` for errors. Verify `backend/.env` configuration.
--   **Frontend not connecting**: Ensure `BACKEND_URL` is correctly set in Streamlit Cloud secrets.
+-   **Frontend not connecting**: Ensure `NEXT_PUBLIC_BACKEND_URL` is correctly set in your frontend environment variables.
 -   **Scheduler not running**: Check `ENABLE_SCHEDULER=True` in `backend/.env`. Review backend logs for APScheduler messages.
 -   **Email not sending**: Verify `SMTP_ENABLED=True` and all SMTP credentials in `backend/.env`.
 
@@ -329,7 +337,7 @@ pre-commit run --all-files
 -   ✨ **Daily Notifications**: Morning briefings with recommendations, evening summaries with progress.
 -   ✨ **Robust Error Handling**: Structured API error responses and improved logging.
 -   ✨ **Comprehensive Health Check**: API endpoint for system health monitoring.
--   ✨ **Zero-Cost Cloud Deployment**: Optimized for Render (backend) and Streamlit Cloud (frontend).
+-   ✨ **Zero-Cost Cloud Deployment**: Optimized for Render (backend) and Vercel (frontend).
 -   ✨ **Cleaned Codebase**: Consolidated dependencies, removed obsolete scripts and Docker files.
 -   ✅ **Automated Testing**: Integrated `pytest` with GitHub Actions for continuous validation.
 

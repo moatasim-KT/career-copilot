@@ -7,15 +7,15 @@
 *   **Task 1.2.3: Implement WebSocket Endpoint for Notifications**
     *   Modify `send_evening_summary` in `backend/app/tasks/scheduled_tasks.py` to send WebSocket notifications upon successful email delivery or failure.
 
-*   **Task 1.2.4: Integrate WebSocket Client in New Frontend**
-    *   Implement a WebSocket client in the new frontend to connect to backend WebSocket endpoints and display real-time updates.
+*   **Task 1.2.4: Integrate WebSocket Client in Next.js Frontend**
+    *   Implement a WebSocket client in the Next.js frontend to connect to backend WebSocket endpoints and display real-time updates.
 
 ### Category 2: Deeper AI Integration
 
 #### Enhancement 2.1: Advanced LLM Integration (Resume/JD Parsing & Content Generation)
 
 *   **Task 2.1.1: Research and Select LLM Provider/Model**
-    *   **Objective**: Choose a suitable LLM provider (GOW or nvidia) and specific model(s) for text processing tasks.
+    *   **Objective**: Choose a suitable LLM provider (GROQ or nvidia) and specific model(s) for text processing tasks.
     *   **Inputs**: Project requirements (cost, performance, capabilities), available API keys.
     *   **Expected Output**: Documented decision on LLM provider/model.
     *   **Success Criteria**: LLM selected and API access confirmed.
@@ -160,41 +160,29 @@
     *   **Expected Output**: Frontend displays OAuth login/register options.
     *   **Success Criteria**: Users can initiate OAuth login/registration from the frontend.
 
-## Phase 3: Frontend Enhancements
+## Phase 3: Frontend Enhancements (Next.js)
 
 ### 29. Enhance frontend with advanced features
 
 *   **29.1 Implement real-time UI updates**
-    *   [backend] [websocket] Choose a WebSocket library for the Python backend (e.g., `FastAPI-WebSocket`, `websockets`).
-    *   [backend] [websocket] Define WebSocket endpoints in the FastAPI application to handle real-time communication.
-    *   [backend] [websocket] Integrate the WebSocket endpoints with the existing job matching and application status logic.
-    *   [frontend] [websocket] Implement a WebSocket client in the Streamlit frontend to connect to the backend.
+    *   [frontend] [websocket] Implement a WebSocket client in the Next.js frontend to connect to the backend.
     *   [frontend] [ui] Create UI components to display real-time notifications for job matches and application status updates.
     *   [frontend] [ui] Develop a real-time analytics dashboard that updates with live data from the WebSocket.
-    *   [test] [websocket] Write tests for the WebSocket endpoints.
-    *   [test] [ui] Write tests for the real-time UI components.
 
 *   **29.2 Add file upload and content generation UI**
-    *   [frontend] [ui] Use Streamlit's `st.file_uploader` to create a resume upload interface.
-    *   [frontend] [ui] Add drag-and-drop functionality using a Streamlit component or custom HTML/JavaScript.
+    *   [frontend] [ui] Create a resume upload interface with drag-and-drop functionality.
     *   [frontend] [ui] Implement UI to show parsing status and progress.
-    *   [frontend] [ui] Create Streamlit forms (`st.form`) for generating cover letters and tailored resumes.
-    *   [frontend] [ui] Add input fields for job descriptions, user skills, and other relevant information.
+    *   [frontend] [ui] Create forms for generating cover letters and tailored resumes.
     *   [frontend] [ui] Implement a preview and editing interface for the generated content.
-    *   [test] [ui] Write tests for the file upload and content generation UI.
 
 *   **29.3 Implement interview practice UI**
-    *   [frontend] [ui] Design a Streamlit interface for the interview practice sessions.
+    *   [frontend] [ui] Design an interface for the interview practice sessions.
     *   [frontend] [websocket] Implement a real-time Q&A flow using WebSockets or by triggering backend API calls.
     *   [frontend] [ui] Implement UI elements to display real-time feedback on user answers.
     *   [frontend] [ui] Create views to show interview history and performance analytics.
-    *   [test] [ui] Write tests for the interview practice UI.
 
 *   **29.4 Add OAuth login integration to frontend**
-    *   [backend] [auth] Integrate an OAuth library (e.g., `Authlib`, `FastAPI-Users`) with the FastAPI backend.
-    *   [backend] [auth] Configure OAuth providers (e.g., Google, LinkedIn).
-    *   [backend] [auth] Implement callback endpoints to handle the OAuth flow.
-    *   [frontend] [auth] Add social login buttons to the Streamlit frontend.
+    *   [frontend] [auth] Add social login buttons to the Next.js frontend.
     *   [frontend] [auth] Implement the client-side logic to initiate the OAuth flow.
     *   [frontend] [auth] Handle the callback from the backend to complete the authentication process.
     *   [frontend] [auth] Create UI for account linking and profile setup after the first login.

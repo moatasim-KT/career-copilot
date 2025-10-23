@@ -234,49 +234,7 @@ This implementation plan covers the complete Career Co-Pilot MVP across all four
   - Test error handling in tasks
   - _Requirements: 10.2, 10.3, 10.4_
 
-- [x] 12. Enhance frontend dashboard
-- [x] 12.1 Implement profile management UI
 
-  - Create profile page in Streamlit
-  - Add multi-select for skills
-  - Add multi-select for preferred locations
-  - Add dropdown for experience level
-  - Implement save functionality calling PUT /api/v1/profile
-  - _Requirements: 12.3, 1.3, 1.4_
-
-- [x] 12.2 Implement recommendations UI
-
-  - Add recommendations section to dashboard
-  - Call GET /api/v1/recommendations
-  - Display jobs with match scores
-  - Show tech stack location and other details
-  - Add Apply button to create application
-  - _Requirements: 12.3, 3.5_
-
-- [x] 12.3 Implement skill gap analysis UI
-
-  - Create skill gap page in Streamlit
-  - Call GET /api/v1/skill-gap
-  - Display user skills vs missing skills
-  - Show skill coverage percentage with gauge chart
-  - Display learning recommendations
-  - _Requirements: 12.3, 4.5_
-
-- [x] 12.4 Enhance analytics dashboard UI
-
-  - Update dashboard to call GET /api/v1/analytics/summary
-  - Display metrics in cards
-  - Add status breakdown pie chart
-  - Show recent activity
-  - _Requirements: 9.4, 9.5, 12.3_
-
-- [x] 12.5 Enhance job management UI
-
-  - Update job form to include tech_stack field
-  - Add responsibilities field
-  - Display source badge
-  - Show match score if available
-  - _Requirements: 12.4, 2.1, 2.2_
 
 - [x] 13. Implement configuration management
 - [x] 13.1 Create environment configuration
@@ -577,7 +535,7 @@ This implementation plan covers the complete Career Co-Pilot MVP across all four
   - Create feedback impact tracking and reporting
   - _Requirements: 21.3, 21.4, 21.5_
 
-- [-] 28. Implement advanced analytics and market insights
+- [x] 28. Implement advanced analytics and market insights
 - [x] 28.1 Create market trend analysis service
   - Implement job market trend analysis across skills and locations
   - Add salary trend tracking and prediction
@@ -592,43 +550,68 @@ This implementation plan covers the complete Career Co-Pilot MVP across all four
   - Create predictive analytics for job search success
   - _Requirements: 22.3, 22.4_
 
-- [-] 28.3 Add interactive analytics dashboard
+- [x] 28.3 Add interactive analytics dashboard
   - Create interactive charts and visualizations
   - Implement drill-down analytics for detailed insights
   - Add export functionality for analytics reports
   - Create scheduled analytics reports via email
   - _Requirements: 22.4, 22.5_
 
-## Phase 3: Frontend Enhancements
+## Phase 3: Frontend Enhancements (Next.js)
 
-- [ ] 29. Enhance frontend with advanced features
-- [ ] 29.1 Implement real-time UI updates
-  - Add WebSocket client integration to Streamlit frontend
-  - Implement real-time job match notifications in UI
-  - Create live application status updates
-  - Add real-time analytics dashboard updates
-  - _Requirements: 17.4, 17.5_
+- [x] 29. Set up Next.js Frontend
+  - Initialize a new Next.js project with TypeScript and Tailwind CSS.
+  - Structure the project with `src` directory for application code.
+  - Configure ESLint and Prettier for code quality.
 
-- [ ] 29.2 Add file upload and content generation UI
-  - Create resume upload interface with drag-and-drop
-  - Implement parsing status display and progress tracking
-  - Add content generation forms for cover letters and resume tailoring
-  - Create content editing and preview interfaces
-  - _Requirements: 16.3, 18.4_
+- [ ] 30. Implement Core UI and Layout
+  - Create a global layout with navigation and a footer.
+  - Implement a responsive design that works on mobile and desktop.
+  - Set up a theme and styling using Tailwind CSS.
 
-- [ ] 29.3 Implement interview practice UI
-  - Create interview practice session interface
-  - Add real-time question and answer flow
-  - Implement feedback display and progress tracking
-  - Create interview history and analytics views
-  - _Requirements: 19.2, 19.3, 19.4_
+- [ ] 31. Implement User Authentication
+  - Create login and registration pages.
+  - Implement form handling and validation.
+  - Integrate with the backend's JWT authentication.
+  - Implement social login buttons and OAuth flows.
+  - _Requirements: 11.1, 11.2, 11.3, 11.4, 23.1, 23.2, 23.3_
 
-- [ ] 29.4 Add OAuth login integration to frontend
-  - Implement social login buttons and flows
-  - Add OAuth callback handling in Streamlit
-  - Create account linking and profile setup flows
-  - Implement seamless authentication experience
-  - _Requirements: 23.1, 23.2, 23.3_
+- [ ] 32. Implement User Profile Management
+  - Create a user profile page to display and update user information.
+  - Add forms for updating skills, preferred locations, and experience level.
+  - Integrate with the `GET /api/v1/profile` and `PUT /api/v1/profile` endpoints.
+  - _Requirements: 1.2, 1.3, 1.4, 1.5_
+
+- [ ] 33. Implement Job and Application Management
+  - Create a page to display a list of jobs and applications.
+  - Implement functionality to create, view, update, and delete jobs and applications.
+  - Add a form for creating and editing jobs with all necessary fields.
+  - _Requirements: 2.1, 2.2, 2.3, 2.4, 2.5, 8.1, 8.2, 8.3, 8.4, 8.5_
+
+- [ ] 34. Implement Recommendations and Skill Gap Analysis
+  - Create a page to display job recommendations.
+  - Integrate with the `GET /api/v1/recommendations` endpoint.
+  - Create a page to display the skill gap analysis.
+  - Integrate with the `GET /api/v1/skill-gap` endpoint.
+  - _Requirements: 3.5, 4.5_
+
+- [ ] 35. Implement Analytics Dashboard
+  - Create a dashboard to display user analytics.
+  - Integrate with the `GET /api/v1/analytics/summary` endpoint.
+  - Use a charting library (e.g., Recharts, Chart.js) to visualize data.
+  - _Requirements: 9.1, 9.2, 9.3, 9.4, 9.5_
+
+- [ ] 36. Implement Real-time UI Updates
+  - Integrate a WebSocket client to connect to the backend.
+  - Implement real-time notifications for job matches and application status updates.
+  - Create a live-updating analytics dashboard.
+  - _Requirements: 17.1, 17.2, 17.4, 17.5_
+
+- [ ] 37. Implement Advanced Features UI
+  - Create a file upload component for resumes.
+  - Implement UI for content generation (cover letters, tailored resumes).
+  - Create an interface for the interview practice system.
+  - _Requirements: 16.1, 16.2, 16.3, 16.4, 16.5, 18.1, 18.2, 18.3, 18.4, 18.5, 19.1, 19.2, 19.3, 19.4, 19.5_
 
 ## Phase 4: Testing and Quality Assurance
 
