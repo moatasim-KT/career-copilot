@@ -1,36 +1,172 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Career Copilot Frontend
+
+Modern Next.js frontend for the Career Copilot job application tracking system.
+
+## Features
+
+- **Modern Stack**: Next.js 14, React 18, TypeScript, Tailwind CSS
+- **Responsive Design**: Mobile-first design that works on all devices
+- **Job Management**: Add, edit, delete, and track job opportunities
+- **Application Tracking**: Monitor application status and progress
+- **Analytics Dashboard**: View key metrics and insights
+- **User Authentication**: Secure login and registration
+- **Real-time Updates**: Live data synchronization with backend
 
 ## Getting Started
 
-First, run the development server:
+### Prerequisites
 
+- Node.js 18+ 
+- npm or yarn
+- Backend server running on http://localhost:8002
+
+### Installation
+
+1. Install dependencies:
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+2. Set up environment variables:
+```bash
+cp .env.local.example .env.local
+# Edit .env.local with your backend URL
+```
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+3. Start the development server:
+```bash
+npm run dev
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+4. Open [http://localhost:3000](http://localhost:3000) in your browser
 
-## Learn More
+## Project Structure
 
-To learn more about Next.js, take a look at the following resources:
+```
+frontend/
+├── src/
+│   ├── app/                 # Next.js app router
+│   │   ├── layout.tsx       # Root layout
+│   │   ├── page.tsx         # Home page
+│   │   └── globals.css      # Global styles
+│   ├── components/          # React components
+│   │   ├── Navigation.tsx   # Main navigation
+│   │   ├── Dashboard.tsx    # Analytics dashboard
+│   │   ├── JobsPage.tsx     # Job management
+│   │   ├── ApplicationsPage.tsx # Application tracking
+│   │   ├── LoginForm.tsx    # Authentication
+│   │   └── ...
+│   └── lib/
+│       └── api.ts           # API client and types
+├── public/                  # Static assets
+├── package.json
+└── README.md
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Key Components
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### Dashboard
+- Key metrics overview
+- Daily application goals
+- Recent activity
+- Status breakdown
 
-## Deploy on Vercel
+### Job Management
+- Add/edit job opportunities
+- Tech stack tracking
+- Source attribution
+- Match scoring
+- Bulk operations
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### Application Tracking
+- Status management
+- Interview feedback
+- Timeline tracking
+- Notes and comments
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+### Analytics
+- Performance metrics
+- Success rates
+- Conversion funnels
+- Market insights
+
+## API Integration
+
+The frontend communicates with the FastAPI backend through a typed API client (`src/lib/api.ts`). All API calls are properly typed and include error handling.
+
+### Key API Features:
+- Authentication with JWT tokens
+- Automatic token refresh
+- Error handling and retry logic
+- TypeScript interfaces for all data types
+
+## Development
+
+### Available Scripts
+
+- `npm run dev` - Start development server
+- `npm run build` - Build for production
+- `npm run start` - Start production server
+- `npm run lint` - Run ESLint
+
+### Code Style
+
+- TypeScript for type safety
+- ESLint for code quality
+- Prettier for formatting
+- Tailwind CSS for styling
+
+## Migration from Streamlit
+
+This frontend replaces the previous Streamlit implementation with several improvements:
+
+### Advantages over Streamlit:
+- **Better Performance**: Faster loading and rendering
+- **Modern UX**: Professional, responsive interface
+- **Type Safety**: Full TypeScript support
+- **Scalability**: Component-based architecture
+- **SEO Friendly**: Server-side rendering support
+- **Mobile Support**: Responsive design
+- **Customization**: Full control over UI/UX
+
+### Migrated Features:
+- ✅ Job management with tech stack
+- ✅ Application tracking
+- ✅ Analytics dashboard
+- ✅ User authentication
+- ✅ Responsive navigation
+- 🚧 Advanced analytics (in progress)
+- 🚧 Recommendations engine (in progress)
+- 🚧 Profile management (in progress)
+
+## Deployment
+
+### Production Build
+
+```bash
+npm run build
+npm run start
+```
+
+### Environment Variables
+
+- `NEXT_PUBLIC_BACKEND_URL` - Backend API URL
+- `NEXT_PUBLIC_APP_ENV` - Environment (development/production)
+
+## Contributing
+
+1. Follow the existing code style
+2. Add TypeScript types for new features
+3. Include proper error handling
+4. Test on mobile and desktop
+5. Update documentation
+
+## Legacy Streamlit Frontend
+
+The previous Streamlit frontend has been moved to `frontend-backup/` for reference. It contains:
+- Interactive analytics dashboard
+- Contract analysis features
+- Security components
+- Configuration files
+
+These features will be gradually migrated to the new Next.js frontend.
