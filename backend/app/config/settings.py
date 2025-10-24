@@ -40,6 +40,7 @@ class Settings(BaseSettings):
     adzuna_app_id: Optional[str] = None
     adzuna_app_key: Optional[str] = None
     adzuna_country: Optional[str] = "us"
+    adzuna_country: Optional[str] = "us"
 
     # LinkedIn API Configuration
     linkedin_api_client_id: Optional[str] = None

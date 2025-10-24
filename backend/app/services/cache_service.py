@@ -10,7 +10,6 @@ from datetime import datetime, timedelta
 import redis
 from redis.exceptions import ConnectionError, TimeoutError
 import asyncio
-import aioredis
 from functools import wraps
 
 from app.core.config import get_settings
@@ -19,13 +18,15 @@ from app.core.logging import get_logger
 logger = get_logger(__name__)
 
 
+import redis.asyncio as redis_async
+
 class CacheService:
     """Redis-based caching service with async support"""
     
     def __init__(self):
         self.settings = get_settings()
         self.redis_client: Optional[redis.Redis] = None
-        self.async_redis_client: Optional[aioredis.Redis] = None
+        self.async_redis_client: Optional[redis_async.Redis] = None
         self.enabled = self.settings.enable_redis_caching
         
         if self.enabled:
@@ -53,14 +54,14 @@ class CacheService:
             self.enabled = False
             self.redis_client = None
     
-    async def _get_async_client(self) -> Optional[aioredis.Redis]:
+    async def _get_async_client(self) -> Optional[redis_async.Redis]:
         """Get or create async Redis client"""
         if not self.enabled:
             return None
             
         if self.async_redis_client is None:
             try:
-                self.async_redis_client = aioredis.from_url(
+                self.async_redis_client = redis_async.from_url(
                     self.settings.redis_url,
                     decode_responses=True,
                     socket_timeout=5,

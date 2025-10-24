@@ -1,202 +1,98 @@
-{% extends "base.html" %}
-
-{% block title %}Morning Briefing - Career Co-Pilot{% endblock %}
-
-{% block header_title %}🌅 Morning Briefing{% endblock %}
-{% block header_subtitle %}{{ greeting }}, {{ user_name }}! Here's your daily career update{% endblock %}
-
-{% block content %}
-<div class="greeting">
-    {{ greeting }}, {{ user_name }}! 👋
-</div>
-
-<p style="margin-bottom: 25px; color: #4a5568; font-size: 16px;">
-    Ready to take on {{ current_date|datetime_format("%A, %B %d") }}? Here's your personalized career briefing to help you make the most of today.
-</p>
-
-<!-- Daily Progress Overview -->
-{% if progress %}
-<div class="section">
-    <h2 class="section-title">📊 Your Progress</h2>
-    <div class="stats-grid">
-        {% if progress.applications_this_week %}
-        <div class="stat-card">
-            <span class="stat-number">{{ progress.applications_this_week }}</span>
-            <span class="stat-label">Applications This Week</span>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Your Daily Career Briefing</title>
+    <style>
+        body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; margin: 0; padding: 0; background-color: #f4f4f4; color: #333; }
+        .container { max-width: 600px; margin: 20px auto; background-color: #ffffff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); }
+        .header { text-align: center; padding-bottom: 20px; border-bottom: 1px solid #eee; }
+        .header h1 { margin: 0; color: #333; font-size: 24px; }
+        .header p { margin: 5px 0 0; color: #777; font-size: 14px; }
+        .content { padding: 20px 0; }
+        .content h2 { color: #333; font-size: 20px; margin-top: 0; margin-bottom: 15px; }
+        .job-card { background-color: #f9f9f9; border: 1px solid #eee; border-radius: 6px; padding: 15px; margin-bottom: 15px; }
+        .job-card h3 { margin: 0 0 5px; color: #007bff; font-size: 18px; }
+        .job-card p { margin: 0 0 5px; font-size: 14px; line-height: 1.5; }
+        .job-card .meta { font-size: 12px; color: #666; }
+        .job-card .meta span { margin-right: 10px; }
+        .button { display: inline-block; background-color: #007bff; color: #ffffff; padding: 10px 20px; border-radius: 5px; text-decoration: none; font-size: 14px; margin-top: 10px; }
+        .footer { text-align: center; padding-top: 20px; border-top: 1px solid #eee; margin-top: 20px; font-size: 12px; color: #777; }
+        .footer a { color: #007bff; text-decoration: none; }
+        .progress-section, .goals-section, .insights-section { background-color: #f9f9f9; border: 1px solid #eee; border-radius: 6px; padding: 15px; margin-bottom: 15px; }
+        .progress-section h3, .goals-section h3, .insights-section h3 { margin-top: 0; color: #333; font-size: 16px; margin-bottom: 10px; }
+        .progress-bar { background-color: #e0e0e0; border-radius: 5px; height: 10px; margin-top: 5px; }
+        .progress-fill { background-color: #28a745; height: 10px; border-radius: 5px; width: {{ progress.daily_goal_progress | default(0) }}%; max-width: 100%; }
+        ul { list-style-type: none; padding: 0; margin: 0; }
+        li { margin-bottom: 5px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>{{ greeting }}, {{ user_name }}!</h1>
+            <p>Your Daily Career Briefing for {{ current_date.strftime('%B %d, %Y') }}</p>
         </div>
-        {% endif %}
-        
-        {% if progress.interviews_scheduled %}
-        <div class="stat-card">
-            <span class="stat-number">{{ progress.interviews_scheduled }}</span>
-            <span class="stat-label">Interviews Scheduled</span>
-        </div>
-        {% endif %}
-        
-        {% if progress.response_rate %}
-        <div class="stat-card">
-            <span class="stat-number">{{ progress.response_rate }}%</span>
-            <span class="stat-label">Response Rate</span>
-        </div>
-        {% endif %}
-        
-        {% if progress.goal_completion %}
-        <div class="stat-card">
-            <span class="stat-number">{{ progress.goal_completion }}%</span>
-            <span class="stat-label">Weekly Goal</span>
-        </div>
-        {% endif %}
-    </div>
-    
-    {% if progress.goal_completion %}
-    <div class="progress-bar">
-        <div class="progress-fill" style="width: {{ progress.goal_completion }}%"></div>
-    </div>
-    <p style="font-size: 14px; color: #718096; text-align: center;">
-        {{ progress.goal_completion }}% of your weekly application goal completed
-    </p>
-    {% endif %}
-</div>
-{% endif %}
 
-<!-- Top Job Recommendations -->
-{% if recommendations %}
-<div class="section">
-    <h2 class="section-title">🎯 Top Job Recommendations</h2>
-    <p style="margin-bottom: 20px; color: #4a5568;">
-        Based on your skills and preferences, here are today's best matches:
-    </p>
-    
-    {% for job in recommendations[:5] %}
-    <div class="job-card">
-        <div class="job-title">{{ job.title }}</div>
-        <div class="job-company">{{ job.company }}</div>
-        {% if job.location %}
-        <div class="job-location">📍 {{ job.location }}</div>
-        {% endif %}
-        
-        {% if job.match_score %}
-        <div class="job-match-score">{{ (job.match_score * 100)|round }}% Match</div>
-        {% endif %}
-        
-        {% if job.description %}
-        <div class="job-description">
-            {{ job.description|truncate_words(30) }}
-        </div>
-        {% endif %}
-        
-        {% if job.skills %}
-        <div style="margin-bottom: 15px;">
-            <strong style="font-size: 14px; color: #2d3748;">Key Skills:</strong>
-            <ul class="skill-list">
-                {% for skill in job.skills[:5] %}
-                <li class="skill-item">{{ skill }}</li>
+        <div class="content">
+            <h2>Top Job Recommendations</h2>
+            {% if recommendations %}
+                {% for rec in recommendations %}
+                    <div class="job-card">
+                        <h3>{{ rec.title }} at {{ rec.company }}</h3>
+                        <p class="meta">
+                            <span>📍 {{ rec.location | default('Remote') }}</span>
+                            <span>💰 {{ rec.salary_range | default('N/A') }}</span>
+                            <span>⭐ {{ rec.match_score | round | default(0) }}% Match</span>
+                        </p>
+                        <p>{{ rec.description | truncate(150) }}</p>
+                        <a href="{{ rec.url }}" class="button">View Job</a>
+                    </div>
                 {% endfor %}
-            </ul>
-        </div>
-        {% endif %}
-        
-        {% if job.explanation %}
-        <div style="background-color: #e6fffa; border-left: 4px solid #38b2ac; padding: 10px; margin-bottom: 15px; border-radius: 0 4px 4px 0;">
-            <strong style="color: #2d3748; font-size: 14px;">Why this matches:</strong>
-            <p style="color: #4a5568; font-size: 13px; margin-top: 5px;">{{ job.explanation }}</p>
-        </div>
-        {% endif %}
-        
-        <div style="text-align: right;">
-            {% if job.application_url %}
-            <a href="{{ job.application_url }}" class="btn" style="margin-right: 10px;">Apply Now</a>
+            {% else %}
+                <p>No new recommendations today. Update your profile or add more jobs to get personalized recommendations!</p>
             {% endif %}
-            <a href="#job-{{ job.id }}" class="btn btn-secondary">View Details</a>
+
+            {% if progress %}
+            <div class="progress-section">
+                <h3>Your Progress Today</h3>
+                <p>Daily Application Goal: {{ progress.daily_application_goal | default(0) }}</p>
+                <div class="progress-bar"><div class="progress-fill"></div></div>
+                <p>{{ progress.daily_applications_today | default(0) }} applications today.</p>
+            </div>
+            {% endif %}
+
+            {% if daily_goals %}
+            <div class="goals-section">
+                <h3>Your Daily Goals</h3>
+                <ul>
+                    {% for goal in daily_goals %}
+                        <li>{{ goal }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+            {% endif %}
+
+            {% if market_insights %}
+            <div class="insights-section">
+                <h3>Market Insights</h3>
+                <p>{{ market_insights.summary }}</p>
+                <ul>
+                    {% for insight in market_insights.top_insights %}
+                        <li>{{ insight }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="footer">
+            <p>Manage your preferences or unsubscribe <a href="#">here</a>.</p>
+            <p>&copy; {{ current_date.year }} Career Copilot. All rights reserved.</p>
+            <p>Tracking ID: {{ tracking_id }}</p>
+            <p>Visit your dashboard: <a href="{{ dashboard_url }}">{{ dashboard_url }}</a></p>
         </div>
     </div>
-    {% endfor %}
-</div>
-{% endif %}
-
-<!-- Daily Goals -->
-{% if daily_goals %}
-<div class="section">
-    <h2 class="section-title">🎯 Today's Goals</h2>
-    
-    {% if daily_goals.applications_target %}
-    <div style="background-color: #f0f4ff; border: 1px solid #c3dafe; border-radius: 6px; padding: 15px; margin-bottom: 15px;">
-        <strong style="color: #2d3748;">Application Goal:</strong>
-        <p style="color: #4a5568; margin-top: 5px;">
-            Apply to {{ daily_goals.applications_target }} job{{ daily_goals.applications_target|pluralize }} today
-        </p>
-    </div>
-    {% endif %}
-    
-    {% if daily_goals.networking_target %}
-    <div style="background-color: #f0fff4; border: 1px solid #c6f6d5; border-radius: 6px; padding: 15px; margin-bottom: 15px;">
-        <strong style="color: #2d3748;">Networking Goal:</strong>
-        <p style="color: #4a5568; margin-top: 5px;">
-            Connect with {{ daily_goals.networking_target }} professional{{ daily_goals.networking_target|pluralize }} in your field
-        </p>
-    </div>
-    {% endif %}
-    
-    {% if daily_goals.skill_focus %}
-    <div style="background-color: #fffaf0; border: 1px solid #fbd38d; border-radius: 6px; padding: 15px; margin-bottom: 15px;">
-        <strong style="color: #2d3748;">Skill Development:</strong>
-        <p style="color: #4a5568; margin-top: 5px;">
-            Spend 30 minutes learning about {{ daily_goals.skill_focus }}
-        </p>
-    </div>
-    {% endif %}
-</div>
-{% endif %}
-
-<!-- Market Insights -->
-{% if market_insights %}
-<div class="section">
-    <h2 class="section-title">📈 Market Insights</h2>
-    
-    {% if market_insights.trending_skills %}
-    <div style="margin-bottom: 20px;">
-        <strong style="color: #2d3748; font-size: 16px;">🔥 Trending Skills in Your Field:</strong>
-        <ul class="skill-list" style="margin-top: 10px;">
-            {% for skill in market_insights.trending_skills[:8] %}
-            <li class="skill-item">{{ skill }}</li>
-            {% endfor %}
-        </ul>
-    </div>
-    {% endif %}
-    
-    {% if market_insights.salary_trend %}
-    <div style="background-color: #f7fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 15px; margin-bottom: 15px;">
-        <strong style="color: #2d3748;">💰 Salary Trends:</strong>
-        <p style="color: #4a5568; margin-top: 5px;">
-            {{ market_insights.salary_trend }}
-        </p>
-    </div>
-    {% endif %}
-    
-    {% if market_insights.job_market_activity %}
-    <div style="background-color: #f7fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 15px;">
-        <strong style="color: #2d3748;">📊 Market Activity:</strong>
-        <p style="color: #4a5568; margin-top: 5px;">
-            {{ market_insights.job_market_activity }}
-        </p>
-    </div>
-    {% endif %}
-</div>
-{% endif %}
-
-<!-- Call to Action -->
-<div class="section" style="text-align: center; background-color: #f7fafc; border-radius: 8px; padding: 25px;">
-    <h3 style="color: #2d3748; margin-bottom: 15px;">Ready to make today count? 🚀</h3>
-    <p style="color: #4a5568; margin-bottom: 20px;">
-        Your career journey is unique, and every step forward matters. Let's make today productive!
-    </p>
-    <a href="#dashboard" class="btn" style="margin-right: 15px;">Open Dashboard</a>
-    <a href="#jobs" class="btn btn-secondary">Browse All Jobs</a>
-</div>
-
-<div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e2e8f0; text-align: center;">
-    <p style="color: #718096; font-size: 14px;">
-        💡 <strong>Pro Tip:</strong> The best time to apply for jobs is between 6-10 AM when hiring managers are most active!
-    </p>
-</div>
-{% endblock %}
+</body>
+</html>

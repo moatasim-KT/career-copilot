@@ -1,10 +1,5 @@
-
 describe('Login Flow', () => {
-  it('should allow a user to login', () => {
-    cy.visit('http://localhost:3000/login');
-
-    cy.get('input[name="username"]').type('testuser');
-    cy.get('input[name="password"]').type('password');
+    cy.get('input[name="password"]').type('testpassword');
     cy.get('button[type="submit"]').click();
 
     cy.url().should('include', '/dashboard');
@@ -14,7 +9,7 @@ describe('Login Flow', () => {
     cy.visit('http://localhost:3000/login');
 
     cy.get('input[name="username"]').type('testuser');
-    cy.get('input[name="password"]').type('password');
+    cy.get('input[name="password"]').type('testpassword');
     cy.get('button[type="submit"]').click();
 
     cy.url().should('include', '/dashboard');

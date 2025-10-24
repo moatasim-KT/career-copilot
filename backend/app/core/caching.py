@@ -594,24 +594,30 @@ class VectorCache:
 
 
 # Global cache instances
-cache_manager = CacheManager()
-document_cache = DocumentCache(cache_manager)
-vector_cache = VectorCache(cache_manager)
-
+_cache_manager_instance: Optional[CacheManager] = None
+_document_cache_instance: Optional[DocumentCache] = None
+_vector_cache_instance: Optional[VectorCache] = None
 
 def get_cache_manager() -> CacheManager:
 	"""Get the global cache manager instance."""
-	return cache_manager
-
+	global _cache_manager_instance
+	if _cache_manager_instance is None:
+		_cache_manager_instance = CacheManager()
+	return _cache_manager_instance
 
 def get_document_cache() -> DocumentCache:
 	"""Get the global document cache instance."""
-	return document_cache
-
+	global _document_cache_instance
+	if _document_cache_instance is None:
+		_document_cache_instance = DocumentCache(get_cache_manager())
+	return _document_cache_instance
 
 def get_vector_cache() -> VectorCache:
 	"""Get the global vector cache instance."""
-	return vector_cache
+	global _vector_cache_instance
+	if _vector_cache_instance is None:
+		_vector_cache_instance = VectorCache(get_cache_manager())
+	return _vector_cache_instance
 
 
 # Decorator for caching function results
@@ -619,24 +625,26 @@ def cache_result(prefix: str, ttl: int = 3600, key_func: Optional[callable] = No
 	"""Decorator to cache function results."""
 
 	def decorator(func):
+		@wraps(func)
 		def wrapper(*args, **kwargs):
+			cache_mgr = get_cache_manager()
 			# Generate cache key
 			if key_func:
 				cache_key = key_func(*args, **kwargs)
 			else:
 				# Use function name and arguments
 				key_data = {"func": func.__name__, "args": args, "kwargs": kwargs}
-				cache_key = cache_manager._generate_cache_key(prefix, key_data)
+				cache_key = cache_mgr._generate_cache_key(prefix, key_data)
 
 			# Try to get from cache
-			result = cache_manager.get(cache_key)
+			result = cache_mgr.get(cache_key)
 			if result is not None:
 				logger.debug(f"Cache hit for {func.__name__}")
 				return result
 
 			# Execute function and cache result
 			result = func(*args, **kwargs)
-			cache_manager.set(cache_key, result, ttl)
+			cache_mgr.set(cache_key, result, ttl)
 			logger.debug(f"Cached result for {func.__name__}")
 
 			return result

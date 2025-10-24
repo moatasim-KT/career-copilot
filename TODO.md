@@ -1,89 +1,50 @@
-## TODO List for Career Co-Pilot Implementation
+### To-Do List for Robust LinkedIn Web Scraping
 
-This list details the actionable steps to implement the Career Co-Pilot features, adapted to the existing FastAPI/Next.js/Relational Database architecture.
+This list is derived from the `PLAN.md` for implementing a robust LinkedIn web scraping solution.
 
----
+*   **Step 1: Setup and Project Structure**
+    *   [backend] Create `backend/app/services/linkedin_scraper.py` to house Puppeteer-based scraping logic.
+    *   [backend] Modify `backend/app/api/recommend.py` (or equivalent) to import and use functions from `linkedin_scraper.py`.
+    *   [documentation] Update `README.md` to include instructions for setting `LINKEDIN_EMAIL` and `LINKEDIN_PASSWORD` environment variables.
 
-### Phase 1: Core Application & Job Management
+*   **Step 2: Implement Puppeteer-based Browser Automation**
+    *   [backend] Implement a function in `linkedin_scraper.py` to initialize a headless browser instance using `puppeteer_navigate`.
+    *   [backend] Implement LinkedIn authentication logic in `linkedin_scraper.py`:
+        *   Navigate to LinkedIn login page.
+        *   Use `puppeteer_fill` for email and password.
+        *   Use `puppeteer_click` for login button.
+        *   Use `puppeteer_evaluate` with `waitForSelector` for post-login page load.
+    *   [backend] Implement job search page scraping in `linkedin_scraper.py`:
+        *   Construct LinkedIn job search URL.
+        *   Navigate browser to search URL.
+        *   Implement scrolling mechanism using `puppeteer_evaluate` to load more jobs.
+        *   Use `puppeteer_evaluate` to extract job details (title, company, location, link, snippet) using robust DOM selectors.
+    *   [backend] Implement individual job page scraping in `linkedin_scraper.py`:
+        *   Create a function to navigate to a specific job URL.
+        *   Wait for job description element visibility.
+        *   Implement logic to click "Show more" buttons if present.
+        *   Use `puppeteer_evaluate` to extract the complete job description text.
 
-**Parallelism:** Tasks within this phase can be worked on in parallel where frontend and backend work is independent.
+*   **Step 3: Integrate with Existing Flask Application**
+    *   [backend] Modify the `recommendations` route in `backend/app/api/recommend.py` to use the new Puppeteer-based job search function.
+    *   [backend] Modify the `add_recommended_job` route in `backend/app/api/recommend.py` to use the new Puppeteer-based individual job page scraping function.
 
-*   **Database Setup & ORM Integration:**
-    *   [database] [backend] Verify database connection and ORM models are correctly configured for all necessary entities (Users, Jobs, Applications, etc.).
-    *   [database] [backend] Ensure `alembic` migrations are up-to-date.
-    *   [test] Write unit/integration tests for database models and ORM operations.
+*   **Step 4: Error Handling and Robustness**
+    *   [backend] Implement comprehensive `try-except` blocks around all Puppeteer operations in `linkedin_scraper.py`.
+    *   [backend] Implement a simple retry mechanism with exponential backoff for failed Puppeteer operations.
+    *   [backend] Introduce random delays between Puppeteer actions.
 
-*   **Frontend Job Management UI:**
-    *   [frontend] Complete the UI for displaying job entries within the Next.js frontend.
-    *   [frontend] Complete the UI for adding new job entries within the Next.js frontend.
-    *   [frontend] Complete the UI for updating job entries within the Next.js frontend.
-    *   [frontend] Complete the UI for deleting job entries within the Next.js frontend.
-    *   [frontend] Connect all job management UI actions to the existing FastAPI job management API endpoints (`/api/v1/jobs`).
-    *   [test] Write frontend unit tests for job management components.
-    *   [test] Write end-to-end tests for the job management workflow.
+*   **Step 5: Testing**
+    *   [test] Write unit tests for functions in `linkedin_scraper.py` (mocking Puppeteer interactions).
+    *   [test] Create integration tests for the full Flask route to Puppeteer scraping flow.
 
-*   **User Authentication & Profile:**
-    *   [frontend] Finalize frontend UI for user login.
-    *   [frontend] Finalize frontend UI for user registration.
-    *   [frontend] Finalize frontend UI for profile management.
-    *   [frontend] Ensure secure communication and JWT token handling between frontend and backend.
-    *   [test] Write frontend unit tests for authentication and profile components.
-    *   [test] Write end-to-end tests for user authentication and profile management workflows.
+*   **Step 6: Documentation and Cleanup**
+    *   [documentation] Update `README.md` with instructions for setting up LinkedIn credentials.
+    *   [backend] Remove old `requests` and `BeautifulSoup` logic from `backend/app/api/recommend.py`.
 
----
-
-### Phase 2: Automation & Intelligence
-
-**Parallelism:** Job scraping implementation and recommendation engine integration can proceed in parallel with frontend integration.
-
-*   **Job Ingestion/Scraping Implementation:**
-    *   [backend] Implement the actual job scraping logic within the FastAPI backend (e.g., integrating with Adzuna API).
-    *   [backend] Ensure duplicate job checking is performed before saving new jobs to the database.
-    *   [test] Write unit/integration tests for the job scraping logic.
-
-*   **Scheduler Configuration for Job Ingestion:**
-    *   [backend] Configure the existing internal scheduler (`app.scheduler.py`) to periodically trigger the job ingestion task (e.g., daily at 4 AM).
-    *   [test] Write integration tests to verify the scheduler triggers job ingestion correctly.
-
-*   **Recommendation Engine Integration:**
-    *   [backend] Verify the recommendation API endpoint (`/api/v1/recommendations`) is fully functional and returns personalized job recommendations.
-    *   [frontend] Integrate the display of personalized job recommendations into the Next.js frontend (e.g., on the dashboard or a dedicated recommendations page).
-    *   [test] Write unit/integration tests for the recommendation engine logic.
-    *   [test] Write end-to-end tests for the recommendation display in the frontend.
-
----
-
-### Phase 3: Proactive Engagement
-
-**Parallelism:** Email notification implementation can proceed in parallel with other backend tasks.
-
-*   **Email Notification Service Implementation:**
-    *   [backend] Implement the email sending logic within the FastAPI backend, utilizing SendGrid or direct SMTP.
-    *   [backend] Create email templates for morning briefings.
-    *   [test] Write unit/integration tests for the email notification service.
-
-*   **Scheduler Configuration for Notifications:**
-    *   [backend] Configure the internal scheduler to trigger the `send_morning_briefing` task daily (e.g., 8 AM) to send personalized job recommendations via email.
-    *   [test] Write integration tests to verify the scheduler triggers email notifications correctly.
-
-*   **Evening Summary (Optional):**
-    *   [backend] (Future) Implement logic for generating evening summaries.
-    *   [backend] (Future) Implement sending evening summaries via the scheduler.
-
----
-
-### Phase 4: Advanced Analytics & Insights
-
-**Parallelism:** Skill-gap analysis and long-term analytics can be developed in parallel.
-
-*   **Skill-Gap Analysis Integration:**
-    *   [backend] Verify the skill-gap analysis API endpoint (`/api/v1/skill-gap`) is fully functional.
-    *   [frontend] Integrate the display of skill-gap analysis and learning recommendations into the Next.js frontend.
-    *   [test] Write unit/integration tests for the skill-gap analysis logic.
-    *   [test] Write end-to-end tests for the skill-gap analysis display in the frontend.
-
-*   **Long-Term Analytics Implementation:**
-    *   [backend] Implement the backend logic for aggregating and serving various long-term analytics data (e.g., application success rates, conversion funnels, market trends).
-    *   [frontend] Develop corresponding UI components in the Next.js frontend to display these insights.
-    *   [test] Write unit/integration tests for the long-term analytics aggregation logic.
-    *   [test] Write end-to-end tests for the long-term analytics display in the frontend.
+**Parallelizable Tasks:**
+*   Step 1.1, 1.3 (can be started early)
+*   Step 2.1, 2.2 (can be developed independently of scraping logic)
+*   Step 2.3, 2.4 (can be developed somewhat independently, but rely on 2.1 and 2.2)
+*   Step 4.1, 4.2, 4.3, 4.4 (can be integrated throughout Step 2 and 3 development)
+*   Step 5.1, 5.2 (can be started once core scraping logic is in place)

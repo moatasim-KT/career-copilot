@@ -10,6 +10,7 @@ from dataclasses import dataclass
 from .base_scraper import BaseScraper, RateLimiter
 from .indeed_scraper import IndeedScraper
 from .linkedin_scraper import LinkedInScraper
+from .adzuna_scraper import AdzunaScraper
 from app.schemas.job import JobCreate
 
 
@@ -23,6 +24,7 @@ class ScrapingConfig:
     max_concurrent_scrapers: int = 2
     enable_indeed: bool = True
     enable_linkedin: bool = True
+    enable_adzuna: bool = True
     rate_limit_min_delay: float = 1.0
     rate_limit_max_delay: float = 3.0
     deduplication_enabled: bool = True
@@ -50,6 +52,10 @@ class ScraperManager:
             
         if self.config.enable_linkedin:
             scrapers['linkedin'] = LinkedInScraper()  # LinkedIn uses its own rate limiter
+            
+        if self.config.enable_adzuna:
+            scrapers['adzuna'] = AdzunaScraper(rate_limiter=rate_limiter)
+            
             
         logger.info(f"Initialized {len(scrapers)} scrapers: {list(scrapers.keys())}")
         return scrapers

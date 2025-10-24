@@ -14,6 +14,9 @@ from typing import Any, Dict, List, Optional, Tuple, Union
 import openai
 from langchain.schema import BaseMessage, HumanMessage, SystemMessage
 from langchain_openai import ChatOpenAI
+from langchain_anthropic import ChatAnthropic
+from langchain.callbacks.manager import CallbackManager
+from langchain.callbacks.streaming_stdout import StreamingStdOutCallbackHandler
 
 from .config import get_settings
 from .logging import get_logger
@@ -34,10 +37,12 @@ class ModelProvider(str, Enum):
 class ModelCapability(str, Enum):
 	"""Model capabilities."""
 
-	TEXT_GENERATION = "text_generation"
-	ANALYSIS = "analysis"
-	CLASSIFICATION = "classification"
-	SUMMARIZATION = "summarization"
+    TEXT_GENERATION = "text_generation"
+    ANALYSIS = "analysis"
+    CLASSIFICATION = "classification"
+    SUMMARIZATION = "summarization"
+    STRUCTURED_OUTPUT = "structured_output"
+    REASONING = "reasoning"
 
 
 @dataclass
@@ -68,36 +73,139 @@ class ModelConfig:
 
 
 class BaseAIModel(ABC):
-	"""Base class for AI models."""
+    """Base class for AI models."""
 
-	def __init__(self, config: ModelConfig):
-		self.config = config
-		self.client = None
-		self._initialize_client()
+    def __init__(self, config: ModelConfig):
+        self.config = config
+        self.client = None
+        self.callback_manager = CallbackManager([StreamingStdOutCallbackHandler()])
+        self._initialize_client()
 
-	@abstractmethod
-	def _initialize_client(self):
-		"""Initialize the model client."""
-		pass
+    @abstractmethod
+    def _initialize_client(self):
+        """Initialize the model client."""
+        pass
 
-	@abstractmethod
-	async def generate_response(self, messages: List[BaseMessage], **kwargs) -> ModelResponse:
-		"""Generate response from the model."""
-		pass
+    @abstractmethod
+    async def generate_response(self, messages: List[BaseMessage], **kwargs) -> ModelResponse:
+        """Generate response from the model."""
+        pass
 
-	@abstractmethod
-	async def calculate_confidence(self, response: str, context: str) -> float:
-		"""Calculate confidence score for the response."""
-		pass
+    @abstractmethod
+    async def calculate_confidence(self, response: str, context: str) -> float:
+        """Calculate confidence score for the response."""
+        pass
+
+    def _standardize_response(
+        self,
+        raw_response: Any,
+        start_time: float,
+        token_usage: Dict[str, int]
+    ) -> ModelResponse:
+        """Convert raw model response to standardized format."""
+        processing_time = time.time() - start_time
+        total_tokens = token_usage.get('total_tokens', 0)
+        cost_estimate = total_tokens * self.config.cost_per_token
+
+        return ModelResponse(
+            content=raw_response.content,
+            confidence=0.0,  # To be calculated separately
+            model_name=self.config.name,
+            provider=self.config.provider.value,
+            tokens_used=total_tokens,
+            cost_estimate=cost_estimate,
+            processing_time=processing_time,
+            metadata={
+                'token_usage': token_usage,
+                'model_config': {
+                    'temperature': self.config.temperature,
+                    'max_tokens': self.config.max_tokens
+                }
+            }
+        )
+
+
+class AnthropicModel(BaseAIModel):
+    """Anthropic model implementation with support for Claude 3."""
+
+    def _initialize_client(self):
+        """Initialize Anthropic client with callback manager."""
+        if not settings.anthropic_api_key:
+            raise ValueError("Anthropic API key not configured")
+
+        self.client = ChatAnthropic(
+            model=self.config.name,
+            temperature=self.config.temperature,
+            max_tokens=self.config.max_tokens,
+            anthropic_api_key=settings.anthropic_api_key,
+            callback_manager=self.callback_manager
+        )
+
+    async def generate_response(self, messages: List[BaseMessage], **kwargs) -> ModelResponse:
+        """Generate response using Anthropic Claude model."""
+        start_time = time.time()
+        
+        try:
+            # Apply any model-specific message formatting
+            formatted_messages = messages
+            
+            # Generate response
+            response = await self.client.ainvoke(formatted_messages)
+            
+            # Extract token usage from response metadata
+            token_usage = {
+                'prompt_tokens': response.response_metadata.get('prompt_tokens', 0),
+                'completion_tokens': response.response_metadata.get('completion_tokens', 0),
+                'total_tokens': response.response_metadata.get('total_tokens', 0)
+            }
+            
+            # Create standardized response
+            model_response = self._standardize_response(response, start_time, token_usage)
+            
+            # Calculate confidence
+            confidence = await self.calculate_confidence(response.content, str(messages))
+            model_response.confidence = confidence
+            
+            return model_response
+            
+        except Exception as e:
+            logger.error(f"Error generating response with Anthropic model: {str(e)}")
+            raise
+
+    async def calculate_confidence(self, response: str, context: str) -> float:
+        """
+        Calculate confidence score for Anthropic model response.
+        Uses a combination of factors including response length, presence of
+        hedging language, and response structure.
+        """
+        confidence = 0.7  # Base confidence for Claude models
+        
+        # Adjust based on response length (longer responses might be more thorough)
+        if len(response) > 1000:
+            confidence += 0.1
+        elif len(response) < 100:
+            confidence -= 0.1
+            
+        # Check for hedging language
+        hedge_words = ["maybe", "might", "could be", "possibly", "uncertain"]
+        hedge_count = sum(1 for word in hedge_words if word in response.lower())
+        confidence -= (hedge_count * 0.05)
+        
+        # Check for structured response elements
+        if any(marker in response for marker in ["First,", "Second,", "•", "-", "1.", "2."]):
+            confidence += 0.05
+            
+        # Cap confidence between 0 and 1
+        return max(0.0, min(1.0, confidence))
 
 
 class OpenAIModel(BaseAIModel):
-	"""OpenAI model implementation."""
+    """OpenAI model implementation."""
 
-	def _initialize_client(self):
-		"""Initialize OpenAI client."""
-		self.client = ChatOpenAI(
-			model=self.config.name,
+    def _initialize_client(self):
+        """Initialize OpenAI client."""
+        self.client = ChatOpenAI(
+            model=self.config.name,
 			temperature=self.config.temperature,
 			max_tokens=self.config.max_tokens,
 			api_key=settings.openai_api_key.get_secret_value(),

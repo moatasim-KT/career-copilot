@@ -1,0 +1,8 @@
+# Example E2E config for tests/e2e
+# Copy to tests/e2e/config.yaml and adjust values for your environment.
+
+base_url: 'http://localhost:8000'
+frontend_url: 'http://localhost:3000'
+default_timeout_seconds: 10
+celery_broker_url: 'redis://localhost:6379/0'
+postgres_dsn: 'postgresql://user:pass@localhost:5432/career_copilot'

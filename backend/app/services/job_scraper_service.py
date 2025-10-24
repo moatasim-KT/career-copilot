@@ -9,143 +9,351 @@ from datetime import datetime
 import httpx
 
 logger = get_logger(__name__)
-settings = get_settings()
+import aiohttp
+import asyncio
+from bs4 import BeautifulSoup
+import feedparser
+from app.services.notification_service import NotificationService
+from app.services.skill_matching_service import SkillMatchingService
 
 class JobScraper:
     """Handles fetching jobs from external sources and saving them to the database."""
 
-    def __init__(self, db: Session):
-        self.db = db
-        self.adzuna_api_url = "https://api.adzuna.com/v1/api/jobs/us/search/1"
-        self.adzuna_app_id = settings.adzuna_app_id
-        self.adzuna_app_key = settings.adzuna_app_key
+class JobScraperService:
+    def __init__(self, db: Session = None):
+        settings = get_settings()
 
-    async def scrape_jobs(self, user_id: int, search_params: Dict[str, Any]) -> List[Job]:
-        """Scrapes jobs from configured sources based on user preferences and search parameters."""
+        
+        # API configurations
+        self.apis = {
+            'adzuna': {
+                'enabled': bool(settings.ADZUNA_APP_ID and settings.ADZUNA_APP_KEY),
+                'base_url': 'https://api.adzuna.com/v1/api/jobs',
+                'app_id': settings.ADZUNA_APP_ID,
+                'app_key': settings.ADZUNA_APP_KEY
+            },
+            'github': {
+                'enabled': bool(settings.GITHUB_API_TOKEN),
+                'base_url': 'https://api.github.com/search/issues',
+                'token': settings.GITHUB_API_TOKEN
+            },
+            'weworkremotely': {
+                'enabled': True,  # RSS feed doesn't require authentication
+                'base_url': 'https://weworkremotely.com/categories/remote-programming-jobs.rss'
+            },
+            'stackoverflow': {
+                'enabled': True,  # RSS feed doesn't require authentication
+                'base_url': 'https://stackoverflow.com/jobs/feed'
+            }
+        }
         new_jobs = []
-        logger.info(f"Starting job scraping for user {user_id} with params: {search_params}")
-
-        # Placeholder for fetching jobs from Adzuna
-        adzuna_jobs = await self._fetch_from_adzuna(search_params)
-        if adzuna_jobs:
-            logger.info(f"Fetched {len(adzuna_jobs)} jobs from Adzuna.")
-            for job_data in adzuna_jobs:
-                job = self._process_adzuna_job(job_data, user_id)
-                if job and not self._is_duplicate(job):
+    
+        async def scrape_jobs(self, user_preferences: Dict[str, Any]) -> List[Dict[str, Any]]:
+            """
+            Scrape jobs from all configured sources.
+            
+            Args:
+                user_preferences: Dictionary containing user preferences
+                    - skills: List of skills
+                    - locations: List of preferred locations
+                    - experience_level: Experience level
+                    - job_types: List of preferred job types
+                    - remote_option: Remote work preference
+                    
+            Returns:
+                List of job dictionaries
+            """
+            tasks = []
+            
+            # Create tasks for each enabled API
+            if self.apis['adzuna']['enabled']:
+                tasks.append(self._scrape_adzuna(user_preferences))
+            if self.apis['github']['enabled']:
+                tasks.append(self._scrape_github_issues(user_preferences))
+            
+            # RSS feeds
+            tasks.append(self._scrape_weworkremotely(user_preferences))
+            tasks.append(self._scrape_stackoverflow(user_preferences))
+                
+            # Run all scraping tasks concurrently
+            results = await asyncio.gather(*tasks, return_exceptions=True)
+            
+            # Combine and normalize results
+            all_jobs = []
+            for result in results:
+                if isinstance(result, Exception):
+                    logger.error(f"Error in job scraping: {str(result)}")
+                    continue
+                all_jobs.extend(result)
+                
+            return all_jobs
+    
+        async def _scrape_adzuna(self, preferences: Dict[str, Any]) -> List[Dict[str, Any]]:
+            """Scrape jobs from Adzuna API."""
+            try:
+                async with aiohttp.ClientSession() as session:
+                    params = {
+                        'app_id': self.apis['adzuna']['app_id'],
+                        'app_key': self.apis['adzuna']['app_key'],
+                        'what': ' '.join(preferences['skills']),
+                        'where': preferences['locations'][0],  # Primary location
+                        'max_days_old': 30,
+                        'results_per_page': 50
+                    }
+                    
+                    url = f"{self.apis['adzuna']['base_url']}/gb/search/1"
+                    async with session.get(url, params=params) as response:
+                        if response.status == 200:
+                            data = await response.json()
+                            return [self._normalize_adzuna_job(job) for job in data.get('results', [])]
+                        else:
+                            logger.error(f"Adzuna API error: {response.status}")
+                            return []
+                            
+            except Exception as e:
+                logger.error(f"Error scraping from Adzuna: {str(e)}")
+                return []
+    
+        async def _scrape_github_issues(self, preferences: Dict[str, Any]) -> List[Dict[str, Any]]:
+            """
+            Scrape job postings from GitHub issues.
+            Many companies post jobs as issues in their repos with 'job' label.
+            """
+            try:
+                async with aiohttp.ClientSession() as session:
+                    headers = {
+                        'Authorization': f'token {self.apis["github"]["token"]}',
+                        'Accept': 'application/vnd.github.v3+json'
+                    }
+                    
+                    # Search for issues labeled as jobs with relevant skills
+                    skills_query = ' OR '.join(preferences['skills'])
+                    query = f'label:job type:issue state:open ({skills_query})'
+                    
+                    params = {
+                        'q': query,
+                        'sort': 'created',
+                        'order': 'desc',
+                        'per_page': 50
+                    }
+                    
+                    url = self.apis['github']['base_url']
+                    async with session.get(url, headers=headers, params=params) as response:
+                        if response.status == 200:
+                            data = await response.json()
+                            return [self._normalize_github_issue(issue) for issue in data.get('items', [])]
+                        else:
+                            logger.error(f"GitHub API error: {response.status}")
+                            return []
+                            
+            except Exception as e:
+                logger.error(f"Error scraping from GitHub: {str(e)}")
+                return []
+    
+        async def _scrape_weworkremotely(self, preferences: Dict[str, Any]) -> List[Dict[str, Any]]:
+            """Scrape jobs from WeWorkRemotely RSS feed."""
+            try:
+                async with aiohttp.ClientSession() as session:
+                    url = self.apis['weworkremotely']['base_url']
+                    async with session.get(url) as response:
+                        if response.status == 200:
+                            content = await response.text()
+                            feed = feedparser.parse(content)
+                            return [self._normalize_wwr_job(entry) for entry in feed.entries]
+                        else:
+                            logger.error(f"WWR feed error: {response.status}")
+                            return []
+                            
+            except Exception as e:
+                logger.error(f"Error scraping from WeWorkRemotely: {str(e)}")
+                return []
+    
+        async def _scrape_stackoverflow(self, preferences: Dict[str, Any]) -> List[Dict[str, Any]]:
+            """Scrape jobs from Stack Overflow RSS feed."""
+            try:
+                async with aiohttp.ClientSession() as session:
+                    url = self.apis['stackoverflow']['base_url']
+                    async with session.get(url) as response:
+                        if response.status == 200:
+                            content = await response.text()
+                            feed = feedparser.parse(content)
+                            return [self._normalize_stackoverflow_job(entry) for entry in feed.entries]
+                        else:
+                            logger.error(f"Stack Overflow feed error: {response.status}")
+                            return []
+                            
+            except Exception as e:
+                logger.error(f"Error scraping from Stack Overflow: {str(e)}")
+                return []
+    
+        def _normalize_adzuna_job(self, job: Dict[str, Any]) -> Dict[str, Any]:
+            """Normalize Adzuna job data to common format."""
+            return {
+                'title': job.get('title'),
+                'company': job.get('company', {}).get('display_name'),
+                'location': job.get('location', {}).get('display_name'),
+                'description': job.get('description'),
+                'url': job.get('redirect_url'),
+                'salary_min': job.get('salary_min'),
+                'salary_max': job.get('salary_max'),
+                'source': 'adzuna',
+                'remote': 'remote' in job.get('description', '').lower(),
+                'posted_at': job.get('created'),
+                'original_data': job
+            }
+    
+        def _normalize_github_issue(self, issue: Dict[str, Any]) -> Dict[str, Any]:
+            """Normalize GitHub issue job posting to common format."""
+            return {
+                'title': issue.get('title'),
+                'company': self._extract_company_from_issue(issue),
+                'location': self._extract_location_from_issue(issue),
+                'description': issue.get('body'),
+                'url': issue.get('html_url'),
+                'salary_min': None,
+                'salary_max': None,
+                'source': 'github',
+                'remote': 'remote' in issue.get('body', '').lower(),
+                'posted_at': issue.get('created_at'),
+                'original_data': issue
+            }
+    
+        def _normalize_wwr_job(self, entry: Dict[str, Any]) -> Dict[str, Any]:
+            """Normalize WeWorkRemotely job to common format."""
+            return {
+                'title': entry.get('title'),
+                'company': self._extract_company_from_wwr(entry),
+                'location': 'Remote',
+                'description': entry.get('description'),
+                'url': entry.get('link'),
+                'salary_min': None,
+                'salary_max': None,
+                'source': 'weworkremotely',
+                'remote': True,
+                'posted_at': entry.get('published'),
+                'original_data': entry
+            }
+    
+        def _normalize_stackoverflow_job(self, entry: Dict[str, Any]) -> Dict[str, Any]:
+            """Normalize Stack Overflow job to common format."""
+            return {
+                'title': entry.get('title'),
+                'company': self._extract_company_from_so(entry),
+                'location': self._extract_location_from_so(entry),
+                'description': entry.get('description'),
+                'url': entry.get('link'),
+                'salary_min': None,
+                'salary_max': None,
+                'source': 'stackoverflow',
+                'remote': 'remote' in entry.get('description', '').lower(),
+                'posted_at': entry.get('published'),
+                'original_data': entry
+            }
+    
+        def _extract_company_from_issue(self, issue: Dict[str, Any]) -> str:
+            """Extract company name from GitHub issue."""
+            # Try to find company name in issue title or body
+            title = issue.get('title', '').lower()
+            body = issue.get('body', '').lower()
+            
+            # Common patterns in job posts
+            patterns = [
+                'at', 'with', 'for', '@'
+            ]
+            
+            for pattern in patterns:
+                if pattern in title:
+                    parts = title.split(pattern)
+                    if len(parts) > 1:
+                        return parts[1].strip().title()
+            
+            # Default to repository owner if no company found
+            return issue.get('repository', {}).get('owner', {}).get('login', 'Unknown')
+    
+        def _extract_location_from_issue(self, issue: Dict[str, Any]) -> str:
+            """Extract location from GitHub issue."""
+            body = issue.get('body', '').lower()
+            
+            # Look for common location patterns
+            patterns = [
+                'location:', 'based in:', 'position location:'
+            ]
+            
+            for pattern in patterns:
+                if pattern in body:
+                    idx = body.find(pattern)
+                    end_idx = body.find('\n', idx)
+                    if end_idx == -1:
+                        end_idx = len(body)
+                    return body[idx + len(pattern):end_idx].strip().title()
+            return 'Remote/Unspecified'
+    
+        def _extract_company_from_wwr(self, entry: Dict[str, Any]) -> str:
+            """Extract company name from WeWorkRemotely entry."""
+            title = entry.get('title', '')
+            if ':' in title:
+                return title.split(':')[0].strip()
+            return 'Unknown'
+    
+        def _extract_company_from_so(self, entry: Dict[str, Any]) -> str:
+            """Extract company name from Stack Overflow entry."""
+            title = entry.get('title', '')
+            if 'at' in title:
+                return title.split('at')[1].strip()
+            return 'Unknown'
+    
+        def _extract_location_from_so(self, entry: Dict[str, Any]) -> str:
+            """Extract location from Stack Overflow entry."""
+            title = entry.get('title', '')
+            if '(' in title and ')' in title:
+                return title[title.find('(')+1:title.find(')')].strip()
+            return 'Remote/Unspecified'
+    
+        async def process_and_save_jobs(self, jobs: List[Dict[str, Any]], user_id: int) -> List[Job]:
+            """Process and save jobs to database."""
+            saved_jobs = []
+            
+            for job_data in jobs:
+                # Check if job already exists
+                existing_job = self.db.query(Job).filter(
+                    Job.source == job_data['source'],
+                    Job.source_url == job_data['url'],
+                    Job.user_id == user_id
+                ).first()
+                
+                if not existing_job:
+                    job = Job(
+                        user_id=user_id,
+                        title=job_data['title'],
+                        company=job_data['company'],
+                        location=job_data['location'],
+                        description=job_data['description'],
+                        source_url=job_data['url'],
+                        salary_min=job_data['salary_min'],
+                        salary_max=job_data['salary_max'],
+                        source=job_data['source'],
+                        remote_option=job_data['remote'],
+                        posted_at=job_data['posted_at'],
+                        metadata=job_data['original_data']
+                    )
+                    
                     self.db.add(job)
-                    new_jobs.append(job)
-        
-        self.db.commit()
-        for job in new_jobs:
-            self.db.refresh(job)
-        logger.info(f"Finished job scraping for user {user_id}. Added {len(new_jobs)} new jobs.")
-        return new_jobs
-
-    async def _fetch_from_adzuna(self, search_params: Dict[str, Any]) -> List[Dict[str, Any]]:
-        """Fetches job listings from the Adzuna API."""
-        if not self.adzuna_app_id or not self.adzuna_app_key:
-            logger.warning("Adzuna API credentials not configured. Skipping Adzuna scraping.")
-            return []
-
-        params = {
-            "app_id": self.adzuna_app_id,
-            "app_key": self.adzuna_app_key,
-            "results_per_page": 50, # Max results per page
-            "what": search_params.get("what", "python developer"),
-            "where": search_params.get("where", "london"),
-            "distance": search_params.get("distance", "10"),
-            "max_salary": search_params.get("max_salary"),
-            "salary_min": search_params.get("salary_min"),
-            "full_time": 1 if search_params.get("full_time") else 0,
-            "part_time": 1 if search_params.get("part_time") else 0,
-            "permanent": 1 if search_params.get("permanent") else 0,
-            "contract": 1 if search_params.get("contract") else 0,
-            "sort_by": search_params.get("sort_by", "relevance"),
-            **search_params # Allow overriding default params
-        }
-        
-        # Remove None values
-        params = {k: v for k, v in params.items() if v is not None}
-
-        try:
-            async with httpx.AsyncClient() as client:
-                response = await client.get(self.adzuna_api_url, params=params, timeout=30.0)
-                response.raise_for_status()
-                data = response.json()
-                return data.get("results", [])
-        except httpx.RequestError as e:
-            logger.error(f"Adzuna API request failed: {e}")
-        except httpx.HTTPStatusError as e:
-            logger.error(f"Adzuna API returned HTTP error: {e.response.status_code} - {e.response.text}")
-        except Exception as e:
-            logger.error(f"An unexpected error occurred during Adzuna scraping: {e}")
-        return []
-
-    def _process_adzuna_job(self, job_data: Dict[str, Any], user_id: int) -> Optional[Job]:
-        """Processes raw job data from Adzuna into a Job model instance."""
-        try:
-            # Extract and transform data
-            title = job_data.get("title")
-            company = job_data.get("company", {}).get("display_name")
-            location = job_data.get("location", {}).get("display_name")
-            description = job_data.get("description")
-            link = job_data.get("redirect_url")
-            salary_min = job_data.get("salary_min")
-            salary_max = job_data.get("salary_max")
-
-            job_type = "Full-time" # Default
-            if contract_time == "part_time":
-                job_type = "Part-time"
-            elif contract_type == "contract":
-                job_type = "Contract"
-
-            # Basic tech stack extraction (can be improved with NLP)
-            tech_stack = []
-            if description:
-                description_lower = description.lower()
-                common_tech = ["python", "java", "javascript", "react", "angular", "vue", "aws", "azure", "gcp", "docker", "kubernetes", "sql", "nosql"]
-                for tech in common_tech:
-                    if tech in description_lower:
-                        tech_stack.append(tech)
-
-            job_create = JobCreate(
-                title=title,
-                company=company,
-                location=location,
-                description=description,
-                link=link,
-                source="adzuna",
-                user_id=user_id,
-                salary_min=salary_min,
-                salary_max=salary_max,
-                job_type=job_type,
-                remote=False, # Adzuna has a separate field for remote, need to check
-                tech_stack=tech_stack,
-                created_at=datetime.utcnow()
-            )
-            return Job(**job_create.model_dump())
-        except Exception as e:
-            logger.error(f"Error processing Adzuna job data: {e}", exc_info=True)
-            return None
-
-    def _is_duplicate(self, job: Job) -> bool:
-        """Checks if a job already exists in the database based on title, company, and link."""
-        existing_job = self.db.query(Job).filter(
-            Job.title == job.title,
-            Job.company == job.company,
-            Job.link == job.link
-        ).first()
-        return existing_job is not None
-
-    def get_user_job_preferences(self, user_id: int) -> Dict[str, Any]:
-        """Fetches user's job preferences to tailor scraping queries."""
-        # This would ideally come from UserJobPreferences model
-        # For now, return a placeholder
-        return {
-            "keywords": ["software engineer", "backend", "fastapi"],
-            "locations": ["remote", "new york"],
-            "max_salary": None,
-            "min_salary": None,
-            "job_types": [],
-            "experience_level": None
-        }
+                    self.db.flush()
+                    
+                    # Calculate match score
+                    match_score = await self.skill_matcher.calculate_match_score(job, user_id)
+                    job.match_score = match_score
+                    
+                    # If high match score, send notification
+                    if match_score >= 75:
+                        await self.notification_service.send_job_match_notification(
+                            user_id=user_id,
+                            job_id=job.id,
+                            match_score=match_score
+                        )
+                    
+                    saved_jobs.append(job)
+            
+            self.db.commit()
+            return saved_jobs
+    

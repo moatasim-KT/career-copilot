@@ -1,87 +1,67 @@
-## Revised Plan for Career Co-Pilot Implementation
+### Plan for Robust LinkedIn Web Scraping
 
-**Note on Architecture:**
+**Objective:** To enhance the existing LinkedIn web scraping logic to be more robust and reliable, addressing limitations such as JavaScript rendering, anti-scraping measures, and authentication, without relying on LinkedIn's official API.
 
-The provided System Design Blueprint outlined a serverless architecture primarily using Google Cloud Functions and Firestore with a vanilla HTML/JS frontend. However, a review of the existing codebase reveals a different architecture is already in place:
+**Current Limitations of the Provided Code:**
+1.  **Static HTML Parsing:** `requests` and `BeautifulSoup` only process the initial HTML, missing content rendered by JavaScript.
+2.  **Anti-Scraping Measures:** LinkedIn actively blocks simple, repeated requests, leading to unreliable data fetching.
+3.  **Authentication:** The current script does not handle user authentication, which is often required for comprehensive job search results.
+4.  **Brittle Selectors:** HTML element selectors are prone to breaking with website structure changes.
+5.  **Rate Limiting:** Lack of sophisticated handling for rate limits can lead to IP bans.
 
-*   **Backend:** A comprehensive FastAPI application (Python) handling API endpoints, services, and an internal scheduler.
-*   **Database:** A relational database (PostgreSQL/SQLite) managed via SQLAlchemy, not Firestore.
-*   **Frontend:** A Next.js application (Node.js/React) with established routing and UI components.
+**Proposed Solution:**
+Transition from `requests` and `BeautifulSoup` to a browser automation approach using Puppeteer (via the provided `puppeteer` tools) to simulate a real user browsing experience. This will allow for JavaScript execution, dynamic content loading, and more resilient interaction with the LinkedIn website.
 
-This revised plan adapts the goals of the blueprint to the existing FastAPI/Next.js/Relational Database architecture, focusing on completing the features within this established framework.
+**Detailed Plan:**
 
----
+**Step 1: Setup and Project Structure**
+*   **1.1 Create `backend/app/services/linkedin_scraper.py`:** This new module will encapsulate all LinkedIn scraping logic using Puppeteer.
+*   **1.2 Update `recommend_bp`:** Modify the existing `recommend_bp` blueprint to import and utilize functions from `linkedin_scraper.py`.
+*   **1.3 Environment Variables:** Document and require `LINKEDIN_EMAIL` and `LINKEDIN_PASSWORD` environment variables for authentication. These should be loaded securely (e.g., from `.env.development`).
 
-## Phase 1: Core Application & Job Management (Already Largely Implemented)
+**Step 2: Implement Puppeteer-based Browser Automation**
+*   **2.1 Initialize Browser:** Create a function in `linkedin_scraper.py` to launch a headless browser instance using `puppeteer_navigate`.
+*   **2.2 LinkedIn Authentication:**
+    *   Navigate to the LinkedIn login page.
+    *   Use `puppeteer_fill` to input `LINKEDIN_EMAIL` and `LINKEDIN_PASSWORD` into the respective fields.
+    *   Use `puppeteer_click` to submit the login form.
+    *   Implement a wait mechanism (e.g., `puppeteer_evaluate` with a `waitForSelector`) to ensure successful login and page load.
+*   **2.3 Job Search Page Scraping:**
+    *   Construct the LinkedIn job search URL using keywords and location.
+    *   Navigate the browser to this search URL.
+    *   Implement a scrolling mechanism using `puppeteer_evaluate` to scroll down the page multiple times, allowing more job listings to load (infinite scroll handling).
+    *   Use `puppeteer_evaluate` to execute JavaScript within the browser context to extract job details (title, company, location, link, snippet) from the dynamically loaded content. This JavaScript will use robust DOM selectors.
+    *   Return the extracted job data.
+*   **2.4 Individual Job Page Scraping (for detailed descriptions):**
+    *   Create a function to navigate to a specific job URL.
+    *   Wait for the job description element to be visible.
+    *   Implement logic to click "Show more" buttons if they exist to reveal the full description.
+    *   Use `puppeteer_evaluate` to extract the complete job description text.
+    *   Return the detailed description.
 
-**Objective:** Leverage existing FastAPI and Next.js components to finalize core job management functionality.
+**Step 3: Integrate with Existing Flask Application**
+*   **3.1 Modify `recommendations` route:**
+    *   Replace the `requests` and `BeautifulSoup` logic with calls to the new Puppeteer-based job search function in `linkedin_scraper.py`.
+    *   Ensure proper error handling and fallback to cached data if Puppeteer scraping fails.
+*   **3.2 Modify `add_recommended_job` route:**
+    *   Update the logic to use the new Puppeteer-based individual job page scraping function when a detailed description is needed.
 
-### Tasks:
+**Step 4: Error Handling and Robustness**
+*   **4.1 Comprehensive Error Handling:** Implement `try-except` blocks around all Puppeteer operations to gracefully handle network issues, selector failures, and LinkedIn's anti-scraping measures.
+*   **4.2 Retry Mechanism:** Implement a simple retry mechanism for failed Puppeteer operations with exponential backoff.
+*   **4.3 User-Agent Rotation (Optional but Recommended):** Consider adding a list of User-Agents to rotate through to further mimic diverse user behavior. (This might be an enhancement for a later stage).
+*   **4.4 Delays:** Introduce random delays between Puppeteer actions to avoid detection.
 
-1.  **Database Setup & ORM Integration:**
-    *   **Status:** Implemented (PostgreSQL/SQLite with SQLAlchemy).
-    *   **Action:** Verify database connection and ORM models are correctly configured for all necessary entities (Users, Jobs, Applications, etc.). Ensure `alembic` migrations are up-to-date.
+**Step 5: Testing**
+*   **5.1 Unit Tests:** Write unit tests for the functions in `linkedin_scraper.py` to ensure they correctly interact with Puppeteer and extract data. (Mock Puppeteer interactions for faster tests).
+*   **5.2 Integration Tests:** Create integration tests that simulate the full flow from the Flask route to the Puppeteer-based scraping, ensuring the data is correctly retrieved and processed.
 
-2.  **Frontend Job Management UI:**
-    *   **Status:** Next.js frontend with `jobs` and `dashboard` routes exists.
-    *   **Action:** Complete the UI for displaying, adding, updating, and deleting job entries within the Next.js frontend. Connect these UI actions to the existing FastAPI job management API endpoints (`/api/v1/jobs`).
+**Step 6: Documentation and Cleanup**
+*   **6.1 Update `README.md`:** Add instructions for setting up LinkedIn credentials as environment variables.
+*   **6.2 Code Cleanup:** Remove the old `requests` and `BeautifulSoup` logic once the new system is fully functional.
 
-3.  **User Authentication & Profile:**
-    *   **Status:** FastAPI backend has `auth.router` and `profile.router`. Next.js frontend has `login` and `register` routes.
-    *   **Action:** Finalize frontend UI for user login, registration, and profile management. Ensure secure communication and token handling between frontend and backend.
-
----
-
-## Phase 2: Automation & Intelligence
-
-**Objective:** Implement job ingestion and integrate the recommendation engine within the existing FastAPI backend and scheduler.
-
-### Tasks:
-
-1.  **Job Ingestion/Scraping Implementation:**
-    *   **Status:** Backend has `enable_job_scraping` setting and `job_sources.router`.
-    *   **Action:** Implement the actual job scraping logic within the FastAPI backend. This involves integrating with external job APIs (e.g., Adzuna) using the configured API keys. Ensure duplicate job checking before saving to the relational database.
-
-2.  **Scheduler Configuration for Job Ingestion:**
-    *   **Status:** Internal scheduler is integrated (`enable_scheduler: True`, `app.scheduler.py`).
-    *   **Action:** Configure the existing internal scheduler to periodically trigger the job ingestion task (e.g., daily at 4 AM).
-
-3.  **Recommendation Engine Integration:**
-    *   **Status:** `RecommendationEngine` service is implemented in `backend/app/services/recommendation_engine.py`. `recommendations.router` exists.
-    *   **Action:** Verify the recommendation API endpoint is fully functional. Integrate the display of personalized job recommendations into the Next.js frontend (e.g., on the dashboard or a dedicated recommendations page).
-
----
-
-## Phase 3: Proactive Engagement
-
-**Objective:** Implement email notifications for daily briefings using the existing backend and scheduler.
-
-### Tasks:
-
-1.  **Email Notification Service Implementation:**
-    *   **Status:** `smtp_enabled` and `sendgrid_api_key` settings exist.
-    *   **Action:** Implement the email sending logic within the FastAPI backend, utilizing SendGrid or direct SMTP. Create templates for morning briefings.
-
-2.  **Scheduler Configuration for Notifications:**
-    *   **Status:** Internal scheduler is present.
-    *   **Action:** Configure the internal scheduler to trigger the `send_morning_briefing` task daily (e.g., 8 AM) to send personalized job recommendations via email.
-
-3.  **Evening Summary (Optional):**
-    *   **Status:** Planned for future expansion.
-    *   **Action:** (Future) Implement logic for generating and sending evening summaries via the scheduler.
-
----
-
-## Phase 4: Advanced Analytics & Insights
-
-**Objective:** Integrate skill-gap analysis and long-term analytics into the existing backend and frontend.
-
-### Tasks:
-
-1.  **Skill-Gap Analysis Integration:**
-    *   **Status:** `SkillGapAnalyzer` service is implemented in `backend/app/services/skill_gap_analyzer.py`. `skill_gap.router` exists.
-    *   **Action:** Verify the skill-gap analysis API endpoint is functional. Integrate the display of skill-gap analysis and learning recommendations into the Next.js frontend.
-
-2.  **Long-Term Analytics Implementation:**
-    *   **Status:** `analytics.router` and `advanced_user_analytics.router` exist in the backend. `frontend/src/app/analytics` exists.
-    *   **Action:** Implement the backend logic for aggregating and serving various long-term analytics data (e.g., application success rates, conversion funnels, market trends). Develop corresponding UI components in the Next.js frontend to display these insights.
+**Success Criteria:**
+*   The `recommendations` route successfully fetches job listings from LinkedIn using the new Puppeteer-based scraper.
+*   The `add_recommended_job` route successfully fetches detailed job descriptions using the new Puppeteer-based scraper.
+*   The scraping process is more resilient to LinkedIn's anti-scraping measures and JavaScript-rendered content.
+*   Authentication is handled securely via environment variables.

@@ -65,9 +65,8 @@ class SkillGapAnalyzer:
 
         return {
             "user_skills": list(user_skills),
-            "missing_skills": dict(sorted_missing_skills),
-            "top_market_skills": dict(skill_frequency.most_common(5)),
+            "missing_skills": [skill for skill, count in sorted_missing_skills],
+            "top_market_skills": [skill for skill, count in skill_frequency.most_common(10)],
             "skill_coverage_percentage": round(skill_coverage_percentage, 2),
-            "learning_recommendations": learning_recommendations,
-            "total_jobs_analyzed": len(user.jobs)
+            "recommendations": learning_recommendations
         }

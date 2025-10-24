@@ -191,9 +191,11 @@ class BaseScraper(ABC):
                 salary_max=salary_info['max'],
                 currency=salary_info['currency'],
                 application_url=job_data.get('url', ''),
-                source="scraped",
-                requirements=job_data.get('requirements', {}),
-                tags=job_data.get('tags', [])
+                source=job_data.get('source', "scraped"),
+                requirements=self._clean_text(job_data.get('requirements', '')),
+                tech_stack=job_data.get('tech_stack', []),
+                responsibilities=self._clean_text(job_data.get('responsibilities', '')),
+                job_type=job_data.get('job_type') or "",
             )
         except Exception as e:
             logger.error(f"Error creating job object: {e}")

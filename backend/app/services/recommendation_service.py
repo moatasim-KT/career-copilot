@@ -50,70 +50,116 @@ class RecommendationService:
         job: Job,
         user_profile: Dict
     ) -> Tuple[float, Dict[str, Any]]:
-        """Enhanced skill matching with semantic analysis and context"""
+        """Enhanced skill matching with semantic analysis and context."""
         requirements = job.requirements or {}
         required_skills = requirements.get('skills_required', [])
         
         if not required_skills:
-            return 0.5, {
-                'score': 0.5,
-                'reason': "No specific skills listed - neutral score",
-                'matching_skills': [],
-                'missing_skills': [],
-                'semantic_matches': [],
-                'skill_gap_analysis': {}
-            }
+            return self._create_default_skill_score()
         
-        # Use enhanced skill matching service
-        score, details = skill_matching_service.calculate_skill_match_score(
-            user_skills, required_skills, use_semantic=True
+        # Get base skill match score
+        base_score, base_details = self._calculate_base_skill_score(user_skills, required_skills)
+        
+        # Calculate contextual bonuses
+        context_bonuses = self._calculate_skill_context_bonus(
+            job, user_skills, user_profile, required_skills
         )
         
-        # Extract job description for additional context
+        # Calculate final score and combine details
+        final_score = min(base_score + context_bonuses['total_bonus'], 1.0)
+        
+        # Generate explanation and return results
+        explanation = self._generate_skill_match_explanation(
+            base_details, len(required_skills), context_bonuses
+        )
+        
+        return final_score, {
+            'score': round(final_score, 3),
+            'reason': explanation['reason'],
+            'matching_skills': base_details.get('matching_skills', []),
+            'missing_skills': base_details.get('missing_skills', []),
+            'semantic_matches': base_details.get('semantic_matches', []),
+            'additional_matches': list(context_bonuses['additional_matches']),
+            'context_bonus': round(context_bonuses['total_bonus'], 3),
+            'skill_gap_analysis': self._analyze_skill_gaps(base_details.get('missing_skills', []))
+        }
+    
+    def _create_default_skill_score(self) -> Tuple[float, Dict[str, Any]]:
+        """Create default skill score when no required skills are specified."""
+        return 0.5, {
+            'score': 0.5,
+            'reason': "No specific skills listed - neutral score",
+            'matching_skills': [],
+            'missing_skills': [],
+            'semantic_matches': [],
+            'skill_gap_analysis': {}
+        }
+    
+    def _calculate_base_skill_score(
+        self,
+        user_skills: List[str],
+        required_skills: List[str]
+    ) -> Tuple[float, Dict[str, Any]]:
+        """Calculate the base skill match score without contextual factors."""
+        return skill_matching_service.calculate_skill_match_score(
+            user_skills, required_skills, use_semantic=True
+        )
+    
+    def _calculate_skill_context_bonus(
+        self,
+        job: Job,
+        user_skills: List[str],
+        user_profile: Dict,
+        required_skills: List[str]
+    ) -> Dict[str, Any]:
+        """Calculate contextual bonus scores for skill matching."""
+        # Extract job description skills
         job_text = f"{job.title} {job.description or ''}"
         extracted_skills = skill_matching_service.extract_skills_from_text(job_text)
         
-        # Calculate additional context scores
+        # Initialize bonuses
         context_bonus = 0.0
-        
-        # Bonus for matching skills in job description but not in requirements
         additional_matches = set(user_skills).intersection(set(extracted_skills)) - set(required_skills)
-        if additional_matches:
-            context_bonus += min(len(additional_matches) * 0.02, 0.1)
         
-        # Experience level context - adjust score based on job level
+        # Additional matches bonus
+        description_bonus = min(len(additional_matches) * 0.02, 0.1)
+        context_bonus += description_bonus
+        
+        # Experience level bonus
+        requirements = job.requirements or {}
         job_level = requirements.get('experience_level', 'mid')
         user_experience = user_profile.get('experience_level', 'mid')
         
-        if self._is_experience_aligned(user_experience, job_level):
-            context_bonus += 0.05
+        experience_bonus = 0.05 if self._is_experience_aligned(user_experience, job_level) else 0.0
+        context_bonus += experience_bonus
         
-        final_score = min(score + context_bonus, 1.0)
-        
-        # Generate detailed explanation
-        matching_count = len(details.get('matching_skills', []))
-        semantic_count = len(details.get('semantic_matches', []))
-        total_required = len(required_skills)
+        return {
+            'total_bonus': context_bonus,
+            'description_bonus': description_bonus,
+            'experience_bonus': experience_bonus,
+            'additional_matches': additional_matches
+        }
+    
+    def _generate_skill_match_explanation(
+        self,
+        base_details: Dict[str, Any],
+        total_required: int,
+        context_bonuses: Dict[str, Any]
+    ) -> Dict[str, Any]:
+        """Generate detailed explanation for skill match score."""
+        matching_count = len(base_details.get('matching_skills', []))
+        semantic_count = len(base_details.get('semantic_matches', []))
         
         reason_parts = []
         if matching_count > 0:
             reason_parts.append(f"{matching_count}/{total_required} exact skill matches")
         if semantic_count > 0:
             reason_parts.append(f"{semantic_count} semantic matches")
-        if context_bonus > 0:
-            reason_parts.append(f"context bonus: +{int(context_bonus*100)}%")
+        if context_bonuses['total_bonus'] > 0:
+            reason_parts.append(f"context bonus: +{int(context_bonuses['total_bonus']*100)}%")
         
-        reason = "; ".join(reason_parts) if reason_parts else "Limited skill alignment"
-        
-        return final_score, {
-            'score': round(final_score, 3),
-            'reason': reason,
-            'matching_skills': details.get('matching_skills', []),
-            'missing_skills': details.get('missing_skills', []),
-            'semantic_matches': details.get('semantic_matches', []),
-            'additional_matches': list(additional_matches),
-            'context_bonus': round(context_bonus, 3),
-            'skill_gap_analysis': self._analyze_skill_gaps(details.get('missing_skills', []))
+        return {
+            'reason': "; ".join(reason_parts) if reason_parts else "Limited skill alignment"
         }
     
     def calculate_location_preference_score(
@@ -122,102 +168,139 @@ class RecommendationService:
         job: Job,
         user_profile: Dict
     ) -> Tuple[float, Dict[str, Any]]:
-        """Enhanced location scoring with remote work preferences"""
+        """Enhanced location scoring with remote work preferences."""
         if not job.location:
-            return 0.6, {
-                'score': 0.6,
-                'reason': "Location not specified",
-                'match_type': 'unknown',
-                'remote_compatibility': False
-            }
+            return self._create_default_location_score()
         
+        # Check remote work options first
+        remote_score = self._calculate_remote_work_score(job, user_profile)
+        if remote_score is not None:
+            return remote_score
+        
+        # If not remote/hybrid, check physical location match
+        if not user_locations:
+            return self._create_no_preference_location_score()
+        
+        # Calculate location match score
+        return self._calculate_location_match_score(user_locations, job.location.lower())
+    
+    def _create_default_location_score(self) -> Tuple[float, Dict[str, Any]]:
+        """Create default score when no location is specified."""
+        return 0.6, {
+            'score': 0.6,
+            'reason': "Location not specified",
+            'match_type': 'unknown',
+            'remote_compatibility': False
+        }
+    
+    def _create_no_preference_location_score(self) -> Tuple[float, Dict[str, Any]]:
+        """Create score when user has no location preferences."""
+        return 0.5, {
+            'score': 0.5,
+            'reason': "No location preference set",
+            'match_type': 'no_preference',
+            'remote_compatibility': False
+        }
+    
+    def _calculate_remote_work_score(
+        self,
+        job: Job,
+        user_profile: Dict
+    ) -> Optional[Tuple[float, Dict[str, Any]]]:
+        """Calculate score based on remote work preferences."""
         job_location_lower = job.location.lower()
         requirements = job.requirements or {}
         remote_options = requirements.get('remote_options', '').lower()
-        
-        # Remote work scoring
         user_remote_pref = user_profile.get('preferences', {}).get('remote_preference', 'hybrid')
         
-        # Check for remote work
-        is_remote = any(keyword in job_location_lower or keyword in remote_options 
-                       for keyword in ['remote', 'work from home', 'wfh', 'distributed'])
+        # Detect remote work options
+        is_remote = self._is_remote_position(job_location_lower, remote_options)
+        is_hybrid = self._is_hybrid_position(remote_options)
         
-        is_hybrid = any(keyword in remote_options 
-                       for keyword in ['hybrid', 'flexible', 'part remote'])
-        
-        # Remote preference scoring
         if is_remote:
-            if user_remote_pref in ['remote', 'fully_remote']:
-                return 1.0, {
-                    'score': 1.0,
-                    'reason': "Perfect match: Remote position for remote preference",
-                    'match_type': 'remote_perfect',
-                    'remote_compatibility': True
-                }
-            elif user_remote_pref == 'hybrid':
-                return 0.9, {
-                    'score': 0.9,
-                    'reason': "Good match: Remote position with hybrid preference",
-                    'match_type': 'remote_good',
-                    'remote_compatibility': True
-                }
-            else:  # office preference
-                return 0.7, {
-                    'score': 0.7,
-                    'reason': "Moderate match: Remote position but prefers office",
-                    'match_type': 'remote_moderate',
-                    'remote_compatibility': True
-                }
-        
-        if is_hybrid:
-            if user_remote_pref == 'hybrid':
-                return 1.0, {
-                    'score': 1.0,
-                    'reason': "Perfect match: Hybrid position for hybrid preference",
-                    'match_type': 'hybrid_perfect',
-                    'remote_compatibility': True
-                }
-            elif user_remote_pref in ['remote', 'office']:
-                return 0.8, {
-                    'score': 0.8,
-                    'reason': "Good match: Hybrid position offers flexibility",
-                    'match_type': 'hybrid_good',
-                    'remote_compatibility': True
-                }
-        
-        # Location-based scoring
-        if not user_locations:
-            return 0.5, {
-                'score': 0.5,
-                'reason': "No location preference set",
-                'match_type': 'no_preference',
-                'remote_compatibility': False
+            return self._score_remote_position(user_remote_pref)
+        elif is_hybrid:
+            return self._score_hybrid_position(user_remote_pref)
+            
+        return None
+    
+    def _is_remote_position(self, job_location: str, remote_options: str) -> bool:
+        """Check if the position is remote."""
+        remote_keywords = ['remote', 'work from home', 'wfh', 'distributed']
+        return any(keyword in job_location or keyword in remote_options 
+                  for keyword in remote_keywords)
+    
+    def _is_hybrid_position(self, remote_options: str) -> bool:
+        """Check if the position is hybrid."""
+        hybrid_keywords = ['hybrid', 'flexible', 'part remote']
+        return any(keyword in remote_options for keyword in hybrid_keywords)
+    
+    def _score_remote_position(
+        self,
+        user_remote_pref: str
+    ) -> Tuple[float, Dict[str, Any]]:
+        """Score a remote position based on user preference."""
+        if user_remote_pref in ['remote', 'fully_remote']:
+            return 1.0, {
+                'score': 1.0,
+                'reason': "Perfect match: Remote position for remote preference",
+                'match_type': 'remote_perfect',
+                'remote_compatibility': True
             }
-        
-        # Check for location matches
+        elif user_remote_pref == 'hybrid':
+            return 0.9, {
+                'score': 0.9,
+                'reason': "Good match: Remote position with hybrid preference",
+                'match_type': 'remote_good',
+                'remote_compatibility': True
+            }
+        else:  # office preference
+            return 0.7, {
+                'score': 0.7,
+                'reason': "Moderate match: Remote position but prefers office",
+                'match_type': 'remote_moderate',
+                'remote_compatibility': True
+            }
+    
+    def _score_hybrid_position(
+        self,
+        user_remote_pref: str
+    ) -> Tuple[float, Dict[str, Any]]:
+        """Score a hybrid position based on user preference."""
+        if user_remote_pref == 'hybrid':
+            return 1.0, {
+                'score': 1.0,
+                'reason': "Perfect match: Hybrid position for hybrid preference",
+                'match_type': 'hybrid_perfect',
+                'remote_compatibility': True
+            }
+        elif user_remote_pref in ['remote', 'office']:
+            return 0.8, {
+                'score': 0.8,
+                'reason': "Good match: Hybrid position offers flexibility",
+                'match_type': 'hybrid_good',
+                'remote_compatibility': True
+            }
+        return None
+    
+    def _calculate_location_match_score(
+        self,
+        user_locations: List[str],
+        job_location: str
+    ) -> Tuple[float, Dict[str, Any]]:
+        """Calculate score based on physical location match."""
         best_match_score = 0.0
         best_match_location = None
         
         for user_loc in user_locations:
             user_loc_lower = user_loc.lower()
+            match_score = self._get_location_match_score(user_loc_lower, job_location)
             
-            # Exact city match
-            if user_loc_lower in job_location_lower or job_location_lower in user_loc_lower:
-                best_match_score = 1.0
+            if match_score > best_match_score:
+                best_match_score = match_score
                 best_match_location = user_loc
-                break
-            
-            # State/region match
-            if self._is_same_region(user_loc_lower, job_location_lower):
-                if best_match_score < 0.7:
-                    best_match_score = 0.7
-                    best_match_location = user_loc
-            
-            # Country match
-            elif self._is_same_country(user_loc_lower, job_location_lower):
-                if best_match_score < 0.4:
-                    best_match_score = 0.4
-                    best_match_location = user_loc
+                if best_match_score == 1.0:  # Perfect match found
+                    break
         
         if best_match_score > 0:
             match_types = {1.0: 'exact', 0.7: 'regional', 0.4: 'country'}
@@ -236,77 +319,144 @@ class RecommendationService:
             'remote_compatibility': False
         }
     
+    def _get_location_match_score(self, user_loc: str, job_location: str) -> float:
+        """Get the score for a specific location match."""
+        if user_loc in job_location or job_location in user_loc:
+            return 1.0  # Exact city match
+        elif self._is_same_region(user_loc, job_location):
+            return 0.7  # State/region match
+        elif self._is_same_country(user_loc, job_location):
+            return 0.4  # Country match
+        return 0.0  # No match
+    
     def calculate_experience_level_score(
         self, 
         user_experience: str, 
         job: Job,
         user_profile: Dict
     ) -> Tuple[float, Dict[str, Any]]:
-        """Enhanced experience level scoring with career growth analysis"""
+        """Enhanced experience level scoring with career growth analysis."""
+        # Get required experience level
         requirements = job.requirements or {}
         required_level = requirements.get('experience_level', 'mid')
         
-        user_level_num = self.experience_levels.get(user_experience.lower(), 3)
-        required_level_num = self.experience_levels.get(required_level.lower(), 3)
+        # Calculate numeric levels and difference
+        level_info = self._calculate_level_difference(user_experience, required_level)
         
-        # Career goals context
+        # Check career growth opportunity
         career_goals = user_profile.get('career_goals', [])
         is_growth_opportunity = self._is_growth_opportunity(job.title, career_goals)
         
-        # Calculate base score
-        level_diff = required_level_num - user_level_num
+        # Calculate base score and details
+        base_score_info = self._calculate_base_experience_score(
+            level_info['difference'],
+            required_level,
+            is_growth_opportunity
+        )
         
-        if level_diff == 0:
-            # Perfect match
-            base_score = 1.0
-            match_type = 'perfect'
-            reason = f"Perfect experience match: {required_level}"
-        elif level_diff == 1:
-            # Growth opportunity
-            base_score = 0.9 if is_growth_opportunity else 0.8
-            match_type = 'growth'
-            reason = f"Growth opportunity: {required_level} level"
-        elif level_diff == -1:
-            # Slightly overqualified
-            base_score = 0.8
-            match_type = 'overqualified_slight'
-            reason = f"Slightly overqualified for {required_level} level"
-        elif level_diff == 2:
-            # Significant stretch
-            base_score = 0.6 if is_growth_opportunity else 0.4
-            match_type = 'stretch'
-            reason = f"Significant stretch to {required_level} level"
-        elif level_diff == -2:
-            # Moderately overqualified
-            base_score = 0.6
-            match_type = 'overqualified_moderate'
-            reason = f"Moderately overqualified for {required_level} level"
-        elif level_diff >= 3:
-            # Too much of a stretch
-            base_score = 0.3
-            match_type = 'too_advanced'
-            reason = f"Position may be too advanced ({required_level})"
-        else:  # level_diff <= -3
-            # Significantly overqualified
-            base_score = 0.4
-            match_type = 'overqualified_significant'
-            reason = f"Significantly overqualified for {required_level} level"
+        # Apply growth bonus if applicable
+        final_score_info = self._apply_growth_bonus(
+            base_score_info,
+            is_growth_opportunity,
+            level_info['difference']
+        )
         
-        # Apply career growth bonus
+        return final_score_info['score'], {
+            'score': round(final_score_info['score'], 3),
+            'reason': final_score_info['reason'],
+            'match_type': base_score_info['match_type'],
+            'level_difference': level_info['difference'],
+            'is_growth_opportunity': is_growth_opportunity,
+            'growth_bonus': round(final_score_info['growth_bonus'], 3)
+        }
+    
+    def _calculate_level_difference(
+        self,
+        user_experience: str,
+        required_level: str
+    ) -> Dict[str, Any]:
+        """Calculate the numeric difference between experience levels."""
+        user_level_num = self.experience_levels.get(user_experience.lower(), 3)
+        required_level_num = self.experience_levels.get(required_level.lower(), 3)
+        
+        return {
+            'user_level': user_level_num,
+            'required_level': required_level_num,
+            'difference': required_level_num - user_level_num
+        }
+    
+    def _calculate_base_experience_score(
+        self,
+        level_diff: int,
+        required_level: str,
+        is_growth_opportunity: bool
+    ) -> Dict[str, Any]:
+        """Calculate base experience score based on level difference."""
+        score_mappings = {
+            0: {
+                'score': 1.0,
+                'match_type': 'perfect',
+                'reason': f"Perfect experience match: {required_level}"
+            },
+            1: {
+                'score': 0.9 if is_growth_opportunity else 0.8,
+                'match_type': 'growth',
+                'reason': f"Growth opportunity: {required_level} level"
+            },
+            -1: {
+                'score': 0.8,
+                'match_type': 'overqualified_slight',
+                'reason': f"Slightly overqualified for {required_level} level"
+            },
+            2: {
+                'score': 0.6 if is_growth_opportunity else 0.4,
+                'match_type': 'stretch',
+                'reason': f"Significant stretch to {required_level} level"
+            },
+            -2: {
+                'score': 0.6,
+                'match_type': 'overqualified_moderate',
+                'reason': f"Moderately overqualified for {required_level} level"
+            }
+        }
+        
+        if level_diff >= 3:
+            return {
+                'score': 0.3,
+                'match_type': 'too_advanced',
+                'reason': f"Position may be too advanced ({required_level})"
+            }
+        elif level_diff <= -3:
+            return {
+                'score': 0.4,
+                'match_type': 'overqualified_significant',
+                'reason': f"Significantly overqualified for {required_level} level"
+            }
+        else:
+            return score_mappings.get(level_diff, {
+                'score': 0.5,
+                'match_type': 'neutral',
+                'reason': f"Neutral experience match for {required_level} level"
+            })
+    
+    def _apply_growth_bonus(
+        self,
+        base_score_info: Dict[str, Any],
+        is_growth_opportunity: bool,
+        level_diff: int
+    ) -> Dict[str, Any]:
+        """Apply career growth bonus if applicable."""
         growth_bonus = 0.0
+        reason = base_score_info['reason']
+        
         if is_growth_opportunity and level_diff > 0:
             growth_bonus = 0.1
             reason += " (aligns with career goals)"
         
-        final_score = min(base_score + growth_bonus, 1.0)
-        
-        return final_score, {
-            'score': round(final_score, 3),
+        return {
+            'score': min(base_score_info['score'] + growth_bonus, 1.0),
             'reason': reason,
-            'match_type': match_type,
-            'level_difference': level_diff,
-            'is_growth_opportunity': is_growth_opportunity,
-            'growth_bonus': round(growth_bonus, 3)
+            'growth_bonus': growth_bonus
         }
     
     def calculate_company_preference_score(

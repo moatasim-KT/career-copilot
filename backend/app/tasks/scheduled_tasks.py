@@ -9,11 +9,13 @@ from ..core.database import SessionLocal
 from ..models.user import User
 from ..models.job import Job
 from ..models.application import Application
-from ..services.job_scraper_service import JobScraperService
+from ..services.job_scraper_service import JobScraper
 from ..services.recommendation_engine import RecommendationEngine
 from ..services.notification_service import NotificationService
 from ..services.job_matching_service import get_job_matching_service
 from ..services.websocket_service import websocket_service
+from ..services.scraping.scraper_manager import ScraperManager, ScrapingConfig
+from ..services.job_service import JobService
 import os
 
 logger = logging.getLogger(__name__)
@@ -36,9 +38,18 @@ async def ingest_jobs():
             logger.info("Job scraping is disabled. Skipping job ingestion.")
             return
         
-        from ..services.job_scraper_service import JobScraper
-        scraper = JobScraper(db=db)
-        
+        from ..services.scraping.scraper_manager import ScraperManager, ScrapingConfig
+        from ..services.job_service import JobService
+
+        # Initialize ScraperManager
+        scraping_config = ScrapingConfig(
+            enable_indeed=settings.enable_indeed,
+            enable_linkedin=settings.enable_linkedin,
+            enable_adzuna=settings.enable_adzuna,
+        )
+        scraper_manager = ScraperManager(config=scraping_config)
+        job_service = JobService(db)
+
         # Query all users with skills and preferred_locations
         users = db.query(User).filter(
             User.skills.isnot(None),
@@ -65,17 +76,14 @@ async def ingest_jobs():
                 )
 
                 # Prepare search parameters based on user preferences
-                search_params = {
-                    "what": " ".join(user.skills), # Join skills for API query
-                    "where": " ".join(user.preferred_locations), # Join locations for API query
-                    "results_per_page": 20 # Limit results per user
-                }
+                keywords = " ".join(user.skills)
+                location = " ".join(user.preferred_locations)
 
                 # Scrape jobs based on user preferences
-                logger.info(f"Scraping jobs for user {user.username} with {len(user.skills)} skills and {len(user.preferred_locations)} locations")
-                new_jobs = await scraper.scrape_jobs(user.id, search_params)
+                logger.info(f"Scraping jobs for user {user.username} with keywords: {keywords}, location: {location}")
+                scraped_jobs = await scraper_manager.search_all_sites(keywords, location, max_total_results=50)
                 
-                if not new_jobs:
+                if not scraped_jobs:
                     logger.info(f"No new jobs found for user {user.username}")
                     await websocket_service.send_system_notification(
                         message=f"No new jobs found for {user.username}.",
@@ -84,21 +92,32 @@ async def ingest_jobs():
                     users_processed += 1
                     continue
                 
-                total_jobs_added += len(new_jobs)
+                # Save new jobs to the database and perform duplicate checking
+                new_jobs_count = 0
+                for job_create_obj in scraped_jobs:
+                    existing_job = job_service.get_job_by_unique_fields(user.id, job_create_obj.title, job_create_obj.company, job_create_obj.location)
+                    if not existing_job:
+                        job_service.create_job(user.id, job_create_obj)
+                        new_jobs_count += 1
+                db.commit() # Commit after all jobs for a user are processed
+
+                total_jobs_added += new_jobs_count
                 users_processed += 1
                 
                 # Log number of jobs added per user
-                logger.info(f"✓ Added {len(new_jobs)} new jobs for user {user.username}")
+                logger.info(f"✓ Added {new_jobs_count} new jobs for user {user.username}")
                 await websocket_service.send_system_notification(
-                    message=f"Added {len(new_jobs)} new jobs for {user.username}.",
+                    message=f"Added {new_jobs_count} new jobs for {user.username}.",
                     target_users={user.id}
                 )
 
                 # Process real-time job matching for new jobs
-                if new_jobs:
+                if new_jobs_count > 0:
                     try:
+                        # Fetch the newly added jobs for matching
+                        newly_added_jobs = job_service.get_latest_jobs_for_user(user.id, limit=new_jobs_count)
                         matching_service = get_job_matching_service(db)
-                        await matching_service.process_new_jobs_for_matching(new_jobs)
+                        await matching_service.process_new_jobs_for_matching(newly_added_jobs)
                     except Exception as e:
                         logger.error(f"Error processing job matching for user {user.username}: {e}")
 

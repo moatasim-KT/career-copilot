@@ -2,17 +2,116 @@
 Docstring Enhancement Utility Module.
 
 This module provides utilities for adding and enhancing Google-style docstrings
-throughout the codebase, ensuring consistent documentation standards.
+and type hints throughout the codebase, ensuring consistent documentation standards.
+Includes automatic type inference and docstring generation using static analysis
+and runtime inspection.
 """
 
 import ast
 import inspect
 import re
-from typing import Any, Callable, Dict, List, Optional, Tuple, Type, Union
+import typing
+from typing import Any, Callable, Dict, List, Optional, Tuple, Type, Union, get_type_hints
+from typing._GenericAlias import _GenericAlias
+from dataclasses import is_dataclass, fields
+
+
+class TypeAnalyzer:
+    """Utility class for analyzing and inferring types."""
+    
+    @staticmethod
+    def infer_type(value: Any) -> Type:
+        """
+        Infer the type of a value using runtime inspection.
+        
+        Args:
+            value: The value to analyze
+            
+        Returns:
+            Type: The inferred type annotation
+        """
+        if value is None:
+            return type(None)
+        
+        # Handle basic types
+        if isinstance(value, (int, float, str, bool)):
+            return type(value)
+        
+        # Handle containers
+        if isinstance(value, list):
+            elem_types = {TypeAnalyzer.infer_type(x) for x in value[:5]}  # Sample first 5 elements
+            if len(elem_types) == 1:
+                return List[next(iter(elem_types))]
+            return List[Any]
+            
+        if isinstance(value, dict):
+            if not value:
+                return Dict[Any, Any]
+            key_type = TypeAnalyzer.infer_type(next(iter(value.keys())))
+            val_type = TypeAnalyzer.infer_type(next(iter(value.values())))
+            return Dict[key_type, val_type]
+            
+        if isinstance(value, tuple):
+            return Tuple[tuple(TypeAnalyzer.infer_type(x) for x in value)]
+        
+        # Handle custom classes
+        return type(value)
+    
+    @staticmethod
+    def get_callable_types(func: Callable) -> Dict[str, Type]:
+        """
+        Get type hints for a callable object.
+        
+        Args:
+            func: The function or method to analyze
+            
+        Returns:
+            Dict[str, Type]: Dictionary mapping parameter names to their types
+        """
+        try:
+            hints = get_type_hints(func)
+            if not hints:
+                # Try to infer from defaults and annotations
+                sig = inspect.signature(func)
+                hints = {}
+                for name, param in sig.parameters.items():
+                    if param.annotation != inspect.Parameter.empty:
+                        hints[name] = param.annotation
+                    elif param.default != inspect.Parameter.empty:
+                        hints[name] = TypeAnalyzer.infer_type(param.default)
+            return hints
+        except Exception:
+            return {}
+
+    @staticmethod
+    def format_type(type_hint: Type) -> str:
+        """
+        Format a type hint as a string.
+        
+        Args:
+            type_hint: The type hint to format
+            
+        Returns:
+            str: Formatted type string
+        """
+        if type_hint == Any:
+            return 'Any'
+            
+        if isinstance(type_hint, _GenericAlias):
+            if type_hint.__origin__ == Union:
+                return ' | '.join(TypeAnalyzer.format_type(t) for t in type_hint.__args__)
+            if type_hint.__origin__ in (list, List):
+                return f'List[{TypeAnalyzer.format_type(type_hint.__args__[0])}]'
+            if type_hint.__origin__ in (dict, Dict):
+                key_type = TypeAnalyzer.format_type(type_hint.__args__[0])
+                val_type = TypeAnalyzer.format_type(type_hint.__args__[1])
+                return f'Dict[{key_type}, {val_type}]'
+            
+        return getattr(type_hint, '__name__', str(type_hint))
 
 
 class DocstringTemplate:
-    """Template generator for Google-style docstrings."""
+    """Template generator for Google-style docstrings with type hints support."""
     
     @staticmethod
     def function_docstring(
@@ -98,6 +197,197 @@ class DocstringTemplate:
         attributes: Optional[List[Tuple[str, str, str]]] = None,
         examples: Optional[List[str]] = None,
         note: Optional[str] = None
+    ) -> str:
+        """Generate a Google-style class docstring."""
+        lines = [f'"""', description, '']
+        
+        if attributes:
+            lines.append('Attributes:')
+            for name, attr_type, desc in attributes:
+                lines.append(f'    {name} ({attr_type}): {desc}')
+            lines.append('')
+        
+        if examples:
+            lines.append('Examples:')
+            for example in examples:
+                for line in example.split('\n'):
+                    lines.append(f'    {line}')
+            lines.append('')
+        
+        if note:
+            lines.append('Note:')
+            lines.append(f'    {note}')
+            lines.append('')
+        
+        if lines[-1] == '':
+            lines.pop()
+        lines.append('"""')
+        
+        return '\n'.join(lines)
+
+
+class DocstringTransformer(ast.NodeTransformer):
+    """AST transformer for enhancing docstrings and type hints."""
+    
+    def __init__(self, enhancer: 'DocstringEnhancer'):
+        """Initialize the transformer."""
+        self.enhancer = enhancer
+    
+    def visit_FunctionDef(self, node: ast.FunctionDef) -> ast.FunctionDef:
+        """
+        Visit and transform function definitions.
+        
+        Args:
+            node: The AST node representing a function definition
+            
+        Returns:
+            ast.FunctionDef: The transformed node
+        """
+        # First visit child nodes
+        self.generic_visit(node)
+        
+        # Get existing docstring
+        existing_docstring = ast.get_docstring(node)
+        if not existing_docstring:
+            # Create docstring node
+            docstring = self.enhancer.generate_function_docstring(node)
+            docstring_node = ast.Expr(value=ast.Str(s=docstring))
+            node.body.insert(0, docstring_node)
+        
+        return node
+    
+    def visit_ClassDef(self, node: ast.ClassDef) -> ast.ClassDef:
+        """
+        Visit and transform class definitions.
+        
+        Args:
+            node: The AST node representing a class definition
+            
+        Returns:
+            ast.ClassDef: The transformed node
+        """
+        # First visit child nodes
+        self.generic_visit(node)
+        
+        # Get existing docstring
+        existing_docstring = ast.get_docstring(node)
+        if not existing_docstring:
+            # Create docstring node
+            docstring = self.enhancer.enhance_class_docstring(node)
+            docstring_node = ast.Expr(value=ast.Str(s=docstring))
+            node.body.insert(0, docstring_node)
+        
+        return node
+
+
+class DocstringEnhancer:
+    """Utility for enhancing docstrings and type hints in Python code."""
+    
+    def __init__(self):
+        """Initialize the DocstringEnhancer."""
+        self.type_analyzer = TypeAnalyzer()
+        self.template = DocstringTemplate()
+    
+    def enhance_module(self, module_path: str) -> str:
+        """
+        Enhance docstrings and type hints in a Python module.
+        
+        Args:
+            module_path: Path to the Python module file
+            
+        Returns:
+            str: Enhanced module code with updated docstrings and type hints
+            
+        Raises:
+            FileNotFoundError: If the module file does not exist
+            SyntaxError: If the module contains invalid Python syntax
+        """
+        with open(module_path, 'r') as f:
+            code = f.read()
+        
+        tree = ast.parse(code)
+        transformer = DocstringTransformer(self)
+        enhanced_tree = transformer.visit(tree)
+        
+        return ast.unparse(enhanced_tree)
+    
+    def generate_function_docstring(self, func: Callable) -> str:
+        """
+        Generate an enhanced docstring for a function with type information.
+        
+        Args:
+            func: The function to analyze
+            
+        Returns:
+            str: Generated docstring
+        """
+        # Get function signature
+        sig = inspect.signature(func)
+        desc = func.__doc__ or f"Implementation of {func.__name__}."
+        
+        # Get type hints
+        type_hints = self.type_analyzer.get_callable_types(func)
+        
+        # Prepare args documentation
+        args = []
+        for name, param in sig.parameters.items():
+            if param.kind == param.VAR_POSITIONAL:
+                continue
+            if param.kind == param.VAR_KEYWORD:
+                continue
+                
+            param_type = type_hints.get(name, Any)
+            type_str = self.type_analyzer.format_type(param_type)
+            desc = f"The {name} parameter"
+            args.append((name, type_str, desc))
+        
+        # Prepare return documentation
+        returns = None
+        if 'return' in type_hints:
+            ret_type = type_hints['return']
+            ret_type_str = self.type_analyzer.format_type(ret_type)
+            returns = (ret_type_str, "The function's return value")
+        
+        return self.template.function_docstring(
+            description=desc,
+            args=args,
+            returns=returns
+        )
+    
+    def enhance_class_docstring(self, cls: Type) -> str:
+        """
+        Generate an enhanced docstring for a class with type information.
+        
+        Args:
+            cls: The class to analyze
+            
+        Returns:
+            str: Generated docstring
+        """
+        desc = cls.__doc__ or f"Implementation of {cls.__name__}."
+        attributes = []
+        
+        # Handle dataclass fields
+        if is_dataclass(cls):
+            for field in fields(cls):
+                field_type = self.type_analyzer.format_type(field.type)
+                attributes.append((field.name, field_type, f"The {field.name} field"))
+        
+        # Handle regular class attributes
+        else:
+            for name, value in vars(cls).items():
+                if not name.startswith('_'):
+                    if isinstance(value, property):
+                        type_hint = self.type_analyzer.get_callable_types(value.fget).get('return', Any)
+                    else:
+                        type_hint = self.type_analyzer.infer_type(value)
+                    type_str = self.type_analyzer.format_type(type_hint)
+                    attributes.append((name, type_str, f"The {name} attribute"))
+        
+        return self.template.class_docstring(
+            description=desc,
+            attributes=attributes
+        )
     ) -> str:
         """
         Generate a Google-style class docstring.

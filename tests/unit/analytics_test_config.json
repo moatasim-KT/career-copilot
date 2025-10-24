@@ -1,0 +1,42 @@
+{
+  "analytics": {
+    "performance": {
+      "max_processing_time": 5.0,
+      "avg_processing_time": 1.0,
+      "p95_processing_time": 2.0,
+      "memory_limit_mb": 500,
+      "concurrent_processes": 10
+    },
+    "accuracy": {
+      "min_accuracy": 0.95,
+      "max_mape": 5.0,
+      "max_rmse": 10.0,
+      "min_confidence": 0.9
+    },
+    "storage": {
+      "max_write_time": 0.5,
+      "max_read_time": 0.2,
+      "retention_days": 90
+    },
+    "validation": {
+      "required_fields": ["user_id", "timestamp", "analytics_type", "data", "metadata"],
+      "allowed_types": [
+        "career_insights",
+        "salary_trends",
+        "skill_analysis",
+        "market_analysis"
+      ]
+    }
+  },
+  "monitoring": {
+    "alerts": {
+      "error_threshold": 0.1,
+      "latency_threshold": 5.0,
+      "memory_threshold": 0.8
+    },
+    "metrics": {
+      "collection_interval": 60,
+      "retention_period": 30
+    }
+  }
+}

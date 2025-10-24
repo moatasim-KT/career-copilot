@@ -1,0 +1,90 @@
+# ruff.toml
+
+# Specify the maximum line length. The default of 88 is compatible with Black.
+line-length = 150
+
+# Set the target Python version for Ruff to apply rules and fixes.
+# This ensures that code transformations are safe for your target environment.
+# Examples: "py38", "py39", "py310", "py311", "py312"
+target-version = "py312"
+
+# Define directories and files to be excluded from linting and formatting.
+# Ruff has sensible defaults, but you can add project-specific exclusions.
+# Default exclusions include common virtual environment and build artifact directories.
+exclude = [
+    ".bzr",
+    ".direnv",
+    ".eggs",
+    ".git",
+    ".hg",
+    ".mypy_cache",
+    ".nox",
+    ".pants.d",
+    ".ruff_cache",
+    ".svn",
+    ".tox",
+    ".venv",
+    "__pypackages__",
+    "_build",
+    "buck-out",
+    "build",
+    "dist",
+    "node_modules",
+    "venv",
+]
+
+
+# ===================================================================
+# Linter (`ruff lint` or `ruff check`) settings
+# ===================================================================
+[lint]
+
+# Select a broad set of useful rules to enforce.
+# For a full list, see: https://docs.astral.sh/ruff/rules/
+select = [
+
+    "RUF"
+]
+
+# Ignore specific rules that may be too noisy or conflict with formatter preferences.
+ignore = [
+    "E501",
+
+    "B905"
+]
+
+# Allow unused variables that begin with an underscore.
+# This is a common convention for intentionally unused variables.
+dummy-variable-rgx = "^(_+|(_[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
+
+
+# ===================================================================
+# Formatter (`ruff format`) settings
+# ===================================================================
+[format]
+
+# Use double quotes for strings where possible.
+quote-style = "double"
+
+# Use spaces for indentation.
+indent-style = "tab"
+
+# Respect magic trailing commas. When enabled (the default), a trailing
+# comma on a collection or function call will force it to be formatted
+# with one item per line.
+skip-magic-trailing-comma = false
+
+# Automatically detect and preserve the line ending style (LF vs. CRLF).
+line-ending = "auto"
+
+
+# ===================================================================
+# Tool-specific configurations
+# ===================================================================
+
+# -- isort (Import Sorting) --
+[lint.isort]
+# Define your project's own modules as "first-party". This helps isort
+# correctly categorize imports into standard library, third-party, and local.
+# Replace `my_project` with the name of your source directory (e.g., `src`).
+known-first-party = ["src"]

@@ -1,71 +1,46 @@
+Subject: Your Daily Career Briefing - {{ current_date.strftime('%B %d, %Y') }}
+
 {{ greeting }}, {{ user_name }}!
 
-Your Daily Career Briefing - {{ current_date.strftime('%A, %B %d, %Y') }}
+Here's your daily career briefing:
 
-Ready to take on today? Here's your personalized career briefing to help you make the most of {{ current_date.strftime('%A') }}.
+Top Job Recommendations:
+{% if recommendations %}
+{% for rec in recommendations %}
+- {{ rec.title }} at {{ rec.company }}
+  Location: {{ rec.location | default('Remote') }}
+  Salary: {{ rec.salary_range | default('N/A') }}
+  Match Score: {{ rec.match_score | round | default(0) }}%
+  Description: {{ rec.description | truncate(150) }}
+  Link: {{ rec.url }}
+{% endfor %}
+{% else %}
+No new recommendations today. Update your profile or add more jobs to get personalized recommendations!
+{% endif %}
 
 {% if progress %}
-YOUR PROGRESS:
-{% if progress.applications_this_week %}
-- Applications This Week: {{ progress.applications_this_week }}
-{% endif %}
-{% if progress.interviews_scheduled %}
-- Interviews Scheduled: {{ progress.interviews_scheduled }}
-{% endif %}
-{% if progress.response_rate %}
-- Response Rate: {{ progress.response_rate }}%
-{% endif %}
-{% if progress.goal_completion %}
-- Weekly Goal: {{ progress.goal_completion }}% completed
-{% endif %}
-{% endif %}
-
-{% if recommendations %}
-TOP JOB RECOMMENDATIONS:
-Based on your skills and preferences, here are today's best matches:
-
-{% for job in recommendations[:5] %}
-{{ loop.index }}. {{ job.title }} at {{ job.company }}
-{% if job.location %}   Location: {{ job.location }}{% endif %}
-{% if job.match_score %}   Match: {{ (job.match_score * 100)|round }}%{% endif %}
-{% if job.description %}   {{ job.description[:100] }}...{% endif %}
-{% if job.application_url %}   Apply: {{ job.application_url }}{% endif %}
-
-{% endfor %}
+Your Progress Today:
+Daily Application Goal: {{ progress.daily_application_goal | default(0) }}
+{{ progress.daily_applications_today | default(0) }} applications today.
 {% endif %}
 
 {% if daily_goals %}
-TODAY'S GOALS:
-{% if daily_goals.applications_target %}
-- Apply to {{ daily_goals.applications_target }} job{{ 's' if daily_goals.applications_target != 1 else '' }} today
-{% endif %}
-{% if daily_goals.networking_target %}
-- Connect with {{ daily_goals.networking_target }} professional{{ 's' if daily_goals.networking_target != 1 else '' }} in your field
-{% endif %}
-{% if daily_goals.skill_focus %}
-- Spend 30 minutes learning about {{ daily_goals.skill_focus }}
-{% endif %}
+Your Daily Goals:
+{% for goal in daily_goals %}
+- {{ goal }}
+{% endfor %}
 {% endif %}
 
 {% if market_insights %}
-MARKET INSIGHTS:
-{% if market_insights.trending_skills %}
-Trending Skills: {{ market_insights.trending_skills[:5]|join(', ') }}
+Market Insights:
+{{ market_insights.summary }}
+{% for insight in market_insights.top_insights %}
+- {{ insight }}
+{% endfor %}
 {% endif %}
-{% if market_insights.salary_trend %}
-Salary Trends: {{ market_insights.salary_trend }}
-{% endif %}
-{% if market_insights.job_market_activity %}
-Market Activity: {{ market_insights.job_market_activity }}
-{% endif %}
-{% endif %}
-
-Ready to make today count? Your career journey is unique, and every step forward matters. Let's make today productive!
-
-Dashboard: {{ dashboard_url }}
-Browse Jobs: {{ jobs_url }}
-
-Pro Tip: The best time to apply for jobs is between 6-10 AM when hiring managers are most active!
 
 ---
-Career Co-Pilot - Your AI-Powered Career Assistant
+Visit your dashboard: {{ dashboard_url }}
+Tracking ID: {{ tracking_id }}
+
+© {{ current_date.year }} Career Copilot. All rights reserved.

@@ -309,58 +309,112 @@ class AIServiceManager:
         Returns:
             AIResponse with analysis results or AsyncGenerator for streaming
         """
-        # Analyze task complexity
+        # Analyze task and prepare initial setup
+        task_info = await self._prepare_task_analysis(model_type, prompt, context)
+        messages = task_info['messages']
+        task_complexity = task_info['task_complexity']
+        cost_category = task_info['cost_category']
+        
+        # Handle token optimization if needed
+        messages, optimization_result = await self._handle_token_optimization(
+            messages, token_budget, task_complexity
+        )
+        
+        # Check cache for non-streaming requests
+        if not enable_streaming:
+            cached_result = await self._check_cache(model_type, task_complexity, prompt)
+            if cached_result:
+                return cached_result
+        
+        # Select appropriate models
+        models = await self._select_models(
+            model_type, task_complexity, criteria
+        )
+        
+        # Handle request based on streaming preference
+        if enable_streaming:
+            return await self._handle_streaming_request(
+                models, messages, model_type, task_complexity, cost_category,
+                streaming_mode, user_id, session_id, budget_limit, optimization_result
+            )
+        
+        cache_key = f"ai_response:{model_type.value}:{task_complexity.value}:{hash(prompt)}"
+        return await self._handle_regular_request(
+            models, messages, model_type, task_complexity, cost_category,
+            max_retries, user_id, session_id, budget_limit, optimization_result, cache_key
+        )
+    
+    async def _prepare_task_analysis(
+        self,
+        model_type: ModelType,
+        prompt: str,
+        context: Optional[str] = None
+    ) -> Dict[str, Any]:
+        """Prepare initial task analysis and setup."""
         task_complexity = complexity_analyzer.analyze_task_complexity(
             prompt=prompt,
             context=context,
             task_type=model_type.value
         )
         
-        # Determine cost category
         cost_category = self._map_model_type_to_cost_category(model_type)
         
-        # Prepare messages for processing
         messages = [HumanMessage(content=prompt)]
         if context:
             messages.insert(0, SystemMessage(content=context))
         
-        # Apply token optimization if budget is specified
-        optimization_result = None
-        if token_budget:
-            messages, optimization_result = token_optimizer.optimize_for_budget(
-                messages, token_budget, task_complexity
-            )
-            logger.info(f"Token optimization: {optimization_result.reduction_percentage:.1f}% reduction")
+        return {
+            'task_complexity': task_complexity,
+            'cost_category': cost_category,
+            'messages': messages
+        }
+    
+    async def _handle_token_optimization(
+        self,
+        messages: List[BaseMessage],
+        token_budget: Optional[TokenBudget],
+        task_complexity: TaskComplexity
+    ) -> Tuple[List[BaseMessage], Optional[Dict[str, Any]]]:
+        """Handle token optimization if budget is specified."""
+        if not token_budget:
+            return messages, None
+            
+        optimized_messages, optimization_result = token_optimizer.optimize_for_budget(
+            messages, token_budget, task_complexity
+        )
+        logger.info(f"Token optimization: {optimization_result.reduction_percentage:.1f}% reduction")
         
-        # Check cache first (skip for streaming requests)
+        return optimized_messages, optimization_result
+    
+    async def _check_cache(
+        self,
+        model_type: ModelType,
+        task_complexity: TaskComplexity,
+        prompt: str
+    ) -> Optional[AIResponse]:
+        """Check cache for existing response."""
         cache_key = f"ai_response:{model_type.value}:{task_complexity.value}:{hash(prompt)}"
-        if not enable_streaming:
-            cached_response = await cache_manager.async_get(cache_key)
-            if cached_response is not None:
-                logger.info("Returning cached AI response")
-                return cached_response
+        cached_response = await cache_manager.async_get(cache_key)
         
-        # Get available models for this type
+        if cached_response is not None:
+            logger.info("Returning cached AI response")
+            return cached_response
+            
+        return None
+    
+    async def _select_models(
+        self,
+        model_type: ModelType,
+        task_complexity: TaskComplexity,
+        criteria: str
+    ) -> List[ModelConfig]:
+        """Select and sort appropriate models based on criteria."""
         available_models = self.models.get(model_type, [])
         if not available_models:
             raise ValueError(f"No models available for {model_type.value}")
-        
-        # Filter models by complexity and sort by criteria
+            
         suitable_models = self._filter_models_by_complexity(available_models, task_complexity)
-        sorted_models = self._sort_models_by_criteria(suitable_models, criteria, task_complexity)
-        
-        # Handle streaming requests
-        if enable_streaming:
-            return await self._handle_streaming_request(
-                sorted_models, messages, model_type, task_complexity, cost_category,
-                streaming_mode, user_id, session_id, budget_limit, optimization_result
-            )
-        
-        # Handle regular requests with performance tracking
-        return await self._handle_regular_request(
-            sorted_models, messages, model_type, task_complexity, cost_category,
-            max_retries, user_id, session_id, budget_limit, optimization_result, cache_key
-        )
+        return self._sort_models_by_criteria(suitable_models, criteria, task_complexity)
     
     def _map_model_type_to_cost_category(self, model_type: ModelType) -> CostCategory:
         """Map model type to cost category."""
@@ -427,100 +481,175 @@ class AIServiceManager:
         user_id: Optional[str] = None,
         session_id: Optional[str] = None
     ) -> AIResponse:
-        """Call a specific AI model."""
+        """Call a specific AI model and process its response."""
         start_time = time.time()
         
         try:
-            if model_config.provider == ModelProvider.OPENAI:
-                response = await self._call_openai(model_config, prompt)
-            elif model_config.provider == ModelProvider.ANTHROPIC:
-                response = await self._call_anthropic(model_config, prompt)
-            else:
-                raise ValueError(f"Unsupported provider: {model_config.provider}")
-            
+            # Get model response
+            response = await self._get_model_response(model_config, prompt)
             processing_time = time.time() - start_time
             
-            # Calculate confidence score (simplified)
-            confidence_score = self._calculate_confidence(response, model_config)
-            
-            # Calculate cost
-            token_usage = self._extract_token_usage(response)
-            cost = token_usage.get("total_tokens", 0) * model_config.cost_per_token
-            
-            # Record cost in cost tracker
-            cost_entry = await cost_tracker.record_cost(
-                provider=model_config.provider.value,
-                model=model_config.model_name,
-                category=cost_category,
-                prompt_tokens=token_usage.get("prompt_tokens", 0),
-                completion_tokens=token_usage.get("completion_tokens", 0),
-                cost=cost,
-                user_id=user_id,
-                session_id=session_id,
-                metadata={
-                    "task_complexity": task_complexity.value,
-                    "temperature": model_config.temperature,
-                    "max_tokens": model_config.max_tokens
-                }
+            # Process response and calculate metrics
+            metrics = await self._process_response_metrics(
+                response, model_config, processing_time, task_complexity
             )
             
-            # Get budget impact
-            budget_statuses = await cost_tracker.check_budget_limits(
-                category=cost_category,
-                estimated_cost=0,  # Already spent
-                user_id=user_id
+            # Handle cost tracking and budgets
+            cost_tracking = await self._handle_cost_tracking(
+                metrics, model_config, task_complexity, cost_category,
+                user_id, session_id
             )
             
-            budget_impact = {
-                "cost_recorded": str(cost_entry.cost),
-                "affected_budgets": [status.to_dict() for status in budget_statuses]
-            }
-            
-            ai_response = AIResponse(
-                content=response.content,
-                model_used=model_config.model_name,
-                provider=model_config.provider,
-                confidence_score=confidence_score,
-                processing_time=processing_time,
-                token_usage=token_usage,
-                cost=cost,
-                complexity_used=task_complexity,
-                cost_category=cost_category,
-                budget_impact=budget_impact,
-                metadata={
-                    "temperature": model_config.temperature,
-                    "max_tokens": model_config.max_tokens,
-                    "complexity_level": model_config.complexity_level.value
-                }
+            # Create and return AI response
+            ai_response = await self._create_ai_response(
+                response, model_config, metrics, cost_tracking,
+                task_complexity, cost_category
             )
             
-            # Record AI request metrics
-            metrics_collector.record_ai_request(
-                provider=model_config.provider.value,
-                model=model_config.model_name,
-                status="success",
-                duration=processing_time,
-                token_usage=token_usage,
-                cost=cost
+            # Record success metrics
+            await self._record_request_metrics(
+                model_config, "success", processing_time,
+                metrics['token_usage'], metrics['cost']
             )
             
             return ai_response
             
         except Exception as e:
             processing_time = time.time() - start_time
-            
-            # Record failed AI request metrics
-            metrics_collector.record_ai_request(
-                provider=model_config.provider.value,
-                model=model_config.model_name,
-                status="failed",
-                duration=processing_time,
-                token_usage={},
-                cost=0.0
-            )
-            
-            logger.error(f"Error calling {model_config.model_name}: {e}")
+            await self._handle_model_error(model_config, e, processing_time)
             raise
+            
+    async def _get_model_response(
+        self,
+        model_config: ModelConfig,
+        prompt: str
+    ) -> Any:
+        """Get response from specific AI model provider."""
+        if model_config.provider == ModelProvider.OPENAI:
+            return await self._call_openai(model_config, prompt)
+        elif model_config.provider == ModelProvider.ANTHROPIC:
+            return await self._call_anthropic(model_config, prompt)
+        else:
+            raise ValueError(f"Unsupported provider: {model_config.provider}")
+            
+    async def _process_response_metrics(
+        self,
+        response: Any,
+        model_config: ModelConfig,
+        processing_time: float,
+        task_complexity: TaskComplexity
+    ) -> Dict[str, Any]:
+        """Process response and calculate various metrics."""
+        confidence_score = self._calculate_confidence(response, model_config)
+        token_usage = self._extract_token_usage(response)
+        cost = token_usage.get("total_tokens", 0) * model_config.cost_per_token
+        
+        return {
+            'confidence_score': confidence_score,
+            'token_usage': token_usage,
+            'cost': cost,
+            'processing_time': processing_time
+        }
+        
+    async def _handle_cost_tracking(
+        self,
+        metrics: Dict[str, Any],
+        model_config: ModelConfig,
+        task_complexity: TaskComplexity,
+        cost_category: CostCategory,
+        user_id: Optional[str],
+        session_id: Optional[str]
+    ) -> Dict[str, Any]:
+        """Handle cost tracking and budget checking."""
+        cost_entry = await cost_tracker.record_cost(
+            provider=model_config.provider.value,
+            model=model_config.model_name,
+            category=cost_category,
+            prompt_tokens=metrics['token_usage'].get("prompt_tokens", 0),
+            completion_tokens=metrics['token_usage'].get("completion_tokens", 0),
+            cost=metrics['cost'],
+            user_id=user_id,
+            session_id=session_id,
+            metadata={
+                "task_complexity": task_complexity.value,
+                "temperature": model_config.temperature,
+                "max_tokens": model_config.max_tokens
+            }
+        )
+        
+        budget_statuses = await cost_tracker.check_budget_limits(
+            category=cost_category,
+            estimated_cost=0,  # Already spent
+            user_id=user_id
+        )
+        
+        return {
+            'cost_entry': cost_entry,
+            'budget_statuses': budget_statuses
+        }
+        
+    async def _create_ai_response(
+        self,
+        response: Any,
+        model_config: ModelConfig,
+        metrics: Dict[str, Any],
+        cost_tracking: Dict[str, Any],
+        task_complexity: TaskComplexity,
+        cost_category: CostCategory
+    ) -> AIResponse:
+        """Create AIResponse object from processed data."""
+        budget_impact = {
+            "cost_recorded": str(cost_tracking['cost_entry'].cost),
+            "affected_budgets": [status.to_dict() for status in cost_tracking['budget_statuses']]
+        }
+        
+        return AIResponse(
+            content=response.content,
+            model_used=model_config.model_name,
+            provider=model_config.provider,
+            confidence_score=metrics['confidence_score'],
+            processing_time=metrics['processing_time'],
+            token_usage=metrics['token_usage'],
+            cost=metrics['cost'],
+            complexity_used=task_complexity,
+            cost_category=cost_category,
+            budget_impact=budget_impact,
+            metadata={
+                "temperature": model_config.temperature,
+                "max_tokens": model_config.max_tokens,
+                "complexity_level": model_config.complexity_level.value
+            }
+        )
+        
+    async def _record_request_metrics(
+        self,
+        model_config: ModelConfig,
+        status: str,
+        duration: float,
+        token_usage: Dict[str, int],
+        cost: float
+    ):
+        """Record metrics for AI request."""
+        metrics_collector.record_ai_request(
+            provider=model_config.provider.value,
+            model=model_config.model_name,
+            status=status,
+            duration=duration,
+            token_usage=token_usage,
+            cost=cost
+        )
+        
+    async def _handle_model_error(
+        self,
+        model_config: ModelConfig,
+        error: Exception,
+        processing_time: float
+    ):
+        """Handle and record model errors."""
+        await self._record_request_metrics(
+            model_config, "failed", processing_time, {}, 0.0
+        )
+        logger.error(f"Error calling {model_config.model_name}: {error}")
     
     async def _call_openai(self, model_config: ModelConfig, prompt: str):
         """Call OpenAI model."""

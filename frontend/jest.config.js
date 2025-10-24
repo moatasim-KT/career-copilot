@@ -10,6 +10,9 @@ const customJestConfig = {
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/src/$1',
   },
+  transformIgnorePatterns: [
+    '/node_modules/(?!node-fetch|data-uri-to-buffer|fetch-blob|formdata-polyfill).+'
+  ],
 };
 
 module.exports = createJestConfig(customJestConfig);

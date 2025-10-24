@@ -1,0 +1,36 @@
+version: '3.8'
+
+services:
+  celery_worker:
+    build:
+      context: ../../
+      dockerfile: deployment/docker/backend.Dockerfile
+    command: /app/deployment/celery/celery_worker.sh
+    volumes:
+      - ../../backend:/app/backend
+    env_file:
+      - ../../backend/.env
+    depends_on:
+      - redis
+      - db
+    networks:
+      - career_copilot_network
+
+  celery_beat:
+    build:
+      context: ../../
+      dockerfile: deployment/docker/backend.Dockerfile
+    command: /app/deployment/celery/celery_beat.sh
+    volumes:
+      - ../../backend:/app/backend
+    env_file:
+      - ../../backend/.env
+    depends_on:
+      - redis
+      - db
+    networks:
+      - career_copilot_network
+
+networks:
+  career_copilot_network:
+    external: true

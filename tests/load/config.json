@@ -1,0 +1,74 @@
+{
+    "scenarios": {
+        "smoke_test": {
+            "users": 10,
+            "spawn_rate": 1,
+            "run_time": "5m",
+            "description": "Basic smoke test with minimal load"
+        },
+        "average_load": {
+            "users": 50,
+            "spawn_rate": 5,
+            "run_time": "30m",
+            "description": "Simulates average daily traffic"
+        },
+        "peak_load": {
+            "users": 200,
+            "spawn_rate": 10,
+            "run_time": "1h",
+            "description": "Simulates peak traffic conditions"
+        },
+        "stress_test": {
+            "users": 500,
+            "spawn_rate": 20,
+            "run_time": "2h",
+            "description": "Stress test to find breaking points"
+        },
+        "endurance_test": {
+            "users": 100,
+            "spawn_rate": 5,
+            "run_time": "6h",
+            "description": "Long-running test to identify memory leaks and performance degradation"
+        }
+    },
+    "endpoints": {
+        "job_recommendations": {
+            "weight": 3,
+            "expected_response_time": 500,
+            "error_threshold": 1
+        },
+        "job_search": {
+            "weight": 2,
+            "expected_response_time": 300,
+            "error_threshold": 1
+        },
+        "resume_analysis": {
+            "weight": 2,
+            "expected_response_time": 2000,
+            "error_threshold": 2
+        },
+        "skill_insights": {
+            "weight": 1,
+            "expected_response_time": 1000,
+            "error_threshold": 1
+        },
+        "user_preferences": {
+            "weight": 1,
+            "expected_response_time": 200,
+            "error_threshold": 1
+        }
+    },
+    "thresholds": {
+        "response_time_p95": 2000,
+        "response_time_p99": 5000,
+        "error_rate": 1,
+        "requests_per_second": 50
+    },
+    "monitoring": {
+        "enable_prometheus": true,
+        "stats_export_interval": 5,
+        "metrics_export_path": "/metrics",
+        "include_latency_metrics": true,
+        "include_system_metrics": true
+    }
+}

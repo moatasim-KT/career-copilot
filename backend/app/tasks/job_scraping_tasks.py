@@ -6,6 +6,7 @@ from celery import current_task
 from sqlalchemy.orm import Session
 from typing import Dict, Any, List
 import traceback
+import asyncio
 
 from app.core.celery_app import celery_app
 from app.core.database import get_db
@@ -160,9 +161,9 @@ def scrape_jobs_for_user_async(self, user_id: int) -> Dict[str, Any]:
                         "created_at": job.created_at.isoformat() if job.created_at else None
                     }
                     
-                    await websocket_service.send_job_match_notification(
+                    asyncio.run(websocket_service.send_job_match_notification(
                         user_id, job_data, match_score
-                    )
+                    ))
                     
                 logger.info(f"Sent {len(high_match_jobs)} job match notifications to user {user_id}")
                 

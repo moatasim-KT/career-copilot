@@ -18,7 +18,7 @@ from sqlalchemy.orm import selectinload
 
 from ..core.config import get_settings
 from ..core.logging import get_logger
-from ..core.database import get_db_session
+from ..core.database import get_db
 from ..models.database_models import EmailDeliveryStatus
 from ..repositories.email_delivery_status_repository import EmailDeliveryStatusRepository
 

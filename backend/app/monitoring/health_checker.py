@@ -13,8 +13,9 @@ import httpx
 import psutil
 from sqlalchemy import text
 
+from ..core.database import engine, SessionLocal
+
 from ..core.config import get_settings
-from ..core.database import get_database_manager
 from ..core.logging import get_logger
 
 logger = get_logger(__name__)
@@ -125,27 +126,17 @@ class HealthChecker:
         start_time = time.time()
         
         try:
-            db_manager = await get_database_manager()
-            health_status = await db_manager.health_check()
+            with SessionLocal() as db:
+                # Execute a simple query to check connection
+                db.execute(text("SELECT 1"))
             
             response_time = (time.time() - start_time) * 1000
             
-            # Determine overall database status
-            if all(health_status.values()):
-                status = HealthStatus.HEALTHY
-                message = "All database connections healthy"
-            elif any(health_status.values()):
-                status = HealthStatus.DEGRADED
-                message = "Some database connections unhealthy"
-            else:
-                status = HealthStatus.UNHEALTHY
-                message = "All database connections failed"
-            
             return ComponentHealth(
                 name="database",
-                status=status,
-                message=message,
-                details=health_status,
+                status=HealthStatus.HEALTHY,
+                message="Database connection healthy",
+                details={},
                 response_time_ms=response_time,
                 last_check=datetime.utcnow()
             )
@@ -177,13 +168,14 @@ class HealthChecker:
                     last_check=datetime.utcnow()
                 )
             
-            db_manager = await get_database_manager()
+            from ..core.caching import get_cache_manager
+            cache_manager = get_cache_manager()
             
             # Test Redis connection
             test_key = f"health_check_{int(time.time())}"
-            await db_manager.cache_set(test_key, "test_value", ttl=10)
-            value = await db_manager.cache_get(test_key)
-            await db_manager.cache_delete(test_key)
+            await cache_manager.async_set(test_key, "test_value", ttl=10)
+            value = await cache_manager.async_get(test_key)
+            await cache_manager.delete(test_key)
             
             response_time = (time.time() - start_time) * 1000
             

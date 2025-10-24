@@ -16,20 +16,23 @@ const paddingClasses = {
   lg: 'p-8',
 };
 
-export default function Card({ 
-  children, 
-  className, 
+export default function Card({
+  children,
+  className,
   padding = 'md',
-  hover = false 
+  hover = false,
+  ...rest
 }: CardProps) {
   return (
-    <div className={cn(
-      'bg-white rounded-lg border border-gray-200 shadow-sm',
-      paddingClasses[padding],
-      hover && 'hover:shadow-md transition-shadow duration-200',
-      className
-    )}>
-      {children}
+    <div
+      className={cn(
+        'bg-white rounded-lg border border-gray-200 shadow-sm',
+        paddingClasses[padding],
+        hover && 'hover:shadow-md transition-shadow duration-200',
+        className
+      )}
+      {...rest}
+    >      {children}
     </div>
   );
 }

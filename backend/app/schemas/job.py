@@ -17,10 +17,11 @@ class JobCreate(BaseModel):
     job_type: Optional[str] = None
     remote_option: Optional[str] = None
     tech_stack: Optional[List[str]] = Field(default_factory=list, description="List of technologies/skills")
-    link: Optional[str] = None
+    application_url: Optional[str] = None
     notes: Optional[str] = None
     documents_required: Optional[List[str]] = None
     source: Optional[str] = Field(default="manual", description="Source of the job posting")
+    currency: Optional[str] = None
     
     @field_validator('tech_stack')
     @classmethod
@@ -53,7 +54,7 @@ class JobUpdate(BaseModel):
     job_type: Optional[str] = None
     remote_option: Optional[str] = None
     tech_stack: Optional[List[str]] = None
-    link: Optional[str] = None
+    application_url: Optional[str] = None
     source: Optional[str] = None
     status: Optional[str] = None
     date_applied: Optional[datetime] = None
@@ -97,10 +98,11 @@ class JobResponse(BaseModel):
     remote_option: Optional[str]
     tech_stack: Optional[List[str]]
     documents_required: Optional[List[str]]
-    link: Optional[str]
+    application_url: Optional[str]
     source: Optional[str]
     status: str
     date_applied: Optional[datetime]
     notes: Optional[str]
     created_at: datetime
     updated_at: datetime
+    currency: Optional[str]

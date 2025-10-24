@@ -28,7 +28,9 @@ try:
 except ImportError:
     SPACY_AVAILABLE = False
 
-from app.core.config import settings
+from app.core.config import get_settings
+
+settings = get_settings()
 
 logger = logging.getLogger(__name__)
 

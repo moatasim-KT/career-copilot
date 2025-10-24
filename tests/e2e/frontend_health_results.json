@@ -1,0 +1,163 @@
+{
+  "summary": {
+    "overall_healthy": false,
+    "healthy_components": 0,
+    "total_components": 4,
+    "success_rate": 0.0,
+    "unhealthy_components": [
+      "accessibility",
+      "page_rendering",
+      "javascript_errors",
+      "health_endpoint"
+    ],
+    "timestamp": "2025-10-24T15:59:08.870434",
+    "details": {
+      "accessibility": {
+        "service": "frontend_accessibility",
+        "healthy": false,
+        "response_time_ms": 52.413225173950195,
+        "status_code": null,
+        "message": "Cannot connect to frontend application",
+        "details": {},
+        "error": "Connection refused to http://localhost:3000",
+        "timestamp": "2025-10-24 15:59:07.660753"
+      },
+      "page_rendering": {
+        "service": "page_rendering",
+        "healthy": false,
+        "response_time_ms": 43.53833198547363,
+        "status_code": null,
+        "message": "Page rendering check failed",
+        "details": {},
+        "error": "All connection attempts failed",
+        "timestamp": "2025-10-24 15:59:07.660753"
+      },
+      "javascript_errors": {
+        "service": "javascript_errors",
+        "healthy": false,
+        "response_time_ms": 36.80706024169922,
+        "status_code": null,
+        "message": "JavaScript error check: 3 issues found",
+        "details": {
+          "pages_checked": 0,
+          "pages_with_errors": 0,
+          "error_rate_percent": 100,
+          "error_indicators": [
+            {
+              "page": "/",
+              "errors": [
+                "Page check failed: All connection attempts failed"
+              ]
+            },
+            {
+              "page": "/health",
+              "errors": [
+                "Page check failed: All connection attempts failed"
+              ]
+            },
+            {
+              "page": "/dashboard",
+              "errors": [
+                "Page check failed: All connection attempts failed"
+              ]
+            }
+          ],
+          "total_errors_found": 3
+        },
+        "error": null,
+        "timestamp": "2025-10-24 15:59:07.660753"
+      },
+      "health_endpoint": {
+        "service": "frontend_health_endpoint",
+        "healthy": false,
+        "response_time_ms": 28.57685089111328,
+        "status_code": null,
+        "message": "No frontend health endpoint found",
+        "details": {
+          "attempted_endpoints": [
+            "/health",
+            "/api/health",
+            "/api/v1/health"
+          ],
+          "note": "This is not necessarily an error - frontend may not have dedicated health endpoint"
+        },
+        "error": null,
+        "timestamp": "2025-10-24 15:59:07.660753"
+      }
+    }
+  },
+  "detailed_results": {
+    "accessibility": {
+      "service": "frontend_accessibility",
+      "healthy": false,
+      "response_time_ms": 52.413225173950195,
+      "status_code": null,
+      "message": "Cannot connect to frontend application",
+      "details": {},
+      "error": "Connection refused to http://localhost:3000",
+      "timestamp": "2025-10-24 15:59:07.660753"
+    },
+    "page_rendering": {
+      "service": "page_rendering",
+      "healthy": false,
+      "response_time_ms": 43.53833198547363,
+      "status_code": null,
+      "message": "Page rendering check failed",
+      "details": {},
+      "error": "All connection attempts failed",
+      "timestamp": "2025-10-24 15:59:07.660753"
+    },
+    "javascript_errors": {
+      "service": "javascript_errors",
+      "healthy": false,
+      "response_time_ms": 36.80706024169922,
+      "status_code": null,
+      "message": "JavaScript error check: 3 issues found",
+      "details": {
+        "pages_checked": 0,
+        "pages_with_errors": 0,
+        "error_rate_percent": 100,
+        "error_indicators": [
+          {
+            "page": "/",
+            "errors": [
+              "Page check failed: All connection attempts failed"
+            ]
+          },
+          {
+            "page": "/health",
+            "errors": [
+              "Page check failed: All connection attempts failed"
+            ]
+          },
+          {
+            "page": "/dashboard",
+            "errors": [
+              "Page check failed: All connection attempts failed"
+            ]
+          }
+        ],
+        "total_errors_found": 3
+      },
+      "error": null,
+      "timestamp": "2025-10-24 15:59:07.660753"
+    },
+    "health_endpoint": {
+      "service": "frontend_health_endpoint",
+      "healthy": false,
+      "response_time_ms": 28.57685089111328,
+      "status_code": null,
+      "message": "No frontend health endpoint found",
+      "details": {
+        "attempted_endpoints": [
+          "/health",
+          "/api/health",
+          "/api/v1/health"
+        ],
+        "note": "This is not necessarily an error - frontend may not have dedicated health endpoint"
+      },
+      "error": null,
+      "timestamp": "2025-10-24 15:59:07.660753"
+    }
+  }
+}

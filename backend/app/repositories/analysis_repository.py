@@ -11,6 +11,7 @@ from sqlalchemy import and_, desc, func, or_
 from sqlalchemy.orm import Session, joinedload
 
 from ..models.database_models import AnalysisHistory, AgentExecution, ContractAnalysis
+from datetime import timedelta
 from ..models.analysis_models import (
     AnalysisHistoryCreate,
     AnalysisHistoryUpdate,
@@ -19,7 +20,9 @@ from ..models.analysis_models import (
     AgentExecutionUpdate,
     AgentExecutionFilter,
     AnalysisPerformanceMetrics,
-    AgentPerformanceMetrics
+    AgentPerformanceMetrics,
+    ProviderPerformanceMetrics,
+    RetryStatistics
 )
 
 
@@ -79,6 +82,154 @@ class AnalysisRepository:
         db_analysis.deleted_at = datetime.utcnow()
         self.db.commit()
         return True
+        
+    async def calculate_agent_performance(
+        self,
+        agent_id: Optional[str] = None,
+        time_window: Optional[timedelta] = None
+    ) -> AgentPerformanceMetrics:
+        """
+        Calculate performance metrics for an agent or all agents.
+        
+        Args:
+            agent_id: Optional ID of specific agent to analyze
+            time_window: Optional time window for analysis (e.g., last 24 hours)
+            
+        Returns:
+            AgentPerformanceMetrics with calculated performance data
+        """
+        query = self.db.query(AgentExecution)
+        
+        if agent_id:
+            query = query.filter(AgentExecution.agent_id == agent_id)
+        
+        if time_window:
+            cutoff_time = datetime.utcnow() - time_window
+            query = query.filter(AgentExecution.created_at >= cutoff_time)
+        
+        executions = query.all()
+        
+        if not executions:
+            return AgentPerformanceMetrics(
+                total_executions=0,
+                success_rate=0.0,
+                average_duration=0.0,
+                error_rate=0.0,
+                retry_stats=RetryStatistics(
+                    total_retries=0,
+                    average_retries=0.0,
+                    max_retries=0
+                )
+            )
+        
+        total = len(executions)
+        successful = sum(1 for e in executions if e.status == 'completed')
+        errors = sum(1 for e in executions if e.status == 'failed')
+        durations = [e.duration for e in executions if e.duration is not None]
+        retries = [e.retry_count for e in executions if e.retry_count is not None]
+        
+        return AgentPerformanceMetrics(
+            total_executions=total,
+            success_rate=float(successful / total) if total > 0 else 0.0,
+            average_duration=float(sum(durations) / len(durations)) if durations else 0.0,
+            error_rate=float(errors / total) if total > 0 else 0.0,
+            retry_stats=RetryStatistics(
+                total_retries=sum(retries),
+                average_retries=float(sum(retries) / len(retries)) if retries else 0.0,
+                max_retries=max(retries) if retries else 0
+            )
+        )
+    
+    async def calculate_provider_performance(
+        self,
+        provider: str,
+        time_window: Optional[timedelta] = None
+    ) -> ProviderPerformanceMetrics:
+        """
+        Calculate performance metrics for an AI provider.
+        
+        Args:
+            provider: Name of the AI provider (e.g., 'openai', 'anthropic')
+            time_window: Optional time window for analysis
+            
+        Returns:
+            ProviderPerformanceMetrics with calculated metrics
+        """
+        query = self.db.query(
+            AgentExecution
+        ).filter(
+            AgentExecution.provider == provider
+        )
+        
+        if time_window:
+            cutoff_time = datetime.utcnow() - time_window
+            query = query.filter(AgentExecution.created_at >= cutoff_time)
+            
+        executions = query.all()
+        
+        if not executions:
+            return ProviderPerformanceMetrics(
+                total_requests=0,
+                success_rate=0.0,
+                average_latency=0.0,
+                error_rate=0.0,
+                cost_metrics={
+                    'total_cost': Decimal('0.0'),
+                    'average_cost': Decimal('0.0')
+                }
+            )
+            
+        total = len(executions)
+        successful = sum(1 for e in executions if e.status == 'completed')
+        errors = sum(1 for e in executions if e.status == 'failed')
+        latencies = [e.duration for e in executions if e.duration is not None]
+        costs = [e.cost for e in executions if e.cost is not None]
+        
+        return ProviderPerformanceMetrics(
+            total_requests=total,
+            success_rate=float(successful / total) if total > 0 else 0.0,
+            average_latency=float(sum(latencies) / len(latencies)) if latencies else 0.0,
+            error_rate=float(errors / total) if total > 0 else 0.0,
+            cost_metrics={
+                'total_cost': sum(costs, Decimal('0.0')),
+                'average_cost': sum(costs, Decimal('0.0')) / len(costs) if costs else Decimal('0.0')
+            }
+        )
+    
+    async def calculate_retry_statistics(
+        self,
+        time_window: Optional[timedelta] = None
+    ) -> RetryStatistics:
+        """
+        Calculate retry statistics across all executions.
+        
+        Args:
+            time_window: Optional time window for analysis
+            
+        Returns:
+            RetryStatistics with retry metrics
+        """
+        query = self.db.query(AgentExecution)
+        
+        if time_window:
+            cutoff_time = datetime.utcnow() - time_window
+            query = query.filter(AgentExecution.created_at >= cutoff_time)
+            
+        executions = query.all()
+        retries = [e.retry_count for e in executions if e.retry_count is not None]
+        
+        if not retries:
+            return RetryStatistics(
+                total_retries=0,
+                average_retries=0.0,
+                max_retries=0
+            )
+            
+        return RetryStatistics(
+            total_retries=sum(retries),
+            average_retries=float(sum(retries) / len(retries)),
+            max_retries=max(retries)
+        )
     
     def list_analysis_history(
         self,

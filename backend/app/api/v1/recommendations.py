@@ -38,13 +38,19 @@ async def get_recommendations(
     
     formatted_recommendations = [
         {
-            "job_id": rec["job"].id,
+            "id": rec["job"].id,
             "company": rec["job"].company,
             "title": rec["job"].title,
             "location": rec["job"].location,
-            "tech_stack": rec["job"].tech_stack,
+            "description": rec["job"].description,
+            "salary_range": rec["job"].salary_range,
+            "job_type": rec["job"].job_type or "full-time",
+            "remote": rec["job"].remote_option == "remote" if rec["job"].remote_option else False,
+            "tech_stack": rec["job"].tech_stack or [],
+            "responsibilities": rec["job"].responsibilities,
+            "source": rec["job"].source,
             "match_score": rec["score"],
-            "link": rec["job"].link,
+            "url": rec["job"].link,
             "algorithm_variant": rec.get("algorithm_variant"),
             "weights_used": rec.get("weights_used") if use_adaptive else None
         }

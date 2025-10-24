@@ -1,0 +1,106 @@
+---
+# Test Suite Configuration
+version: '1.0'
+
+# Global settings
+settings:
+  parallel_execution: true
+  max_workers: 4
+  timeout: 300 # seconds
+  retry:
+    max_attempts: 3
+    delay: 5 # seconds
+
+# Environment configuration
+environment:
+  variables:
+    TEST_ENV: 'development'
+    LOG_LEVEL: 'INFO'
+  setup_scripts:
+    - path: 'setup/init_test_db.py'
+    - path: 'setup/prepare_test_data.py'
+
+# Test definitions
+tests:
+  # Analytics Task Tests
+  - id: 'analytics.test_manual_trigger'
+    phase: 'unit'
+    module: 'test_analytics_tasks'
+    class: 'TestAnalyticsTasks'
+    method: 'test_manual_trigger_analytics_task'
+    timeout: 60
+
+  - id: 'analytics.test_data_generation'
+    phase: 'unit'
+    module: 'test_analytics_tasks'
+    class: 'TestAnalyticsTasks'
+    method: 'test_analytics_data_generation'
+    dependencies: ['analytics.test_manual_trigger']
+    timeout: 60
+
+  - id: 'analytics.test_trend_analysis'
+    phase: 'unit'
+    module: 'test_analytics_tasks'
+    class: 'TestAnalyticsTasks'
+    method: 'test_trend_analysis_validation'
+    dependencies: ['analytics.test_data_generation']
+    timeout: 60
+
+  # Performance Monitoring Tests
+  - id: 'analytics.performance.test_processing_time'
+    phase: 'performance'
+    module: 'test_analytics_performance'
+    class: 'TestAnalyticsPerformance'
+    method: 'test_analytics_processing_timing'
+    timeout: 120
+
+  - id: 'analytics.performance.test_data_accuracy'
+    phase: 'performance'
+    module: 'test_analytics_performance'
+    class: 'TestAnalyticsPerformance'
+    method: 'test_data_accuracy_validation'
+    timeout: 60
+
+  - id: 'analytics.performance.test_storage'
+    phase: 'performance'
+    module: 'test_analytics_performance'
+    class: 'TestAnalyticsPerformance'
+    method: 'test_analytics_storage_verification'
+    dependencies: ['analytics.performance.test_processing_time']
+    timeout: 60
+
+  - id: 'analytics.performance.test_concurrent'
+    phase: 'performance'
+    module: 'test_analytics_performance'
+    class: 'TestAnalyticsPerformance'
+    method: 'test_concurrent_analytics_processing'
+    timeout: 180
+
+# Reporting configuration
+reporting:
+  formats:
+    - json
+    - html
+  metrics:
+    - total_tests
+    - success_rate
+    - execution_time
+    - memory_usage
+  history:
+    enabled: true
+    retention_days: 30
+  notifications:
+    slack:
+      enabled: true
+      channel: '#test-results'
+    email:
+      enabled: true
+      recipients:
+        - 'dev-team@example.com'
+
+# Clean up configuration
+cleanup:
+  enabled: true
+  scripts:
+    - path: 'cleanup/clear_test_data.py'
+    - path: 'cleanup/reset_test_db.py'
