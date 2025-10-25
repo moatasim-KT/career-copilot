@@ -14,7 +14,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from ...core.config import get_settings
 from ...core.database import engine, get_db
 from ...core.logging import get_logger
-from ...services.chroma_service import get_chroma_client
+from ...services.chroma_client import get_chroma_client
 from .base import BaseHealthChecker, HealthCheckResult, HealthStatus
 
 logger = get_logger(__name__)
