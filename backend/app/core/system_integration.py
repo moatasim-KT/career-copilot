@@ -10,7 +10,7 @@ from typing import Any, Dict, List, Optional, Tuple
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.config_integration import ConfigManager
+from app.core.config_advanced import ConfigurationAdapter as ConfigManager
 from app.core.database_backup import DatabaseBackupManager
 from app.core.database_migrations import DatabaseMigrationManager
 from app.core.service_integration import ServiceIntegrationFramework

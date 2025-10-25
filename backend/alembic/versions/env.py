@@ -14,7 +14,7 @@ from alembic import context
 
 # Import your models here
 from app.models.database_models import Base
-from config.config_loader import get_config, get_backend_config
+from app.core.config import get_config_value as get_config, get_config_value as get_backend_config
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.

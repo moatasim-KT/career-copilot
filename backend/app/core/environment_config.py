@@ -156,7 +156,7 @@ class EnvironmentConfigManager:
         # Default production allowed hosts
         return ["your-domain.com", "www.your-domain.com"]
     
-    def get_config(self) -> EnvironmentConfig:
+    def get_config_value(self) -> EnvironmentConfig:
         """Get current environment configuration."""
         return self.config
     
@@ -342,7 +342,7 @@ def get_current_environment() -> Environment:
 
 def get_environment_config() -> EnvironmentConfig:
     """Get the current environment configuration."""
-    return get_environment_config_manager().get_config()
+    return get_environment_config_manager().get_config_value()
 
 
 def is_development() -> bool:

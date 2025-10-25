@@ -1,0 +1,22 @@
+{
+  "enabled": true,
+  "name": "Auto Commit After Tests",
+  "description": "Automatically commits changes to git after successful completion of a task and running relevant tests to verify functionality",
+  "version": "1",
+  "when": {
+    "type": "fileEdited",
+    "patterns": [
+      "backend/tests/**/*.py",
+      "frontend/src/**/*.test.ts",
+      "frontend/src/**/*.test.tsx",
+      "tests/**/*.py",
+      "backend/app/**/*.py",
+      "frontend/src/**/*.ts",
+      "frontend/src/**/*.tsx"
+    ]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "A task has been completed and tests have been run. Please review the changes, verify that all tests are passing, and if everything looks good, commit the changes with an appropriate commit message that describes what was accomplished."
+  }
+}

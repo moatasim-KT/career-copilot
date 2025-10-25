@@ -1037,7 +1037,7 @@ class EnhancedLLMManager:
         try:
             # Use configuration manager if available
             if self.config_manager:
-                config = self.config_manager.get_config()
+                config = self.config_manager.get_config_value()
                 self.task_routing = config.task_routing
                 self.cache_ttl = config.cache_ttl
                 logger.info("Loaded task routing from configuration")

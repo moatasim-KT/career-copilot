@@ -16,16 +16,16 @@ import yaml
 # Add the backend directory to the Python path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from app.core.config_manager import (
+from app.core.config import (
     DeploymentMode,
     get_config_manager,
     initialize_configuration
 )
-from app.core.config_templates import (
+from app.core.config_advanced import (
     get_template_manager,
-    generate_config_for_deployment
+    generate_config_for_deployment,
+    initialize_configuration_system
 )
-from app.core.config_integration import migrate_legacy_configuration
 from app.core.logging import get_logger
 
 logger = get_logger(__name__)

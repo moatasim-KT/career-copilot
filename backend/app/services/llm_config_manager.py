@@ -259,7 +259,7 @@ class LLMConfigManager:
             "circuit_breaker_timeout": self.config.circuit_breaker_timeout
         }
     
-    def get_config(self) -> LLMManagerConfig:
+    def get_config_value(self) -> LLMManagerConfig:
         """Get current configuration."""
         if not self.config:
             self.config = self._create_default_config()

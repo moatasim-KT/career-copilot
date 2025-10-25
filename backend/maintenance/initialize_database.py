@@ -24,7 +24,7 @@ os.environ.setdefault("DEPLOYMENT_MODE", "development")
 os.environ.setdefault("ENVIRONMENT", "development")
 
 from app.core.database import get_database_manager, Base
-from app.core.config_manager import initialize_configuration
+from app.core.config import initialize_configuration
 from app.core.logging import get_logger
 from app.models.database_models import User, ContractAnalysis, AuditLog
 from app.services.database_seeder import get_database_seeder

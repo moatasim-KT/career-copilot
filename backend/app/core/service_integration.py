@@ -17,7 +17,7 @@ from typing import Any, Dict, List, Optional, Set, Callable, Union
 from dataclasses import dataclass, field
 from contextlib import asynccontextmanager
 
-from .config_manager import get_config_manager
+from .config import get_config_manager
 from .logging import get_logger
 
 logger = get_logger(__name__)

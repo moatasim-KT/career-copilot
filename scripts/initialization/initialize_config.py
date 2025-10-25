@@ -19,11 +19,11 @@ from app.core.config_manager import (
     get_config_manager,
     initialize_configuration
 )
-from app.core.config_templates import (
+from app.core.config_advanced import (
     get_template_manager,
-    generate_config_for_deployment
+    generate_config_for_deployment,
+    initialize_configuration_system
 )
-from app.core.config_integration import migrate_legacy_configuration
 
 
 def setup_directories():

@@ -14,7 +14,7 @@ import sys
 # Add the parent directory to the path so we can import from app
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
 
-from config.config_loader import get_config, get_backend_config
+from backend.app.core.config import get_config_value as get_config, get_config_value as get_backend_config
 from app.core.logging import setup_logging
 from app.services.database_seeder import get_database_seeder
 from app.services.vector_store import get_vector_store_service

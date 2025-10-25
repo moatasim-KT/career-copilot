@@ -11,7 +11,7 @@ from typing import Any, Dict, List, Optional
 
 import yaml
 
-from .config_manager import DeploymentMode, ConfigFormat
+from .config import DeploymentMode, ConfigFormat
 import logging
 
 # Use standard logging if custom logging module is not available

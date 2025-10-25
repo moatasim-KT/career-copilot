@@ -480,7 +480,7 @@ def get_configuration_hot_reloader(config_manager=None, environment: str = "deve
     with _reloader_lock:
         if _hot_reloader is None:
             if config_manager is None:
-                from .config_manager import get_config_manager
+                from .config import get_config_manager
                 config_manager = get_config_manager()
             
             _hot_reloader = ConfigurationHotReloader(config_manager, environment)

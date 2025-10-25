@@ -22,7 +22,7 @@ from sqlalchemy.orm import Session
 
 from ...celery import celery_app
 from ...core.config import get_settings
-from ...core.database import get_db, get_database_manager
+from ...core.database import get_db
 from ...core.logging import get_logger
 from ...core.optimized_database import check_database_health
 from ...monitoring.health.backend import BackendHealthChecker

@@ -15,16 +15,13 @@ from fastapi import APIRouter, HTTPException, Depends, Query, Body
 from pydantic import BaseModel, Field
 
 from ...core.logging import get_logger
-from ...core.config_init import (
-    get_configuration_status,
-    get_configuration_summary,
-    is_configuration_ready,
-    reload_configuration_system
-)
-from ...core.config_hot_reload import (
+from ...core.config_advanced import (
     get_configuration_hot_reloader,
     ReloadTrigger,
-    ReloadStatus
+    ReloadStatus,
+    validate_startup_configuration,
+    initialize_configuration_system,
+    reload_configuration_now
 )
 from ...core.feature_flags import (
     get_feature_flag_manager,
@@ -32,8 +29,7 @@ from ...core.feature_flags import (
     FeatureState,
     RolloutStrategy
 )
-from ...core.config_validation import validate_startup_configuration
-from ...core.config_manager import get_config_manager
+from ...core.config import get_config_manager
 
 logger = get_logger(__name__)
 router = APIRouter(tags=["Configuration Management"])
@@ -570,7 +566,7 @@ async def get_environment_info():
         from ...core.environment_config import get_environment_config_manager
         
         env_manager = get_environment_config_manager()
-        config = env_manager.get_config()
+        config = env_manager.get_config_value()
         
         return {
             "environment": env_manager.get_environment().value,

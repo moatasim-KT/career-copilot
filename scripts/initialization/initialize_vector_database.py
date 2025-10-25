@@ -15,7 +15,7 @@ sys.path.insert(0, str(backend_dir))
 # Set PYTHONPATH to include backend directory
 os.environ['PYTHONPATH'] = str(backend_dir)
 
-from config.config_loader import get_config, get_backend_config
+from backend.app.core.config import get_config_value as get_config, get_config_value as get_backend_config
 from app.core.logging import get_logger
 from app.services.precedent_seeder import get_precedent_seeder_service
 from app.services.vector_store_service import get_vector_store_service

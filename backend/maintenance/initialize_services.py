@@ -17,7 +17,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 from app.core.service_manager import get_service_manager
 from app.core.service_integration import ServiceConfig, ServiceType
 from app.services.llm_service_plugin import OpenAIServicePlugin, GroqServicePlugin, OllamaServicePlugin
-from app.core.config_manager import get_config_manager
+from app.core.config import get_config_manager
 from app.core.logging import get_logger
 
 logger = get_logger(__name__)

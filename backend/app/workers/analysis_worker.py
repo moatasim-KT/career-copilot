@@ -11,7 +11,7 @@ from datetime import datetime
 from typing import Optional
 
 import redis.asyncio as redis
-from config.config_loader import get_config, get_backend_config
+from app.core.config import get_config_value, get_settings
 from app.services.contract_analysis_service import ContractAnalysisService
 from app.middleware.metrics_middleware import (
     record_contract_analysis,

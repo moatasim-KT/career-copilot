@@ -15,7 +15,7 @@ from typing import Dict, Any
 # Add the backend directory to the Python path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from app.core.config_integration import (
+from app.core.config_advanced import (
     ConfigMigrator,
     migrate_legacy_configuration
 )

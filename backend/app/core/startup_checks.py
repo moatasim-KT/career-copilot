@@ -71,7 +71,7 @@ class StartupValidator:
         
         try:
             # Get environment configuration
-            env_config = self.env_manager.get_config()
+            env_config = self.env_manager.get_config_value()
             current_env = self.env_manager.get_environment()
             
             details["environment"] = current_env.value

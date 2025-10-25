@@ -626,7 +626,7 @@ def check_environment_readiness(environment: str = "development") -> bool:
     """Check if the environment is ready for the application to start."""
     try:
         # Import here to avoid circular imports
-        from .config_manager import get_config_manager
+        from .config import get_config_manager
         
         config_manager = get_config_manager()
         config_data = config_manager.config_data

@@ -614,7 +614,7 @@ def initialize_configuration(deployment_mode: Optional[DeploymentMode] = None) -
     return config_data
 
 
-def get_config(key: str, default: Any = None) -> Any:
+def get_config_value(key: str, default: Any = None) -> Any:
     """Get configuration value by key."""
     config_manager = get_config_manager()
     return config_manager.get(key, default)

@@ -17,7 +17,7 @@ from typing import Dict, Any, Optional, Tuple
 from dataclasses import dataclass
 
 from .logging import get_logger
-from .config_manager import (
+from .config import (
     get_config_manager, 
     initialize_configuration, 
     DeploymentMode

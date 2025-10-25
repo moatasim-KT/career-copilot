@@ -19,7 +19,7 @@ from sqlalchemy import text, MetaData, Table, Column, String, DateTime, Integer,
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.exc import SQLAlchemyError
 
-from .config_manager import get_config_manager
+from .config import get_config_manager
 from .database import get_db_session
 from .logging import get_logger
 

@@ -12,9 +12,9 @@ from pydantic import Field
 from pydantic_settings import BaseSettings
 
 from .config import Settings as LegacySettings
-from .config_manager import (
+from .config import (
     DeploymentMode,
-    EnhancedConfigManager,
+    ConfigurationManager as EnhancedConfigManager,
     get_config_manager,
     initialize_configuration
 )
