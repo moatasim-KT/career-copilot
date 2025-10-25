@@ -18,7 +18,7 @@ from app.services.scraping import ScraperManager, ScrapingConfig
 from app.services.rss_feed_service import RSSFeedService
 from app.services.job_api_service import JobAPIService
 from app.services.quota_manager import QuotaManager
-from app.services.job_service import JobService
+# Removed circular import - JobService is now JobManagementSystem
 from app.schemas.job import JobCreate
 
 
@@ -30,7 +30,8 @@ class JobIngestionService:
     
     def __init__(self, db: Session):
         self.db = db
-        self.job_service = JobService(db)
+        # Job service will be injected when needed to avoid circular imports
+        self.job_service = None
         self.scraper_manager = None
         self.quota_manager = QuotaManager()
         
@@ -121,8 +122,12 @@ class JobIngestionService:
                     job_dict = job_data.model_dump()
                     job_dict['user_id'] = user_id
                     
-                    # Create job in database
-                    job = self.job_service.create_job(JobCreate(**job_dict))
+                    # Create job in database directly
+                    from app.models.job import Job
+                    job = Job(**job_dict)
+                    self.db.add(job)
+                    self.db.flush()
+                    self.db.refresh(job)
                     saved_jobs.append(job)
                     
                 except Exception as e:
