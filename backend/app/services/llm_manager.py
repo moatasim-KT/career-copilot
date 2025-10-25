@@ -20,7 +20,7 @@ from langchain.schema import BaseMessage, HumanMessage, SystemMessage
 
 from ..core.config import get_settings
 from ..core.logging import get_logger
-from ..core.caching import get_cache_manager
+from .cache_service import get_cache_service
 from ..monitoring.metrics_collector import get_metrics_collector
 from .openai_service import get_enhanced_openai_service
 from .ollama_service import get_enhanced_ollama_service
@@ -30,7 +30,7 @@ from .llm_benchmarking import get_benchmark_runner
 
 logger = get_logger(__name__)
 settings = get_settings()
-cache_manager = get_cache_manager()
+cache_service = get_cache_service()
 metrics_collector = get_metrics_collector()
 
 
@@ -623,7 +623,7 @@ class EnhancedLLMManager:
         self.enhanced_openai = get_enhanced_openai_service()
         self.enhanced_ollama = get_enhanced_ollama_service()
         self.error_handler = get_llm_error_handler()
-        self.cache_manager = get_llm_cache_manager()
+        self.cache_manager = cache_service
         self.benchmark_runner = get_benchmark_runner()
         
         self._initialize_providers()

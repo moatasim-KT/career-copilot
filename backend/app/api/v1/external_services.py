@@ -448,8 +448,8 @@ async def _test_slack() -> Dict[str, Any]:
 async def _test_gmail() -> Dict[str, Any]:
     """Test Gmail service"""
     try:
-        from ...services.gmail_service import GmailService
-        service = GmailService()
+        from ...services.email_service import EmailService
+        service = EmailService()
         
         if not service.enabled:
             return {

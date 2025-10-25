@@ -11,7 +11,7 @@ from ...core.auth import get_current_user_optional
 from ...core.iam_roles import get_iam_manager, Role, Permission
 from ...services.firebase_auth_service import get_firebase_auth_service, FirebaseUser
 from ...services.authentication_service import get_authentication_service
-from ...middleware.firebase_auth_middleware import get_firebase_user, require_firebase_auth
+from ...middleware.auth_middleware import get_current_user, require_auth
 from ...core.logging import get_logger
 
 logger = get_logger(__name__)
@@ -295,20 +295,26 @@ async def revoke_user_tokens(
 @router.get("/firebase/me")
 async def get_current_firebase_user(
     request: Request,
-    firebase_user: FirebaseUser = Depends(require_firebase_auth)
+    current_user = Depends(get_current_user)
 ):
     """
     Get current Firebase user information.
     
     Requires Firebase authentication.
     """
+    if not current_user:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Authentication required"
+        )
+    
     return {
-        "uid": firebase_user.uid,
-        "email": firebase_user.email,
-        "email_verified": firebase_user.email_verified,
-        "display_name": firebase_user.display_name,
-        "photo_url": firebase_user.photo_url,
-        "provider_id": firebase_user.provider_id,
-        "custom_claims": firebase_user.custom_claims,
-        "authenticated_via": "firebase"
+        "uid": current_user.get("uid"),
+        "email": current_user.get("email"),
+        "email_verified": current_user.get("email_verified", False),
+        "display_name": current_user.get("name"),
+        "photo_url": current_user.get("picture"),
+        "provider_id": "firebase",
+        "custom_claims": current_user.get("custom_claims", {}),
+        "authenticated_via": current_user.get("auth_method", "firebase")
     }

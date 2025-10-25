@@ -10,13 +10,13 @@ from enum import Enum
 from typing import Any, Dict, List, Optional, Set, Callable
 from dataclasses import dataclass
 
-from ..core.caching import get_cache_manager, get_document_cache, get_vector_cache
+from .cache_service import get_cache_service, get_document_cache, get_vector_cache
 from ..core.config import get_settings
 from ..core.logging import get_logger
 
 logger = get_logger(__name__)
 settings = get_settings()
-cache_manager = get_cache_manager()
+cache_service = get_cache_service()
 document_cache = get_document_cache()
 vector_cache = get_vector_cache()
 
@@ -317,11 +317,11 @@ class CacheInvalidationService:
             for pattern in event.cache_patterns:
                 if "*" in pattern:
                     # Pattern-based invalidation
-                    count = cache_manager.invalidate_pattern(pattern)
+                    count = cache_service.invalidate_pattern(pattern)
                     invalidated_keys.append(f"{pattern} ({count} keys)")
                 else:
                     # Direct key invalidation
-                    success = cache_manager.delete(pattern)
+                    success = cache_service.delete(pattern)
                     if success:
                         invalidated_keys.append(pattern)
             
@@ -354,10 +354,10 @@ class CacheInvalidationService:
             # First, invalidate direct patterns
             for pattern in event.cache_patterns:
                 if "*" in pattern:
-                    count = cache_manager.invalidate_pattern(pattern)
+                    count = cache_service.invalidate_pattern(pattern)
                     invalidated_keys.append(f"{pattern} ({count} keys)")
                 else:
-                    success = cache_manager.delete(pattern)
+                    success = cache_service.delete(pattern)
                     if success:
                         invalidated_keys.append(pattern)
             
@@ -365,10 +365,10 @@ class CacheInvalidationService:
             dependent_patterns = self._get_dependent_patterns(event.cache_patterns)
             for pattern in dependent_patterns:
                 if "*" in pattern:
-                    count = cache_manager.invalidate_pattern(pattern)
+                    count = cache_service.invalidate_pattern(pattern)
                     invalidated_keys.append(f"dependent:{pattern} ({count} keys)")
                 else:
-                    success = cache_manager.delete(pattern)
+                    success = cache_service.delete(pattern)
                     if success:
                         invalidated_keys.append(f"dependent:{pattern}")
             
@@ -421,7 +421,7 @@ class CacheInvalidationService:
         
         total_invalidated = 0
         for pattern in patterns:
-            count = cache_manager.invalidate_pattern(pattern)
+            count = cache_service.invalidate_pattern(pattern)
             total_invalidated += count
         
         logger.info(f"Invalidated {total_invalidated} cache entries for user {user_id}")
@@ -438,7 +438,7 @@ class CacheInvalidationService:
         
         total_invalidated = 0
         for pattern in patterns:
-            count = cache_manager.invalidate_pattern(pattern)
+            count = cache_service.invalidate_pattern(pattern)
             total_invalidated += count
         
         logger.info(f"Invalidated {total_invalidated} cache entries for contract {contract_hash}")
@@ -451,7 +451,7 @@ class CacheInvalidationService:
         else:
             pattern = "ai_response:*"
         
-        count = cache_manager.invalidate_pattern(pattern)
+        count = cache_service.invalidate_pattern(pattern)
         logger.info(f"Invalidated {count} AI response cache entries")
         return count
     

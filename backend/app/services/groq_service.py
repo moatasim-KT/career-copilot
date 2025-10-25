@@ -25,13 +25,13 @@ from ..core.exceptions import (
     AuthenticationError
 )
 from ..core.logging import get_logger
-from ..core.caching import get_cache_manager
+from .cache_service import get_cache_service
 from ..monitoring.metrics_collector import get_metrics_collector
 from ..utils.error_handler import get_error_handler, ErrorCategory, ErrorSeverity
 
 logger = get_logger(__name__)
 settings = get_settings()
-cache_manager = get_cache_manager()
+cache_service = get_cache_service()
 metrics_collector = get_metrics_collector()
 
 

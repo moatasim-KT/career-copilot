@@ -8,20 +8,22 @@ import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 # Test just the cache service directly
-from app.services.cache_service import cache_service
+from app.services.cache_service import get_cache_service
 import logging
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+cache_service = get_cache_service()
+
 def test_recommendations_cache_flow():
     """Test the complete recommendations cache flow."""
     logger.info("=== Testing Recommendations Cache Flow ===")
     
     # Clear cache
-    cache_service._cache.clear()
-    cache_service._user_cache_keys.clear()
+    cache_service.delete_pattern("recommendations:*")
+    cache_service.delete_pattern("skill_gap:*")
     
     # Simulate user 1 getting recommendations
     user_id = 1
@@ -56,7 +58,7 @@ def test_recommendations_cache_flow():
     assert cached_result is None, "Cache should be empty initially"
     
     # Set cache (simulating API endpoint behavior)
-    cache_service.set(cache_key, mock_recommendations, ttl_seconds=3600, user_id=user_id)
+    cache_service.set(cache_key, mock_recommendations, ttl=3600)
     logger.info(f"✅ Cached {len(mock_recommendations)} recommendations for user {user_id}")
     
     # Test 2: Cache hit - get recommendations
@@ -78,9 +80,9 @@ def test_recommendations_cache_flow():
     logger.info("Test 4: Multiple users and recommendation invalidation")
     
     # Set cache for multiple users
-    cache_service.set(f"recommendations:1:5", mock_recommendations, user_id=1)
-    cache_service.set(f"recommendations:2:5", mock_recommendations, user_id=2)
-    cache_service.set(f"skill_gap:1", {"gaps": ["Java"]}, user_id=1)  # Non-recommendation cache
+    cache_service.set(f"recommendations:1:5", mock_recommendations)
+    cache_service.set(f"recommendations:2:5", mock_recommendations)
+    cache_service.set(f"skill_gap:1", {"gaps": ["Java"]})
     
     # Verify all are cached
     assert cache_service.get("recommendations:1:5") is not None
@@ -88,7 +90,7 @@ def test_recommendations_cache_flow():
     assert cache_service.get("skill_gap:1") is not None
     
     # Invalidate all recommendations (simulating new job addition)
-    cache_service.invalidate_all_recommendations()
+    cache_service.delete_pattern("recommendations:*")
     
     # Check results
     assert cache_service.get("recommendations:1:5") is None, "User 1 recommendations should be cleared"
@@ -99,34 +101,17 @@ def test_recommendations_cache_flow():
     # Test 5: Cache statistics
     logger.info("Test 5: Cache statistics")
     
-    # Clear cache first to get accurate counts
-    cache_service._cache.clear()
-    cache_service._user_cache_keys.clear()
-    
-    # Add some cache entries
-    cache_service.set("recommendations:1:5", mock_recommendations, user_id=1)
-    cache_service.set("recommendations:1:10", mock_recommendations, user_id=1)
-    cache_service.set("analytics:2", {"total": 5}, user_id=2)
-    
-    stats = cache_service.get_stats()
+    stats = cache_service.get_cache_stats()
     logger.info(f"Cache statistics: {stats}")
     
-    expected_stats = {
-        "total_entries": 3,
-        "active_entries": 3,
-        "expired_entries": 0,
-        "users_with_cache": 2,
-        "cache_keys_by_user": {1: 2, 2: 1}
-    }
+    assert "enabled" in stats
+    assert "connected_clients" in stats
+    assert "used_memory" in stats
+    assert "keyspace_hits" in stats
+    assert "keyspace_misses" in stats
+    assert "hit_rate" in stats
     
-    for key, expected_value in expected_stats.items():
-        if key == "cache_keys_by_user":
-            assert stats[key][1] == expected_value[1], f"User 1 should have {expected_value[1]} cache entries"
-            assert stats[key][2] == expected_value[2], f"User 2 should have {expected_value[2]} cache entries"
-        else:
-            assert stats[key] == expected_value, f"Expected {key}={expected_value}, got {stats[key]}"
-    
-    logger.info("✅ Cache statistics are correct")
+    logger.info("✅ Cache statistics are in the expected format")
     
     logger.info("\n🎉 All recommendations cache flow tests passed!")
 
@@ -134,12 +119,6 @@ if __name__ == "__main__":
     try:
         test_recommendations_cache_flow()
         logger.info("\n✅ Cache implementation is working correctly!")
-        logger.info("The following features are implemented:")
-        logger.info("  - 1 hour TTL for recommendations cache")
-        logger.info("  - Cache invalidation when user profile changes")
-        logger.info("  - Cache invalidation when new jobs are added")
-        logger.info("  - User-specific cache tracking")
-        logger.info("  - Cache statistics and monitoring")
         
     except Exception as e:
         logger.error(f"❌ Cache test failed: {e}")

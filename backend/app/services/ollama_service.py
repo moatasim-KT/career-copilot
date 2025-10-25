@@ -16,12 +16,12 @@ from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_excep
 
 from ..core.config import get_settings
 from ..core.logging import get_logger
-from ..core.caching import get_cache_manager
+from .cache_service import get_cache_service
 from ..monitoring.metrics_collector import get_metrics_collector
 
 logger = get_logger(__name__)
 settings = get_settings()
-cache_manager = get_cache_manager()
+cache_service = get_cache_service()
 metrics_collector = get_metrics_collector()
 
 
@@ -386,7 +386,7 @@ class EnhancedOllamaService:
             # Check cache first
             if use_cache:
                 cache_key = self._generate_cache_key(messages, selected_model, **kwargs)
-                cached_result = await cache_manager.async_get(cache_key)
+                cached_result = await cache_service(cache_key)
                 
                 if cached_result:
                     self.metrics["cached_responses"] += 1

@@ -1,12 +1,13 @@
 """
-Comprehensive Security Middleware
-Integrates JWT authentication, RBAC, audit logging, and threat detection.
+Consolidated Security Middleware
+Integrates JWT authentication, RBAC, audit logging, threat detection, AI security validation, and monitoring.
 """
 
 import hashlib
+import json
 import time
 from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional, Set
+from typing import Any, Dict, List, Optional, Set, Callable
 from uuid import uuid4
 
 from fastapi import HTTPException, Request, Response, status
@@ -15,16 +16,16 @@ from starlette.middleware.base import BaseHTTPMiddleware
 
 from ..core.config import get_settings
 from ..core.logging import get_logger
+from ..core.audit import audit_logger, AuditEventType, AuditSeverity
 from ..services.jwt_token_manager import get_jwt_token_manager, TokenValidationResult
 from ..services.rbac_service import get_rbac_service, Permission, PermissionContext
 from ..services.audit_trail_service import (
     get_audit_trail_service,
-    AuditEventType,
     AuditAction,
-    AuditResult,
-    AuditSeverity
+    AuditResult
 )
 from ..security.malware_scanner import MalwareScanner, ScanStatus
+from ..security.ai_security import AISecurityManager
 
 logger = get_logger(__name__)
 settings = get_settings()
@@ -95,8 +96,8 @@ class RateLimiter:
         logger.warning(f"IP address blocked: {ip_address}")
 
 
-class SecurityMiddleware(BaseHTTPMiddleware):
-    """Comprehensive security middleware."""
+class ConsolidatedSecurityMiddleware(BaseHTTPMiddleware):
+    """Consolidated security middleware with comprehensive protection."""
     
     def __init__(self, app):
         super().__init__(app)
@@ -104,6 +105,7 @@ class SecurityMiddleware(BaseHTTPMiddleware):
         self.rbac_service = get_rbac_service()
         self.audit_service = get_audit_trail_service()
         self.malware_scanner = MalwareScanner()
+        self.ai_security_manager = AISecurityManager()
         self.rate_limiter = RateLimiter()
         self.security_scheme = HTTPBearer(auto_error=False)
         
@@ -119,6 +121,14 @@ class SecurityMiddleware(BaseHTTPMiddleware):
             "/api/v1/auth/forgot-password",
             "/api/v1/auth/reset-password",
         }
+        
+        # AI-related endpoints for security validation
+        self.ai_endpoints = [
+            "/api/v1/ai/",
+            "/api/v1/chat/",
+            "/api/v1/completion/",
+            "/api/v1/embedding/"
+        ]
         
         # Paths that require specific permissions
         self.protected_paths = {
@@ -146,10 +156,10 @@ class SecurityMiddleware(BaseHTTPMiddleware):
             },
         }
         
-        logger.info("Security middleware initialized")
+        logger.info("Consolidated security middleware initialized")
     
     async def dispatch(self, request: Request, call_next) -> Response:
-        """Process request through security pipeline."""
+        """Process request through comprehensive security pipeline."""
         start_time = time.time()
         
         # Initialize security context
@@ -164,20 +174,28 @@ class SecurityMiddleware(BaseHTTPMiddleware):
             # 2. Malware scanning for file uploads
             await self._scan_for_malware(request, security_context)
             
-            # 3. Authentication
+            # 3. AI security validation (for AI endpoints)
+            if self._is_ai_endpoint(request.url.path):
+                await self._validate_ai_security(request, security_context)
+            
+            # 4. Authentication
             await self._authenticate_request(request, security_context)
             
-            # 4. Authorization
+            # 5. Authorization
             await self._authorize_request(request, security_context)
             
-            # 5. Process request
+            # 6. Process request
             response = await call_next(request)
             
-            # 6. Log successful request
+            # 7. AI response validation (for AI endpoints)
+            if self._is_ai_endpoint(request.url.path):
+                response = await self._validate_ai_response(request, response, security_context)
+            
+            # 8. Log successful request
             duration_ms = (time.time() - start_time) * 1000
             await self._log_request_success(request, security_context, response, duration_ms)
             
-            # 7. Add security headers
+            # 9. Add security headers
             self._add_security_headers(response)
             
             return response
@@ -238,9 +256,6 @@ class SecurityMiddleware(BaseHTTPMiddleware):
             
             if "multipart/form-data" in content_type or "application/octet-stream" in content_type:
                 # For file uploads, we'll scan the content
-                # Note: This is a simplified check - in practice, you'd need to
-                # handle the multipart parsing more carefully
-                
                 body = await request.body()
                 if len(body) > 0:
                     # Scan the uploaded content
@@ -272,6 +287,110 @@ class SecurityMiddleware(BaseHTTPMiddleware):
             raise
         except Exception as e:
             logger.error(f"Error in malware scanning: {e}")
+    
+    async def _validate_ai_security(self, request: Request, context: SecurityContext) -> None:
+        """Validate AI security for AI endpoints."""
+        try:
+            # Get request body
+            body = await self._get_request_body(request)
+            
+            if body:
+                # Validate input prompt
+                prompt = body.get("prompt", "")
+                if prompt:
+                    validation_result = await self.ai_security_manager.validate_prompt(
+                        prompt,
+                        context={
+                            "path": request.url.path,
+                            "method": request.method,
+                            "client": request.client.host if request.client else None
+                        }
+                    )
+                    
+                    # Block high-risk requests
+                    if validation_result.risk_level == "critical":
+                        await self.audit_service.log_request(
+                            request=request,
+                            event_type=AuditEventType.SECURITY_ALERT,
+                            action=AuditAction.ACCESS,
+                            result=AuditResult.DENIED,
+                            severity=AuditSeverity.CRITICAL,
+                            details={
+                                "ai_security_violation": True,
+                                "risk_level": validation_result.risk_level,
+                                "threats": validation_result.detected_threats
+                            }
+                        )
+                        
+                        raise HTTPException(
+                            status_code=status.HTTP_403_FORBIDDEN,
+                            detail="Request blocked due to AI security concerns"
+                        )
+                    
+                    # Update request with sanitized content
+                    body["prompt"] = validation_result.sanitized_content
+                    await self._update_request_body(request, body)
+                    
+                    # Log security event for high-risk requests
+                    if validation_result.risk_level == "high":
+                        self._log_ai_security_event(
+                            "High-risk AI request detected",
+                            validation_result,
+                            request
+                        )
+            
+        except HTTPException:
+            raise
+        except Exception as e:
+            logger.error(f"Error in AI security validation: {e}")
+    
+    async def _validate_ai_response(self, request: Request, response: Response, context: SecurityContext) -> Response:
+        """Validate AI response for security threats."""
+        try:
+            if response.status_code == 200:
+                response_body = await self._get_response_body(response)
+                if response_body:
+                    # Extract model output
+                    output = response_body.get("content", "")
+                    if output:
+                        validation_result = await self.ai_security_manager.validate_output(
+                            output,
+                            model_info=response_body.get("model", {})
+                        )
+                        
+                        # Update response with sanitized content if needed
+                        if validation_result.detected_threats:
+                            response_body["content"] = validation_result.sanitized_content
+                            await self._update_response_body(response, response_body)
+                            
+                            # Log security event for detected threats
+                            self._log_ai_security_event(
+                                "Threats detected in AI response",
+                                validation_result,
+                                request
+                            )
+                    
+                    # Monitor model behavior
+                    body = await self._get_request_body(request)
+                    monitoring_result = self.ai_security_manager.monitor_model_behavior(
+                        model_id=response_body.get("model", {}).get("id", "unknown"),
+                        request_data=body or {},
+                        response_data=response_body
+                    )
+                    
+                    # Log anomalies
+                    if monitoring_result.get("anomalies"):
+                        self._log_ai_security_event(
+                            "AI model behavior anomalies detected",
+                            monitoring_result,
+                            request
+                        )
+            
+            return response
+            
+        except Exception as e:
+            logger.error(f"Error in AI response validation: {e}")
+            return response
     
     async def _authenticate_request(self, request: Request, context: SecurityContext) -> None:
         """Authenticate the request."""
@@ -398,6 +517,36 @@ class SecurityMiddleware(BaseHTTPMiddleware):
                 detail="Authorization failed"
             )
     
+    def _is_ai_endpoint(self, path: str) -> bool:
+        """Check if the endpoint is AI-related."""
+        return any(path.startswith(endpoint) for endpoint in self.ai_endpoints)
+    
+    async def _get_request_body(self, request: Request) -> Dict[str, Any]:
+        """Get JSON body from request."""
+        try:
+            return await request.json()
+        except:
+            return {}
+    
+    async def _update_request_body(self, request: Request, body: Dict[str, Any]):
+        """Update request body with modified content."""
+        setattr(request.state, "_body", json.dumps(body).encode())
+    
+    async def _get_response_body(self, response: Response) -> Dict[str, Any]:
+        """Get JSON body from response."""
+        try:
+            body = response.body
+            if isinstance(body, bytes):
+                return json.loads(body.decode())
+            return {}
+        except:
+            return {}
+    
+    async def _update_response_body(self, response: Response, body: Dict[str, Any]):
+        """Update response body with modified content."""
+        response.body = json.dumps(body).encode()
+        response.headers["content-length"] = str(len(response.body))
+    
     def _extract_jwt_token(self, request: Request) -> Optional[str]:
         """Extract JWT token from request."""
         # Try Authorization header first
@@ -429,6 +578,8 @@ class SecurityMiddleware(BaseHTTPMiddleware):
             return "user"
         elif "/admin" in path:
             return "system"
+        elif "/ai/" in path or "/chat/" in path:
+            return "ai_service"
         return None
     
     def _extract_resource_id(self, path: str) -> Optional[str]:
@@ -459,6 +610,22 @@ class SecurityMiddleware(BaseHTTPMiddleware):
         
         return "unknown"
     
+    def _log_ai_security_event(self, message: str, details: Any, request: Request):
+        """Log AI security event."""
+        audit_logger.log_event(
+            event_type=AuditEventType.SECURITY_ALERT,
+            action="AI security alert",
+            severity=AuditSeverity.HIGH,
+            user_id=getattr(request.state, "user_id", None),
+            details={
+                "message": message,
+                "path": request.url.path,
+                "client_ip": request.client.host if request.client else None,
+                "timestamp": datetime.utcnow().isoformat(),
+                "ai_security_details": details
+            }
+        )
+    
     async def _log_request_success(
         self,
         request: Request,
@@ -482,7 +649,8 @@ class SecurityMiddleware(BaseHTTPMiddleware):
                     "status_code": response.status_code,
                     "user_agent": request.headers.get("user-agent"),
                     "authenticated": context.is_authenticated,
-                    "mfa_verified": context.mfa_verified
+                    "mfa_verified": context.mfa_verified,
+                    "is_ai_endpoint": self._is_ai_endpoint(request.url.path)
                 },
                 duration_ms=duration_ms
             )
@@ -525,7 +693,8 @@ class SecurityMiddleware(BaseHTTPMiddleware):
                     "status_code": exception.status_code,
                     "error": exception.detail,
                     "user_agent": request.headers.get("user-agent"),
-                    "authenticated": context.is_authenticated
+                    "authenticated": context.is_authenticated,
+                    "is_ai_endpoint": self._is_ai_endpoint(request.url.path)
                 },
                 duration_ms=duration_ms
             )
@@ -555,7 +724,8 @@ class SecurityMiddleware(BaseHTTPMiddleware):
                     "error": str(exception),
                     "error_type": type(exception).__name__,
                     "user_agent": request.headers.get("user-agent"),
-                    "authenticated": context.is_authenticated
+                    "authenticated": context.is_authenticated,
+                    "is_ai_endpoint": self._is_ai_endpoint(request.url.path)
                 },
                 duration_ms=duration_ms
             )
@@ -570,3 +740,8 @@ class SecurityMiddleware(BaseHTTPMiddleware):
         response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
         response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
         response.headers["Content-Security-Policy"] = "default-src 'self'"
+
+
+# Alias for backward compatibility
+SecurityMiddleware = ConsolidatedSecurityMiddleware
+AISecurityMiddleware = ConsolidatedSecurityMiddleware

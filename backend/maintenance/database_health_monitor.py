@@ -18,9 +18,7 @@ from typing import Dict, Any
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from app.core.database import get_database_manager
-from app.core.database_performance import get_db_performance_optimizer
-from app.core.database_backup import get_backup_manager
-from app.core.database_migrations import get_migration_manager
+from app.core.database_optimization import get_optimization_service
 from app.core.logging import get_logger
 
 logger = get_logger(__name__)

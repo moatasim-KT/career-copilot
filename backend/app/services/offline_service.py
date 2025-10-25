@@ -6,9 +6,11 @@ import logging
 from typing import Dict, Optional, Any
 from datetime import datetime
 
-from app.services.cache_service import cache_service
+from app.services.cache_service import get_cache_service
 
 logger = logging.getLogger(__name__)
+
+cache_service = get_cache_service()
 
 
 class OfflineService:

@@ -15,7 +15,7 @@ from ..core.logging import get_logger
 from .external_service_manager import get_external_service_manager
 from .docusign_service import DocuSignService
 from .slack_service import EnhancedSlackService as SlackService, SlackMessage
-from .gmail_service import GmailService, GmailMessage
+from .email_service import EmailService, UnifiedEmailMessage
 from .google_drive_service import GoogleDriveService
 from .vector_store_service import get_vector_store_service
 
@@ -532,7 +532,7 @@ class ExternalServiceValidator:
         
         # Initialize service
         try:
-            gmail_service = GmailService()
+            gmail_service = EmailService()
         except Exception as e:
             results.append(ValidationResult(
                 service_name=service_name,
@@ -593,7 +593,7 @@ class ExternalServiceValidator:
             message="Gmail configuration is valid"
         )
     
-    async def _test_gmail_authentication(self, service: GmailService) -> ValidationResult:
+    async def _test_gmail_authentication(self, service: EmailService) -> ValidationResult:
         """Test Gmail authentication"""
         start_time = time.time()
         
@@ -631,7 +631,7 @@ class ExternalServiceValidator:
                 error=str(e)
             )
     
-    def _test_gmail_template_engine(self, service: GmailService) -> ValidationResult:
+    def _test_gmail_template_engine(self, service: EmailService) -> ValidationResult:
         """Test Gmail template engine"""
         try:
             if service.template_env:

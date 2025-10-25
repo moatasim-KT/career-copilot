@@ -12,9 +12,11 @@ from app.core.database import get_db
 from app.core.logging import get_logger
 from app.models.user import User
 from app.services.notification_service import NotificationService
-from app.services.cache_service import cache_service
+from app.services.cache_service import get_cache_service
 
 logger = get_logger(__name__)
+
+cache_service = get_cache_service()
 
 
 @celery_app.task(bind=True, name="app.tasks.notification_tasks.send_email_async")

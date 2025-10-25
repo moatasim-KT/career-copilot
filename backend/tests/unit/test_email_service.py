@@ -1,7 +1,6 @@
 import pytest
 from unittest.mock import AsyncMock, MagicMock, patch
 from app.services.email_service import EmailService, UnifiedEmailMessage, EmailProvider
-from app.services.sendgrid_service import SendGridService, SendGridEmailType, SendGridConfiguration
 from app.core.config import Settings
 import httpx
 from datetime import datetime
@@ -17,17 +16,12 @@ def mock_settings():
         yield settings
 
 @pytest.fixture
-def mock_sendgrid_service(mock_settings):
-    service = SendGridService()
-    service.client = AsyncMock(spec=httpx.AsyncClient) # Mock the httpx client
-    return service
-
-@pytest.fixture
 def mock_email_service(mock_settings):
     service = EmailService()
-    service.sendgrid_service = AsyncMock(spec=SendGridService) # Mock SendGridService within EmailService
-    service.smtp_service = AsyncMock() # Mock SMTPService
-    service.gmail_service = AsyncMock() # Mock GmailService
+    # Mock the consolidated service components
+    service.smtp_service = AsyncMock()
+    service.gmail_service = AsyncMock()
+    service.sendgrid_service = AsyncMock()
     return service
 
 @pytest.mark.asyncio

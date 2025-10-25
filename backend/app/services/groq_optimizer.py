@@ -1,7 +1,5 @@
-"""
-GROQ Optimization Service
-Provides GROQ-specific optimizations, intelligent routing, and performance tuning.
-"""
+"GROQ Optimization Service
+Provides GROQ-specific optimizations, intelligent routing, and performance tuning."
 
 import asyncio
 import json
@@ -12,10 +10,10 @@ from enum import Enum
 
 from .groq_service import GROQService, GROQModel, GROQTaskType
 from ..core.logging import get_logger
-from ..core.caching import get_cache_manager
+from .cache_service import get_cache_service
 
 logger = get_logger(__name__)
-cache_manager = get_cache_manager()
+cache_service = get_cache_service()
 
 
 class OptimizationStrategy(str, Enum):
@@ -387,7 +385,7 @@ class GROQOptimizer:
         # Check cache first
         if self.config.enable_response_caching:
             cache_key = self._generate_cache_key(messages, task_type, kwargs)
-            cached_result = await cache_manager.async_get(cache_key)
+            cached_result = await cache_service.aget(cache_key)
             if cached_result:
                 self.metrics.cache_hits += 1
                 logger.info("Returning cached GROQ response")
@@ -432,7 +430,7 @@ class GROQOptimizer:
             
             # Cache result
             if self.config.enable_response_caching:
-                await cache_manager.async_set(cache_key, result, self.config.cache_ttl)
+                await cache_service.aset(cache_key, result, self.config.cache_ttl)
             
             # Update metrics
             self._update_optimization_metrics(result, processing_time)

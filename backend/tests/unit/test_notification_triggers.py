@@ -10,7 +10,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 
 from ...app.core.config import get_settings
-from ...app.services.email_notification_optimizer import EmailNotificationOptimizer
+from ...app.services.email_template_manager import EmailTemplateManager
 from ...app.services.notification_manager import NotificationManager
 
 
@@ -22,8 +22,8 @@ def notification_manager():
 
 @pytest.fixture
 def email_optimizer():
-    """Create an email notification optimizer instance for testing."""
-    return EmailNotificationOptimizer()
+    """Create an email template manager instance for testing."""
+    return EmailTemplateManager()
 
 
 @pytest.mark.asyncio
@@ -121,7 +121,7 @@ async def test_job_match_notification():
 async def test_notification_timing():
     """Test notification delivery timing verification."""
     settings = get_settings()
-    optimizer = EmailNotificationOptimizer()
+    optimizer = EmailTemplateManager()
     
     # Test notification scheduling
     test_notification = {
@@ -131,7 +131,7 @@ async def test_notification_timing():
         "scheduled_time": datetime.now() + timedelta(hours=1)
     }
     
-    with patch('app.services.email_notification_optimizer.EmailNotificationOptimizer._send_single_notification') as mock_send:
+    with patch('app.services.email_template_manager.EmailTemplateManager._process_single_notification') as mock_send:
         # Queue notification
         await optimizer.queue_notification(test_notification)
         

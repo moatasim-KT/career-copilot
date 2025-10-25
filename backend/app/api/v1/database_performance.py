@@ -68,11 +68,11 @@ async def get_performance_metrics(
         raise HTTPException(status_code=403, detail="Admin access required")
     
     try:
-        # Try to use database performance optimizer if available
+        # Try to use database optimization service if available
         try:
-            from ...core.database_performance import get_db_performance_optimizer
-            db_optimizer = get_db_performance_optimizer()
-            metrics = await db_optimizer.get_performance_metrics(hours=hours)
+            from ...core.database_optimization import get_optimization_service
+            optimization_service = get_optimization_service()
+            metrics = optimization_service.optimize_performance()
         except ImportError:
             # Fallback to basic metrics
             metrics = {
@@ -119,11 +119,11 @@ async def get_slow_query_analysis(
         raise HTTPException(status_code=403, detail="Admin access required")
     
     try:
-        # Try to use database performance optimizer if available
+        # Try to use database optimization service if available
         try:
-            from ...core.database_performance import get_db_performance_optimizer
-            db_optimizer = get_db_performance_optimizer()
-            analysis = await db_optimizer.analyze_slow_queries(
+            from ...core.database_optimization import get_optimization_service
+            optimization_service = get_optimization_service()
+            analysis = optimization_service.optimize_performance()
                 hours=hours, 
                 min_occurrences=min_occurrences
             )
@@ -184,11 +184,11 @@ async def optimize_query(
         raise HTTPException(status_code=400, detail="Valid SQL query required")
     
     try:
-        # Try to use database performance optimizer if available
+        # Try to use database optimization service if available
         try:
-            from ...core.database_performance import get_db_performance_optimizer
-            db_optimizer = get_db_performance_optimizer()
-            optimization = await db_optimizer.optimize_query(query)
+            from ...core.database_optimization import get_optimization_service
+            optimization_service = get_optimization_service()
+            optimization = optimization_service.optimize_performance()
         except ImportError:
             # Basic query analysis fallback
             optimization = {
@@ -585,11 +585,11 @@ async def get_index_recommendations(
         raise HTTPException(status_code=403, detail="Admin access required")
     
     try:
-        # Try to use database performance optimizer if available
+        # Try to use database optimization service if available
         try:
-            from ...core.database_performance import get_db_performance_optimizer
-            db_optimizer = get_db_performance_optimizer()
-            recommendations = await db_optimizer.create_recommended_indexes()
+            from ...core.database_optimization import get_optimization_service
+            optimization_service = get_optimization_service()
+            recommendations = optimization_service.optimize_performance()
         except ImportError:
             # Fallback recommendations
             recommendations = [
@@ -630,11 +630,11 @@ async def get_database_health(
         raise HTTPException(status_code=403, detail="Admin access required")
     
     try:
-        # Try to use database performance optimizer if available
+        # Try to use database optimization service if available
         try:
-            from ...core.database_performance import get_db_performance_optimizer
-            db_optimizer = get_db_performance_optimizer()
-            health_status = await db_optimizer.health_check()
+            from ...core.database_optimization import get_optimization_service
+            optimization_service = get_optimization_service()
+            health_status = optimization_service.optimize_performance()
         except ImportError:
             # Fallback health check
             health_status = {
@@ -842,10 +842,10 @@ async def get_connection_pool_status(
     try:
         pool_status = {}
         
-        # Try to get database performance optimizer if available
+        # Try to get database optimization service if available
         try:
-            from ...core.database_performance import get_db_performance_optimizer
-            db_optimizer = get_db_performance_optimizer()
+            from ...core.database_optimization import get_optimization_service
+            optimization_service = get_optimization_service()
             
             # Write engine pool status
             if db_optimizer.write_engine:

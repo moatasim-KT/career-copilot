@@ -12,7 +12,7 @@ from app.core.config import get_settings
 from app.core.database import engine
 from app.models import User, Job
 from app.services.recommendation_engine import RecommendationEngine
-from app.services.cache_service import cache_service
+from app.services.cache_service import get_cache_service
 from app.security.password import get_password_hash
 import logging
 import time
@@ -20,6 +20,8 @@ import time
 # Set up logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
+cache_service = get_cache_service()
 
 def test_recommendations_caching():
     """Test that recommendations are properly cached and invalidated."""
@@ -31,8 +33,7 @@ def test_recommendations_caching():
     
     try:
         # Clear cache
-        cache_service._cache.clear()
-        cache_service._user_cache_keys.clear()
+        cache_service.delete_pattern("recommendations:*")
         
         # Create or get test user
         test_user = db.query(User).filter(User.username == "cache_test_user").first()
@@ -94,7 +95,7 @@ def test_recommendations_caching():
             }
             for rec in recommendations1
         ]
-        cache_service.set(cache_key, formatted_recs, ttl_seconds=3600, user_id=test_user.id)
+        cache_service.set(cache_key, formatted_recs, ttl=3600)
         
         logger.info(f"First call took {first_call_time:.4f}s, found {len(recommendations1)} recommendations")
         
@@ -116,24 +117,28 @@ def test_recommendations_caching():
         logger.info("Test 4: New job addition should invalidate all recommendation caches")
         
         # Re-cache recommendations
-        cache_service.set(cache_key, formatted_recs, ttl_seconds=3600, user_id=test_user.id)
+        cache_service.set(cache_key, formatted_recs, ttl=3600)
         assert cache_service.get(cache_key) is not None, "Cache should be populated"
         
         # Simulate new job addition
-        cache_service.invalidate_all_recommendations()
+        cache_service.delete_pattern("recommendations:*")
         cached_recs_after_job_add = cache_service.get(cache_key)
         assert cached_recs_after_job_add is None, "Cache should be empty after new job addition"
         logger.info("✅ Cache invalidated after new job addition")
         
         # Test 5: Cache statistics
         logger.info("Test 5: Cache statistics")
-        cache_service.set(f"recommendations:{test_user.id}:5", formatted_recs, user_id=test_user.id)
-        cache_service.set(f"recommendations:{test_user.id}:10", formatted_recs, user_id=test_user.id)
+        cache_service.set(f"recommendations:{test_user.id}:5", formatted_recs)
+        cache_service.set(f"recommendations:{test_user.id}:10", formatted_recs)
         
-        stats = cache_service.get_stats()
+        stats = cache_service.get_cache_stats()
         logger.info(f"Cache stats: {stats}")
-        assert stats["users_with_cache"] >= 1, "Should have at least 1 user with cache"
-        assert test_user.id in stats["cache_keys_by_user"], "Test user should be in cache stats"
+        assert "enabled" in stats
+        assert "connected_clients" in stats
+        assert "used_memory" in stats
+        assert "keyspace_hits" in stats
+        assert "keyspace_misses" in stats
+        assert "hit_rate" in stats
         logger.info("✅ Cache statistics working correctly")
         
         logger.info("\n🎉 All recommendations caching tests passed!")

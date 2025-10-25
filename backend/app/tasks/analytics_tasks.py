@@ -11,9 +11,11 @@ from datetime import datetime, timedelta
 from app.core.celery_app import celery_app
 from app.core.database import get_db
 from app.core.logging import get_logger
-from app.services.cache_service import cache_service
+from app.services.cache_service import get_cache_service
 
 logger = get_logger(__name__)
+
+cache_service = get_cache_service()
 
 
 @celery_app.task(name="app.tasks.analytics_tasks.cleanup_expired_tasks")

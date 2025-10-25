@@ -13,11 +13,11 @@ import statistics
 
 from .groq_service import GROQService, GROQModel, GROQTaskType
 from ..core.logging import get_logger
-from ..core.caching import get_cache_manager
+from .cache_service import get_cache_service
 from ..monitoring.metrics_collector import get_metrics_collector
 
 logger = get_logger(__name__)
-cache_manager = get_cache_manager()
+cache_service = get_cache_service()
 metrics_collector = get_metrics_collector()
 
 

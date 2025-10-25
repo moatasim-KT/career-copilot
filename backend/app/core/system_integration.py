@@ -11,8 +11,7 @@ from typing import Any, Dict, List, Optional, Tuple
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config_advanced import ConfigurationAdapter as ConfigManager
-from app.core.database_backup import DatabaseBackupManager
-from app.core.database_migrations import DatabaseMigrationManager
+from app.core.database_optimization import get_optimization_service
 from app.core.service_integration import ServiceIntegrationFramework
 from app.core.service_manager import ServiceManager
 from app.services.llm_manager import EnhancedLLMManager
@@ -24,8 +23,7 @@ from app.agents.legal_precedent_agent import LegalPrecedentAgent
 from app.agents.negotiation_agent import NegotiationAgent
 from app.agents.communication_agent import CommunicationAgent
 from app.services.docusign_service import DocuSignService
-from app.services.email_notification_optimizer import EmailNotificationOptimizer
-from app.services.email_analytics_service import EmailAnalyticsService
+from app.services.email_service import EmailService
 from app.services.email_template_manager import EmailTemplateManager
 
 logger = logging.getLogger(__name__)

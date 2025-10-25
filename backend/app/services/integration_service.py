@@ -19,7 +19,7 @@ from ..core.config import get_settings
 from ..core.logging import get_logger
 from .docusign_sandbox_service import DocuSignSandboxService
 from .docusign_service import DocuSignService
-from .gmail_service import GmailService
+from .email_service import EmailService
 from .google_drive_service import GoogleDriveService
 from .local_pdf_signing_service import LocalPDFSigningService
 from .local_storage_service import LocalStorageService
@@ -402,7 +402,7 @@ class IntegrationService:
 				elif config.integration_type == IntegrationType.SLACK:
 					self.integrations[name] = SlackService()
 				elif config.integration_type == IntegrationType.GMAIL:
-					self.integrations[name] = GmailService()
+					self.integrations[name] = EmailService()
 				# Free alternatives
 				elif config.integration_type == IntegrationType.LOCAL_STORAGE:
 					self.integrations[name] = LocalStorageService()

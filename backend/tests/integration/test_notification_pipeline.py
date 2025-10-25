@@ -11,7 +11,7 @@ from unittest.mock import patch
 import pytest
 
 from ...app.core.config import get_settings
-from ...app.services.email_notification_optimizer import EmailNotificationOptimizer
+from ...app.services.email_template_manager import EmailTemplateManager
 from ...app.services.notification_manager import NotificationManager
 
 
@@ -19,7 +19,7 @@ from ...app.services.notification_manager import NotificationManager
 async def notification_system():
     """Create notification system components for testing."""
     manager = NotificationManager()
-    optimizer = EmailNotificationOptimizer()
+    optimizer = EmailTemplateManager()
     await optimizer.initialize()
     return {
         "manager": manager,

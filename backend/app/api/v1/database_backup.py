@@ -8,9 +8,9 @@ from typing import Dict, List, Optional
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel
 
-from ...core.database_backup import (
-    get_backup_manager, 
-    DatabaseBackupManager, 
+from ...core.database_optimization import (
+    get_optimization_service,
+    BackupType, BackupStatus 
     BackupType, 
     BackupStatus,
     RestoreOptions

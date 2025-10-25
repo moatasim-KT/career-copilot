@@ -9,7 +9,9 @@ from sqlalchemy.orm import Session
 from sqlalchemy import and_, func
 
 from app.core.database import get_db
-from app.services.recommendation_cache_service import recommendation_cache_service
+from app.services.cache_service import get_recommendation_cache_service
+
+recommendation_cache_service = get_recommendation_cache_service()
 from app.services.recommendation_service import recommendation_service
 from app.celery import celery_app
 

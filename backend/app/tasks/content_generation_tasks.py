@@ -14,7 +14,7 @@ from app.models.content_generation import ContentGeneration
 from app.models.job import Job
 from app.models.user import User
 from app.services.content_generator_service import ContentGeneratorService
-from app.services.cache_service import cache_service
+
 
 logger = get_logger(__name__)
 

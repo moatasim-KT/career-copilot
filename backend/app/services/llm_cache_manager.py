@@ -17,11 +17,11 @@ from sklearn.metrics.pairwise import cosine_similarity
 
 from ..core.config import get_settings
 from ..core.logging import get_logger
-from ..core.caching import get_cache_manager
+from .cache_service import get_cache_service
 
 logger = get_logger(__name__)
 settings = get_settings()
-cache_manager = get_cache_manager()
+cache_service = get_cache_service()
 
 
 class CacheEntry:
@@ -446,7 +446,7 @@ class LLMCacheManager:
             ttl = self.optimizer.calculate_cache_ttl(response, metadata)
             cache_key = f"llm_cache:{request_hash}"
             
-            await cache_manager.async_set(cache_key, cache_entry.to_dict(), ttl)
+            await cache_service(cache_key, cache_entry.to_dict(), ttl)
             
             logger.debug(f"Cached response for request {request_hash[:8]} (TTL: {ttl}s)")
             

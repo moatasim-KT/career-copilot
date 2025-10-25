@@ -20,7 +20,7 @@ from enum import Enum
 import pickle
 import zlib
 
-from ..core.caching import get_cache_manager
+from .cache_service import get_cache_service
 from ..core.database import get_database_manager
 from ..core.config import get_settings
 from ..core.logging import get_logger
@@ -79,12 +79,12 @@ class IntelligentCacheService:
     """Advanced caching service with intelligent strategies."""
     
     def __init__(self):
-        self.cache_manager = get_cache_manager()
+        self.cache_service = get_cache_service()
         self.db_manager = None
         
         # Multi-level cache
         self.l1_cache = {}  # Memory cache
-        self.l2_cache = None  # Redis cache (from cache_manager)
+        self.l2_cache = None  # Redis cache (from cache_service)
         self.l3_cache = {}  # Database cache simulation
         
         # Cache configuration
@@ -117,7 +117,7 @@ class IntelligentCacheService:
         """Initialize intelligent cache service."""
         try:
             self.db_manager = await get_database_manager()
-            self.l2_cache = self.cache_manager
+            self.l2_cache = self.cache_service
             
             # Start background tasks
             asyncio.create_task(self._cache_maintenance_loop())
@@ -153,7 +153,7 @@ class IntelligentCacheService:
                     del self.l1_cache[key]
             
             # L2 Cache (Redis) - medium speed
-            l2_value = await self.l2_cache.async_get(key)
+            l2_value = await self.l2_cache.aget(key)
             if l2_value is not None:
                 # Promote to L1 if it's a hot key
                 if self._is_hot_key(key):
@@ -170,9 +170,9 @@ class IntelligentCacheService:
                 # Promote to higher levels based on access pattern
                 if self._is_hot_key(key):
                     await self._promote_to_l1(key, l3_value)
-                    await self.l2_cache.async_set(key, l3_value, self._calculate_adaptive_ttl(key))
+                    await self.l2_cache.aset(key, l3_value, self._calculate_adaptive_ttl(key))
                 elif self._should_cache_in_l2(key):
-                    await self.l2_cache.async_set(key, l3_value, self._calculate_adaptive_ttl(key))
+                    await self.l2_cache.aset(key, l3_value, self._calculate_adaptive_ttl(key))
                 
                 self.stats.hits += 1
                 self.stats.l3_hits += 1
@@ -250,7 +250,7 @@ class IntelligentCacheService:
                 del self.l1_cache[key]
             
             # Remove from L2
-            success &= self.l2_cache.delete(key)
+            success &= await self.l2_cache.adelete(key)
             
             # Remove from L3
             success &= await self._delete_from_l3(key)
@@ -287,7 +287,7 @@ class IntelligentCacheService:
                 invalidated_count += 1
             
             # Invalidate L2 entries
-            l2_count = self.l2_cache.invalidate_pattern(pattern)
+            l2_count = await self.l2_cache.adelete_pattern(pattern)
             invalidated_count += l2_count
             
             # Invalidate L3 entries
@@ -345,8 +345,9 @@ class IntelligentCacheService:
             optimization_results.update(l1_results)
             
             # Optimize L2 cache
-            l2_results = self.l2_cache.optimize_cache()
-            optimization_results["l2_optimizations"] = l2_results.get("memory_cleanup", 0)
+            # The new cache_service does not have optimize_cache method.
+            # l2_results = self.l2_cache.optimize_cache()
+            # optimization_results["l2_optimizations"] = l2_results.get("memory_cleanup", 0)
             
             # Promote/demote keys based on access patterns
             promotion_results = await self._optimize_key_placement()
@@ -544,7 +545,7 @@ class IntelligentCacheService:
         # Move to L2 if it's still valuable
         entry = self.l1_cache[lru_key]
         if entry.access_count > 1:
-            await self.l2_cache.async_set(
+            await self.l2_cache.aset(
                 lru_key, 
                 self._decompress_value(entry.value, entry.compressed),
                 entry.ttl
@@ -564,7 +565,7 @@ class IntelligentCacheService:
         
         # Write to L2
         value = self._decompress_value(entry.value, entry.compressed)
-        success &= await self.l2_cache.async_set(key, value, ttl)
+        success &= await self.l2_cache.aset(key, value, ttl)
         
         # Write to L3
         success &= await self._set_in_l3(key, value, ttl)
@@ -590,7 +591,7 @@ class IntelligentCacheService:
         
         # Skip L1, write to L2 and L3
         value = self._decompress_value(entry.value, entry.compressed)
-        success &= await self.l2_cache.async_set(key, value, ttl)
+        success &= await self.l2_cache.aset(key, value, ttl)
         success &= await self._set_in_l3(key, value, ttl)
         
         return success
@@ -676,7 +677,7 @@ class IntelligentCacheService:
         for key in list(self.hot_keys):
             if key not in self.l1_cache:
                 # Try to get from L2 and promote
-                value = await self.l2_cache.async_get(key)
+                value = await self.l2_cache.aget(key)
                 if value is not None:
                     await self._promote_to_l1(key, value)
                     results["hot_keys_promoted"] += 1
@@ -687,7 +688,7 @@ class IntelligentCacheService:
                 entry = self.l1_cache[key]
                 # Move to L2
                 value = self._decompress_value(entry.value, entry.compressed)
-                await self.l2_cache.async_set(key, value, entry.ttl)
+                await self.l2_cache.aset(key, value, entry.ttl)
                 del self.l1_cache[key]
                 results["cold_keys_demoted"] += 1
         

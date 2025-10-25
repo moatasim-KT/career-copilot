@@ -16,7 +16,7 @@ from langchain.schema import BaseMessage, HumanMessage, SystemMessage
 
 from ..core.config import get_settings
 from ..core.logging import get_logger
-from ..core.caching import get_cache_manager, cache_result
+from .cache_service import get_cache_service, cached
 from ..core.task_complexity import TaskComplexity, get_complexity_analyzer
 from ..core.cost_tracker import CostCategory, get_cost_tracker
 from ..monitoring.metrics_collector import get_metrics_collector
@@ -27,7 +27,7 @@ from ..core.token_optimizer import get_token_optimizer, TokenBudget, Optimizatio
 logger = get_logger(__name__)
 settings = get_settings()
 metrics_collector = get_metrics_collector()
-cache_manager = get_cache_manager()
+cache_service = get_cache_service()
 complexity_analyzer = get_complexity_analyzer()
 cost_tracker = get_cost_tracker()
 performance_collector = get_performance_metrics_collector()
@@ -394,7 +394,7 @@ class AIServiceManager:
     ) -> Optional[AIResponse]:
         """Check cache for existing response."""
         cache_key = f"ai_response:{model_type.value}:{task_complexity.value}:{hash(prompt)}"
-        cached_response = await cache_manager.async_get(cache_key)
+        cached_response = await cache_service.async_get(cache_key)
         
         if cached_response is not None:
             logger.info("Returning cached AI response")

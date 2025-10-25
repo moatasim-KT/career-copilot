@@ -104,7 +104,8 @@ class AuditLogger:
     
     def __init__(self):
         self.settings = get_settings()
-        self.audit_log_file = self.settings.audit_log_file
+        # Use default audit log file if not configured
+        self.audit_log_file = getattr(self.settings, 'audit_log_file', 'logs/audit.log')
         self.logger = get_logger("audit")
         
         # Ensure audit log directory exists

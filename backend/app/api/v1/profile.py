@@ -7,9 +7,11 @@ from app.core.database import get_db
 from app.dependencies import get_current_user
 from app.models.user import User
 from app.schemas.profile import ProfileUpdate, ProfileResponse
-from app.services.cache_service import cache_service
+from app.services.cache_service import get_cache_service
 
 router = APIRouter(tags=["profile"])
+
+cache_service = get_cache_service()
 
 
 @router.get("/api/v1/profile", response_model=ProfileResponse)

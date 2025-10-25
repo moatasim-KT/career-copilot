@@ -13,7 +13,7 @@ from app.core.database import get_db
 from app.core.logging import get_logger
 from app.models.resume_upload import ResumeUpload
 from app.services.resume_parser_service import ResumeParserService
-from app.services.cache_service import cache_service
+
 
 logger = get_logger(__name__)
 

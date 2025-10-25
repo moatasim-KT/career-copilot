@@ -24,7 +24,7 @@ from ...celery import celery_app
 from ...core.config import get_settings
 from ...core.database import get_db
 from ...core.logging import get_logger
-from ...core.optimized_database import check_database_health
+from ...core.database import get_database_manager
 from ...monitoring.health.backend import BackendHealthChecker
 from ...monitoring.health.base import HealthStatus
 from ...monitoring.health.database import DatabaseHealthMonitor
@@ -36,7 +36,7 @@ from ...schemas.health import (
     HealthCheckResponse,
     HealthResponse,
 )
-from ...services.cache_service import cache_service
+from ...services.cache_service import get_cache_service
 
 logger = get_logger(__name__)
 settings = get_settings()
@@ -105,7 +105,8 @@ class HealthChecker:
         try:
             # Use optimized database health check
             from ...core.database import engine
-            db_health = check_database_health(engine)
+            db_manager = get_database_manager()
+            db_health = db_manager.get_health_status()
             
             response_time = (time.time() - start_time) * 1000
             
@@ -335,6 +336,7 @@ async def health_check(db: Session = Depends(get_db)) -> HealthResponse:
 
     # Check cache service status
     try:
+        cache_service = get_cache_service()
         if cache_service.enabled:
             cache_stats = cache_service.get_cache_stats()
             components["cache"] = {

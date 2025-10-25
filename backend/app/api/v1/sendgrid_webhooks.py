@@ -15,7 +15,7 @@ from pydantic import BaseModel, Field
 
 from ...core.config import get_settings
 from ...core.logging import get_logger
-from ...services.sendgrid_service import SendGridService, EmailDeliveryStatus
+from ...services.email_service import EmailService
 from ...core.exceptions import EmailServiceError
 
 logger = get_logger(__name__)

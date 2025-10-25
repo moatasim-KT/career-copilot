@@ -14,9 +14,11 @@ from app.core.logging import get_logger
 from app.models.user import User
 from app.models.job import Job
 from app.services.job_scraper_service import JobScraperService
-from app.services.cache_service import cache_service
+from app.services.cache_service import get_cache_service
 
 logger = get_logger(__name__)
+
+cache_service = get_cache_service()
 
 
 @celery_app.task(bind=True, name="app.tasks.job_scraping_tasks.scrape_jobs_for_user_async")

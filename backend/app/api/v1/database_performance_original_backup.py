@@ -9,7 +9,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ...core.database import get_db_session
-from ...core.database_performance import get_db_performance_optimizer, DatabasePerformanceOptimizer
+from ...core.database_optimization import get_optimization_service
 from ...core.auth import get_current_user
 from ...models.database_models import User
 from ...models.api_models import BaseResponse

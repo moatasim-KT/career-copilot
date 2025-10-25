@@ -14,7 +14,7 @@ from pydantic import BaseModel
 from ..core.config import get_settings
 from ..core.database import get_database_manager
 from ..core.logging import get_logger
-from ..models.database_models import User
+from ..models.user import User
 from ..monitoring.metrics_collector import get_metrics_collector
 
 logger = get_logger(__name__)

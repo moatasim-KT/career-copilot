@@ -9,10 +9,9 @@ from typing import Any, Dict, List, Optional
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel
 
-from ...core.caching import get_cache_manager
+from ...services.cache_service import get_cache_service, get_session_cache_service
 from ...services.cache_monitoring_service import get_cache_monitoring_service
 from ...services.cache_invalidation_service import get_cache_invalidation_service
-from ...services.session_cache_service import get_session_cache_service
 from ...core.auth import get_current_user
 from ...core.logging import get_logger
 
@@ -20,7 +19,7 @@ logger = get_logger(__name__)
 router = APIRouter(prefix="/cache", tags=["cache"])
 
 # Dependency injection
-cache_manager = get_cache_manager()
+cache_service = get_cache_service()
 cache_monitoring = get_cache_monitoring_service()
 cache_invalidation = get_cache_invalidation_service()
 session_cache = get_session_cache_service()
@@ -113,7 +112,7 @@ class CacheKeyRequest(BaseModel):
 async def get_cache_stats(current_user: dict = Depends(get_current_user)):
     """Get current cache statistics."""
     try:
-        stats = cache_manager.get_stats()
+        stats = cache_service.get_stats()
         return CacheStatsResponse(**stats)
     except Exception as e:
         logger.error(f"Error getting cache stats: {e}")
@@ -273,7 +272,7 @@ async def optimize_cache(current_user: dict = Depends(get_current_user)):
     """Optimize cache performance."""
     try:
         # Perform cache optimization
-        cache_results = cache_manager.optimize_cache()
+        cache_results = cache_service.optimize_cache()
         monitoring_results = await cache_monitoring.optimize_cache()
         
         return {
@@ -293,7 +292,7 @@ async def optimize_cache(current_user: dict = Depends(get_current_user)):
 async def clear_cache(current_user: dict = Depends(get_current_user)):
     """Clear all cache data."""
     try:
-        success = cache_manager.clear_all()
+        success = cache_service.clear_all()
         if not success:
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -476,7 +475,7 @@ async def get_cache_key(
 ):
     """Get value from cache by key."""
     try:
-        value = await cache_manager.async_get(key)
+        value = await cache_service.aget(key)
         if value is None:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
@@ -508,7 +507,7 @@ async def set_cache_key(
             )
         
         ttl = request.ttl or 3600  # Default 1 hour
-        success = await cache_manager.async_set(request.key, request.value, ttl)
+        success = await cache_service.aset(request.key, request.value, ttl)
         
         if not success:
             raise HTTPException(
@@ -519,7 +518,7 @@ async def set_cache_key(
         return {"message": "Cache key set successfully", "key": request.key, "ttl": ttl}
     except HTTPException:
         raise
-    except Exception as e:
+    except Exception as e:.
         logger.error(f"Error setting cache key: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -534,7 +533,7 @@ async def delete_cache_key(
 ):
     """Delete key from cache."""
     try:
-        success = cache_manager.delete(key)
+        success = cache_service.delete(key)
         if not success:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,

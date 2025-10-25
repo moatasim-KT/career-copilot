@@ -14,7 +14,7 @@ from ...celery import celery_app
 from ...core.config import get_settings
 from ...core.database import get_db
 from ...core.logging import get_logger
-from ...core.optimized_database import check_database_health
+from ...core.database import get_database_manager
 from ...monitoring.health.backend import BackendHealthChecker
 from ...monitoring.health.base import HealthStatus
 from ...monitoring.health.database import DatabaseHealthMonitor
@@ -53,7 +53,8 @@ async def health_check(db: Session = Depends(get_db)) -> HealthResponse:
     try:
         from ...core.database import engine
 
-        db_health = check_database_health(engine)
+        db_manager = get_database_manager()
+        db_health = db_manager.get_health_status()
         components["database"] = db_health
     except Exception as e:
         logger.error(f"Database health check failed: {e!s}")

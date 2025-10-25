@@ -16,7 +16,8 @@ import aiofiles
 
 from ...core.logging import get_logger
 from ...core.exceptions import EmailServiceError, ErrorCategory, ErrorSeverity
-from ...services.email_template_service import EnhancedEmailTemplateService, TemplateType, AttachmentType, DeliveryProvider
+from ...services.email_template_manager import EmailTemplateManager, TemplateType
+from ...services.email_service import EmailProvider
 from ...models.email_template_models import (
     EmailTemplate, EmailTemplateCreate, EmailMessage, EmailMessageCreate,
     EmailAttachment, EmailAttachmentCreate, EmailDeliveryRecord, DeliveryStatistics,
@@ -30,21 +31,21 @@ logger = get_logger(__name__)
 router = APIRouter(prefix="/email-templates", tags=["Email Templates"])
 
 # Global service instance
-email_template_service: Optional[EnhancedEmailTemplateService] = None
+email_template_service: Optional[EmailTemplateManager] = None
 
 
-async def get_email_template_service() -> EnhancedEmailTemplateService:
+async def get_email_template_service() -> EmailTemplateManager:
     """Get email template service instance"""
     global email_template_service
     if email_template_service is None:
-        email_template_service = EnhancedEmailTemplateService()
+        email_template_service = EmailTemplateManager()
         await email_template_service.initialize()
     return email_template_service
 
 
 @router.get("/health", response_model=EmailHealthStatus)
 async def get_health_status(
-    service: EnhancedEmailTemplateService = Depends(get_email_template_service)
+    service: EmailTemplateManager = Depends(get_email_template_service)
 ):
     """Get email template service health status"""
     try:
@@ -57,7 +58,7 @@ async def get_health_status(
 @router.post("/templates", response_model=EmailTemplate)
 async def create_template(
     template_data: EmailTemplateCreate,
-    service: EnhancedEmailTemplateService = Depends(get_email_template_service)
+    service: EmailTemplateManager = Depends(get_email_template_service)
 ):
     """Create a new email template"""
     try:
@@ -86,7 +87,7 @@ async def create_template(
 @router.get("/templates", response_model=TemplateListResponse)
 async def list_templates(
     template_type: Optional[TemplateType] = None,
-    service: EnhancedEmailTemplateService = Depends(get_email_template_service)
+    service: EmailTemplateManager = Depends(get_email_template_service)
 ):
     """List all available email templates"""
     try:
@@ -350,7 +351,7 @@ async def create_docx_redline_attachment(
 async def track_delivery_status(
     tracking_id: str,
     status: str,
-    provider: DeliveryProvider,
+    provider: EmailProvider,
     message_id: Optional[str] = None,
     error_message: Optional[str] = None,
     metadata: Optional[Dict[str, Any]] = None,
@@ -358,7 +359,7 @@ async def track_delivery_status(
 ):
     """Track email delivery status"""
     try:
-        from ...services.email_template_service import DeliveryStatus
+        from ...services.email_service import EmailStatus as DeliveryStatus
         
         # Convert string status to enum
         try:
@@ -635,14 +636,14 @@ async def delivery_webhook(
             return {"success": False, "error": "Unknown provider"}
         
         if tracking_id and status != "unknown":
-            from ...services.email_template_service import DeliveryStatus
+            from ...services.email_service import EmailStatus as DeliveryStatus
             
             try:
                 delivery_status = DeliveryStatus(status)
                 await service.track_delivery_status(
                     tracking_id=tracking_id,
                     status=delivery_status,
-                    provider=DeliveryProvider(provider),
+                    provider=EmailProvider(provider),
                     metadata=webhook_data
                 )
             except ValueError:
@@ -662,12 +663,12 @@ async def email_open_tracking(
 ):
     """Handle email open tracking pixel"""
     try:
-        from ...services.email_template_service import DeliveryStatus
+        from ...services.email_service import EmailStatus as DeliveryStatus
         
         await service.track_delivery_status(
             tracking_id=tracking_id,
             status=DeliveryStatus.OPENED,
-            provider=DeliveryProvider.SMTP,  # Default provider
+            provider=EmailProvider.SMTP,  # Default provider
             metadata={"source": "tracking_pixel"}
         )
         
