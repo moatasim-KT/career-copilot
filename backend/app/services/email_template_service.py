@@ -169,8 +169,8 @@ class EnhancedEmailTemplateService:
     
     def __init__(self, templates_dir: Optional[str] = None):
         self.settings = get_settings()
-        self.templates_dir = Path(templates_dir or "backend/backend/app/email_templates")
-        self.custom_templates_dir = Path("backend/backend/app/email_templates/custom")
+        self.templates_dir = Path(templates_dir or "backend/app/templates/email")
+        self.custom_templates_dir = Path("backend/app/templates/email/custom")
         
         # Initialize Jinja2 environment
         self.jinja_env = Environment(

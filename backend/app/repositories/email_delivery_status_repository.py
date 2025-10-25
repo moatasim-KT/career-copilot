@@ -7,7 +7,7 @@ from uuid import UUID
 
 from sqlalchemy.future import select
 
-from ..models.database_models import EmailDeliveryStatus
+from ..services.sendgrid_service import EmailDeliveryStatus
 from .base_repository import BaseRepository
 
 

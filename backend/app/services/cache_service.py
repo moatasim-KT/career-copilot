@@ -539,3 +539,9 @@ def async_cached(ttl: int = 3600, key_prefix: str = "default"):
             return result
         return wrapper
     return decorator
+
+
+# Export instances for backward compatibility
+cache_service = get_cache_service()
+session_cache_service = get_session_cache_service()
+recommendation_cache_service = get_recommendation_cache_service()
