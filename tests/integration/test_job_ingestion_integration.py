@@ -3,8 +3,7 @@ from unittest.mock import MagicMock, patch
 from sqlalchemy.orm import Session
 from datetime import datetime, timedelta
 
-from app.services.job_scraper import JobScraperService
-from app.services.job_ingestion_service import JobIngestionService
+from app.services.job_scraping_service import JobScrapingService
 from app.models.user import User
 from app.models.job import Job
 from app.core.config import Settings
@@ -34,12 +33,8 @@ def mock_user():
     )
 
 @pytest.fixture
-def job_scraper_service(mock_db_session, mock_settings):
-    return JobScraperService(db=mock_db_session, settings=mock_settings)
-
-@pytest.fixture
-def job_ingestion_service(mock_db_session):
-    return JobIngestionService(db=mock_db_session)
+def job_scraping_service(mock_db_session):
+    return JobScrapingService(db=mock_db_session)
 
 
 # Test cases for JobScraperService

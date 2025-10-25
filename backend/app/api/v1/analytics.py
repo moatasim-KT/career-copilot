@@ -10,7 +10,7 @@ from ...core.dependencies import get_current_user
 from ...models.user import User
 from ...models.application import Application
 from ...models.job import Job
-from ...services.analytics import AnalyticsService
+from ...services.analytics_service import AnalyticsService
 
 from ...schemas.analytics import AnalyticsSummaryResponse, InterviewTrendsResponse
 

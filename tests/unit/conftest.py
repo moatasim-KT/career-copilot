@@ -86,5 +86,4 @@ async def async_reporting_service():
         return {'status': 'success', 'timestamp': datetime.now().isoformat()}
     
     service.run_manual_analytics.side_effect = mock_run_manual_analytics
-    return service    service.run_manual_analytics.side_effect = mock_run_manual_analytics
     return service

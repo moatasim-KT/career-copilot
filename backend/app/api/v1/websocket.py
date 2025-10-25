@@ -311,9 +311,9 @@ async def get_job_match_thresholds(
         Current threshold configuration
     """
     try:
-        from ...services.job_matching_service import get_job_matching_service
+        from ...services.job_recommendation_service import get_job_recommendation_service
         
-        matching_service = get_job_matching_service(db)
+        matching_service = get_job_recommendation_service(db)
         thresholds = matching_service.get_match_thresholds()
         
         return {
@@ -358,9 +358,9 @@ async def update_job_match_thresholds(
         )
     
     try:
-        from ...services.job_matching_service import get_job_matching_service
+        from ...services.job_recommendation_service import get_job_recommendation_service
         
-        matching_service = get_job_matching_service(db)
+        matching_service = get_job_recommendation_service(db)
         matching_service.update_match_thresholds(
             instant_alert=request.instant_alert_threshold,
             high_match=request.high_match_threshold,

@@ -11,7 +11,7 @@ import pytest
 from app.core.celery_app import celery_app
 from app.core.database import get_db
 from app.models.job_models import Job
-from app.services.job_service import JobService
+from app.services.job_service import JobManagementSystem
 from app.services.task_queue_manager import TaskQueueManager
 from app.tasks.job_scraping_tasks import scrape_jobs_for_user_async
 
@@ -23,7 +23,7 @@ def task_queue_manager():
 
 @pytest.fixture
 def job_service():
-    return JobService(next(get_db()))
+    return JobManagementSystem(next(get_db()))
 
 
 @pytest.mark.asyncio

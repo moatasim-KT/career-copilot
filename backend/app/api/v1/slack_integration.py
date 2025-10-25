@@ -24,7 +24,7 @@ from ...services.slack_service import (
     SlackPriority
 )
 from ...services.slack_bot_commands import SlackBotCommands
-from ...services.slack_analytics_service import SlackAnalyticsService, SlackEvent, SlackEventType
+from ...services.analytics_specialized import AnalyticsSpecializedService, SlackEvent, SlackEventType
 
 logger = get_logger(__name__)
 router = APIRouter(prefix="/slack", tags=["slack"])
@@ -32,7 +32,7 @@ router = APIRouter(prefix="/slack", tags=["slack"])
 # Global service instances (in production, use dependency injection)
 slack_service: Optional[EnhancedSlackService] = None
 bot_commands: Optional[SlackBotCommands] = None
-analytics_service: Optional[SlackAnalyticsService] = None
+analytics_service: Optional[AnalyticsSpecializedService] = None
 
 
 class SlackMessageRequest(BaseModel):
@@ -88,12 +88,11 @@ async def get_bot_commands() -> SlackBotCommands:
     return bot_commands
 
 
-async def get_analytics_service() -> SlackAnalyticsService:
+async def get_analytics_service() -> AnalyticsSpecializedService:
     """Get or initialize analytics service"""
     global analytics_service
     if not analytics_service:
-        analytics_service = SlackAnalyticsService()
-        await analytics_service.initialize()
+        analytics_service = AnalyticsSpecializedService()
     return analytics_service
 
 
@@ -185,7 +184,7 @@ async def send_message(message_request: SlackMessageRequest):
         result = await service.send_message(message)
         
         # Track analytics
-        await analytics.track_event(SlackEvent(
+        await analytics.track_slack_event(SlackEvent(
             id=f"msg_{datetime.now().timestamp()}",
             event_type=SlackEventType.MESSAGE_SENT,
             timestamp=datetime.now(),
@@ -205,7 +204,7 @@ async def send_message(message_request: SlackMessageRequest):
         
         # Track failed message
         analytics = await get_analytics_service()
-        await analytics.track_event(SlackEvent(
+        await analytics.track_slack_event(SlackEvent(
             id=f"msg_fail_{datetime.now().timestamp()}",
             event_type=SlackEventType.MESSAGE_FAILED,
             timestamp=datetime.now(),
@@ -235,7 +234,7 @@ async def send_contract_notification(notification: SlackNotificationRequest):
         )
         
         # Track analytics
-        await analytics.track_event(SlackEvent(
+        await analytics.track_slack_event(SlackEvent(
             id=f"contract_{datetime.now().timestamp()}",
             event_type=SlackEventType.MESSAGE_SENT,
             timestamp=datetime.now(),
@@ -281,7 +280,7 @@ async def send_risk_alert(
         )
         
         # Track analytics
-        await analytics.track_event(SlackEvent(
+        await analytics.track_slack_event(SlackEvent(
             id=f"alert_{datetime.now().timestamp()}",
             event_type=SlackEventType.MESSAGE_SENT,
             timestamp=datetime.now(),
@@ -357,7 +356,7 @@ async def handle_slack_interactions(request: Request, background_tasks: Backgrou
         
         # Track analytics
         analytics = await get_analytics_service()
-        await analytics.track_event(SlackEvent(
+        await analytics.track_slack_event(SlackEvent(
             id=f"interaction_{datetime.now().timestamp()}",
             event_type=SlackEventType.INTERACTION,
             timestamp=datetime.now(),
@@ -399,7 +398,7 @@ async def handle_slash_commands(request: Request, background_tasks: BackgroundTa
         
         # Track analytics
         analytics = await get_analytics_service()
-        await analytics.track_event(SlackEvent(
+        await analytics.track_slack_event(SlackEvent(
             id=f"command_{datetime.now().timestamp()}",
             event_type=SlackEventType.COMMAND_USED,
             timestamp=datetime.now(),
@@ -426,7 +425,7 @@ async def get_analytics_dashboard():
     """Get Slack analytics dashboard data"""
     try:
         analytics = await get_analytics_service()
-        dashboard_data = await analytics.get_dashboard_metrics()
+        dashboard_data = await analytics.get_slack_dashboard_metrics()
         
         return {
             "success": True,
@@ -589,7 +588,7 @@ async def upload_file_to_slack(
         )
         
         # Track analytics
-        await analytics.track_event(SlackEvent(
+        await analytics.track_slack_event(SlackEvent(
             id=f"file_upload_{datetime.now().timestamp()}",
             event_type=SlackEventType.MESSAGE_SENT,
             timestamp=datetime.now(),
@@ -635,7 +634,7 @@ async def upload_contract_to_slack(
         )
         
         # Track analytics
-        await analytics.track_event(SlackEvent(
+        await analytics.track_slack_event(SlackEvent(
             id=f"contract_upload_{datetime.now().timestamp()}",
             event_type=SlackEventType.MESSAGE_SENT,
             timestamp=datetime.now(),
@@ -681,7 +680,7 @@ async def create_approval_workflow(
         )
         
         # Track analytics
-        await analytics.track_event(SlackEvent(
+        await analytics.track_slack_event(SlackEvent(
             id=f"workflow_{datetime.now().timestamp()}",
             event_type=SlackEventType.MESSAGE_SENT,
             timestamp=datetime.now(),
@@ -744,7 +743,7 @@ async def process_slack_event(event: Dict[str, Any]):
         
         # Map Slack events to our event types
         if event_type == "message":
-            await analytics.track_event(SlackEvent(
+            await analytics.track_slack_event(SlackEvent(
                 id=f"event_{datetime.now().timestamp()}",
                 event_type=SlackEventType.MESSAGE_SENT,
                 timestamp=datetime.now(),
@@ -753,7 +752,7 @@ async def process_slack_event(event: Dict[str, Any]):
                 metadata={"slack_event_type": event_type}
             ))
         elif event_type == "member_joined_channel":
-            await analytics.track_event(SlackEvent(
+            await analytics.track_slack_event(SlackEvent(
                 id=f"join_{datetime.now().timestamp()}",
                 event_type=SlackEventType.USER_JOINED,
                 timestamp=datetime.now(),

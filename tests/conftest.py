@@ -153,8 +153,8 @@ def mock_email_service():
 
 
 @pytest.fixture
-def mock_job_service():
-    """Mock job service"""
+def mock_job_management_system():
+    """Mock job management system"""
     service = Mock()
     service.get_jobs.return_value = []
     service.add_job.return_value = {"id": 1, "status": "created"}

@@ -11,7 +11,7 @@ import pytest
 from app.core.database import get_db
 from app.models.job_models import Job
 from app.models.user_models import UserProfile
-from app.services.job_service import JobService
+from app.services.job_service import JobManagementSystem
 from app.services.recommendation_service import RecommendationService
 from app.services.user_service import UserService
 
@@ -23,7 +23,7 @@ def recommendation_service():
 
 @pytest.fixture
 def job_service():
-    return JobService(next(get_db()))
+    return JobManagementSystem(next(get_db()))
 
 
 @pytest.fixture

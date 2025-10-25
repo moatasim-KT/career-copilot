@@ -11,7 +11,7 @@ from celery import Celery
 
 from app.core.database import get_db
 from app.models.user import User
-from app.services.analytics_data_collection_service import analytics_data_collection_service
+from app.services.analytics_service import analytics_service
 
 logger = logging.getLogger(__name__)
 
@@ -38,21 +38,24 @@ def collect_daily_analytics():
         
         for user in active_users:
             try:
+                # Create analytics service instance with database session
+                analytics_service_instance = analytics_service.__class__(db=db)
+                
                 # Collect user engagement metrics
-                engagement_result = analytics_data_collection_service.collect_user_engagement_metrics(
-                    db, user.id, days=7  # Weekly engagement
+                engagement_result = analytics_service_instance.collect_user_engagement_metrics(
+                    user.id, days=7  # Weekly engagement
                 )
                 
                 # Monitor application success rates
-                success_result = analytics_data_collection_service.monitor_application_success_rates(
-                    db, user.id, days=30  # Monthly success monitoring
+                success_result = analytics_service_instance.monitor_application_success_rates(
+                    user.id, days=30  # Monthly success monitoring
                 )
                 
                 # Analyze market trends (only for users with recent activity)
                 last_active = user.last_active or user.created_at
                 if last_active >= datetime.utcnow() - timedelta(days=7):
-                    market_result = analytics_data_collection_service.analyze_market_trends(
-                        db, user.id, days=7  # Weekly market analysis
+                    market_result = analytics_service_instance.analyze_market_trends(
+                        user.id, days=7  # Weekly market analysis
                     )
                 
                 results['successful_collections'] += 1
@@ -99,9 +102,12 @@ def generate_weekly_analytics_reports():
         
         for user in active_users:
             try:
+                # Create analytics service instance with database session
+                analytics_service_instance = analytics_service.__class__(db=db)
+                
                 # Generate comprehensive analytics report
-                report = analytics_data_collection_service.get_comprehensive_analytics_report(
-                    db, user.id, days=90  # 3-month comprehensive report
+                report = analytics_service_instance.get_comprehensive_analytics_report(
+                    user.id, days=90  # 3-month comprehensive report
                 )
                 
                 if 'error' not in report:
@@ -139,9 +145,12 @@ def analyze_market_trends_global():
         # Use a system user ID (0) for global market analysis
         system_user_id = 0
         
+        # Create analytics service instance with database session
+        analytics_service_instance = analytics_service.__class__(db=db)
+        
         # Analyze market trends with extended period for better insights
-        market_analysis = analytics_data_collection_service.analyze_market_trends(
-            db, system_user_id, days=30
+        market_analysis = analytics_service_instance.analyze_market_trends(
+            system_user_id, days=30
         )
         
         if 'error' not in market_analysis:

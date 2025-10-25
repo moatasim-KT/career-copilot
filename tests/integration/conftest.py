@@ -94,21 +94,23 @@ def mock_services():
     """Mock all major services for integration testing"""
     services = {
         "auth_service": Mock(),
-        "job_service": Mock(),
+        "job_management_system": Mock(),
+        "job_scraping_service": Mock(),
+        "job_recommendation_service": Mock(),
         "recommendation_service": Mock(),
         "notification_service": Mock(),
         "analytics_service": Mock(),
-        "job_ingestion_service": Mock(),
         "email_service": Mock()
     }
     
     # Configure default return values
     services["auth_service"].register_user.return_value = {"user_id": 1, "email": "test@example.com"}
-    services["job_service"].get_jobs.return_value = []
+    services["job_management_system"].get_jobs_for_user.return_value = []
+    services["job_scraping_service"].scrape_jobs.return_value = []
+    services["job_recommendation_service"].generate_recommendations.return_value = []
     services["recommendation_service"].generate_recommendations.return_value = []
     services["notification_service"].send_notification.return_value = {"status": "sent"}
     services["analytics_service"].track_event.return_value = {"tracked": True}
-    services["job_ingestion_service"].ingest_jobs.return_value = {"jobs_added": 10}
     services["email_service"].send_email.return_value = {"message_id": "test_123"}
     
     return services

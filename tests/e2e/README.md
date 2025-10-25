@@ -26,13 +26,6 @@ This directory contains a comprehensive end-to-end testing framework for the Car
 
 ## Quick Start
 
-### Running the Demo
-
-```bash
-# Run the demo script to see the framework in action
-PYTHONPATH=. python tests/e2e/demo.py
-```
-
 ### Running Framework Tests
 
 ```bash
