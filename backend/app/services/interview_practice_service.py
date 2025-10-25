@@ -8,18 +8,18 @@ from app.schemas.interview import (
     InterviewSessionCreate, InterviewSessionUpdate, InterviewSessionResponse,
     InterviewQuestionCreate, InterviewQuestionUpdate, InterviewQuestionResponse
 )
-from app.services.ai_service_manager import AIServiceManager
-from app.services.job_service import JobService, ModelType
+from app.services.llm_service import LLMService
+from app.services.job_service import JobService
+from app.services.llm_service import ModelType
 from .cache_service import cache_service
 from app.core.logging import get_logger
 
 logger = get_logger(__name__)
 
 class InterviewPracticeService:
-    def __init__(self, db: Session, ai_service_manager: AIServiceManager, job_service: JobService):
+    def __init__(self, db: Session, ai_service_manager: LLMService, job_service: JobService):
         self.db = db
-        self.ai_service_manager = ai_service_manager
-        self.job_service = job_service
+        self.llm_service = ai_service_manager
         self.db = db
         self.ai_service_manager = ai_service_manager
 
@@ -165,7 +165,7 @@ class InterviewPracticeService:
             The question should be clear, concise, and relevant to the job context if provided.
             """
 
-            ai_response = await self.ai_service_manager.analyze_with_fallback(
+            ai_response = await self.llm_service.analyze_with_fallback(
                 model_type=ModelType.GENERAL,
                 prompt=prompt,
                 criteria="quality",
@@ -218,7 +218,7 @@ class InterviewPracticeService:
             }}
             """
 
-            ai_response = await self.ai_service_manager.analyze_with_fallback(
+            ai_response = await self.llm_service.analyze_with_fallback(
                 model_type=ModelType.GENERAL,
                 prompt=prompt,
                 criteria="quality",

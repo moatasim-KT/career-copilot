@@ -22,7 +22,7 @@ from app.core.database import get_db
 from app.core.exceptions import ContractAnalysisError, AuthenticationError, AuthorizationError
 from app.middleware.logging_middleware import LoggingMiddleware
 from app.middleware.auth_middleware import AuthMiddleware
-from app.scheduler import scheduler
+from app.tasks.scheduled_tasks import scheduler
 from app.middleware.error_handling import add_error_handlers
 
 logger = get_logger(__name__)
@@ -170,7 +170,7 @@ def create_app() -> FastAPI:
 
     
     # Include routers
-    from .api.v1 import health, auth, jobs, applications, analytics, recommendations, skill_gap, profile, job_sources, job_recommendation_feedback, feedback_analysis, market_analysis, advanced_user_analytics, scheduled_reports, tasks, database_optimization, linkedin_jobs
+    from .api.v1 import health, auth, jobs, applications, analytics, recommendations, skill_gap_analysis, profile, job_sources, job_recommendation_feedback, feedback_analysis, market_analysis, advanced_user_analytics, scheduled_reports, tasks, database_performance, linkedin_jobs
     app.include_router(health.router)
     app.include_router(auth.router)
     app.include_router(profile.router)
@@ -178,7 +178,7 @@ def create_app() -> FastAPI:
     app.include_router(job_sources.router)
     app.include_router(analytics.router)
     app.include_router(recommendations.router)
-    app.include_router(skill_gap.router)
+    app.include_router(skill_gap_analysis.router)
     app.include_router(applications.router)
     app.include_router(job_recommendation_feedback.router, prefix="/api/v1", tags=["job-recommendation-feedback"])
     app.include_router(feedback_analysis.router, prefix="/api/v1", tags=["feedback-analysis"])
@@ -186,7 +186,7 @@ def create_app() -> FastAPI:
     app.include_router(advanced_user_analytics.router)
     app.include_router(scheduled_reports.router)
     app.include_router(tasks.router)
-    app.include_router(database_optimization.router)
+    app.include_router(database_performance.router)
 
     app.include_router(linkedin_jobs.router)
 
@@ -212,7 +212,7 @@ def create_app() -> FastAPI:
         
         # Start scheduler
         if settings.enable_scheduler:
-            from .scheduler import start_scheduler
+            from .tasks.scheduled_tasks import start_scheduler
             start_scheduler()
             logger.info("✅ Scheduler started")
         
@@ -226,7 +226,7 @@ def create_app() -> FastAPI:
         
         # Shutdown scheduler
         if settings.enable_scheduler:
-            from .scheduler import shutdown_scheduler
+            from .tasks.scheduled_tasks import shutdown_scheduler
             shutdown_scheduler()
             logger.info("✅ Scheduler shut down")
     

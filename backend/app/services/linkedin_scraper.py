@@ -7,6 +7,9 @@ import random
 from typing import List, Dict, Any
 import sys
 
+# Placeholder for default API client
+default_api = None
+
 class LinkedInScraper:
     def __init__(self, default_api_client=None):
         self.browser_initialized = False
@@ -174,3 +177,11 @@ class LinkedInScraper:
         except Exception as e:
             print(f"Error during LinkedIn job description scraping: {e}")
             raise
+
+
+# Export instance for backward compatibility
+try:
+    linkedin_scraper = LinkedInScraper()
+except Exception:
+    # If initialization fails (e.g., missing credentials), create a placeholder
+    linkedin_scraper = None

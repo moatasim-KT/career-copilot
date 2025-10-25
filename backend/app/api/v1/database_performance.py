@@ -16,7 +16,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session
 from pydantic import BaseModel
 
-from ...core.database import get_db, get_db_session
+from ...core.database import get_db
 from ...core.auth import get_current_user
 from ...core.logging import get_logger
 
@@ -124,9 +124,6 @@ async def get_slow_query_analysis(
             from ...core.database_optimization import get_optimization_service
             optimization_service = get_optimization_service()
             analysis = optimization_service.optimize_performance()
-                hours=hours, 
-                min_occurrences=min_occurrences
-            )
             
             # Convert to serializable format
             analysis_data = []
@@ -658,7 +655,7 @@ async def get_database_health(
 async def analyze_table_performance(
     table_name: str,
     current_user = Depends(get_current_user),
-    session: AsyncSession = Depends(get_db_session)
+    session: AsyncSession = Depends(get_db)
 ):
     """
     Analyze performance statistics for a specific table.
@@ -771,7 +768,7 @@ async def vacuum_table(
     table_name: str,
     analyze: bool = Query(default=True, description="Run ANALYZE after VACUUM"),
     current_user = Depends(get_current_user),
-    session: AsyncSession = Depends(get_db_session)
+    session: AsyncSession = Depends(get_db)
 ):
     """
     Perform VACUUM operation on a specific table to reclaim space and update statistics.
