@@ -19,7 +19,7 @@ from ...monitoring.health.backend import BackendHealthChecker
 from ...monitoring.health.base import HealthStatus
 from ...monitoring.health.database import DatabaseHealthMonitor
 from ...monitoring.health.frontend import FrontendHealthChecker
-from ...scheduler import scheduler
+from ...tasks.scheduled_tasks import scheduler
 from ...schemas.health import (
     ComponentHealth,
     DetailedHealthResponse,

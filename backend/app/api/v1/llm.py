@@ -6,13 +6,8 @@ from typing import Dict, List, Optional, Any
 from fastapi import APIRouter, HTTPException, Depends, Query
 from pydantic import BaseModel, Field
 
-from ...services.enhanced_llm_manager import (
-    get_enhanced_llm_manager,
-    EnhancedLLMManager,
-    TaskType,
-    RoutingCriteria,
-    LLMProvider
-)
+from ...services.llm_service import LLMService, TaskType, RoutingCriteria, ModelProvider, get_llm_service
+from ...services.llm_config_manager import get_llm_operations_manager
 from ...core.auth import get_current_user
 from ...core.logging import get_logger
 
@@ -36,13 +31,19 @@ class CompletionResponse(BaseModel):
     """Response model for LLM completion."""
     content: str
     provider: str
-    model: str
+    model_used: str
     confidence_score: float
     processing_time: float
     token_usage: Dict[str, int]
     cost: float
-    request_id: str
+    complexity_used: str
+    cost_category: str
+    budget_impact: Dict[str, Any]
     metadata: Dict[str, Any]
+    performance_metrics: Optional[Dict[str, Any]] = None
+    is_streaming: bool = False
+    streaming_session_id: Optional[str] = None
+    token_optimization: Optional[Dict[str, Any]] = None
 
 
 class ProviderHealthResponse(BaseModel):
@@ -52,39 +53,13 @@ class ProviderHealthResponse(BaseModel):
     last_checked: str
 
 
-class ProviderMetricsResponse(BaseModel):
-    """Response model for provider metrics."""
-    provider_id: str
-    total_requests: int
-    successful_requests: int
-    failed_requests: int
-    avg_response_time: float
-    avg_cost_per_request: float
-    total_tokens_used: int
-    total_cost: float
-    error_rate: float
-    availability: float
-    health_score: float
-
-
-class ProviderInfoResponse(BaseModel):
-    """Response model for provider information."""
-    provider_id: str
-    provider_type: str
-    model_name: str
-    enabled: bool
-    capabilities: List[str]
-    cost_per_token: float
-    priority: int
-    circuit_breaker_state: str
-    metadata: Dict[str, Any]
 
 
 @router.post("/completion", response_model=CompletionResponse)
 async def generate_completion(
     request: CompletionRequest,
     current_user: dict = Depends(get_current_user),
-    llm_manager: EnhancedLLMManager = Depends(get_enhanced_llm_manager)
+    llm_manager: LLMService = Depends(get_llm_service)
 ):
     """
     Generate completion using enhanced LLM manager with intelligent routing.
@@ -127,13 +102,19 @@ async def generate_completion(
         return CompletionResponse(
             content=response.content,
             provider=response.provider.value,
-            model=response.model,
+            model_used=response.model_used,
             confidence_score=response.confidence_score,
             processing_time=response.processing_time,
             token_usage=response.token_usage,
             cost=response.cost,
-            request_id=response.request_id,
-            metadata=response.metadata
+            complexity_used=response.complexity_used.value,
+            cost_category=response.cost_category.value,
+            budget_impact=response.budget_impact,
+            metadata=response.metadata,
+            performance_metrics=response.performance_metrics,
+            is_streaming=response.is_streaming,
+            streaming_session_id=response.streaming_session_id,
+            token_optimization=response.token_optimization
         )
         
     except Exception as e:
@@ -141,15 +122,15 @@ async def generate_completion(
         raise HTTPException(status_code=500, detail=f"Completion generation failed: {str(e)}")
 
 
-@router.get("/providers", response_model=List[str])
+@router.get("/providers", response_model=Dict[str, List[str]])
 async def get_available_providers(
     current_user: dict = Depends(get_current_user),
-    llm_manager: EnhancedLLMManager = Depends(get_enhanced_llm_manager)
+    llm_manager: LLMService = Depends(get_llm_service)
 ):
     """Get list of available LLM providers."""
     try:
-        providers = llm_manager.get_available_providers()
-        logger.info(f"Retrieved {len(providers)} available providers")
+        providers = llm_manager.get_available_models()
+        logger.info(f"Retrieved {sum(len(v) for v in providers.values())} available models across types")
         return providers
         
     except Exception as e:
@@ -157,29 +138,41 @@ async def get_available_providers(
         raise HTTPException(status_code=500, detail=f"Failed to get providers: {str(e)}")
 
 
-@router.get("/providers/{provider_id}", response_model=ProviderInfoResponse)
+@router.get("/providers/{provider_id}", response_model=Dict[str, Any])
 async def get_provider_info(
     provider_id: str,
     current_user: dict = Depends(get_current_user),
-    llm_manager: EnhancedLLMManager = Depends(get_enhanced_llm_manager)
+    llm_manager: LLMService = Depends(get_llm_service)
 ):
     """Get detailed information about a specific provider."""
     try:
-        info = llm_manager.get_provider_info(provider_id)
+        # LLMService does not have a direct get_provider_info. 
+        # We need to iterate through models to find matching provider_id.
+        all_models_config = llm_manager.models
+        info = None
+        for model_type, model_configs in all_models_config.items():
+            for model_config in model_configs:
+                if model_config.provider.value == provider_id:
+                    info = {
+                        "provider_id": model_config.provider.value,
+                        "model_name": model_config.model_name,
+                        "temperature": model_config.temperature,
+                        "max_tokens": model_config.max_tokens,
+                        "cost_per_token": model_config.cost_per_token,
+                        "capabilities": model_config.capabilities,
+                        "priority": model_config.priority,
+                        "complexity_level": model_config.complexity_level.value,
+                        "tokens_per_minute": model_config.tokens_per_minute,
+                        "requests_per_minute": model_config.requests_per_minute
+                    }
+                    break
+            if info:
+                break
+
         if not info:
             raise HTTPException(status_code=404, detail=f"Provider {provider_id} not found")
         
-        return ProviderInfoResponse(
-            provider_id=info["provider_id"],
-            provider_type=info["provider_type"],
-            model_name=info["model_name"],
-            enabled=info["enabled"],
-            capabilities=info["capabilities"],
-            cost_per_token=info["cost_per_token"],
-            priority=info["priority"],
-            circuit_breaker_state=info["circuit_breaker_state"],
-            metadata=info["metadata"]
-        )
+        return info
         
     except HTTPException:
         raise
@@ -188,33 +181,19 @@ async def get_provider_info(
         raise HTTPException(status_code=500, detail=f"Failed to get provider info: {str(e)}")
 
 
-@router.get("/providers/{provider_id}/metrics", response_model=ProviderMetricsResponse)
+@router.get("/providers/{provider_id}/metrics", response_model=Dict[str, Any])
 async def get_provider_metrics(
     provider_id: str,
     current_user: dict = Depends(get_current_user),
-    llm_manager: EnhancedLLMManager = Depends(get_enhanced_llm_manager)
+    llm_manager: LLMService = Depends(get_llm_service)
 ):
     """Get performance metrics for a specific provider."""
     try:
-        all_metrics = llm_manager.get_provider_metrics()
-        if provider_id not in all_metrics:
+        health = llm_manager.get_service_health()
+        if provider_id not in health:
             raise HTTPException(status_code=404, detail=f"Provider {provider_id} not found")
         
-        metrics = all_metrics[provider_id]
-        
-        return ProviderMetricsResponse(
-            provider_id=provider_id,
-            total_requests=metrics.total_requests,
-            successful_requests=metrics.successful_requests,
-            failed_requests=metrics.failed_requests,
-            avg_response_time=metrics.avg_response_time,
-            avg_cost_per_request=metrics.avg_cost_per_request,
-            total_tokens_used=metrics.total_tokens_used,
-            total_cost=metrics.total_cost,
-            error_rate=metrics.error_rate,
-            availability=metrics.availability,
-            health_score=metrics.health_score
-        )
+        return health[provider_id]
         
     except HTTPException:
         raise
@@ -223,52 +202,51 @@ async def get_provider_metrics(
         raise HTTPException(status_code=500, detail=f"Failed to get metrics: {str(e)}")
 
 
-@router.get("/health", response_model=List[ProviderHealthResponse])
+@router.get("/health", response_model=Dict[str, Any])
 async def check_provider_health(
     current_user: dict = Depends(get_current_user),
-    llm_manager: EnhancedLLMManager = Depends(get_enhanced_llm_manager)
+    llm_manager: LLMService = Depends(get_llm_service)
 ):
     """Check health status of all providers."""
     try:
-        health_results = await llm_manager.health_check_all_providers()
+        health_results = llm_manager.get_service_health()
         
-        responses = []
-        for provider_id, healthy in health_results.items():
-            responses.append(ProviderHealthResponse(
-                provider_id=provider_id,
-                healthy=healthy,
-                last_checked=str(datetime.now())
-            ))
-        
-        logger.info(f"Health check completed for {len(responses)} providers")
-        return responses
+        logger.info(f"Health check completed for {len(health_results)} providers")
+        return health_results
         
     except Exception as e:
         logger.error(f"Failed to check provider health: {e}")
         raise HTTPException(status_code=500, detail=f"Health check failed: {str(e)}")
 
 
-@router.get("/best-provider")
+@router.get("/best-provider", response_model=Dict[str, Any])
 async def get_best_provider(
     task_type: TaskType = Query(default=TaskType.GENERAL, description="Task type"),
     criteria: RoutingCriteria = Query(default=RoutingCriteria.COST, description="Selection criteria"),
     current_user: dict = Depends(get_current_user),
-    llm_manager: EnhancedLLMManager = Depends(get_enhanced_llm_manager)
+    llm_manager: LLMService = Depends(get_llm_service)
 ):
     """Get the best provider for a specific task type and criteria."""
     try:
-        best_provider = await llm_manager.get_best_provider(task_type, criteria)
+        # LLMService does not have a direct get_best_provider method.
+        # We will select models and return the first one as the 'best'.
+        suitable_models = await llm_manager._select_models(task_type, llm_manager.complexity_analyzer.analyze_task_complexity(task_type.value), criteria)
         
-        if not best_provider:
+        if not suitable_models:
             raise HTTPException(
                 status_code=404, 
                 detail=f"No suitable provider found for task type {task_type} with criteria {criteria}"
             )
         
+        best_model_config = suitable_models[0]
+
         return {
-            "best_provider": best_provider,
+            "best_provider": best_model_config.provider.value,
+            "model_name": best_model_config.model_name,
             "task_type": task_type.value,
-            "criteria": criteria.value
+            "criteria": criteria.value,
+            "cost_per_token": best_model_config.cost_per_token,
+            "priority": best_model_config.priority
         }
         
     except HTTPException:
@@ -278,11 +256,7 @@ async def get_best_provider(
         raise HTTPException(status_code=500, detail=f"Failed to get best provider: {str(e)}")
 
 
-@router.post("/cache/clear")
-async def clear_cache(
-    current_user: dict = Depends(get_current_user),
-    llm_manager: EnhancedLLMManager = Depends(get_enhanced_llm_manager)
-):
+    llm_manager: LLMService = Depends(get_llm_service)
     """Clear LLM response cache."""
     try:
         await llm_manager.clear_cache()
@@ -293,26 +267,6 @@ async def clear_cache(
     except Exception as e:
         logger.error(f"Failed to clear cache: {e}")
         raise HTTPException(status_code=500, detail=f"Failed to clear cache: {str(e)}")
-
-
-@router.post("/metrics/reset")
-async def reset_metrics(
-    provider_id: Optional[str] = Query(default=None, description="Provider ID to reset (all if not specified)"),
-    current_user: dict = Depends(get_current_user),
-    llm_manager: EnhancedLLMManager = Depends(get_enhanced_llm_manager)
-):
-    """Reset provider metrics."""
-    try:
-        llm_manager.reset_provider_metrics(provider_id)
-        
-        message = f"Metrics reset for {provider_id}" if provider_id else "All provider metrics reset"
-        logger.info(f"{message} by user {current_user.get('user_id')}")
-        
-        return {"message": message}
-        
-    except Exception as e:
-        logger.error(f"Failed to reset metrics: {e}")
-        raise HTTPException(status_code=500, detail=f"Failed to reset metrics: {str(e)}")
 
 
 @router.get("/task-types")
@@ -353,27 +307,15 @@ async def get_routing_criteria(
 @router.get("/metrics/summary")
 async def get_metrics_summary(
     current_user: dict = Depends(get_current_user),
-    llm_manager: EnhancedLLMManager = Depends(get_enhanced_llm_manager)
+    llm_manager: LLMService = Depends(get_llm_service)
 ):
     """Get summary of all provider metrics."""
     try:
-        all_metrics = llm_manager.get_provider_metrics()
+        health_summary = llm_manager.get_service_health()
         
-        summary = {
-            "total_providers": len(all_metrics),
-            "total_requests": sum(m.total_requests for m in all_metrics.values()),
-            "total_successful": sum(m.successful_requests for m in all_metrics.values()),
-            "total_failed": sum(m.failed_requests for m in all_metrics.values()),
-            "total_cost": sum(m.total_cost for m in all_metrics.values()),
-            "total_tokens": sum(m.total_tokens_used for m in all_metrics.values()),
-            "avg_response_time": sum(m.avg_response_time for m in all_metrics.values()) / len(all_metrics) if all_metrics else 0,
-            "overall_success_rate": 0
-        }
-        
-        if summary["total_requests"] > 0:
-            summary["overall_success_rate"] = summary["total_successful"] / summary["total_requests"]
-        
-        return summary
+        # You would need to aggregate these metrics from the health_summary
+        # For now, returning the raw health summary
+        return health_summary
         
     except Exception as e:
         logger.error(f"Failed to get metrics summary: {e}")

@@ -238,8 +238,8 @@ class EmailTemplateManager:
         
         # Template management
         self.templates: Dict[str, EmailTemplate] = {}
-        self.templates_dir = Path("backend/app/email_templates")
-        self.custom_templates_dir = Path("backend/app/email_templates/custom")
+        self.templates_dir = Path("backend/app/templates/email")
+        self.custom_templates_dir = Path("backend/app/templates/email/custom")
         
         # Jinja2 environment
         self.jinja_env = Environment(

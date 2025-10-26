@@ -62,8 +62,8 @@ def mock_job_create_list():
 @pytest.mark.asyncio
 @freeze_time("2025-01-01 04:00:00") # Freeze time to control cron execution
 async def test_ingest_jobs_success(mock_db_session, mock_user, mock_settings, mock_job_create_list):
-    with patch('app.core.database.SessionLocal', return_value=mock_db_session),
-         patch('app.core.config.get_settings', return_value=mock_settings),
+    with patch('app.core.database.SessionLocal', return_value=mock_db_session), \
+         patch('app.core.config.get_settings', return_value=mock_settings), \
          patch('app.services.job_scraper_service.JobScraperService') as MockJobScraperService:
         
         # Configure mock user query
@@ -88,9 +88,9 @@ async def test_ingest_jobs_success(mock_db_session, mock_user, mock_settings, mo
 @pytest.mark.asyncio
 @freeze_time("2025-01-01 04:00:00")
 async def test_ingest_jobs_scraper_error_handling(mock_db_session, mock_user, mock_settings):
-    with patch('app.core.database.SessionLocal', return_value=mock_db_session),
-         patch('app.core.config.get_settings', return_value=mock_settings),
-         patch('app.services.job_scraper_service.JobScraperService') as MockJobScraperService,
+    with patch('app.core.database.SessionLocal', return_value=mock_db_session), \
+         patch('app.core.config.get_settings', return_value=mock_settings), \
+         patch('app.services.job_scraper_service.JobScraperService') as MockJobScraperService, \
          patch('app.tasks.scheduled_tasks.logger') as mock_logger:
         
         mock_db_session.query.return_value.filter.return_value.isnot.return_value.all.return_value = [mock_user]
@@ -109,9 +109,9 @@ async def test_ingest_jobs_scraper_error_handling(mock_db_session, mock_user, mo
 @pytest.mark.asyncio
 @freeze_time("2025-01-01 08:00:00") # Freeze time to control cron execution
 async def test_send_morning_briefing_success(mock_db_session, mock_user, mock_settings):
-    with patch('app.core.database.SessionLocal', return_value=mock_db_session),
-         patch('app.core.config.get_settings', return_value=mock_settings),
-         patch('app.services.recommendation_engine.RecommendationEngine') as MockRecommendationEngine,
+    with patch('app.core.database.SessionLocal', return_value=mock_db_session), \
+         patch('app.core.config.get_settings', return_value=mock_settings), \
+         patch('app.services.recommendation_engine.RecommendationEngine') as MockRecommendationEngine, \
          patch('app.services.notification_service.NotificationService') as MockNotificationService:
         
         # Configure mock user query
@@ -136,9 +136,9 @@ async def test_send_morning_briefing_success(mock_db_session, mock_user, mock_se
 @pytest.mark.asyncio
 @freeze_time("2025-01-01 20:00:00") # Freeze time to control cron execution
 async def test_send_evening_summary_success(mock_db_session, mock_user, mock_settings):
-    with patch('app.core.database.SessionLocal', return_value=mock_db_session),
-         patch('app.core.config.get_settings', return_value=mock_settings),
-         patch('app.services.analytics.AnalyticsService') as MockAnalyticsService,
+    with patch('app.core.database.SessionLocal', return_value=mock_db_session), \
+         patch('app.core.config.get_settings', return_value=mock_settings), \
+         patch('app.services.analytics.AnalyticsService') as MockAnalyticsService, \
          patch('app.services.notification_service.NotificationService') as MockNotificationService:
         
         # Configure mock user query

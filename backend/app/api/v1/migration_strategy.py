@@ -284,7 +284,7 @@ async def execute_migration(
     
     # Get the migration plan from cache or database
     # For now, we'll assume the plan is stored in cache
-    from app.core.cache import cache_service
+    from app.services.cache_service import cache_service
     plan_data = cache_service.get(f"migration_plan:{migration_id}")
     
     if not plan_data:
@@ -346,7 +346,7 @@ async def get_migration_result(
 ):
     """Get the result of a completed migration"""
     
-    from app.core.cache import cache_service
+    from app.services.cache_service import cache_service
     result = cache_service.get(f"migration_result:{migration_id}")
     
     if not result:
@@ -387,7 +387,7 @@ async def cancel_migration(
 ):
     """Cancel an ongoing migration"""
     
-    from app.core.cache import cache_service
+    from app.services.cache_service import cache_service
     
     # Check if migration exists
     status = cache_service.get(f"migration_status:{migration_id}")
@@ -424,7 +424,7 @@ async def rollback_migration(
 ):
     """Rollback a completed migration"""
     
-    from app.core.cache import cache_service
+    from app.services.cache_service import cache_service
     
     # Get migration result
     result = cache_service.get(f"migration_result:{migration_id}")
@@ -502,7 +502,7 @@ async def get_rollback_status(
 ):
     """Get the status of a migration rollback"""
     
-    from app.core.cache import cache_service
+    from app.services.cache_service import cache_service
     rollback_result = cache_service.get(f"rollback_result:{migration_id}")
     
     if not rollback_result:

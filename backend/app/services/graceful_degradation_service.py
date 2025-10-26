@@ -11,7 +11,7 @@ import json
 import re
 from collections import Counter
 
-from app.core.cache import cache_service
+from app.services.cache_service import cache_service
 from app.models.job import Job
 from app.models.user import User
 

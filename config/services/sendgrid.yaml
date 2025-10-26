@@ -34,7 +34,7 @@ tracking:
 # Template Configuration
 templates:
   enabled: true
-  template_path: "backend/app/email_templates"
+  template_path: "backend/app/templates/email"
   cache_ttl: 3600  # 1 hour
 
 # Email Types Configuration

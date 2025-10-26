@@ -351,7 +351,7 @@ CONSOLIDATION_PHASES = [
                 "description": "Consolidate analytics tasks into analytics_tasks.py",
                 "original_files": [
                     "backend/app/tasks/analytics_tasks.py",
-                    "backend/app/tasks/analytics_collection_tasks.py"
+                    # "backend/app/tasks/analytics_collection_tasks.py" # Consolidated
                 ],
                 "consolidated_files": ["backend/app/tasks/analytics_tasks.py"],
                 "mapping_type": MappingType.MANY_TO_ONE

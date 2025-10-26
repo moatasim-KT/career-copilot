@@ -1,57 +1,236 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Your Daily Job Search Summary</title>
-    <style>
-        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; background-color: #f4f4f4; margin: 0; padding: 0; }
-        .container { max-width: 600px; margin: 20px auto; background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
-        .header { background-color: #007bff; color: #ffffff; padding: 10px 20px; text-align: center; border-radius: 8px 8px 0 0; }
-        .content { padding: 20px; }
-        .stats-card { background-color: #e9f7ef; border: 1px solid #d4edda; border-radius: 5px; padding: 15px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; }
-        .stats-card p { margin: 0; font-size: 1.1em; }
-        .stats-card .label { font-weight: bold; color: #28a745; }
-        .button { display: inline-block; background-color: #4CAF50; color: #ffffff; padding: 10px 20px; text-decoration: none; border-radius: 5px; }
-        .footer { text-align: center; font-size: 0.8em; color: #777; margin-top: 20px; padding-top: 10px; border-top: 1px solid #eee; }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <div class="header">
-            <h2>Hello {{ user_name }}, here's your daily job search summary!</h2>
-        </div>
-        <div class="content">
-            <p>Here's a quick overview of your job search activity today:</p>
+{% extends "base.html" %}
 
-            <div class="stats-card">
-                <p class="label">Applications Today:</p>
-                <p>{{ daily_stats.daily_applications_today }}</p>
-            </div>
-            <div class="stats-card">
-                <p class="label">Total Jobs Saved:</p>
-                <p>{{ daily_stats.total_jobs }}</p>
-            </div>
-            <div class="stats-card">
-                <p class="label">Total Applications:</p>
-                <p>{{ daily_stats.total_applications }}</p>
-            </div>
-            <div class="stats-card">
-                <p class="label">Interviews Scheduled:</p>
-                <p>{{ daily_stats.interviews_scheduled }}</p>
-            </div>
-            <div class="stats-card">
-                <p class="label">Offers Received:</p>
-                <p>{{ daily_stats.offers_received }}</p>
-            </div>
+{% block title %}Evening Summary - Career Co-Pilot{% endblock %}
 
-            <p>Keep up the great work! You can view your full analytics and manage your applications here:</p>
-            <p><a href="{{ jobs_url }}" class="button">Go to Career Copilot</a></p>
-        </div>
-        <div class="footer">
-            <p>&copy; {{ "now" | date("%Y") }} Career Copilot. All rights reserved.</p>
-            <p>You are receiving this email because you are a user of Career Copilot.</p>
-        </div>
+{% block header_title %}🌙 Evening Wrap-up{% endblock %}
+{% block header_subtitle %}Great work today, {{ user_name }}! Let's reflect and plan ahead{% endblock %}
+
+{% block content %}
+<div class="greeting">
+  Good evening, {{ user_name }}! 🌟
+</div>
+
+<p style="margin-bottom: 25px; color: #4a5568; font-size: 16px;">
+  As {{ current_date|datetime_format("%A") }} comes to a close, let's celebrate your progress and prepare for tomorrow's
+  opportunities.
+</p>
+
+<!-- Today's Activity Summary -->
+{% if daily_activity %}
+<div class="section">
+  <h2 class="section-title">📋 Today's Activity</h2>
+  <div class="stats-grid">
+    {% if daily_activity.applications_sent %}
+    <div class="stat-card">
+      <span class="stat-number">{{ daily_activity.applications_sent }}</span>
+      <span class="stat-label">Applications Sent</span>
     </div>
-</body>
-</html>
+    {% endif %}
+
+    {% if daily_activity.jobs_viewed %}
+    <div class="stat-card">
+      <span class="stat-number">{{ daily_activity.jobs_viewed }}</span>
+      <span class="stat-label">Jobs Viewed</span>
+    </div>
+    {% endif %}
+
+    {% if daily_activity.profiles_updated %}
+    <div class="stat-card">
+      <span class="stat-number">{{ daily_activity.profiles_updated }}</span>
+      <span class="stat-label">Profiles Updated</span>
+    </div>
+    {% endif %}
+
+    {% if daily_activity.time_spent_minutes %}
+    <div class="stat-card">
+      <span class="stat-number">{{ daily_activity.time_spent_minutes }}m</span>
+      <span class="stat-label">Time Invested</span>
+    </div>
+    {% endif %}
+  </div>
+
+  {% if daily_activity.goal_achievement %}
+  <div
+    style="background-color: #f0fff4; border: 1px solid #c6f6d5; border-radius: 6px; padding: 15px; margin-top: 15px;">
+    <strong style="color: #2d3748;">🎯 Goal Achievement:</strong>
+    <div class="progress-bar" style="margin: 10px 0;">
+      <div class="progress-fill" style="width: {{ daily_activity.goal_achievement }}%"></div>
+    </div>
+    <p style="color: #4a5568; font-size: 14px;">
+      You completed {{ daily_activity.goal_achievement }}% of today's goals!
+    </p>
+  </div>
+  {% endif %}
+</div>
+{% endif %}
+
+<!-- Achievements -->
+{% if achievements %}
+<div class="section">
+  <h2 class="section-title">🏆 Today's Achievements</h2>
+
+  {% for achievement in achievements %}
+  <div class="achievement-item">
+    <div class="achievement-title">{{ achievement.title }}</div>
+    <div class="achievement-description">{{ achievement.description }}</div>
+    {% if achievement.impact %}
+    <div style="margin-top: 8px; font-size: 12px; color: #718096;">
+      <strong>Impact:</strong> {{ achievement.impact }}
+    </div>
+    {% endif %}
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
+
+<!-- Applications Sent Today -->
+{% if daily_activity.applications_sent > 0 and daily_activity.applications_details %}
+<div class="section">
+  <h2 class="section-title">📤 Applications Sent Today</h2>
+
+  {% for application in daily_activity.applications_details %}
+  <div
+    style="background-color: #f7fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 15px; margin-bottom: 10px;">
+    <div style="display: flex; justify-content: space-between; align-items: start;">
+      <div>
+        <strong style="color: #2d3748; font-size: 16px;">{{ application.job_title }}</strong>
+        <div style="color: #4a5568; margin-top: 2px;">{{ application.company }}</div>
+        {% if application.location %}
+        <div style="color: #718096; font-size: 14px; margin-top: 2px;">📍 {{ application.location }}</div>
+        {% endif %}
+      </div>
+      <div style="text-align: right;">
+        <div style="background-color: #48bb78; color: white; padding: 4px 8px; border-radius: 12px; font-size: 12px;">
+          Applied
+        </div>
+        <div style="color: #718096; font-size: 12px; margin-top: 4px;">
+          {{ application.applied_at|datetime_format("%I:%M %p") }}
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
+
+<!-- Tomorrow's Plan -->
+{% if tomorrow_plan %}
+<div class="section">
+  <h2 class="section-title">🗓️ Tomorrow's Plan</h2>
+
+  {% if tomorrow_plan.priority_applications %}
+  <div
+    style="background-color: #fff5f5; border: 1px solid #fed7d7; border-radius: 6px; padding: 15px; margin-bottom: 15px;">
+    <strong style="color: #2d3748;">🎯 Priority Applications:</strong>
+    <ul style="margin-top: 10px; padding-left: 20px;">
+      {% for job in tomorrow_plan.priority_applications %}
+      <li style="color: #4a5568; margin-bottom: 5px;">
+        <strong>{{ job.title }}</strong> at {{ job.company }}
+        {% if job.deadline %}
+        <span style="color: #e53e3e; font-size: 12px;">(Deadline: {{ job.deadline|datetime_format("%m/%d") }})</span>
+        {% endif %}
+      </li>
+      {% endfor %}
+    </ul>
+  </div>
+  {% endif %}
+
+  {% if tomorrow_plan.follow_ups %}
+  <div
+    style="background-color: #f0f4ff; border: 1px solid #c3dafe; border-radius: 6px; padding: 15px; margin-bottom: 15px;">
+    <strong style="color: #2d3748;">📞 Follow-ups Needed:</strong>
+    <ul style="margin-top: 10px; padding-left: 20px;">
+      {% for followup in tomorrow_plan.follow_ups %}
+      <li style="color: #4a5568; margin-bottom: 5px;">
+        {{ followup.company }} - {{ followup.type }}
+        <span style="color: #718096; font-size: 12px;">({{ followup.days_since }} days ago)</span>
+      </li>
+      {% endfor %}
+    </ul>
+  </div>
+  {% endif %}
+
+  {% if tomorrow_plan.skill_development %}
+  <div
+    style="background-color: #fffaf0; border: 1px solid #fbd38d; border-radius: 6px; padding: 15px; margin-bottom: 15px;">
+    <strong style="color: #2d3748;">📚 Skill Development:</strong>
+    <p style="color: #4a5568; margin-top: 5px;">
+      {{ tomorrow_plan.skill_development.activity }} - {{ tomorrow_plan.skill_development.skill }}
+    </p>
+    {% if tomorrow_plan.skill_development.resource %}
+    <p style="color: #718096; font-size: 14px; margin-top: 5px;">
+      Recommended: {{ tomorrow_plan.skill_development.resource }}
+    </p>
+    {% endif %}
+  </div>
+  {% endif %}
+
+  {% if tomorrow_plan.networking %}
+  <div style="background-color: #f0fff4; border: 1px solid #c6f6d5; border-radius: 6px; padding: 15px;">
+    <strong style="color: #2d3748;">🤝 Networking:</strong>
+    <p style="color: #4a5568; margin-top: 5px;">
+      {{ tomorrow_plan.networking.activity }}
+    </p>
+    {% if tomorrow_plan.networking.suggestions %}
+    <ul style="margin-top: 8px; padding-left: 20px;">
+      {% for suggestion in tomorrow_plan.networking.suggestions %}
+      <li style="color: #4a5568; font-size: 14px; margin-bottom: 3px;">{{ suggestion }}</li>
+      {% endfor %}
+    </ul>
+    {% endif %}
+  </div>
+  {% endif %}
+</div>
+{% endif %}
+
+<!-- Motivational Message -->
+{% if motivation %}
+<div class="section"
+  style="text-align: center; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border-radius: 8px; padding: 25px;">
+  <h3 style="margin-bottom: 15px; color: white;">✨ A Message for You</h3>
+  <p style="font-size: 16px; line-height: 1.6; color: rgba(255, 255, 255, 0.95);">
+    {{ motivation }}
+  </p>
+</div>
+{% endif %}
+
+<!-- Weekly Progress Snapshot -->
+{% if daily_activity.weekly_progress %}
+<div class="section">
+  <h2 class="section-title">📊 This Week's Progress</h2>
+  <div class="stats-grid">
+    <div class="stat-card">
+      <span class="stat-number">{{ daily_activity.weekly_progress.applications }}</span>
+      <span class="stat-label">Applications This Week</span>
+    </div>
+    <div class="stat-card">
+      <span class="stat-number">{{ daily_activity.weekly_progress.responses }}</span>
+      <span class="stat-label">Responses Received</span>
+    </div>
+    <div class="stat-card">
+      <span class="stat-number">{{ daily_activity.weekly_progress.interviews }}</span>
+      <span class="stat-label">Interviews Scheduled</span>
+    </div>
+    <div class="stat-card">
+      <span class="stat-number">{{ daily_activity.weekly_progress.streak_days }}</span>
+      <span class="stat-label">Day Streak</span>
+    </div>
+  </div>
+</div>
+{% endif %}
+
+<!-- Call to Action -->
+<div class="section" style="text-align: center; background-color: #f7fafc; border-radius: 8px; padding: 25px;">
+  <h3 style="color: #2d3748; margin-bottom: 15px;">Rest well, tomorrow brings new opportunities! 🌅</h3>
+  <p style="color: #4a5568; margin-bottom: 20px;">
+    You've made progress today. Tomorrow is another chance to move closer to your career goals.
+  </p>
+  <a href="#tomorrow-plan" class="btn">View Tomorrow's Plan</a>
+</div>
+
+<div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e2e8f0; text-align: center;">
+  <p style="color: #718096; font-size: 14px;">
+    💤 <strong>Sleep Tip:</strong> A good night's rest improves interview performance by up to 23%!
+  </p>
+</div>
+{% endblock %}

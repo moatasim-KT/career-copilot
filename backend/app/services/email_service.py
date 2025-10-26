@@ -222,7 +222,7 @@ class EmailService:
         }
         
         # Template management
-        self.templates_dir = Path("backend/app/email_templates")
+        self.templates_dir = Path("backend/app/templates/email")
         self.jinja_env = Environment(
             loader=FileSystemLoader([str(self.templates_dir)]),
             autoescape=select_autoescape(['html', 'xml']),

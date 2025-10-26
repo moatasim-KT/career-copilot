@@ -14,7 +14,7 @@ from app.core.config_advanced import ConfigurationAdapter as ConfigManager
 from app.core.database_optimization import get_optimization_service
 from app.core.service_integration import ServiceIntegrationFramework
 from app.core.service_manager import ServiceManager
-from app.services.llm_manager import EnhancedLLMManager
+from app.services.llm_service import LLMService, get_llm_service
 from app.services.production_orchestration_service import ProductionOrchestrationService
 from app.workflows.advanced_workflow_manager import AdvancedWorkflowManager
 from app.agents.contract_analyzer_agent import ContractAnalyzerAgent
@@ -133,8 +133,7 @@ class SystemIntegrationService:
         logger.info("Initializing core services...")
         
         # Initialize LLM Manager
-        self.llm_manager = EnhancedLLMManager()
-        await self.llm_manager.initialize()
+        self.llm_manager = get_llm_service()
         
         # Initialize Orchestration Service
         self.orchestration_service = ProductionOrchestrationService()

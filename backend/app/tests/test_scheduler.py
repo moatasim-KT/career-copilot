@@ -1,6 +1,6 @@
 import pytest
 from unittest.mock import MagicMock, patch
-from app.scheduler import scheduler, start_scheduler, shutdown_scheduler
+from app.tasks.scheduled_tasks import scheduler, start_scheduler, shutdown_scheduler
 import time
 
 # A simple flag to be modified by a test job
@@ -12,7 +12,7 @@ def sample_job():
 
 @pytest.fixture(scope="module")
 def mock_scheduler_setup():
-    with patch('app.scheduler.scheduler', autospec=True) as mock_scheduler:
+    with patch('app.tasks.scheduled_tasks.scheduler', autospec=True) as mock_scheduler:
         mock_scheduler.running = True # Simulate scheduler is running
         start_scheduler()
         yield mock_scheduler

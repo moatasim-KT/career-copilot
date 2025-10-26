@@ -4,7 +4,7 @@ channels:
   email:
     enabled: true
     provider: smtp
-    templates_path: backend/backend/app/email_templates
+    templates_path: backend/app/templates/email
   slack:
     enabled: true
     default_channel: '#contracts'

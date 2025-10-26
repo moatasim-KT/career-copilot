@@ -27,10 +27,7 @@ class Environment(Enum):
 @dataclass
 class ConfigPaths:
     """Configuration file paths."""
-    base_config: str = "config/base.yaml"
-    backend_config: str = "config/backend.yaml"
-    frontend_config: str = "config/frontend.yaml"
-    deployment_config: str = "config/deployment.yaml"
+    application_config: str = "config/application.yaml"
     environment_config: str = "config/environments/{environment}.yaml"
     services_dir: str = "config/services"
     templates_dir: str = "config/templates"
@@ -122,33 +119,26 @@ class ConfigLoader:
     
     def load_complete_config(self) -> Dict[str, Any]:
         """Load and merge all configuration files."""
-        # Start with base configuration
-        config = self.load_yaml(self.config_paths.base_config)
+        # Start with unified application configuration
+        config = self.load_yaml(self.config_paths.application_config)
         
-        # Load backend configuration
-        backend_config = self.load_yaml(self.config_paths.backend_config)
-        if backend_config:
-            config = self.merge_configs(config, {"backend": backend_config})
+        # Apply environment-specific overrides from the unified config
+        env_overrides = config.get("environments", {}).get(self.environment, {})
+        if env_overrides:
+            config = self.merge_configs(config, env_overrides)
         
-        # Load frontend configuration
-        frontend_config = self.load_yaml(self.config_paths.frontend_config)
-        if frontend_config:
-            config = self.merge_configs(config, {"frontend": frontend_config})
-        
-        # Load deployment configuration
-        deployment_config = self.load_yaml(self.config_paths.deployment_config)
-        if deployment_config:
-            config = self.merge_configs(config, {"deployment": deployment_config})
-        
-        # Load environment-specific configuration
+        # Load environment-specific configuration file if it exists
         env_config_path = self.config_paths.environment_config.format(environment=self.environment)
         env_config = self.load_yaml(env_config_path)
-        config = self.merge_configs(config, env_config)
+        if env_config:
+            config = self.merge_configs(config, env_config)
         
         # Load service configurations
         services_config = self.load_service_configs()
         if services_config:
-            config["services"] = services_config
+            if "services" not in config:
+                config["services"] = {}
+            config["services"].update(services_config)
         
         # Load feature flags
         feature_flags = self.load_json(self.config_paths.feature_flags)
@@ -158,7 +148,10 @@ class ConfigLoader:
         # Load LLM configuration
         llm_config = self.load_json(self.config_paths.llm_config)
         if llm_config:
-            config["llm"] = llm_config
+            if "llm" in config:
+                config["llm"] = self.merge_configs(config["llm"], llm_config)
+            else:
+                config["llm"] = llm_config
         
         # Load monitoring configuration
         monitoring_config = self.load_yaml(self.config_paths.monitoring_config)
@@ -176,10 +169,7 @@ class ConfigLoader:
             "environment": self.environment,
             "loaded_at": str(Path.cwd()),
             "config_files": {
-                "base": self.config_paths.base_config,
-                "backend": self.config_paths.backend_config,
-                "frontend": self.config_paths.frontend_config,
-                "deployment": self.config_paths.deployment_config,
+                "application": self.config_paths.application_config,
                 "environment": env_config_path,
                 "services": self.config_paths.services_dir,
                 "feature_flags": self.config_paths.feature_flags,
@@ -207,36 +197,41 @@ class ConfigLoader:
     def get_backend_config(self) -> Dict[str, Any]:
         """Get backend-specific configuration."""
         config = self.get_config()
-        backend_config = config.get("backend", {})
         
-        # Apply environment-specific overrides
-        env_backend = config.get("environments", {}).get(self.environment, {}).get("backend", {})
-        if env_backend:
-            backend_config = self.merge_configs(backend_config, env_backend)
+        # Extract backend-related configuration from unified config
+        backend_config = {
+            "api": config.get("api", {}),
+            "database": config.get("database", {}),
+            "vector_db": config.get("vector_db", {}),
+            "ai": config.get("ai", {}),
+            "task_routing": config.get("task_routing", {}),
+            "security": config.get("security", {}),
+            "cache": config.get("cache", {}),
+            "background_tasks": config.get("background_tasks", {}),
+            "storage": config.get("storage", {}),
+            "external_services": config.get("external_services", {}),
+            "monitoring": config.get("monitoring", {}),
+            "logging": config.get("logging", {}),
+            "features": config.get("features", {})
+        }
         
         return backend_config
     
     def get_frontend_config(self) -> Dict[str, Any]:
         """Get frontend-specific configuration."""
         config = self.get_config()
-        frontend_config = config.get("frontend", {})
         
-        # Apply environment-specific overrides
-        env_frontend = config.get("environments", {}).get(self.environment, {}).get("frontend", {})
-        if env_frontend:
-            frontend_config = self.merge_configs(frontend_config, env_frontend)
+        # Extract frontend-related configuration from unified config
+        frontend_config = config.get("frontend", {})
         
         return frontend_config
     
     def get_deployment_config(self) -> Dict[str, Any]:
         """Get deployment-specific configuration."""
         config = self.get_config()
-        deployment_config = config.get("deployment", {})
         
-        # Apply environment-specific overrides
-        env_deployment = config.get("environments", {}).get(self.environment, {}).get("deployment", {})
-        if env_deployment:
-            deployment_config = self.merge_configs(deployment_config, env_deployment)
+        # Extract deployment-related configuration from unified config
+        deployment_config = config.get("deployment", {})
         
         return deployment_config
     

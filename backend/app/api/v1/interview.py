@@ -12,7 +12,7 @@ from app.schemas.interview import (
     InterviewQuestionCreate, InterviewQuestionUpdate, InterviewQuestionResponse
 )
 from app.services.interview_practice_service import InterviewPracticeService
-from app.services.ai_service_manager import AIServiceManager, ModelType
+from app.services.llm_service import LLMService, ModelType
 from app.services.job_service import JobService
 
 router = APIRouter(
@@ -22,7 +22,7 @@ router = APIRouter(
 )
 
 def get_interview_practice_service(db: Session = Depends(get_db)) -> InterviewPracticeService:
-    ai_service_manager = AIServiceManager()
+    ai_service_manager = LLMService()
     job_service = JobService(db)
     return InterviewPracticeService(db=db, ai_service_manager=ai_service_manager, job_service=job_service)
 

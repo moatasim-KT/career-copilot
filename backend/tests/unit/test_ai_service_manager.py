@@ -22,9 +22,9 @@ def ai_service_manager():
         mock_get_cache_manager.return_value = mock_cache_instance
         
         # Import AIServiceManager and ModelType after patches are in place
-        from app.services.ai_service_manager import AIServiceManager, ModelType
+        from app.services.llm_service import LLMService, ModelType
         
-        manager = AIServiceManager()
+        manager = LLMService()
         
         # Patch _create_llm_instance to return a mock LLM client
         mock_llm_client = MagicMock()
@@ -45,8 +45,7 @@ async def test_analyze_with_fallback_success(ai_service_manager):
     ai_service_manager._call_model_with_performance_tracking.return_value = MagicMock(
         content="OpenAI response",
         model_used="gpt-4",
-        provider=ai_service_manager.ModelType.GENERAL,
-        confidence_score=0.9,
+        provider=ModelType.GENERAL,
         processing_time=0.1,
         token_usage={"total_tokens": 30},
         cost=0.01,
@@ -57,7 +56,7 @@ async def test_analyze_with_fallback_success(ai_service_manager):
     )
     
     result = await ai_service_manager.analyze_with_fallback(
-        model_type=ai_service_manager.ModelType.GENERAL,
+        model_type=ModelType.GENERAL,
         prompt="test prompt",
         user_id=1
     )
@@ -73,7 +72,7 @@ async def test_analyze_with_fallback_fallback_triggered(ai_service_manager):
         MagicMock(
             content="Anthropic response",
             model_used="claude-3",
-            provider=ai_service_manager.ModelType.GENERAL,
+            provider=ModelType.GENERAL,
             confidence_score=0.8,
             processing_time=0.2,
             token_usage={"total_tokens": 40},
@@ -86,7 +85,7 @@ async def test_analyze_with_fallback_fallback_triggered(ai_service_manager):
     ]
     
     result = await ai_service_manager.analyze_with_fallback(
-        model_type=ai_service_manager.ModelType.GENERAL,
+        model_type=ModelType.GENERAL,
         prompt="test prompt",
         user_id=1
     )
@@ -100,7 +99,7 @@ async def test_analyze_with_fallback_all_fail(ai_service_manager):
     
     with pytest.raises(Exception, match="All AI models failed"):
         await ai_service_manager.analyze_with_fallback(
-        model_type=ai_service_manager.ModelType.GENERAL,
+        model_type=ModelType.GENERAL,
         prompt="test prompt",
         user_id=1
         )

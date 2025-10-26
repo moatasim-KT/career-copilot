@@ -12,7 +12,7 @@ import pdfplumber
 from docx import Document
 from io import BytesIO
 
-from ..services.llm_manager import LLMManager
+from ..services.llm_service import LLMService, get_llm_service
 from ..models.resume_upload import ResumeUpload
 from ..core.database import get_db
 from sqlalchemy.orm import Session
@@ -26,7 +26,7 @@ class ResumeParserService:
     """Service for parsing resume documents and extracting structured data"""
 
     def __init__(self):
-        self.llm_manager = LLMManager()
+        self.llm_manager = get_llm_service()
         self.supported_formats = {".pdf", ".docx", ".doc"}
 
         # Common skill patterns for fallback extraction

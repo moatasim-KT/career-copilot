@@ -542,7 +542,7 @@ async def get_monitoring_dashboard() -> JSONResponse:
     try:
         # Try to get comprehensive monitoring data
         try:
-            from ...core.comprehensive_monitoring import get_comprehensive_monitoring
+            from ...core.monitoring import get_comprehensive_monitoring
             monitoring_system = get_comprehensive_monitoring()
             dashboard_data = monitoring_system.get_monitoring_dashboard()
             
@@ -583,7 +583,7 @@ async def get_system_health_monitoring() -> JSONResponse:
     try:
         # Try to get comprehensive health status
         try:
-            from ...core.comprehensive_monitoring import get_comprehensive_monitoring
+            from ...core.monitoring import get_comprehensive_monitoring
             monitoring_system = get_comprehensive_monitoring()
             health_status = monitoring_system.get_health_status()
             
@@ -632,7 +632,7 @@ async def get_system_alerts_monitoring(
         
         # Try to get comprehensive monitoring alerts
         try:
-            from ...core.comprehensive_monitoring import get_comprehensive_monitoring
+            from ...core.monitoring import get_comprehensive_monitoring
             monitoring_system = get_comprehensive_monitoring()
             dashboard_data = monitoring_system.get_monitoring_dashboard()
             

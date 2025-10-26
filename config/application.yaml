@@ -1,0 +1,725 @@
+# =============================================================================
+# Career Copilot - Unified Application Configuration
+# =============================================================================
+# This file consolidates backend.yaml, frontend.yaml, deployment.yaml, and base.yaml
+# Environment-specific overrides are defined at the bottom of this file
+# =============================================================================
+
+# Application Information
+app:
+  name: "Career Copilot"
+  version: "1.0.0"
+  description: "AI-powered career guidance and job matching platform"
+
+# =============================================================================
+# API Configuration
+# =============================================================================
+api:
+  host: "0.0.0.0"
+  port: 8002
+  debug: false
+  workers: 1
+  timeout: 300
+  max_request_size: 52428800  # 50MB
+  reload: false
+
+# =============================================================================
+# Database Configuration
+# =============================================================================
+database:
+  url: "sqlite+aiosqlite:///./data/career_copilot.db"
+  pool_size: 5
+  max_overflow: 10
+  pool_timeout: 30
+  pool_recycle: 3600
+  echo: false
+  pool_pre_ping: false
+  migrations:
+    auto_migrate: true
+    backup_before_migrate: true
+    script_location: "migrations"
+
+# =============================================================================
+# Vector Database (ChromaDB)
+# =============================================================================
+vector_db:
+  persist_directory: "data/chroma"
+  collection_name: "job_embeddings"
+  batch_size: 100
+  similarity_threshold: 0.7
+
+# =============================================================================
+# AI/LLM Configuration
+# =============================================================================
+ai:
+  openai:
+    model: "gpt-3.5-turbo"
+    temperature: 0.1
+    max_tokens: 4000
+    timeout: 60
+  groq:
+    model: "llama-3.1-8b-instant"
+    temperature: 0.1
+    max_tokens: 4000
+    enabled: true
+    timeout: 60
+  gemini:
+    model: "gemini-pro"
+    temperature: 0.1
+    max_tokens: 4000
+    enabled: false
+    timeout: 60
+  anthropic:
+    model: "claude-3-sonnet-20240229"
+    temperature: 0.1
+    max_tokens: 4000
+    enabled: false
+    timeout: 60
+  ollama:
+    base_url: "http://localhost:11434"
+    model: "llama2"
+    temperature: 0.1
+    max_tokens: 4000
+    enabled: false
+    timeout: 60
+
+# =============================================================================
+# Task Routing Configuration
+# =============================================================================
+task_routing:
+  default_criteria: "cost"
+  cache_ttl: 3600
+  max_retries: 3
+  fallback_enabled: true
+  circuit_breaker:
+    threshold: 5
+    timeout: 60
+
+# =============================================================================
+# Security Configuration
+# =============================================================================
+security:
+  cors_origins:
+    - "http://localhost:8501"
+    - "http://localhost:8002"
+    - "http://127.0.0.1:8501"
+    - "http://127.0.0.1:8502"
+  jwt:
+    algorithm: "HS256"
+    expiration_hours: 24
+  rate_limiting:
+    enabled: false
+    requests_per_minute: 100
+    burst: 200
+  file_upload:
+    max_size_mb: 50
+    allowed_types:
+      - "pdf"
+      - "docx"
+      - "txt"
+    scan_files: true
+  encryption:
+    enabled: false
+    algorithm: "AES-256-GCM"
+  audit_logging: false
+  ip_filtering: false
+  csrf_protection: false
+
+# =============================================================================
+# Cache Configuration
+# =============================================================================
+cache:
+  redis:
+    enabled: false
+    host: "localhost"
+    port: 6379
+    db: 0
+    max_connections: 20
+    timeout: 5
+    password_required: false
+  memory:
+    enabled: true
+    max_size: 1000
+    ttl: 3600
+
+# =============================================================================
+# Background Tasks
+# =============================================================================
+background_tasks:
+  enabled: true
+  max_workers: 2
+  queue_size: 100
+  retry_attempts: 3
+  retry_delay: 1.0
+
+# =============================================================================
+# File Storage
+# =============================================================================
+storage:
+  local:
+    enabled: true
+    path: "data/storage"
+    max_size_mb: 1000
+  backup:
+    enabled: false
+    retention_days: 30
+    schedule: "0 2 * * *"
+
+# =============================================================================
+# Frontend Configuration (Streamlit)
+# =============================================================================
+frontend:
+  streamlit:
+    server:
+      port: 8501
+      address: "0.0.0.0"
+      headless: true
+      enableCORS: true
+      enableXsrfProtection: true
+      maxUploadSize: 50
+      maxMessageSize: 50
+      enableWebsocketCompression: true
+    
+    browser:
+      serverAddress: "localhost"
+      serverPort: 8501
+    
+    theme:
+      primaryColor: "#007bff"
+      backgroundColor: "#ffffff"
+      secondaryBackgroundColor: "#f8f9fa"
+      textColor: "#333333"
+      font: "sans serif"
+    
+    runner:
+      magicEnabled: true
+    
+    logger:
+      level: "INFO"
+
+  ui:
+    page_title: "Career Copilot"
+    page_icon: "🚀"
+    layout: "wide"
+    theme: "light"
+    enable_dark_mode: true
+    mobile_breakpoint: 768
+    tablet_breakpoint: 1024
+    enable_animations: true
+    enable_haptic_feedback: true
+    results_expander_expanded: true
+    error_display_duration: 5
+    show_upload_progress: true
+    show_file_metadata: true
+
+  file_upload:
+    max_file_size_mb: 50
+    allowed_file_types: ["pdf", "docx", "txt"]
+    max_files_per_upload: 10
+    enable_file_preview: true
+    enable_drag_drop: true
+    enable_real_time_validation: true
+    chunk_size_kb: 1024
+    max_preview_size_kb: 100
+
+  performance:
+    enable_compression: true
+    enable_minification: true
+    lazy_loading: true
+    image_optimization: true
+    chunk_size_mb: 10
+    max_concurrent_requests: 5
+    cache_ttl_seconds: 300
+    cache_max_entries: 1000
+    enable_file_cache: true
+    enable_api_cache: true
+
+  analytics:
+    enable_user_tracking: true
+    enable_performance_tracking: true
+    enable_error_tracking: true
+    retention_days: 30
+    batch_size: 100
+
+  websocket:
+    enable_real_time: true
+    polling_interval_seconds: 5
+    connection_timeout_seconds: 30
+    max_reconnect_attempts: 5
+    heartbeat_interval_seconds: 30
+
+# =============================================================================
+# External Services
+# =============================================================================
+external_services:
+  docusign:
+    enabled: false
+    sandbox_enabled: true
+    scopes: ["signature", "impersonation"]
+    base_url: "https://demo.docusign.net/restapi"
+    timeout: 30
+    max_retries: 3
+  slack:
+    enabled: false
+    default_channel: "#jobs"
+    timeout: 30
+  gmail:
+    enabled: false
+    scopes: ["https://www.googleapis.com/auth/gmail.send"]
+    timeout: 30
+  google_drive:
+    enabled: false
+    scopes: ["https://www.googleapis.com/auth/drive.file"]
+    timeout: 30
+
+# =============================================================================
+# Monitoring and Observability
+# =============================================================================
+monitoring:
+  enabled: false
+  prometheus:
+    enabled: false
+    port: 9090
+  opentelemetry:
+    enabled: false
+  health_checks:
+    interval: 60
+    timeout: 30
+    retries: 3
+
+# =============================================================================
+# Logging Configuration
+# =============================================================================
+logging:
+  level: "INFO"
+  format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+  file_path: "logs/app.log"
+  rotation:
+    max_size: "100MB"
+    backup_count: 10
+  structured: false
+
+# =============================================================================
+# Feature Flags
+# =============================================================================
+features:
+  enhanced_analysis: true
+  real_time_updates: true
+  batch_processing: true
+  advanced_security: false
+  experimental_ai: false
+  beta_ui: false
+  performance_monitoring: false
+  audit_logging: false
+  multi_tenant: false
+  api_versioning: false
+  dark_mode: true
+  offline_mode: false
+  beta_features: false
+
+# =============================================================================
+# Deployment Configuration
+# =============================================================================
+deployment:
+  docker:
+    backend:
+      image: "career-copilot-backend"
+      tag: "latest"
+      dockerfile: "deployment/docker/Dockerfile.backend"
+      build_context: "."
+      ports:
+        - "8002:8002"
+      volumes:
+        - "./data:/backend/app/data"
+        - "./logs:/backend/app/logs"
+        - "./secrets:/backend/app/secrets"
+      environment:
+        - "ENVIRONMENT=production"
+        - "DATABASE_URL=sqlite+aiosqlite:///./data/career_copilot.db"
+      healthcheck:
+        test: ["CMD", "curl", "-f", "http://localhost:8002/health"]
+        interval: "30s"
+        timeout: "10s"
+        retries: 3
+        start_period: "40s"
+      restart_policy: "unless-stopped"
+      
+    frontend:
+      image: "career-copilot-frontend"
+      tag: "latest"
+      dockerfile: "deployment/docker/Dockerfile.frontend"
+      build_context: "."
+      ports:
+        - "8501:8501"
+      volumes:
+        - "./data:/backend/app/data"
+        - "./logs:/backend/app/logs"
+      environment:
+        - "BACKEND_URL=http://backend:8002"
+        - "STREAMLIT_SERVER_PORT=8501"
+      depends_on:
+        - "backend"
+      healthcheck:
+        test: ["CMD", "curl", "-f", "http://localhost:8501/_stcore/health"]
+        interval: "30s"
+        timeout: "10s"
+        retries: 3
+        start_period: "40s"
+      restart_policy: "unless-stopped"
+
+  compose:
+    version: "3.8"
+    networks:
+      career_copilot:
+        driver: bridge
+    volumes:
+      data:
+        driver: local
+      logs:
+        driver: local
+      prometheus_data:
+        driver: local
+      grafana_data:
+        driver: local
+
+  kubernetes:
+    namespace: "career-copilot"
+    replicas:
+      backend: 3
+      frontend: 2
+    resources:
+      backend:
+        requests:
+          memory: "512Mi"
+          cpu: "250m"
+        limits:
+          memory: "2Gi"
+          cpu: "1000m"
+      frontend:
+        requests:
+          memory: "256Mi"
+          cpu: "100m"
+        limits:
+          memory: "1Gi"
+          cpu: "500m"
+    ingress:
+      enabled: true
+      class: "nginx"
+      annotations:
+        cert-manager.io/cluster-issuer: "letsencrypt-prod"
+        nginx.ingress.kubernetes.io/ssl-redirect: "true"
+      hosts:
+        - host: "career-copilot.example.com"
+          paths:
+            - path: "/"
+              service: "frontend"
+              port: 8501
+            - path: "/api"
+              service: "backend"
+              port: 8002
+      tls:
+        - secretName: "career-copilot-tls"
+          hosts:
+            - "career-copilot.example.com"
+
+  health_checks:
+    backend:
+      endpoint: "/health"
+      interval: 30
+      timeout: 10
+      retries: 3
+      healthy_threshold: 2
+      unhealthy_threshold: 3
+    frontend:
+      endpoint: "/_stcore/health"
+      interval: 30
+      timeout: 10
+      retries: 3
+      healthy_threshold: 2
+      unhealthy_threshold: 3
+
+  scaling:
+    auto_scaling:
+      enabled: false
+      min_replicas: 1
+      max_replicas: 10
+      target_cpu_utilization: 70
+      target_memory_utilization: 80
+    horizontal_pod_autoscaler:
+      enabled: false
+      metrics:
+        - type: "Resource"
+          resource:
+            name: "cpu"
+            target:
+              type: "Utilization"
+              averageUtilization: 70
+        - type: "Resource"
+          resource:
+            name: "memory"
+            target:
+              type: "Utilization"
+              averageUtilization: 80
+
+  load_balancing:
+    strategy: "round_robin"
+    session_affinity: false
+    health_check_path: "/health"
+    timeout: 30
+    retries: 3
+
+  ssl:
+    enabled: true
+    cert_path: "./secrets/ssl/certificate.crt"
+    key_path: "./secrets/ssl/private.key"
+    ca_path: "./secrets/ssl/ca.crt"
+    protocols: ["TLSv1.2", "TLSv1.3"]
+    ciphers: "ECDHE+AESGCM:ECDHE+CHACHA20:DHE+AESGCM:DHE+CHACHA20:!aNULL:!MD5:!DSS"
+    
+  backup:
+    enabled: true
+    schedule: "0 2 * * *"  # Daily at 2 AM
+    retention_days: 30
+    storage_path: "data/backups"
+    compress: true
+    encryption: true
+    destinations:
+      local:
+        enabled: true
+        path: "data/backups"
+      s3:
+        enabled: false
+        bucket: "career-copilot-backups"
+        region: "us-east-1"
+        access_key_id: "${AWS_ACCESS_KEY_ID}"
+        secret_access_key: "${AWS_SECRET_ACCESS_KEY}"
+
+# =============================================================================
+# Environment-Specific Overrides
+# =============================================================================
+environments:
+  development:
+    api:
+      debug: true
+      workers: 1
+      reload: true
+    database:
+      echo: true
+      pool_size: 2
+      max_overflow: 5
+    security:
+      cors_origins:
+        - "http://localhost:8501"
+        - "http://localhost:8502"
+        - "http://localhost:8503"
+        - "http://localhost:3000"
+        - "http://127.0.0.1:8501"
+        - "http://127.0.0.1:8502"
+        - "http://127.0.0.1:8503"
+        - "http://127.0.0.1:3000"
+      jwt:
+        expiration_hours: 168  # 7 days
+      rate_limiting:
+        enabled: false
+      file_upload:
+        max_size_mb: 100
+        scan_files: false
+      encryption:
+        enabled: false
+    cache:
+      redis:
+        enabled: false
+      memory:
+        max_size: 500
+        ttl: 1800
+    background_tasks:
+      max_workers: 1
+      queue_size: 50
+    frontend:
+      streamlit:
+        server:
+          enableCORS: true
+          maxUploadSize: 100
+        logger:
+          level: "DEBUG"
+      ui:
+        theme: "light"
+        enable_animations: true
+      file_upload:
+        max_file_size_mb: 100
+      security:
+        scan_file_content: false
+        enable_rate_limiting: false
+      features:
+        beta_features: true
+    ai:
+      openai:
+        model: "gpt-3.5-turbo"
+      groq:
+        model: "llama-3.1-8b-instant"
+      anthropic:
+        model: "claude-3-sonnet-20240229"
+    deployment:
+      docker:
+        backend:
+          ports:
+            - "8002:8002"
+          environment:
+            - "ENVIRONMENT=development"
+            - "DEBUG=true"
+        frontend:
+          ports:
+            - "8501:8501"
+          environment:
+            - "BACKEND_URL=http://localhost:8002"
+      ssl:
+        enabled: false
+      backup:
+        enabled: false
+        
+  production:
+    api:
+      debug: false
+      workers: 8
+      timeout: 300
+      max_request_size: 26214400  # 25MB
+    database:
+      echo: false
+      pool_size: 20
+      max_overflow: 40
+      pool_timeout: 60
+      pool_recycle: 1800
+      pool_pre_ping: true
+    security:
+      cors_origins: []  # Must be set via environment variables
+      jwt:
+        expiration_hours: 8
+      rate_limiting:
+        enabled: true
+        requests_per_minute: 500
+        burst: 1000
+      file_upload:
+        max_size_mb: 25
+        scan_files: true
+      encryption:
+        enabled: true
+      audit_logging: true
+      ip_filtering: true
+      csrf_protection: true
+    cache:
+      redis:
+        enabled: true
+        host: "production-redis"
+        port: 6379
+        max_connections: 50
+        timeout: 10
+        password_required: true
+      memory:
+        max_size: 5000
+        ttl: 7200
+    background_tasks:
+      max_workers: 16
+      queue_size: 1000
+      retry_attempts: 5
+      retry_delay: 2.0
+    frontend:
+      streamlit:
+        server:
+          enableCORS: false
+          maxUploadSize: 25
+        logger:
+          level: "INFO"
+      ui:
+        enable_animations: false
+      file_upload:
+        max_file_size_mb: 25
+      security:
+        scan_file_content: true
+        enable_rate_limiting: true
+        max_requests_per_minute: 30
+        session_timeout_minutes: 30
+      features:
+        beta_features: false
+    ai:
+      openai:
+        model: "gpt-4"
+      groq:
+        model: "mixtral-8x7b-32768"
+      anthropic:
+        model: "claude-3-opus-20240229"
+    deployment:
+      docker:
+        backend:
+          replicas: 3
+          environment:
+            - "ENVIRONMENT=production"
+            - "DEBUG=false"
+            - "WORKERS=8"
+        frontend:
+          replicas: 2
+      kubernetes:
+        replicas:
+          backend: 5
+          frontend: 3
+      ssl:
+        enabled: true
+        protocols: ["TLSv1.3"]
+      backup:
+        enabled: true
+        retention_days: 90
+        destinations:
+          s3:
+            enabled: true
+            
+  testing:
+    api:
+      debug: false
+      workers: 1
+    database:
+      url: "sqlite+aiosqlite:///./data/career_copilot_test.db"
+      echo: false
+      pool_size: 1
+      max_overflow: 2
+    security:
+      rate_limiting:
+        enabled: false
+      file_upload:
+        max_size_mb: 10
+        scan_files: false
+    cache:
+      redis:
+        enabled: false
+      memory:
+        max_size: 100
+        ttl: 300
+    background_tasks:
+      enabled: false
+    frontend:
+      streamlit:
+        server:
+          maxUploadSize: 10
+        logger:
+          level: "ERROR"
+      file_upload:
+        max_file_size_mb: 10
+      security:
+        enable_rate_limiting: false
+        session_timeout_minutes: 5
+      analytics:
+        enable_user_tracking: false
+        enable_performance_tracking: false
+      features:
+        beta_features: false
+    deployment:
+      docker:
+        backend:
+          replicas: 2
+          environment:
+            - "ENVIRONMENT=staging"
+        frontend:
+          replicas: 1
+      ssl:
+        enabled: true
+      backup:
+        enabled: true
+        retention_days: 14

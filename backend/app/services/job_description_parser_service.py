@@ -9,7 +9,7 @@ import requests
 from bs4 import BeautifulSoup
 import time
 
-from ..services.llm_manager import LLMManager
+from ..services.llm_service import LLMService, get_llm_service
 from ..utils.redis_client import redis_client
 
 logger = logging.getLogger(__name__)
@@ -19,7 +19,7 @@ class JobDescriptionParserService:
     """Service for parsing job descriptions and extracting structured data"""
 
     def __init__(self):
-        self.llm_manager = LLMManager()
+        self.llm_manager = get_llm_service()
 
         # Common tech stack patterns for fallback extraction
         self.tech_patterns = [

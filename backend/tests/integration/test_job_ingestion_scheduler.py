@@ -1,6 +1,6 @@
 import pytest
 from unittest.mock import patch, AsyncMock, MagicMock
-from app.scheduler import start_scheduler, shutdown_scheduler, scheduler
+from app.tasks.scheduled_tasks import start_scheduler, shutdown_scheduler, scheduler
 from app.core.config import Settings
 import asyncio
 from datetime import datetime, timedelta
@@ -43,7 +43,7 @@ async def test_scheduler_starts_and_stops():
 @pytest.mark.asyncio
 async def test_scheduler_disabled_by_settings(mocker):
     """Test that scheduler doesn't start when disabled in settings"""
-    mocker.patch('app.scheduler.scheduler.start') # Prevent actual scheduler start
+    mocker.patch('app.tasks.scheduled_tasks.scheduler.start') # Prevent actual scheduler start
     with patch('app.core.config.get_settings') as mock_get_settings:
         mock_settings_instance = Settings(
             enable_scheduler=False,
@@ -121,7 +121,7 @@ async def test_scheduler_job_registration():
 async def test_ingest_jobs_scheduled_correctly_registered(mocker):
     """Test that the ingest_jobs task is correctly registered with the scheduler"""
     # Patch scheduler.add_job to inspect its calls
-    mock_add_job = mocker.patch('app.scheduler.scheduler.add_job')
+    mock_add_job = mocker.patch('app.tasks.scheduled_tasks.scheduler.add_job')
 
     with patch('app.core.config.get_settings') as mock_get_settings:
         mock_settings_instance = Settings(

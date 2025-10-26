@@ -5,7 +5,7 @@ import json
 from typing import Dict, List, Optional, Any
 from sqlalchemy.orm import Session
 
-from ..services.llm_manager import LLMManager
+from ..services.llm_service import LLMService, get_llm_service
 from ..models.content_generation import ContentGeneration
 from ..models.content_version import ContentVersion
 from ..models.job import Job
@@ -19,7 +19,7 @@ class ContentGeneratorService:
     """Service for generating personalized content using LLM"""
 
     def __init__(self):
-        self.llm_manager = LLMManager()
+        self.llm_manager = get_llm_service()
 
         # Enhanced content templates with more options
         self.cover_letter_templates = {

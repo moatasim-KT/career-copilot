@@ -207,25 +207,6 @@ async def ingest_jobs():
     finally:
         db.close()
 
-# Configure executors
-executors = {
-    'default': ThreadPoolExecutor(20),
-    'processpool': ProcessPoolExecutor(5)
-}
-
-# Configure job defaults
-job_defaults = {
-    'coalesce': False,
-    'max_instances': 3
-}
-
-# Initialize APScheduler with BackgroundScheduler
-scheduler = BackgroundScheduler(
-    jobstores=jobstores,
-    executors=executors,
-    job_defaults=job_defaults,
-    timezone=utc
-)
 
 # ============================================================================
 # CORE SCHEDULED TASKS (from original scheduled_tasks.py)

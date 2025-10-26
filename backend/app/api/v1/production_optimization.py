@@ -11,9 +11,9 @@ from typing import Any, Dict, List, Optional
 from fastapi import APIRouter, HTTPException, Depends, BackgroundTasks, Query
 from pydantic import BaseModel, Field
 
-from ...core.performance_optimizer import get_performance_optimizer
+from ...core.performance_metrics import get_performance_optimizer
 from ...core.security_validator import get_security_validator
-from ...core.production_monitor import get_production_monitor
+from ...core.monitoring import get_production_monitor
 from ...core.logging import get_logger
 from ...core.monitoring import log_audit_event
 

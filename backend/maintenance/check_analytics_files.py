@@ -36,7 +36,7 @@ def main():
     files_to_check = [
         "backend/app/services/analytics_data_collection_service.py",
         "backend/app/middleware/activity_tracking_middleware.py", 
-        "backend/app/tasks/analytics_collection_tasks.py",
+        # "backend/app/tasks/analytics_collection_tasks.py", # Consolidated into analytics_tasks.py
         "backend/app/scripts/test_analytics_data_collection.py",
         "backend/app/scripts/validate_analytics_implementation.py"
     ]

@@ -37,7 +37,7 @@ from app.schemas.job_recommendation_feedback import (
 )
 from app.services.recommendation_engine import RecommendationEngine
 from app.services.websocket_service import websocket_service
-from app.services.llm_manager import LLMManager
+from app.services.llm_service import LLMService, get_llm_service
 from app.utils.redis_client import redis_client
 
 logger = get_logger(__name__)
@@ -58,7 +58,7 @@ class JobRecommendationService:
         self.db = db
         self.settings = settings
         self.recommendation_engine = RecommendationEngine(db)
-        self.llm_manager = LLMManager()
+        self.llm_manager = get_llm_service()
         
         # Job match threshold configuration
         self.high_match_threshold = getattr(settings, 'high_match_threshold', 80.0)

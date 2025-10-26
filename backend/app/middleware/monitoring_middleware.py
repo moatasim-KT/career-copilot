@@ -102,7 +102,7 @@ class MonitoringMiddleware(BaseHTTPMiddleware):
 
 			# Record in comprehensive monitoring system
 			try:
-				from ..core.comprehensive_monitoring import get_comprehensive_monitoring
+				from ..core.monitoring import get_comprehensive_monitoring
 				monitoring_system = get_comprehensive_monitoring()
 				monitoring_system.record_request(duration, success)
 			except Exception as monitor_error:
@@ -136,7 +136,7 @@ class MonitoringMiddleware(BaseHTTPMiddleware):
 
 			# Record in comprehensive monitoring system
 			try:
-				from ..core.comprehensive_monitoring import get_comprehensive_monitoring
+				from ..core.monitoring import get_comprehensive_monitoring
 				monitoring_system = get_comprehensive_monitoring()
 				monitoring_system.record_request(duration, False)
 			except Exception as monitor_error:

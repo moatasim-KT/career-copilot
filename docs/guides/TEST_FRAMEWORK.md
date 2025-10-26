@@ -2,15 +2,16 @@
 
 ## Overview
 
-This document provides comprehensive guidance for using the CareerCopilot test framework, including setup instructions, usage guidelines, and troubleshooting information.
+This document provides comprehensive guidance for using the CareerCopilot test framework, updated to reflect the consolidated architecture with streamlined services and reduced file count. The framework has been optimized to work with the new consolidated service structure while maintaining comprehensive test coverage.
 
 ## Table of Contents
 
 1. [Installation](#installation)
 2. [CLI Usage](#cli-usage)
 3. [Test Configuration](#test-configuration)
-4. [CI/CD Integration](#cicd-integration)
-5. [Troubleshooting](#troubleshooting)
+4. [Consolidated Architecture Testing](#consolidated-architecture-testing)
+5. [CI/CD Integration](#cicd-integration)
+6. [Troubleshooting](#troubleshooting)
 
 ## Installation
 
@@ -93,6 +94,71 @@ Important environment variables:
 - `TEST_ENV`: Test environment (test/staging/prod)
 - `DB_URL`: Database connection URL
 - `API_KEY`: API authentication key
+- `TEST_CONSOLIDATED_SERVICES`: Enable testing of consolidated services
+- `COMPATIBILITY_LAYER_ENABLED`: Test compatibility layer functionality
+
+## Consolidated Architecture Testing
+
+### Testing Consolidated Services
+
+The consolidated architecture requires specific testing approaches:
+
+#### Service Integration Testing
+
+```python
+# Test consolidated analytics service
+def test_analytics_service_consolidation():
+    """Test that consolidated AnalyticsService maintains all functionality."""
+    from backend.app.services.analytics_service import AnalyticsService
+    
+    service = AnalyticsService()
+    
+    # Test core analytics functionality (from original analytics.py)
+    assert service.collect_event("test_event", {"data": "value"})
+    
+    # Test data collection functionality (from analytics_data_collection_service.py)
+    assert service.process_analytics(batch_size=10)
+    
+    # Test metrics functionality
+    metrics = service.get_metrics("user_engagement", "daily")
+    assert metrics is not None
+```
+
+#### Import Compatibility Testing
+
+```python
+# Test backward compatibility
+def test_import_compatibility():
+    """Test that old import paths still work through compatibility layer."""
+    # This should work but show deprecation warning
+    with pytest.warns(DeprecationWarning):
+        from backend.app.services.analytics import Analytics
+    
+    # New import should work without warnings
+    from backend.app.services.analytics_service import AnalyticsService
+```
+
+#### Consolidated Service Coverage
+
+Test suites now focus on:
+
+- **Core Service Functionality**: Test main consolidated service interfaces
+- **Specialized Service Features**: Test domain-specific consolidated services  
+- **Migration Compatibility**: Ensure old interfaces still work
+- **Performance Impact**: Verify consolidation doesn't degrade performance
+
+### E2E Test Consolidation
+
+E2E tests have been reduced from 40+ to 15 files while maintaining coverage:
+
+```bash
+# Run consolidated E2E tests
+python scripts/test_runner.py run --suite e2e
+
+# Test specific consolidated workflows
+python scripts/test_runner.py run --suite e2e --marker job_management
+python scripts/test_runner.py run --suite e2e --marker analytics_flow
+```
 
 ## CI/CD Integration
 
@@ -154,6 +220,16 @@ pipeline {
    - Reduce number of workers
    - Check for resource contention
    - Verify test isolation
+
+4. **Consolidated Service Import Errors**
+   - Verify new import paths are correct
+   - Check compatibility layer is enabled
+   - Ensure consolidated services are properly initialized
+
+5. **Missing Test Coverage After Consolidation**
+   - Review consolidated test suites
+   - Check that all original functionality is covered
+   - Verify E2E tests cover consolidated workflows
 
 ### Debug Mode
 

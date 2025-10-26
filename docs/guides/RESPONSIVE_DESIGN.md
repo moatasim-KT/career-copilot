@@ -2,7 +2,7 @@
 
 ## Overview
 
-This document outlines the responsive design implementation for the Career Copilot frontend, built with Next.js 14, TypeScript, and Tailwind CSS.
+This document outlines the responsive design implementation for the Career Copilot frontend, built with Next.js 14, TypeScript, and Tailwind CSS. Updated to reflect the consolidated backend architecture with streamlined API endpoints and unified service interfaces.
 
 ## Design System
 
@@ -183,11 +183,14 @@ All styles are written mobile-first, with larger screens enhanced using min-widt
 - Code splitting by route
 - Lazy loading of non-critical components
 - Optimized bundle sizes for mobile networks
+- Efficient API calls to consolidated backend services
+- Reduced payload sizes due to streamlined service responses
 
 ### 3. Loading States
 - Skeleton screens for better perceived performance
 - Progressive enhancement approach
 - Graceful degradation for slower connections
+- Optimized loading with consolidated API endpoints
 
 ## Testing Responsive Design
 

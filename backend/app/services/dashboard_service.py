@@ -154,7 +154,7 @@ class DashboardService:
             await self.broadcast_dashboard_update(user_id, "job_update")
             
             # Also invalidate recommendations cache since job data changed
-            from ..services.cache_service import cache_service
+            from .cache_service import cache_service
             cache_service.invalidate_user_cache(user_id)
             
         except Exception as e:

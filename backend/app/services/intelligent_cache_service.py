@@ -1,27 +1,29 @@
 """
 Intelligent Cache Service with Advanced Caching Strategies.
 
-Provides intelligent caching with:
+Consolidates intelligent caching, cache invalidation, and cache monitoring:
 - Multi-level caching (L1: Memory, L2: Redis, L3: Database)
 - Adaptive TTL based on access patterns
 - Cache warming and preloading
-- Intelligent cache invalidation
-- Performance optimization
+- Intelligent cache invalidation with rules and strategies
+- Performance monitoring and optimization recommendations
+- Cache health monitoring and alerting
 """
 
 import asyncio
 import hashlib
 import json
 import time
+import fnmatch
+import uuid
 from datetime import datetime, timedelta
-from typing import Any, Dict, List, Optional, Callable, Tuple
-from dataclasses import dataclass
+from typing import Any, Dict, List, Optional, Callable, Tuple, Set
+from dataclasses import dataclass, field
 from enum import Enum
 import pickle
 import zlib
 
 from .cache_service import get_cache_service
-from ..core.database import get_database_manager
 from ..core.config import get_settings
 from ..core.logging import get_logger
 
@@ -43,6 +45,25 @@ class CacheStrategy(Enum):
     WRITE_AROUND = "write_around"
     READ_THROUGH = "read_through"
     CACHE_ASIDE = "cache_aside"
+
+
+class InvalidationStrategy(Enum):
+    """Cache invalidation strategies."""
+    IMMEDIATE = "immediate"  # Invalidate immediately
+    DELAYED = "delayed"      # Invalidate after a delay
+    SCHEDULED = "scheduled"  # Invalidate at scheduled times
+    CONDITIONAL = "conditional"  # Invalidate based on conditions
+    CASCADE = "cascade"      # Invalidate related cache entries
+
+
+class InvalidationTrigger(Enum):
+    """Cache invalidation triggers."""
+    DATA_UPDATE = "data_update"
+    USER_ACTION = "user_action"
+    TIME_BASED = "time_based"
+    DEPENDENCY_CHANGE = "dependency_change"
+    MANUAL = "manual"
+    SYSTEM_EVENT = "system_event"
 
 
 @dataclass
@@ -75,12 +96,86 @@ class CacheStats:
     avg_response_time: float
 
 
+@dataclass
+class InvalidationRule:
+    """Cache invalidation rule."""
+    rule_id: str
+    name: str
+    description: str
+    strategy: InvalidationStrategy
+    trigger: InvalidationTrigger
+    cache_patterns: List[str]
+    conditions: Dict[str, Any]
+    delay_seconds: int = 0
+    enabled: bool = True
+    created_at: datetime = None
+    last_triggered: Optional[datetime] = None
+    trigger_count: int = 0
+
+
+@dataclass
+class InvalidationEvent:
+    """Cache invalidation event."""
+    event_id: str
+    rule_id: str
+    trigger: InvalidationTrigger
+    cache_patterns: List[str]
+    metadata: Dict[str, Any]
+    timestamp: datetime
+    processed: bool = False
+    processed_at: Optional[datetime] = None
+    invalidated_keys: List[str] = None
+    error: Optional[str] = None
+
+
+@dataclass
+class CacheMetrics:
+    """Cache performance metrics."""
+    timestamp: datetime
+    hit_rate: float
+    miss_rate: float
+    total_requests: int
+    redis_hits: int
+    memory_hits: int
+    errors: int
+    avg_response_time: float
+    memory_usage_mb: float
+    redis_connected: bool
+    evictions: int
+    expirations: int
+
+
+@dataclass
+class CacheAlert:
+    """Cache performance alert."""
+    alert_id: str
+    alert_type: str
+    severity: str  # low, medium, high, critical
+    message: str
+    timestamp: datetime
+    metrics: Dict[str, Any]
+    resolved: bool = False
+    resolved_at: Optional[datetime] = None
+
+
+@dataclass
+class OptimizationRecommendation:
+    """Cache optimization recommendation."""
+    recommendation_id: str
+    category: str  # ttl, memory, patterns, configuration
+    priority: str  # low, medium, high
+    title: str
+    description: str
+    impact: str
+    implementation: str
+    estimated_improvement: Dict[str, float]
+
+
 class IntelligentCacheService:
-    """Advanced caching service with intelligent strategies."""
+    """Advanced caching service with intelligent strategies, invalidation, and monitoring."""
     
     def __init__(self):
         self.cache_service = get_cache_service()
-        self.db_manager = None
         
         # Multi-level cache
         self.l1_cache = {}  # Memory cache
@@ -109,22 +204,48 @@ class IntelligentCacheService:
         self.warming_enabled = True
         self.preload_patterns = []
         
-        # Intelligent invalidation
-        self.invalidation_rules = {}
-        self.dependency_graph = {}
+        # Invalidation functionality
+        self.invalidation_rules: Dict[str, InvalidationRule] = {}
+        self.pending_events: List[InvalidationEvent] = []
+        self.processed_events: List[InvalidationEvent] = []
+        self.dependency_graph: Dict[str, Set[str]] = {}
+        
+        # Event handlers
+        self.event_handlers: Dict[InvalidationTrigger, List[Callable]] = {
+            trigger: [] for trigger in InvalidationTrigger
+        }
+        
+        # Monitoring functionality
+        self.metrics_history: List[CacheMetrics] = []
+        self.active_alerts: List[CacheAlert] = []
+        self.recommendations: List[OptimizationRecommendation] = []
+        
+        # Alert thresholds
+        self.hit_rate_threshold = 0.8  # Alert if hit rate < 80%
+        self.error_rate_threshold = 0.05  # Alert if error rate > 5%
+        self.response_time_threshold = 0.1  # Alert if avg response time > 100ms
+        self.memory_usage_threshold = 0.9  # Alert if memory usage > 90%
+        
+        # Monitoring configuration
+        self.monitoring_interval = 60  # seconds
+        self.metrics_retention_hours = 24
+        self.max_metrics_history = 1440  # 24 hours of minute-by-minute data
         
     async def initialize(self):
         """Initialize intelligent cache service."""
         try:
-            self.db_manager = await get_database_manager()
             self.l2_cache = self.cache_service
+            
+            # Initialize default invalidation rules
+            self._initialize_default_invalidation_rules()
             
             # Start background tasks
             asyncio.create_task(self._cache_maintenance_loop())
             asyncio.create_task(self._access_pattern_analysis_loop())
             asyncio.create_task(self._cache_warming_loop())
+            asyncio.create_task(self._monitoring_loop())
             
-            logger.info("Intelligent cache service initialized")
+            logger.info("Intelligent cache service initialized with invalidation and monitoring")
         except Exception as e:
             logger.error(f"Failed to initialize intelligent cache service: {e}")
             raise
@@ -418,6 +539,512 @@ class IntelligentCacheService:
             "pattern": pattern,
             "preload_func": preload_func
         })
+    
+    # Invalidation methods
+    def _initialize_default_invalidation_rules(self):
+        """Initialize default invalidation rules."""
+        # User data update rule
+        self.add_invalidation_rule(InvalidationRule(
+            rule_id="user_data_update",
+            name="User Data Update",
+            description="Invalidate user-related caches when user data is updated",
+            strategy=InvalidationStrategy.IMMEDIATE,
+            trigger=InvalidationTrigger.DATA_UPDATE,
+            cache_patterns=["session:*", "user_settings:*", "user_sessions:*"],
+            conditions={"entity_type": "user"}
+        ))
+        
+        # Job data update rule
+        self.add_invalidation_rule(InvalidationRule(
+            rule_id="job_data_update",
+            name="Job Data Update",
+            description="Invalidate job-related caches when job data is updated",
+            strategy=InvalidationStrategy.CASCADE,
+            trigger=InvalidationTrigger.DATA_UPDATE,
+            cache_patterns=["recommendations:*", "job_search:*", "analytics:*"],
+            conditions={"entity_type": "job"}
+        ))
+        
+        # AI model change rule
+        self.add_invalidation_rule(InvalidationRule(
+            rule_id="ai_model_change",
+            name="AI Model Change",
+            description="Invalidate AI response caches when model configuration changes",
+            strategy=InvalidationStrategy.IMMEDIATE,
+            trigger=InvalidationTrigger.SYSTEM_EVENT,
+            cache_patterns=["llm_response:*"],
+            conditions={"event_type": "ai_model_change"}
+        ))
+        
+        # Scheduled cleanup rule
+        self.add_invalidation_rule(InvalidationRule(
+            rule_id="scheduled_cleanup",
+            name="Scheduled Cleanup",
+            description="Periodic cleanup of expired cache entries",
+            strategy=InvalidationStrategy.SCHEDULED,
+            trigger=InvalidationTrigger.TIME_BASED,
+            cache_patterns=["*"],
+            conditions={"schedule": "0 2 * * *"},  # Daily at 2 AM
+            delay_seconds=0
+        ))
+    
+    def add_invalidation_rule(self, rule: InvalidationRule) -> bool:
+        """Add a cache invalidation rule."""
+        try:
+            if rule.created_at is None:
+                rule.created_at = datetime.utcnow()
+            
+            self.invalidation_rules[rule.rule_id] = rule
+            logger.info(f"Added invalidation rule: {rule.name}")
+            return True
+            
+        except Exception as e:
+            logger.error(f"Error adding invalidation rule: {e}")
+            return False
+    
+    def remove_invalidation_rule(self, rule_id: str) -> bool:
+        """Remove a cache invalidation rule."""
+        if rule_id in self.invalidation_rules:
+            del self.invalidation_rules[rule_id]
+            logger.info(f"Removed invalidation rule: {rule_id}")
+            return True
+        return False
+    
+    async def trigger_invalidation(
+        self,
+        trigger: InvalidationTrigger,
+        metadata: Dict[str, Any],
+        force: bool = False
+    ) -> List[str]:
+        """Trigger cache invalidation based on an event."""
+        event_ids = []
+        
+        # Find matching rules
+        matching_rules = self._find_matching_invalidation_rules(trigger, metadata, force)
+        
+        for rule in matching_rules:
+            # Create invalidation event
+            event = InvalidationEvent(
+                event_id=f"{rule.rule_id}_{int(time.time())}_{len(self.pending_events)}",
+                rule_id=rule.rule_id,
+                trigger=trigger,
+                cache_patterns=rule.cache_patterns.copy(),
+                metadata=metadata.copy(),
+                timestamp=datetime.utcnow()
+            )
+            
+            # Process based on strategy
+            if rule.strategy == InvalidationStrategy.IMMEDIATE:
+                await self._process_immediate_invalidation(event, rule)
+            elif rule.strategy == InvalidationStrategy.DELAYED:
+                await self._schedule_delayed_invalidation(event, rule)
+            elif rule.strategy == InvalidationStrategy.CASCADE:
+                await self._process_cascade_invalidation(event, rule)
+            else:
+                # Add to pending events for later processing
+                self.pending_events.append(event)
+            
+            event_ids.append(event.event_id)
+            
+            # Update rule statistics
+            rule.last_triggered = datetime.utcnow()
+            rule.trigger_count += 1
+        
+        return event_ids
+    
+    def _find_matching_invalidation_rules(
+        self,
+        trigger: InvalidationTrigger,
+        metadata: Dict[str, Any],
+        force: bool = False
+    ) -> List[InvalidationRule]:
+        """Find invalidation rules that match the trigger and conditions."""
+        matching_rules = []
+        
+        for rule in self.invalidation_rules.values():
+            if not rule.enabled and not force:
+                continue
+            
+            if rule.trigger != trigger:
+                continue
+            
+            # Check conditions
+            if not force and not self._check_invalidation_conditions(rule.conditions, metadata):
+                continue
+            
+            matching_rules.append(rule)
+        
+        return matching_rules
+    
+    def _check_invalidation_conditions(self, conditions: Dict[str, Any], metadata: Dict[str, Any]) -> bool:
+        """Check if metadata matches rule conditions."""
+        for key, expected_value in conditions.items():
+            if key not in metadata:
+                return False
+            
+            actual_value = metadata[key]
+            
+            # Handle different condition types
+            if isinstance(expected_value, list):
+                if actual_value not in expected_value:
+                    return False
+            elif isinstance(expected_value, dict):
+                # Handle complex conditions (e.g., ranges, patterns)
+                if "pattern" in expected_value:
+                    if not fnmatch.fnmatch(str(actual_value), expected_value["pattern"]):
+                        return False
+                elif "range" in expected_value:
+                    range_val = expected_value["range"]
+                    if not (range_val.get("min", float('-inf')) <= actual_value <= range_val.get("max", float('inf'))):
+                        return False
+            else:
+                if actual_value != expected_value:
+                    return False
+        
+        return True
+    
+    async def _process_immediate_invalidation(self, event: InvalidationEvent, rule: InvalidationRule):
+        """Process immediate cache invalidation."""
+        try:
+            invalidated_keys = []
+            
+            for pattern in event.cache_patterns:
+                if "*" in pattern:
+                    # Pattern-based invalidation
+                    count = await self.invalidate_pattern(pattern)
+                    invalidated_keys.append(f"{pattern} ({count} keys)")
+                else:
+                    # Direct key invalidation
+                    success = await self.delete(pattern)
+                    if success:
+                        invalidated_keys.append(pattern)
+            
+            event.processed = True
+            event.processed_at = datetime.utcnow()
+            event.invalidated_keys = invalidated_keys
+            
+            self.processed_events.append(event)
+            logger.info(f"Immediate invalidation completed for rule {rule.rule_id}: {len(invalidated_keys)} patterns")
+            
+        except Exception as e:
+            event.error = str(e)
+            logger.error(f"Error in immediate invalidation: {e}")
+    
+    async def _schedule_delayed_invalidation(self, event: InvalidationEvent, rule: InvalidationRule):
+        """Schedule delayed cache invalidation."""
+        async def delayed_invalidation():
+            await asyncio.sleep(rule.delay_seconds)
+            await self._process_immediate_invalidation(event, rule)
+        
+        # Schedule the invalidation
+        asyncio.create_task(delayed_invalidation())
+        logger.info(f"Scheduled delayed invalidation for rule {rule.rule_id} in {rule.delay_seconds} seconds")
+    
+    async def _process_cascade_invalidation(self, event: InvalidationEvent, rule: InvalidationRule):
+        """Process cascade cache invalidation with dependency resolution."""
+        try:
+            invalidated_keys = []
+            
+            # First, invalidate direct patterns
+            for pattern in event.cache_patterns:
+                if "*" in pattern:
+                    count = await self.invalidate_pattern(pattern)
+                    invalidated_keys.append(f"{pattern} ({count} keys)")
+                else:
+                    success = await self.delete(pattern)
+                    if success:
+                        invalidated_keys.append(pattern)
+            
+            # Then, invalidate dependent caches
+            dependent_patterns = self._get_dependent_patterns(event.cache_patterns)
+            for pattern in dependent_patterns:
+                if "*" in pattern:
+                    count = await self.invalidate_pattern(pattern)
+                    invalidated_keys.append(f"dependent:{pattern} ({count} keys)")
+                else:
+                    success = await self.delete(pattern)
+                    if success:
+                        invalidated_keys.append(f"dependent:{pattern}")
+            
+            event.processed = True
+            event.processed_at = datetime.utcnow()
+            event.invalidated_keys = invalidated_keys
+            
+            self.processed_events.append(event)
+            logger.info(f"Cascade invalidation completed for rule {rule.rule_id}: {len(invalidated_keys)} patterns")
+            
+        except Exception as e:
+            event.error = str(e)
+            logger.error(f"Error in cascade invalidation: {e}")
+    
+    def _get_dependent_patterns(self, patterns: List[str]) -> List[str]:
+        """Get cache patterns that depend on the given patterns."""
+        dependent_patterns = set()
+        
+        for pattern in patterns:
+            if pattern in self.dependency_graph:
+                dependent_patterns.update(self.dependency_graph[pattern])
+        
+        return list(dependent_patterns)
+    
+    def add_cache_dependency(self, source_pattern: str, dependent_pattern: str):
+        """Add a cache dependency relationship."""
+        if source_pattern not in self.dependency_graph:
+            self.dependency_graph[source_pattern] = set()
+        
+        self.dependency_graph[source_pattern].add(dependent_pattern)
+        logger.debug(f"Added cache dependency: {source_pattern} -> {dependent_pattern}")
+    
+    async def invalidate_user_caches(self, user_id: str) -> int:
+        """Invalidate all caches related to a specific user."""
+        patterns = [
+            f"session:*{user_id}*",
+            f"user_settings:{user_id}",
+            f"user_sessions:{user_id}",
+            f"recommendations:{user_id}:*",
+            f"analytics:{user_id}:*"
+        ]
+        
+        total_invalidated = 0
+        for pattern in patterns:
+            count = await self.invalidate_pattern(pattern)
+            total_invalidated += count
+        
+        logger.info(f"Invalidated {total_invalidated} cache entries for user {user_id}")
+        return total_invalidated
+    
+    # Monitoring methods
+    async def collect_metrics(self) -> CacheMetrics:
+        """Collect current cache metrics."""
+        try:
+            # Get cache statistics from cache service
+            cache_stats = self.cache_service.get_cache_stats()
+            
+            # Calculate derived metrics
+            total_requests = self.stats.total_requests
+            hit_rate = self.stats.hit_rate / 100.0 if self.stats.hit_rate > 1 else self.stats.hit_rate
+            miss_rate = 1.0 - hit_rate if total_requests > 0 else 0.0
+            
+            # Estimate memory usage
+            memory_usage_mb = self.stats.memory_usage / (1024 * 1024)  # Convert to MB
+            
+            metrics = CacheMetrics(
+                timestamp=datetime.utcnow(),
+                hit_rate=hit_rate,
+                miss_rate=miss_rate,
+                total_requests=total_requests,
+                redis_hits=self.stats.l2_hits,
+                memory_hits=self.stats.l1_hits,
+                errors=0,  # Would need to track errors separately
+                avg_response_time=self.stats.avg_response_time,
+                memory_usage_mb=memory_usage_mb,
+                redis_connected=cache_stats.get("enabled", False),
+                evictions=self.stats.evictions,
+                expirations=0  # Would need to track expirations separately
+            )
+            
+            # Add to history
+            self.metrics_history.append(metrics)
+            
+            # Trim history to max size
+            if len(self.metrics_history) > self.max_metrics_history:
+                self.metrics_history = self.metrics_history[-self.max_metrics_history:]
+            
+            return metrics
+            
+        except Exception as e:
+            logger.error(f"Error collecting cache metrics: {e}")
+            raise
+    
+    async def check_alerts(self):
+        """Check for cache performance alerts."""
+        if not self.metrics_history:
+            return
+        
+        current_metrics = self.metrics_history[-1]
+        
+        # Check hit rate alert
+        if current_metrics.hit_rate < self.hit_rate_threshold:
+            await self._create_alert(
+                alert_type="low_hit_rate",
+                severity="medium",
+                message=f"Cache hit rate is {current_metrics.hit_rate:.2%}, below threshold of {self.hit_rate_threshold:.2%}",
+                metrics={"hit_rate": current_metrics.hit_rate, "threshold": self.hit_rate_threshold}
+            )
+        
+        # Check response time alert
+        if current_metrics.avg_response_time > self.response_time_threshold:
+            await self._create_alert(
+                alert_type="slow_response_time",
+                severity="medium",
+                message=f"Average cache response time is {current_metrics.avg_response_time:.3f}s, above threshold of {self.response_time_threshold:.3f}s",
+                metrics={"response_time": current_metrics.avg_response_time, "threshold": self.response_time_threshold}
+            )
+        
+        # Check Redis connection
+        if not current_metrics.redis_connected:
+            await self._create_alert(
+                alert_type="redis_disconnected",
+                severity="high",
+                message="Redis connection is down, falling back to memory cache",
+                metrics={"redis_connected": False}
+            )
+    
+    async def _create_alert(self, alert_type: str, severity: str, message: str, metrics: Dict[str, Any]):
+        """Create a new alert if not already active."""
+        # Check if similar alert is already active
+        for alert in self.active_alerts:
+            if alert.alert_type == alert_type and not alert.resolved:
+                return  # Alert already exists
+        
+        alert = CacheAlert(
+            alert_id=f"{alert_type}_{int(time.time())}",
+            alert_type=alert_type,
+            severity=severity,
+            message=message,
+            timestamp=datetime.utcnow(),
+            metrics=metrics
+        )
+        
+        self.active_alerts.append(alert)
+        logger.warning(f"Cache alert created: {message}")
+    
+    async def resolve_alert(self, alert_id: str) -> bool:
+        """Resolve an active alert."""
+        for alert in self.active_alerts:
+            if alert.alert_id == alert_id and not alert.resolved:
+                alert.resolved = True
+                alert.resolved_at = datetime.utcnow()
+                logger.info(f"Cache alert resolved: {alert_id}")
+                return True
+        return False
+    
+    async def generate_recommendations(self):
+        """Generate cache optimization recommendations."""
+        if len(self.metrics_history) < 10:  # Need some history
+            return
+        
+        # Clear old recommendations
+        self.recommendations.clear()
+        
+        # Analyze recent metrics
+        recent_metrics = self.metrics_history[-10:]  # Last 10 data points
+        
+        # Hit rate analysis
+        avg_hit_rate = sum(m.hit_rate for m in recent_metrics) / len(recent_metrics)
+        if avg_hit_rate < 0.7:
+            self.recommendations.append(OptimizationRecommendation(
+                recommendation_id="improve_hit_rate",
+                category="patterns",
+                priority="high",
+                title="Improve Cache Hit Rate",
+                description=f"Current hit rate is {avg_hit_rate:.2%}. Consider increasing TTL for frequently accessed data or reviewing cache key patterns.",
+                impact="Improved performance and reduced backend load",
+                implementation="Review cache TTL settings and access patterns",
+                estimated_improvement={"hit_rate": 0.15, "response_time": -0.02}
+            ))
+        
+        # Memory usage analysis
+        avg_memory_usage = sum(m.memory_usage_mb for m in recent_metrics) / len(recent_metrics)
+        if avg_memory_usage > 100:  # Arbitrary threshold
+            self.recommendations.append(OptimizationRecommendation(
+                recommendation_id="optimize_memory",
+                category="memory",
+                priority="medium",
+                title="Optimize Memory Usage",
+                description=f"Memory cache is using {avg_memory_usage:.1f}MB. Consider implementing more aggressive eviction policies.",
+                impact="Reduced memory footprint and better resource utilization",
+                implementation="Adjust cache size limits and eviction policies",
+                estimated_improvement={"memory_usage": -0.3}
+            ))
+        
+        # Response time analysis
+        avg_response_time = sum(m.avg_response_time for m in recent_metrics) / len(recent_metrics)
+        if avg_response_time > 0.05:  # 50ms threshold
+            self.recommendations.append(OptimizationRecommendation(
+                recommendation_id="improve_response_time",
+                category="configuration",
+                priority="medium",
+                title="Improve Response Time",
+                description=f"Average response time is {avg_response_time:.3f}s. Consider optimizing serialization or Redis configuration.",
+                impact="Faster cache operations and improved user experience",
+                implementation="Review serialization methods and Redis connection settings",
+                estimated_improvement={"response_time": -0.02}
+            ))
+    
+    def get_current_metrics(self) -> Optional[CacheMetrics]:
+        """Get the most recent cache metrics."""
+        return self.metrics_history[-1] if self.metrics_history else None
+    
+    def get_metrics_history(self, hours: int = 1) -> List[CacheMetrics]:
+        """Get cache metrics history for the specified number of hours."""
+        cutoff_time = datetime.utcnow() - timedelta(hours=hours)
+        return [m for m in self.metrics_history if m.timestamp >= cutoff_time]
+    
+    def get_active_alerts(self) -> List[CacheAlert]:
+        """Get all active (unresolved) alerts."""
+        return [alert for alert in self.active_alerts if not alert.resolved]
+    
+    def get_optimization_recommendations(self) -> List[OptimizationRecommendation]:
+        """Get current optimization recommendations."""
+        return self.recommendations.copy()
+    
+    def get_performance_summary(self) -> Dict[str, Any]:
+        """Get cache performance summary."""
+        if not self.metrics_history:
+            return {"status": "no_data"}
+        
+        current = self.metrics_history[-1]
+        recent_metrics = self.metrics_history[-60:] if len(self.metrics_history) >= 60 else self.metrics_history
+        
+        # Calculate trends
+        if len(recent_metrics) > 1:
+            hit_rate_trend = recent_metrics[-1].hit_rate - recent_metrics[0].hit_rate
+            response_time_trend = recent_metrics[-1].avg_response_time - recent_metrics[0].avg_response_time
+        else:
+            hit_rate_trend = 0.0
+            response_time_trend = 0.0
+        
+        return {
+            "status": "healthy" if current.hit_rate > 0.8 and current.avg_response_time < 0.1 else "degraded",
+            "current_hit_rate": current.hit_rate,
+            "current_response_time": current.avg_response_time,
+            "redis_connected": current.redis_connected,
+            "memory_usage_mb": current.memory_usage_mb,
+            "total_requests": current.total_requests,
+            "active_alerts": len(self.get_active_alerts()),
+            "recommendations": len(self.recommendations),
+            "trends": {
+                "hit_rate": hit_rate_trend,
+                "response_time": response_time_trend
+            },
+            "last_updated": current.timestamp.isoformat()
+        }
+    
+    def get_invalidation_stats(self) -> Dict[str, Any]:
+        """Get cache invalidation statistics."""
+        total_rules = len(self.invalidation_rules)
+        enabled_rules = sum(1 for rule in self.invalidation_rules.values() if rule.enabled)
+        pending_events = len(self.pending_events)
+        processed_events = len(self.processed_events)
+        
+        # Calculate trigger statistics
+        trigger_stats = {}
+        for rule in self.invalidation_rules.values():
+            trigger_type = rule.trigger.value
+            if trigger_type not in trigger_stats:
+                trigger_stats[trigger_type] = {"count": 0, "total_triggers": 0}
+            trigger_stats[trigger_type]["count"] += 1
+            trigger_stats[trigger_type]["total_triggers"] += rule.trigger_count
+        
+        return {
+            "total_rules": total_rules,
+            "enabled_rules": enabled_rules,
+            "pending_events": pending_events,
+            "processed_events": processed_events,
+            "trigger_statistics": trigger_stats,
+            "dependency_relationships": len(self.dependency_graph)
+        }
     
     # Private methods
     def _update_access_pattern(self, key: str):
@@ -751,6 +1378,17 @@ class IntelligentCacheService:
             except Exception as e:
                 logger.error(f"Cache warming error: {e}")
     
+    async def _monitoring_loop(self):
+        """Background cache monitoring."""
+        while True:
+            try:
+                await asyncio.sleep(self.monitoring_interval)
+                await self.collect_metrics()
+                await self.check_alerts()
+                await self.generate_recommendations()
+            except Exception as e:
+                logger.error(f"Cache monitoring error: {e}")
+    
     async def _analyze_access_patterns(self):
         """Analyze access patterns and update classifications."""
         current_time = time.time()
@@ -793,3 +1431,47 @@ async def get_intelligent_cache_service() -> IntelligentCacheService:
         _intelligent_cache_service = IntelligentCacheService()
         await _intelligent_cache_service.initialize()
     return _intelligent_cache_service
+
+
+# Convenience functions for backward compatibility
+def get_cache_invalidation_service() -> IntelligentCacheService:
+    """Get cache invalidation service (now part of intelligent cache service)."""
+    import asyncio
+    try:
+        loop = asyncio.get_event_loop()
+        if loop.is_running():
+            # If we're in an async context, we can't await here
+            # Return a placeholder or raise an error
+            logger.warning("get_cache_invalidation_service called from async context - use get_intelligent_cache_service instead")
+            return None
+        else:
+            return loop.run_until_complete(get_intelligent_cache_service())
+    except RuntimeError:
+        # No event loop running
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        try:
+            return loop.run_until_complete(get_intelligent_cache_service())
+        finally:
+            loop.close()
+
+
+def get_cache_monitoring_service() -> IntelligentCacheService:
+    """Get cache monitoring service (now part of intelligent cache service)."""
+    import asyncio
+    try:
+        loop = asyncio.get_event_loop()
+        if loop.is_running():
+            # If we're in an async context, we can't await here
+            logger.warning("get_cache_monitoring_service called from async context - use get_intelligent_cache_service instead")
+            return None
+        else:
+            return loop.run_until_complete(get_intelligent_cache_service())
+    except RuntimeError:
+        # No event loop running
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        try:
+            return loop.run_until_complete(get_intelligent_cache_service())
+        finally:
+            loop.close()

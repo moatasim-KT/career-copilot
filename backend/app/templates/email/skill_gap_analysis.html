@@ -1,0 +1,320 @@
+{% extends "base.html" %}
+
+{% block title %}Skill Gap Analysis - Career Co-Pilot{% endblock %}
+
+{% block header_title %}📊 Skill Gap Analysis{% endblock %}
+{% block header_subtitle %}Personalized insights to accelerate your career growth{% endblock %}
+
+{% block content %}
+<div class="greeting">
+  Hello {{ user_name }}! 📈
+</div>
+
+<p style="margin-bottom: 25px; color: #4a5568; font-size: 16px;">
+  Based on your career goals and current market trends, we've identified key opportunities to enhance your skill set and
+  increase your competitiveness in the job market.
+</p>
+
+<!-- Executive Summary -->
+<div class="section" style="background-color: #f0f4ff; border: 1px solid #c3dafe; border-radius: 8px; padding: 20px;">
+  <h2 style="color: #2d3748; margin-bottom: 15px;">🎯 Executive Summary</h2>
+  <div class="stats-grid">
+    {% if skill_gaps|length %}
+    <div class="stat-card">
+      <span class="stat-number">{{ skill_gaps|length }}</span>
+      <span class="stat-label">Skills to Develop</span>
+    </div>
+    {% endif %}
+
+    {% if learning_resources|length %}
+    <div class="stat-card">
+      <span class="stat-number">{{ learning_resources|length }}</span>
+      <span class="stat-label">Learning Resources</span>
+    </div>
+    {% endif %}
+
+    {% if market_trends.demand_increase %}
+    <div class="stat-card">
+      <span class="stat-number">+{{ market_trends.demand_increase }}%</span>
+      <span class="stat-label">Market Demand Growth</span>
+    </div>
+    {% endif %}
+
+    {% if market_trends.salary_potential %}
+    <div class="stat-card">
+      <span class="stat-number">${{ market_trends.salary_potential|round|int }}k</span>
+      <span class="stat-label">Potential Salary Increase</span>
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+<!-- Top Skill Gaps -->
+{% if skill_gaps %}
+<div class="section">
+  <h2 class="section-title">🔍 Priority Skill Gaps</h2>
+  <p style="margin-bottom: 20px; color: #4a5568;">
+    These skills appear most frequently in job postings for your target roles:
+  </p>
+
+  {% for gap in skill_gaps %}
+  <div
+    style="background-color: #f7fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 20px; margin-bottom: 15px;">
+    <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 10px;">
+      <div>
+        <h3 style="color: #2d3748; font-size: 18px; margin-bottom: 5px;">{{ gap.skill_name }}</h3>
+        <div style="color: #4a5568; font-size: 14px;">
+          Appears in <strong>{{ gap.frequency }}%</strong> of relevant job postings
+        </div>
+      </div>
+      <div style="text-align: right;">
+        {% if gap.priority == 'high' %}
+        <span
+          style="background-color: #fed7d7; color: #c53030; padding: 4px 8px; border-radius: 12px; font-size: 12px; font-weight: 600;">
+          High Priority
+        </span>
+        {% elif gap.priority == 'medium' %}
+        <span
+          style="background-color: #fbd38d; color: #d69e2e; padding: 4px 8px; border-radius: 12px; font-size: 12px; font-weight: 600;">
+          Medium Priority
+        </span>
+        {% else %}
+        <span
+          style="background-color: #c6f6d5; color: #38a169; padding: 4px 8px; border-radius: 12px; font-size: 12px; font-weight: 600;">
+          Low Priority
+        </span>
+        {% endif %}
+      </div>
+    </div>
+
+    {% if gap.description %}
+    <p style="color: #4a5568; margin-bottom: 15px; line-height: 1.5;">
+      {{ gap.description }}
+    </p>
+    {% endif %}
+
+    {% if gap.market_context %}
+    <div
+      style="background-color: #e6fffa; border-left: 4px solid #38b2ac; padding: 10px; margin-bottom: 15px; border-radius: 0 4px 4px 0;">
+      <strong style="color: #2d3748; font-size: 14px;">Market Context:</strong>
+      <p style="color: #4a5568; font-size: 13px; margin-top: 5px;">{{ gap.market_context }}</p>
+    </div>
+    {% endif %}
+
+    {% if gap.related_skills %}
+    <div style="margin-bottom: 15px;">
+      <strong style="color: #2d3748; font-size: 14px;">Related Skills:</strong>
+      <ul class="skill-list" style="margin-top: 8px;">
+        {% for skill in gap.related_skills %}
+        <li class="skill-item">{{ skill }}</li>
+        {% endfor %}
+      </ul>
+    </div>
+    {% endif %}
+
+    {% if gap.estimated_learning_time %}
+    <div style="color: #718096; font-size: 14px; margin-bottom: 10px;">
+      ⏱️ Estimated learning time: {{ gap.estimated_learning_time }}
+    </div>
+    {% endif %}
+
+    {% if gap.career_impact %}
+    <div style="background-color: #f0fff4; border: 1px solid #c6f6d5; border-radius: 4px; padding: 10px;">
+      <strong style="color: #2d3748; font-size: 14px;">Career Impact:</strong>
+      <p style="color: #4a5568; font-size: 13px; margin-top: 5px;">{{ gap.career_impact }}</p>
+    </div>
+    {% endif %}
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
+
+<!-- Learning Resources -->
+{% if learning_resources %}
+<div class="section">
+  <h2 class="section-title">📚 Recommended Learning Resources</h2>
+  <p style="margin-bottom: 20px; color: #4a5568;">
+    Curated resources to help you develop the most in-demand skills:
+  </p>
+
+  {% for resource in learning_resources %}
+  <div
+    style="background-color: #fffaf0; border: 1px solid #fbd38d; border-radius: 8px; padding: 20px; margin-bottom: 15px;">
+    <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 10px;">
+      <div>
+        <h3 style="color: #2d3748; font-size: 18px; margin-bottom: 5px;">{{ resource.title }}</h3>
+        <div style="color: #4a5568; font-size: 14px; margin-bottom: 5px;">
+          <strong>Skill:</strong> {{ resource.skill }}
+        </div>
+        <div style="color: #718096; font-size: 14px;">
+          {{ resource.provider }} • {{ resource.type|capitalize_words }}
+        </div>
+      </div>
+      <div style="text-align: right;">
+        {% if resource.cost == 'free' %}
+        <span
+          style="background-color: #c6f6d5; color: #38a169; padding: 4px 8px; border-radius: 12px; font-size: 12px; font-weight: 600;">
+          Free
+        </span>
+        {% elif resource.cost == 'paid' %}
+        <span
+          style="background-color: #fed7d7; color: #c53030; padding: 4px 8px; border-radius: 12px; font-size: 12px; font-weight: 600;">
+          Paid
+        </span>
+        {% endif %}
+
+        {% if resource.rating %}
+        <div style="color: #718096; font-size: 12px; margin-top: 4px;">
+          ⭐ {{ resource.rating }}/5
+        </div>
+        {% endif %}
+      </div>
+    </div>
+
+    {% if resource.description %}
+    <p style="color: #4a5568; margin-bottom: 15px; line-height: 1.5;">
+      {{ resource.description }}
+    </p>
+    {% endif %}
+
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+      {% if resource.duration %}
+      <div style="color: #718096; font-size: 14px;">
+        ⏱️ Duration: {{ resource.duration }}
+      </div>
+      {% endif %}
+
+      {% if resource.difficulty %}
+      <div style="color: #718096; font-size: 14px;">
+        📊 Level: {{ resource.difficulty|capitalize_words }}
+      </div>
+      {% endif %}
+    </div>
+
+    {% if resource.key_topics %}
+    <div style="margin-bottom: 15px;">
+      <strong style="color: #2d3748; font-size: 14px;">Key Topics:</strong>
+      <ul class="skill-list" style="margin-top: 8px;">
+        {% for topic in resource.key_topics %}
+        <li class="skill-item">{{ topic }}</li>
+        {% endfor %}
+      </ul>
+    </div>
+    {% endif %}
+
+    <div style="text-align: right;">
+      {% if resource.url %}
+      <a href="{{ resource.url }}" class="btn" target="_blank">Start Learning</a>
+      {% endif %}
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
+
+<!-- Market Trends -->
+{% if market_trends %}
+<div class="section">
+  <h2 class="section-title">📈 Market Trends & Insights</h2>
+
+  {% if market_trends.trending_skills %}
+  <div
+    style="background-color: #f0fff4; border: 1px solid #c6f6d5; border-radius: 8px; padding: 20px; margin-bottom: 15px;">
+    <h3 style="color: #2d3748; margin-bottom: 15px;">🔥 Fastest Growing Skills</h3>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
+      {% for skill in market_trends.trending_skills %}
+      <div
+        style="background-color: white; border: 1px solid #e2e8f0; border-radius: 6px; padding: 15px; text-align: center;">
+        <div style="font-size: 18px; font-weight: 600; color: #2d3748; margin-bottom: 5px;">
+          {{ skill.name }}
+        </div>
+        <div style="color: #48bb78; font-size: 14px; font-weight: 600;">
+          +{{ skill.growth_rate }}% demand
+        </div>
+        {% if skill.salary_impact %}
+        <div style="color: #718096; font-size: 12px; margin-top: 5px;">
+          +${{ skill.salary_impact }}k avg salary
+        </div>
+        {% endif %}
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+  {% if market_trends.industry_insights %}
+  <div
+    style="background-color: #f0f4ff; border: 1px solid #c3dafe; border-radius: 8px; padding: 20px; margin-bottom: 15px;">
+    <h3 style="color: #2d3748; margin-bottom: 15px;">🏢 Industry Insights</h3>
+    {% for insight in market_trends.industry_insights %}
+    <div style="margin-bottom: 15px; padding-bottom: 15px; border-bottom: 1px solid #e2e8f0;">
+      <strong style="color: #2d3748; font-size: 16px;">{{ insight.industry }}</strong>
+      <p style="color: #4a5568; margin-top: 5px; line-height: 1.5;">{{ insight.insight }}</p>
+      {% if insight.growth_rate %}
+      <div style="color: #48bb78; font-size: 14px; margin-top: 5px;">
+        📈 {{ insight.growth_rate }}% job growth expected
+      </div>
+      {% endif %}
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  {% if market_trends.salary_insights %}
+  <div style="background-color: #fff5f5; border: 1px solid #fed7d7; border-radius: 8px; padding: 20px;">
+    <h3 style="color: #2d3748; margin-bottom: 15px;">💰 Salary Insights</h3>
+    <p style="color: #4a5568; line-height: 1.5;">{{ market_trends.salary_insights }}</p>
+  </div>
+  {% endif %}
+</div>
+{% endif %}
+
+<!-- Action Plan -->
+<div class="section">
+  <h2 class="section-title">🎯 Your 30-Day Action Plan</h2>
+
+  <div style="background-color: #f7fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 20px;">
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px;">
+      <div>
+        <h4 style="color: #2d3748; margin-bottom: 10px;">Week 1-2: Foundation</h4>
+        <ul style="color: #4a5568; font-size: 14px; line-height: 1.6; padding-left: 20px;">
+          <li>Complete skill assessment</li>
+          <li>Start highest priority skill course</li>
+          <li>Set up learning schedule</li>
+          <li>Join relevant communities</li>
+        </ul>
+      </div>
+
+      <div>
+        <h4 style="color: #2d3748; margin-bottom: 10px;">Week 3-4: Practice</h4>
+        <ul style="color: #4a5568; font-size: 14px; line-height: 1.6; padding-left: 20px;">
+          <li>Build practice projects</li>
+          <li>Contribute to open source</li>
+          <li>Update resume/portfolio</li>
+          <li>Network with professionals</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Call to Action -->
+<div class="section"
+  style="text-align: center; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border-radius: 8px; padding: 25px;">
+  <h3 style="margin-bottom: 15px; color: white;">🚀 Ready to Level Up Your Skills?</h3>
+  <p style="font-size: 16px; line-height: 1.6; color: rgba(255, 255, 255, 0.95); margin-bottom: 20px;">
+    Your career growth is an investment in your future. Start with one skill today and build momentum!
+  </p>
+  <a href="#learning-dashboard" class="btn" style="background-color: white; color: #667eea; margin-right: 15px;">Start
+    Learning</a>
+  <a href="#skill-tracker" class="btn" style="background-color: rgba(255, 255, 255, 0.2); color: white;">Track
+    Progress</a>
+</div>
+
+<div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e2e8f0; text-align: center;">
+  <p style="color: #718096; font-size: 14px;">
+    💡 <strong>Remember:</strong> Consistent daily learning (even 15 minutes) is more effective than intensive weekend
+    sessions!
+  </p>
+</div>
+{% endblock %}

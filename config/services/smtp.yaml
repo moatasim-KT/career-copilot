@@ -30,7 +30,7 @@ rate_limit:
 # Template Configuration
 templates:
   enabled: true
-  template_path: "backend/backend/app/email_templates"
+  template_path: "backend/app/templates/email"
   
 # Environment Overrides
 environments:

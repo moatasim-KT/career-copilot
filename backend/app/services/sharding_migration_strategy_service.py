@@ -20,7 +20,7 @@ from sqlalchemy.engine import Engine
 import redis
 
 from app.core.database import get_db, engine, db_manager
-from app.core.cache import cache_service
+from app.services.cache_service import cache_service
 from app.core.config import settings
 from app.models.user import User
 from app.models.job import Job

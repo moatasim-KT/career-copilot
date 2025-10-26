@@ -171,7 +171,7 @@ class SendGridService:
         
         # Initialize template engine
         self.template_env = Environment(
-            loader=FileSystemLoader("backend/app/email_templates"),
+            loader=FileSystemLoader("backend/app/templates/email"),
             autoescape=True
         )
         

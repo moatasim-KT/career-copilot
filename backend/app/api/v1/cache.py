@@ -10,8 +10,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel
 
 from ...services.cache_service import get_cache_service, get_session_cache_service
-from ...services.cache_monitoring_service import get_cache_monitoring_service
-from ...services.cache_invalidation_service import get_cache_invalidation_service
+from ...services.intelligent_cache_service import get_intelligent_cache_service
 from ...core.auth import get_current_user
 from ...core.logging import get_logger
 
@@ -20,9 +19,10 @@ router = APIRouter(prefix="/cache", tags=["cache"])
 
 # Dependency injection
 cache_service = get_cache_service()
-cache_monitoring = get_cache_monitoring_service()
-cache_invalidation = get_cache_invalidation_service()
 session_cache = get_session_cache_service()
+
+# Note: intelligent_cache_service is async, so we'll get it in each endpoint
+# cache_monitoring and cache_invalidation are now part of intelligent_cache_service
 
 
 class CacheStatsResponse(BaseModel):
@@ -126,7 +126,8 @@ async def get_cache_stats(current_user: dict = Depends(get_current_user)):
 async def get_cache_metrics(current_user: dict = Depends(get_current_user)):
     """Get current cache metrics."""
     try:
-        metrics = cache_monitoring.get_current_metrics()
+        intelligent_cache = await get_intelligent_cache_service()
+        metrics = intelligent_cache.get_current_metrics()
         if metrics is None:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
@@ -164,7 +165,8 @@ async def get_cache_metrics_history(
 ):
     """Get cache metrics history."""
     try:
-        history = cache_monitoring.get_metrics_history(hours)
+        intelligent_cache = await get_intelligent_cache_service()
+        history = intelligent_cache.get_metrics_history(hours)
         return [
             CacheMetricsResponse(
                 timestamp=m.timestamp,
@@ -194,7 +196,8 @@ async def get_cache_metrics_history(
 async def get_cache_alerts(current_user: dict = Depends(get_current_user)):
     """Get active cache alerts."""
     try:
-        alerts = cache_monitoring.get_active_alerts()
+        intelligent_cache = await get_intelligent_cache_service()
+        alerts = intelligent_cache.get_active_alerts()
         return [
             CacheAlertResponse(
                 alert_id=alert.alert_id,
@@ -223,7 +226,8 @@ async def resolve_cache_alert(
 ):
     """Resolve a cache alert."""
     try:
-        success = await cache_monitoring.resolve_alert(alert_id)
+        intelligent_cache = await get_intelligent_cache_service()
+        success = await intelligent_cache.resolve_alert(alert_id)
         if not success:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
@@ -245,7 +249,8 @@ async def resolve_cache_alert(
 async def get_cache_recommendations(current_user: dict = Depends(get_current_user)):
     """Get cache optimization recommendations."""
     try:
-        recommendations = cache_monitoring.get_recommendations()
+        intelligent_cache = await get_intelligent_cache_service()
+        recommendations = intelligent_cache.get_optimization_recommendations()
         return [
             OptimizationRecommendationResponse(
                 recommendation_id=rec.recommendation_id,
@@ -272,13 +277,12 @@ async def optimize_cache(current_user: dict = Depends(get_current_user)):
     """Optimize cache performance."""
     try:
         # Perform cache optimization
-        cache_results = cache_service.optimize_cache()
-        monitoring_results = await cache_monitoring.optimize_cache()
+        intelligent_cache = await get_intelligent_cache_service()
+        optimization_results = await intelligent_cache.optimize_cache()
         
         return {
             "message": "Cache optimization completed",
-            "cache_manager_results": cache_results,
-            "monitoring_results": monitoring_results
+            "optimization_results": optimization_results
         }
     except Exception as e:
         logger.error(f"Error optimizing cache: {e}")
@@ -314,7 +318,8 @@ async def clear_cache(current_user: dict = Depends(get_current_user)):
 async def get_cache_performance_summary(current_user: dict = Depends(get_current_user)):
     """Get cache performance summary."""
     try:
-        summary = cache_monitoring.get_performance_summary()
+        intelligent_cache = await get_intelligent_cache_service()
+        summary = intelligent_cache.get_performance_summary()
         return summary
     except Exception as e:
         logger.error(f"Error getting cache performance summary: {e}")
@@ -330,7 +335,8 @@ async def get_cache_performance_summary(current_user: dict = Depends(get_current
 async def get_invalidation_rules(current_user: dict = Depends(get_current_user)):
     """Get cache invalidation rules."""
     try:
-        rules = cache_invalidation.get_rules()
+        intelligent_cache = await get_intelligent_cache_service()
+        rules = list(intelligent_cache.invalidation_rules.values())
         return [
             InvalidationRuleResponse(
                 rule_id=rule.rule_id,
@@ -363,12 +369,13 @@ async def trigger_cache_invalidation(
 ):
     """Trigger cache invalidation."""
     try:
-        from ...services.cache_invalidation_service import InvalidationTrigger
+        from ...services.intelligent_cache_service import InvalidationTrigger
         
         # Convert string to enum
         trigger_enum = InvalidationTrigger(request.trigger)
         
-        event_ids = await cache_invalidation.trigger_invalidation(
+        intelligent_cache = await get_intelligent_cache_service()
+        event_ids = await intelligent_cache.trigger_invalidation(
             trigger=trigger_enum,
             metadata=request.metadata,
             force=request.force
@@ -399,7 +406,8 @@ async def invalidate_user_caches(
 ):
     """Invalidate all caches for a specific user."""
     try:
-        count = await cache_invalidation.invalidate_user_caches(user_id)
+        intelligent_cache = await get_intelligent_cache_service()
+        count = await intelligent_cache.invalidate_user_caches(user_id)
         return {
             "message": f"Invalidated caches for user {user_id}",
             "invalidated_count": count
@@ -412,43 +420,24 @@ async def invalidate_user_caches(
         )
 
 
-@router.post("/invalidation/contract/{contract_hash}")
-async def invalidate_contract_caches(
-    contract_hash: str,
+@router.post("/invalidation/pattern/{pattern}")
+async def invalidate_cache_pattern(
+    pattern: str,
     current_user: dict = Depends(get_current_user)
 ):
-    """Invalidate all caches for a specific contract."""
+    """Invalidate all caches matching a pattern."""
     try:
-        count = await cache_invalidation.invalidate_contract_caches(contract_hash)
+        intelligent_cache = await get_intelligent_cache_service()
+        count = await intelligent_cache.invalidate_pattern(pattern)
         return {
-            "message": f"Invalidated caches for contract {contract_hash}",
+            "message": f"Invalidated caches matching pattern {pattern}",
             "invalidated_count": count
         }
     except Exception as e:
-        logger.error(f"Error invalidating contract caches: {e}")
+        logger.error(f"Error invalidating cache pattern: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to invalidate contract caches"
-        )
-
-
-@router.post("/invalidation/ai")
-async def invalidate_ai_caches(
-    model_type: Optional[str] = None,
-    current_user: dict = Depends(get_current_user)
-):
-    """Invalidate AI response caches."""
-    try:
-        count = await cache_invalidation.invalidate_ai_caches(model_type)
-        return {
-            "message": f"Invalidated AI caches" + (f" for model type {model_type}" if model_type else ""),
-            "invalidated_count": count
-        }
-    except Exception as e:
-        logger.error(f"Error invalidating AI caches: {e}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to invalidate AI caches"
+            detail="Failed to invalidate cache pattern"
         )
 
 
@@ -456,7 +445,8 @@ async def invalidate_ai_caches(
 async def get_invalidation_stats(current_user: dict = Depends(get_current_user)):
     """Get cache invalidation statistics."""
     try:
-        stats = cache_invalidation.get_invalidation_stats()
+        intelligent_cache = await get_intelligent_cache_service()
+        stats = intelligent_cache.get_invalidation_stats()
         return stats
     except Exception as e:
         logger.error(f"Error getting invalidation stats: {e}")
@@ -518,7 +508,7 @@ async def set_cache_key(
         return {"message": "Cache key set successfully", "key": request.key, "ttl": ttl}
     except HTTPException:
         raise
-    except Exception as e:.
+    except Exception as e:
         logger.error(f"Error setting cache key: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,

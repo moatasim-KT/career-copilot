@@ -11,10 +11,10 @@ from decimal import Decimal, ROUND_HALF_UP
 import json
 
 from ..core.logging import get_logger
-from ..core.caching import get_cache_manager
+from ..services.cache_service import get_cache_service
 
 logger = get_logger(__name__)
-cache_manager = get_cache_manager()
+cache_service = get_cache_service()
 
 
 class BudgetPeriod(Enum):
@@ -254,18 +254,18 @@ class CostTracker:
         user_key = f"cost_user:{entry.user_id}:{entry.timestamp.strftime('%Y%m%d')}" if entry.user_id else None
         
         # Get existing entries from cache
-        hourly_entries = await cache_manager.async_get(timestamp_key) or []
+        hourly_entries = await cache_service.aget(timestamp_key) or []
         hourly_entries.append(entry.to_dict())
-        await cache_manager.async_set(timestamp_key, hourly_entries, self.cache_ttl)
+        await cache_service.aset(timestamp_key, hourly_entries, self.cache_ttl)
         
-        category_entries = await cache_manager.async_get(category_key) or []
+        category_entries = await cache_service.aget(category_key) or []
         category_entries.append(entry.to_dict())
-        await cache_manager.async_set(category_key, category_entries, self.cache_ttl)
+        await cache_service.aset(category_key, category_entries, self.cache_ttl)
         
         if user_key:
-            user_entries = await cache_manager.async_get(user_key) or []
+            user_entries = await cache_service.aget(user_key) or []
             user_entries.append(entry.to_dict())
-            await cache_manager.async_set(user_key, user_entries, self.cache_ttl)
+            await cache_service.aset(user_key, user_entries, self.cache_ttl)
     
     async def check_budget_limits(
         self,
@@ -369,7 +369,7 @@ class CostTracker:
         """Calculate total spend for a budget period."""
         # Try to get from cache first
         cache_key = f"period_spend:{budget_limit.get_cache_key()}:{period_start.isoformat()}"
-        cached_spend = await cache_manager.async_get(cache_key)
+        cached_spend = await cache_service.aget(cache_key)
         if cached_spend is not None:
             return Decimal(str(cached_spend))
         
@@ -391,7 +391,7 @@ class CostTracker:
             total_spend += entry.cost
         
         # Cache the result
-        await cache_manager.async_set(cache_key, str(total_spend), self.cache_ttl)
+        await cache_service.aset(cache_key, str(total_spend), self.cache_ttl)
         
         return total_spend
     

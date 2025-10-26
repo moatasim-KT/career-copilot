@@ -22,7 +22,7 @@ import json
 from .config import get_settings
 from .database import get_database_manager
 from .caching import get_cache_manager
-from .performance_optimizer import get_performance_optimizer
+from .performance_metrics import get_performance_optimizer
 from .security_validator import get_security_validator
 from .logging import get_logger
 

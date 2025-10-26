@@ -1,6 +1,6 @@
 # Docstring Style Guide
 
-This document outlines the mandatory docstring requirements for the Career Copilot codebase.
+This document outlines the mandatory docstring requirements for the Career Copilot codebase, updated to reflect the consolidated architecture with streamlined services and components.
 
 ## General Guidelines
 
@@ -9,6 +9,8 @@ This document outlines the mandatory docstring requirements for the Career Copil
 3. Include type hints in function/method signatures
 4. Document exceptions that may be raised
 5. Provide usage examples for complex functions
+6. Document consolidated service interfaces and their responsibilities
+7. Include migration notes for deprecated import paths
 
 ## Format Requirements
 
@@ -152,62 +154,157 @@ def my_generator(items: List[str]) -> Iterator[str]:
 4. Outdated examples
 5. Inconsistent formatting
 
-## Example Usage
+## Consolidated Architecture Examples
 
-### Good Example
+### Consolidated Service Example
 
 ```python
-from typing import List, Optional
+from typing import List, Optional, Dict, Any
 
-class DataProcessor:
+class AnalyticsService:
     """
-    Processes and validates input data.
+    Consolidated analytics service handling all analytics operations.
     
-    This class provides methods for data validation,
-    transformation, and error handling.
+    This service consolidates functionality from multiple analytics modules:
+    - analytics.py (core analytics)
+    - analytics_data_collection_service.py (data collection)
+    - advanced_user_analytics_service.py (user analytics)
+    - application_analytics_service.py (application analytics)
+    
+    The service provides unified interfaces for analytics data collection,
+    processing, and reporting across all application domains.
     
     Attributes:
-        schema (Dict[str, type]): Data validation schema
-        strict_mode (bool): Enable/disable strict validation
+        collectors (Dict[str, AnalyticsCollector]): Domain-specific collectors
+        processors (List[AnalyticsProcessor]): Data processing pipelines
+        storage_backend (AnalyticsStorage): Analytics data storage
+    
+    Note:
+        This service replaces multiple individual analytics services.
+        Use analytics_specialized.py for domain-specific functionality.
     """
     
-    def process_items(
+    def collect_event(
         self,
-        items: List[dict],
-        validate: bool = True,
-        transform: Optional[callable] = None
-    ) -> List[dict]:
+        event_type: str,
+        data: Dict[str, Any],
+        user_id: Optional[str] = None,
+        session_id: Optional[str] = None
+    ) -> bool:
         """
-        Process a list of items according to schema.
+        Collect analytics event data.
+        
+        Consolidates event collection from multiple sources into a unified
+        interface. Handles validation, enrichment, and routing to appropriate
+        storage backends.
         
         Args:
-            items (List[dict]): Items to process
-            validate (bool, optional): Perform validation.
-                Defaults to True.
-            transform (callable, optional): Transform function.
-                Defaults to None.
+            event_type (str): Type of event (e.g., 'user_action', 'system_event')
+            data (Dict[str, Any]): Event data payload
+            user_id (str, optional): Associated user identifier
+            session_id (str, optional): Session identifier for tracking
         
         Returns:
-            List[dict]: Processed items
+            bool: True if event was successfully collected
         
         Raises:
-            ValueError: If validation fails
-            TypeError: If items are not dictionaries
+            ValueError: If event_type is invalid or data is malformed
+            AnalyticsError: If collection pipeline fails
         
         Example:
-            >>> processor = DataProcessor()
-            >>> items = [{"name": "test"}]
-            >>> result = processor.process_items(items)
+            >>> analytics = AnalyticsService()
+            >>> success = analytics.collect_event(
+            ...     "job_application_submitted",
+            ...     {"job_id": "123", "application_type": "quick_apply"},
+            ...     user_id="user_456"
+            ... )
+            >>> print(success)
+            True
+        
+        Migration Note:
+            Replaces individual collect_* methods from:
+            - analytics_data_collection_service.collect_user_event()
+            - application_analytics_service.track_application()
         """
 ```
 
-### Bad Example (Don't Do This)
+### Configuration Manager Example
 
 ```python
-class DataProcessor:
-    # Processes data
+from typing import Dict, Any, Optional
+
+class ConfigurationManager:
+    """
+    Unified configuration management system.
     
-    def process_items(self, items, validate=True, transform=None):
-        # Process items
-        pass
+    Consolidates configuration functionality from:
+    - config.py, config_loader.py, config_manager.py, config_validator.py
+    - config_advanced.py (hot reload, templates, integrations)
+    
+    Provides centralized configuration loading, validation, and management
+    with support for environment-specific overrides and hot reloading.
+    
+    Attributes:
+        config_data (Dict[str, Any]): Loaded configuration data
+        validators (List[ConfigValidator]): Configuration validators
+        hot_reload_enabled (bool): Whether hot reload is active
+    """
+    
+    def load_config(self, env: Optional[str] = None) -> Dict[str, Any]:
+        """
+        Load configuration for specified environment.
+        
+        Args:
+            env (str, optional): Environment name. Defaults to current environment.
+        
+        Returns:
+            Dict[str, Any]: Loaded and validated configuration
+        
+        Raises:
+            ConfigurationError: If configuration loading fails
+            ValidationError: If configuration validation fails
+        
+        Migration Note:
+            Replaces config_loader.load_configuration() and config_manager.get_config()
+        """
+
+def bad_example():
+    """Don't do this - missing consolidation context."""
+    # Processes data without explaining consolidated architecture
+    pass
+```
+
+## Consolidated Architecture Documentation Requirements
+
+### Service Consolidation Documentation
+
+When documenting consolidated services, always include:
+
+1. **Consolidation Context**: List original files that were consolidated
+2. **Migration Notes**: Document import path changes and deprecated methods
+3. **Interface Changes**: Highlight any API changes from consolidation
+4. **Backward Compatibility**: Note any compatibility layers or breaking changes
+
+### Import Path Documentation
+
+```python
+"""
+Analytics Service Module
+
+This module consolidates analytics functionality from multiple services:
+
+Original modules (now consolidated):
+- backend.app.services.analytics
+- backend.app.services.analytics_data_collection_service  
+- backend.app.services.advanced_user_analytics_service
+- backend.app.services.application_analytics_service
+
+New import paths:
+- from backend.app.services.analytics_service import AnalyticsService
+- from backend.app.services.analytics_specialized import DomainAnalytics
+
+Deprecated imports (use compatibility layer):
+- from backend.app.services.analytics import Analytics  # Use AnalyticsService
+- from backend.app.services.analytics_data_collection_service import DataCollector  # Use AnalyticsService.collect_event
+"""
 ```
