@@ -32,6 +32,7 @@ class InterviewStatus(enum.Enum):
 
 class InterviewSession(Base):
     __tablename__ = "interview_sessions"
+    __table_args__ = {'extend_existing': True}
 
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
@@ -54,6 +55,7 @@ class InterviewSession(Base):
 
 class InterviewQuestion(Base):
     __tablename__ = "interview_questions"
+    __table_args__ = {'extend_existing': True}
 
     id = Column(Integer, primary_key=True, index=True)
     session_id = Column(

@@ -13,7 +13,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from .database import get_db
 from ..models.user import User as DBUser
 from ..repositories.user_repository import UserRepository
-from ..services.authentication_service import get_authentication_service
+from ..services.auth_service import get_authentication_system
 
 # Security scheme for JWT tokens
 security = HTTPBearer()
@@ -92,12 +92,12 @@ async def get_current_user_from_credentials(
         HTTPException: If authentication fails
     """
     try:
-        auth_service = get_authentication_service()
+        auth_service = get_authentication_system(session)
         
         # Validate token
-        token_data = await auth_service.validate_access_token(credentials.credentials)
+        token_data = await auth_service.validate_token(credentials.credentials)
         
-        if not token_data:
+        if not token_data.is_valid:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Invalid authentication credentials",

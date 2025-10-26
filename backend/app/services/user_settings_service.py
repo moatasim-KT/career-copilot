@@ -284,7 +284,7 @@ class UserSettingsService:
             True if successful, False otherwise
         """
         try:
-            from ..services.authentication_service import get_authentication_service
+            from ..services.auth_service import get_authentication_system
             
             db_manager = await get_database_manager()
             async with db_manager.get_session() as session:

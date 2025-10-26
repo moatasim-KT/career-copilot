@@ -22,8 +22,7 @@ from ..core.logging import get_logger, get_audit_logger
 from ..core.audit import AuditEventType, AuditSeverity, audit_logger
 # Security utilities are imported as needed
 from ..config.firebase_config import get_firebase_config
-from ..services.authentication_service import get_authentication_service
-from ..services.authorization_service import get_authorization_service
+from ..services.auth_service import get_authentication_system
 from ..services.api_key_service import get_api_key_manager
 
 logger = get_logger(__name__)

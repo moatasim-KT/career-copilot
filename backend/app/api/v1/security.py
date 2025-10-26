@@ -11,7 +11,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
 from pydantic import BaseModel, Field
 
 from ...core.auth import get_current_user, get_current_superuser, User
-from ...services.jwt_token_manager import get_jwt_token_manager, JWTTokenManager
+from ...services.auth_service import get_authentication_system, AuthenticationSystem
 from ...services.rbac_service import (
     get_rbac_service,
     RBACService,

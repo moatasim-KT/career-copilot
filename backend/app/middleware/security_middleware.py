@@ -17,7 +17,7 @@ from starlette.middleware.base import BaseHTTPMiddleware
 from ..core.config import get_settings
 from ..core.logging import get_logger
 from ..core.audit import audit_logger, AuditEventType, AuditSeverity
-from ..services.jwt_token_manager import get_jwt_token_manager, TokenValidationResult
+from ..services.auth_service import get_authentication_system, TokenValidationResult
 from ..services.rbac_service import get_rbac_service, Permission, PermissionContext
 from ..services.audit_trail_service import (
     get_audit_trail_service,

@@ -10,10 +10,10 @@ from sqlalchemy.orm import Session
 
 from ..core.websocket_manager import websocket_manager
 from ..core.logging import get_logger
-from ..services.authentication_service import get_authentication_service
+from ..services.auth_service import get_authentication_system
 from ..repositories.user_repository import UserRepository
 from ..core.config import get_settings
-from ..services.firebase_auth_service import get_firebase_auth_service
+from ..services.oauth_service import get_oauth_service
 
 logger = get_logger(__name__)
 

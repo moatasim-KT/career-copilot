@@ -9,8 +9,8 @@ from pydantic import BaseModel
 
 from ...core.auth import get_current_user_optional
 from ...core.iam_roles import get_iam_manager, Role, Permission
-from ...services.firebase_auth_service import get_firebase_auth_service, FirebaseUser
-from ...services.authentication_service import get_authentication_service
+from ...services.oauth_service import get_oauth_service, FirebaseUser
+from ...services.auth_service import get_authentication_system
 from ...middleware.auth_middleware import get_current_user, require_auth
 from ...core.logging import get_logger
 
@@ -46,8 +46,7 @@ class CustomTokenResponse(BaseModel):
 @router.post("/firebase/verify-token", response_model=FirebaseTokenResponse)
 async def verify_firebase_token(
     request: FirebaseTokenRequest,
-    firebase_service = Depends(get_firebase_auth_service),
-    auth_service = Depends(get_authentication_service)
+    oauth_service = Depends(get_oauth_service)
 ):
     """
     Verify Firebase ID token and optionally create JWT token.
@@ -57,7 +56,7 @@ async def verify_firebase_token(
     """
     try:
         # Verify Firebase token
-        firebase_user = await firebase_service.verify_id_token(request.id_token)
+        firebase_user = await oauth_service.verify_firebase_token(request.id_token)
         
         if not firebase_user:
             return FirebaseTokenResponse(
@@ -70,7 +69,7 @@ async def verify_firebase_token(
         try:
             # Create or get user in local database
             # This would typically involve syncing with your user database
-            jwt_token = await auth_service.create_access_token(
+            jwt_token = await oauth_service.create_access_token(
                 data={"sub": firebase_user.uid, "email": firebase_user.email}
             )
         except Exception as e:
@@ -83,8 +82,7 @@ async def verify_firebase_token(
                 "email": firebase_user.email,
                 "email_verified": firebase_user.email_verified,
                 "display_name": firebase_user.display_name,
-                "photo_url": firebase_user.photo_url,
-                "provider_id": firebase_user.provider_id
+                "photo_url": firebase_user.photo_url
             },
             jwt_token=jwt_token,
             message="Firebase token verified successfully"
@@ -102,7 +100,7 @@ async def verify_firebase_token(
 async def create_custom_token(
     request: CustomTokenRequest,
     current_user = Depends(get_current_user_optional),
-    firebase_service = Depends(get_firebase_auth_service),
+    oauth_service = Depends(get_oauth_service),
     iam_manager = Depends(get_iam_manager)
 ):
     """
@@ -127,7 +125,7 @@ async def create_custom_token(
         )
     
     try:
-        custom_token = await firebase_service.create_custom_token(
+        custom_token = await oauth_service.create_custom_token(
             request.uid,
             request.additional_claims
         )
@@ -155,7 +153,7 @@ async def create_custom_token(
 async def get_firebase_user_info(
     uid: str,
     current_user = Depends(get_current_user_optional),
-    firebase_service = Depends(get_firebase_auth_service)
+    oauth_service = Depends(get_oauth_service)
 ):
     """
     Get Firebase user information by UID.
@@ -169,7 +167,7 @@ async def get_firebase_user_info(
         )
     
     try:
-        firebase_user = await firebase_service.get_user(uid)
+        firebase_user = await oauth_service.get_firebase_user(uid)
         
         if not firebase_user:
             raise HTTPException(
@@ -183,7 +181,6 @@ async def get_firebase_user_info(
             "email_verified": firebase_user.email_verified,
             "display_name": firebase_user.display_name,
             "photo_url": firebase_user.photo_url,
-            "provider_id": firebase_user.provider_id,
             "custom_claims": firebase_user.custom_claims
         }
         
@@ -202,7 +199,7 @@ async def set_user_claims(
     uid: str,
     claims: dict,
     current_user = Depends(get_current_user_optional),
-    firebase_service = Depends(get_firebase_auth_service),
+    oauth_service = Depends(get_oauth_service),
     iam_manager = Depends(get_iam_manager)
 ):
     """
@@ -225,7 +222,7 @@ async def set_user_claims(
         )
     
     try:
-        success = await firebase_service.set_custom_claims(uid, claims)
+        success = await oauth_service.set_firebase_custom_claims(uid, claims)
         
         if not success:
             raise HTTPException(
@@ -249,7 +246,7 @@ async def set_user_claims(
 async def revoke_user_tokens(
     uid: str,
     current_user = Depends(get_current_user_optional),
-    firebase_service = Depends(get_firebase_auth_service),
+    oauth_service = Depends(get_oauth_service),
     iam_manager = Depends(get_iam_manager)
 ):
     """
@@ -272,7 +269,7 @@ async def revoke_user_tokens(
         )
     
     try:
-        success = await firebase_service.revoke_refresh_tokens(uid)
+        success = await oauth_service.revoke_firebase_tokens(uid)
         
         if not success:
             raise HTTPException(

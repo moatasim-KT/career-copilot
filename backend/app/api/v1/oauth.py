@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 from authlib.integrations.base_client import OAuthError
 from ...core.database import get_db
 from ...core.config import get_settings
-from ...services.oauth_service import oauth_service
+from ...services.oauth_service import get_oauth_service
 from ...dependencies import get_current_user
 from ...models.user import User
 from ...schemas.oauth import OAuthLoginResponse, OAuthStatusResponse, OAuthDisconnectRequest, OAuthDisconnectResponse
@@ -75,10 +75,11 @@ async def oauth_callback(
     
     try:
         # Handle the OAuth callback
-        oauth_data = await oauth_service.handle_callback(provider, code, state)
+        oauth_service_instance = get_oauth_service()
+        oauth_data = await oauth_service_instance.oauth_login(provider, code, state)
         
         # Create or link user account
-        user, access_token = oauth_service.create_or_link_user(oauth_data, db)
+        user, access_token = oauth_service_instance.create_or_link_user(oauth_data, db)
         
         logger.info(f"OAuth login successful for {provider} user: {user.email}")
         
@@ -119,7 +120,8 @@ async def disconnect_oauth(
         raise HTTPException(status_code=400, detail=f"Unsupported OAuth provider: {request.provider}")
     
     try:
-        success = oauth_service.disconnect_oauth_account(current_user.id, request.provider, db)
+        oauth_service_instance = get_oauth_service()
+        success = oauth_service_instance.disconnect_oauth_account(current_user.id, request.provider, db)
         
         if not success:
             raise HTTPException(status_code=400, detail=f"No {request.provider} account linked to this user")

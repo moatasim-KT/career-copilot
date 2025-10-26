@@ -1,29 +1,70 @@
-"""OAuth service for social authentication"""
+"""
+Consolidated OAuth Service for Career Copilot System.
+Handles OAuth authentication with multiple providers and Firebase integration.
+"""
 
+import json
 import httpx
-from typing import Dict, Optional, Tuple
-from authlib.integrations.starlette_client import OAuth
-from authlib.integrations.base_client import OAuthError
-from sqlalchemy.orm import Session
-from ..core.config import get_settings
-from ..models.user import User
-from ..core.security import create_access_token
 import secrets
 import string
+from typing import Dict, Any, Optional, List, Tuple
+from datetime import datetime, timedelta
+from pathlib import Path
 
+import firebase_admin
+from firebase_admin import auth as firebase_auth, credentials
+from authlib.integrations.starlette_client import OAuth
+from authlib.integrations.base_client import OAuthError
+from pydantic import BaseModel
+from sqlalchemy.orm import Session
+
+from app.core.config import get_settings
+from app.core.logging import get_logger, get_audit_logger
+from app.core.security import create_access_token
+from app.models.user import User
+
+logger = get_logger(__name__)
+audit_logger = get_audit_logger()
 settings = get_settings()
 
 
+class FirebaseUser(BaseModel):
+    """Firebase user model."""
+    uid: str
+    email: Optional[str] = None
+    email_verified: bool = False
+    display_name: Optional[str] = None
+    photo_url: Optional[str] = None
+    phone_number: Optional[str] = None
+    disabled: bool = False
+    custom_claims: Dict[str, Any] = {}
+    provider_data: List[Dict[str, Any]] = []
+    created_at: Optional[datetime] = None
+    last_sign_in: Optional[datetime] = None
+
+
 class OAuthService:
-    """Service for handling OAuth authentication with multiple providers"""
+    """Consolidated OAuth service with Firebase integration."""
     
     def __init__(self):
+        """Initialize OAuth service."""
         self.oauth = OAuth()
-        self._setup_providers()
+        self.firebase_app: Optional[firebase_admin.App] = None
+        self.firebase_initialized = False
+        
+        # Initialize OAuth providers
+        self._setup_oauth_providers()
+        
+        # Initialize Firebase if enabled
+        if settings.firebase_enabled:
+            self._initialize_firebase()
+        
+        logger.info("OAuth Service initialized")
     
-    def _setup_providers(self):
-        """Setup OAuth providers based on configuration"""
+    def _setup_oauth_providers(self):
+        """Setup OAuth providers based on configuration."""
         if not settings.oauth_enabled:
+            logger.info("OAuth is disabled")
             return
             
         # Google OAuth setup
@@ -37,6 +78,7 @@ class OAuthService:
                     'scope': 'openid email profile'
                 }
             )
+            logger.info("Google OAuth provider configured")
         
         # LinkedIn OAuth setup
         if settings.linkedin_client_id and settings.linkedin_client_secret:
@@ -51,6 +93,7 @@ class OAuthService:
                     'scope': 'r_liteprofile r_emailaddress'
                 }
             )
+            logger.info("LinkedIn OAuth provider configured")
         
         # GitHub OAuth setup
         if settings.github_client_id and settings.github_client_secret:
@@ -65,9 +108,78 @@ class OAuthService:
                     'scope': 'user:email'
                 }
             )
+            logger.info("GitHub OAuth provider configured")
     
+    def _initialize_firebase(self) -> bool:
+        """Initialize Firebase Admin SDK."""
+        try:
+            if self.firebase_initialized:
+                return True
+            
+            # Check if Firebase is enabled
+            if not settings.firebase_enabled:
+                logger.info("Firebase authentication is disabled")
+                return False
+            
+            # Get service account configuration
+            service_account_config = self._get_firebase_service_account_config()
+            if not service_account_config:
+                logger.warning("Firebase service account not configured")
+                return False
+            
+            # Initialize Firebase Admin SDK
+            cred = credentials.Certificate(service_account_config)
+            
+            # Check if app already exists
+            try:
+                self.firebase_app = firebase_admin.get_app()
+                logger.info("Using existing Firebase app")
+            except ValueError:
+                # App doesn't exist, create new one
+                self.firebase_app = firebase_admin.initialize_app(cred)
+                logger.info("Firebase Admin SDK initialized successfully")
+            
+            self.firebase_initialized = True
+            return True
+            
+        except Exception as e:
+            logger.error(f"Failed to initialize Firebase Admin SDK: {e}")
+            return False
+    
+    def _get_firebase_service_account_config(self) -> Optional[Dict[str, Any]]:
+        """Get Firebase service account configuration."""
+        try:
+            # Try to get from environment variable first
+            if hasattr(settings, 'firebase_service_account_key') and settings.firebase_service_account_key:
+                return json.loads(settings.firebase_service_account_key)
+            
+            # Try to get from file
+            service_account_path = getattr(settings, 'firebase_service_account_path', None)
+            if service_account_path and Path(service_account_path).exists():
+                with open(service_account_path, 'r') as f:
+                    return json.load(f)
+            
+            # Try default locations
+            default_paths = [
+                'secrets/firebase-service-account.json',
+                'config/firebase-service-account.json',
+                'firebase-service-account.json'
+            ]
+            
+            for path in default_paths:
+                if Path(path).exists():
+                    with open(path, 'r') as f:
+                        return json.load(f)
+            
+            return None
+            
+        except Exception as e:
+            logger.error(f"Error loading Firebase service account config: {e}")
+            return None
+    
+    # OAuth Provider Methods
     def get_authorization_url(self, provider: str, redirect_uri: str) -> str:
-        """Get authorization URL for OAuth provider"""
+        """Get authorization URL for OAuth provider."""
         if not settings.oauth_enabled:
             raise ValueError("OAuth is not enabled")
             
@@ -77,8 +189,18 @@ class OAuthService:
         
         return client.authorize_redirect_uri(redirect_uri)
     
-    async def handle_callback(self, provider: str, code: str, state: str = None) -> Dict:
-        """Handle OAuth callback and exchange code for token"""
+    async def oauth_login(self, provider: str, code: str, state: str = None) -> Dict:
+        """
+        Handle OAuth login and exchange code for token.
+        
+        Args:
+            provider: OAuth provider name
+            code: Authorization code
+            state: State parameter for security
+            
+        Returns:
+            Dictionary with user data and tokens
+        """
         if not settings.oauth_enabled:
             raise ValueError("OAuth is not enabled")
         
@@ -92,10 +214,11 @@ class OAuthService:
             else:
                 raise ValueError(f"Unsupported OAuth provider: {provider}")
         except Exception as e:
+            logger.error(f"OAuth login failed for provider {provider}: {e}")
             raise OAuthError(f"OAuth callback failed: {str(e)}")
     
     async def _handle_google_callback(self, code: str) -> Dict:
-        """Handle Google OAuth callback"""
+        """Handle Google OAuth callback."""
         async with httpx.AsyncClient() as client:
             # Exchange code for token
             token_response = await client.post(
@@ -130,7 +253,7 @@ class OAuthService:
             }
     
     async def _handle_linkedin_callback(self, code: str) -> Dict:
-        """Handle LinkedIn OAuth callback"""
+        """Handle LinkedIn OAuth callback."""
         async with httpx.AsyncClient() as client:
             # Exchange code for token
             token_response = await client.post(
@@ -177,7 +300,7 @@ class OAuthService:
             }
     
     async def _handle_github_callback(self, code: str) -> Dict:
-        """Handle GitHub OAuth callback"""
+        """Handle GitHub OAuth callback."""
         async with httpx.AsyncClient() as client:
             # Exchange code for token
             token_response = await client.post(
@@ -222,7 +345,7 @@ class OAuthService:
             }
     
     def create_or_link_user(self, oauth_data: Dict, db: Session) -> Tuple[User, str]:
-        """Create new user or link existing user with OAuth data"""
+        """Create new user or link existing user with OAuth data."""
         provider = oauth_data['provider']
         oauth_id = oauth_data['oauth_id']
         email = oauth_data['email']
@@ -288,7 +411,7 @@ class OAuthService:
         return new_user, token
     
     def _generate_username_from_oauth(self, oauth_data: Dict, db: Session) -> str:
-        """Generate unique username from OAuth data"""
+        """Generate unique username from OAuth data."""
         name = oauth_data.get('name', '')
         email = oauth_data.get('email', '')
         provider = oauth_data['provider']
@@ -312,14 +435,12 @@ class OAuthService:
         return username
     
     def _pre_populate_profile(self, user: User, oauth_data: Dict, provider: str) -> None:
-        """Pre-populate user profile based on OAuth provider data"""
+        """Pre-populate user profile based on OAuth provider data."""
         name = oauth_data.get('name', '')
         
         # Basic skill extraction based on provider
         if provider == 'github':
             # GitHub users might have technical skills
-            # This is a basic implementation - could be enhanced with GitHub API calls
-            # to fetch repositories and extract technologies
             basic_skills = ['Git', 'GitHub']
             if user.skills is None:
                 user.skills = basic_skills
@@ -332,8 +453,6 @@ class OAuthService:
         
         elif provider == 'linkedin':
             # LinkedIn users might have professional skills
-            # This is a basic implementation - could be enhanced with LinkedIn API calls
-            # to fetch actual profile data including skills and experience
             if name:
                 # Extract potential skills from name/title if it contains technical terms
                 technical_terms = [
@@ -373,7 +492,7 @@ class OAuthService:
                 user.skills = []
     
     def disconnect_oauth_account(self, user_id: int, provider: str, db: Session) -> bool:
-        """Disconnect OAuth account from user"""
+        """Disconnect OAuth account from user."""
         user = db.query(User).filter(User.id == user_id).first()
         if not user:
             return False
@@ -391,7 +510,250 @@ class OAuthService:
             return True
         
         return False
+    
+    # Firebase Authentication Methods
+    async def verify_firebase_token(self, id_token: str) -> Optional[FirebaseUser]:
+        """Verify Firebase ID token and return user information."""
+        try:
+            if not self.firebase_initialized:
+                if not self._initialize_firebase():
+                    return None
+            
+            # Verify the ID token
+            decoded_token = firebase_auth.verify_id_token(id_token)
+            
+            # Get user record for additional information
+            user_record = firebase_auth.get_user(decoded_token["uid"])
+            
+            # Convert to FirebaseUser model
+            firebase_user = FirebaseUser(
+                uid=user_record.uid,
+                email=user_record.email,
+                email_verified=user_record.email_verified,
+                display_name=user_record.display_name,
+                photo_url=user_record.photo_url,
+                phone_number=user_record.phone_number,
+                disabled=user_record.disabled,
+                custom_claims=user_record.custom_claims or {},
+                provider_data=[
+                    {
+                        "uid": provider.uid,
+                        "email": provider.email,
+                        "display_name": provider.display_name,
+                        "photo_url": provider.photo_url,
+                        "provider_id": provider.provider_id
+                    }
+                    for provider in user_record.provider_data
+                ],
+                created_at=datetime.fromtimestamp(user_record.user_metadata.creation_timestamp / 1000) if user_record.user_metadata.creation_timestamp else None,
+                last_sign_in=datetime.fromtimestamp(user_record.user_metadata.last_sign_in_timestamp / 1000) if user_record.user_metadata.last_sign_in_timestamp else None
+            )
+            
+            logger.info(f"Successfully verified Firebase token for user: {firebase_user.uid}")
+            return firebase_user
+            
+        except firebase_auth.InvalidIdTokenError as e:
+            logger.warning(f"Invalid Firebase ID token: {e}")
+            return None
+        except firebase_auth.ExpiredIdTokenError as e:
+            logger.warning(f"Expired Firebase ID token: {e}")
+            return None
+        except Exception as e:
+            logger.error(f"Error verifying Firebase ID token: {e}")
+            return None
+    
+    async def get_firebase_user(self, uid: str) -> Optional[FirebaseUser]:
+        """Get Firebase user by UID."""
+        try:
+            if not self.firebase_initialized:
+                if not self._initialize_firebase():
+                    return None
+            
+            user_record = firebase_auth.get_user(uid)
+            
+            firebase_user = FirebaseUser(
+                uid=user_record.uid,
+                email=user_record.email,
+                email_verified=user_record.email_verified,
+                display_name=user_record.display_name,
+                photo_url=user_record.photo_url,
+                phone_number=user_record.phone_number,
+                disabled=user_record.disabled,
+                custom_claims=user_record.custom_claims or {},
+                provider_data=[
+                    {
+                        "uid": provider.uid,
+                        "email": provider.email,
+                        "display_name": provider.display_name,
+                        "photo_url": provider.photo_url,
+                        "provider_id": provider.provider_id
+                    }
+                    for provider in user_record.provider_data
+                ],
+                created_at=datetime.fromtimestamp(user_record.user_metadata.creation_timestamp / 1000) if user_record.user_metadata.creation_timestamp else None,
+                last_sign_in=datetime.fromtimestamp(user_record.user_metadata.last_sign_in_timestamp / 1000) if user_record.user_metadata.last_sign_in_timestamp else None
+            )
+            
+            return firebase_user
+            
+        except firebase_auth.UserNotFoundError:
+            logger.warning(f"Firebase user not found: {uid}")
+            return None
+        except Exception as e:
+            logger.error(f"Error getting Firebase user {uid}: {e}")
+            return None
+    
+    async def create_firebase_user(
+        self,
+        uid: Optional[str] = None,
+        email: Optional[str] = None,
+        password: Optional[str] = None,
+        display_name: Optional[str] = None,
+        photo_url: Optional[str] = None,
+        email_verified: bool = False,
+        phone_number: Optional[str] = None,
+        disabled: bool = False
+    ) -> Optional[FirebaseUser]:
+        """Create a new Firebase user."""
+        try:
+            if not self.firebase_initialized:
+                if not self._initialize_firebase():
+                    return None
+            
+            # Prepare user creation arguments
+            user_args = {}
+            if uid:
+                user_args["uid"] = uid
+            if email:
+                user_args["email"] = email
+            if password:
+                user_args["password"] = password
+            if display_name:
+                user_args["display_name"] = display_name
+            if photo_url:
+                user_args["photo_url"] = photo_url
+            if phone_number:
+                user_args["phone_number"] = phone_number
+            
+            user_args["email_verified"] = email_verified
+            user_args["disabled"] = disabled
+            
+            # Create user
+            user_record = firebase_auth.create_user(**user_args)
+            
+            # Set default custom claims
+            default_claims = {
+                "roles": ["user"],
+                "created_at": datetime.utcnow().isoformat(),
+                "profile": {
+                    "skills": [],
+                    "locations": [],
+                    "experience_level": "entry",
+                    "job_preferences": {}
+                }
+            }
+            
+            firebase_auth.set_custom_user_claims(user_record.uid, default_claims)
+            
+            # Log user creation
+            audit_logger.log_event(
+                event_type="firebase_user_created",
+                action=f"Firebase user created",
+                user_id=user_record.uid,
+                details={
+                    "email": email,
+                    "display_name": display_name,
+                    "email_verified": email_verified
+                }
+            )
+            
+            # Return created user
+            return await self.get_firebase_user(user_record.uid)
+            
+        except firebase_auth.EmailAlreadyExistsError:
+            logger.warning(f"Firebase user with email {email} already exists")
+            return None
+        except firebase_auth.UidAlreadyExistsError:
+            logger.warning(f"Firebase user with UID {uid} already exists")
+            return None
+        except Exception as e:
+            logger.error(f"Error creating Firebase user: {e}")
+            return None
+    
+    async def set_firebase_custom_claims(self, uid: str, claims: Dict[str, Any]) -> bool:
+        """Set custom claims for a Firebase user."""
+        try:
+            if not self.firebase_initialized:
+                if not self._initialize_firebase():
+                    return False
+            
+            firebase_auth.set_custom_user_claims(uid, claims)
+            
+            # Log custom claims update
+            audit_logger.log_event(
+                event_type="firebase_custom_claims_updated",
+                action=f"Firebase custom claims updated",
+                user_id=uid,
+                details={"claims": claims}
+            )
+            
+            logger.info(f"Firebase custom claims set for user {uid}")
+            return True
+            
+        except firebase_auth.UserNotFoundError:
+            logger.warning(f"Firebase user not found for custom claims: {uid}")
+            return False
+        except Exception as e:
+            logger.error(f"Error setting Firebase custom claims for user {uid}: {e}")
+            return False
+    
+    async def revoke_firebase_tokens(self, uid: str) -> bool:
+        """Revoke all refresh tokens for a Firebase user."""
+        try:
+            if not self.firebase_initialized:
+                if not self._initialize_firebase():
+                    return False
+            
+            firebase_auth.revoke_refresh_tokens(uid)
+            
+            # Log token revocation
+            audit_logger.log_event(
+                event_type="firebase_tokens_revoked",
+                action=f"Firebase refresh tokens revoked",
+                user_id=uid,
+                severity="warning"
+            )
+            
+            logger.info(f"Firebase refresh tokens revoked for user: {uid}")
+            return True
+            
+        except firebase_auth.UserNotFoundError:
+            logger.warning(f"Firebase user not found for token revocation: {uid}")
+            return False
+        except Exception as e:
+            logger.error(f"Error revoking Firebase tokens for user {uid}: {e}")
+            return False
+    
+    def get_oauth_status(self) -> Dict[str, Any]:
+        """Get OAuth service status."""
+        return {
+            "oauth_enabled": settings.oauth_enabled,
+            "firebase_enabled": settings.firebase_enabled,
+            "firebase_initialized": self.firebase_initialized,
+            "configured_providers": [
+                provider for provider in ['google', 'linkedin', 'github']
+                if getattr(self.oauth, provider, None) is not None
+            ]
+        }
 
 
-# Global OAuth service instance
-oauth_service = OAuthService()
+# Global service instance
+_oauth_service: Optional[OAuthService] = None
+
+
+def get_oauth_service() -> OAuthService:
+    """Get OAuth service instance."""
+    global _oauth_service
+    if _oauth_service is None:
+        _oauth_service = OAuthService()
+    return _oauth_service
