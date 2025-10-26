@@ -30,7 +30,7 @@ except ImportError:
     class Observer:
         pass
 
-from pydantic import BaseModel, Field, ValidationError, SecretStr
+from pydantic import BaseModel, Field, ValidationError, SecretStr, ConfigDict
 try:
     from pydantic import validator
 except ImportError:
@@ -236,10 +236,11 @@ class Settings(BaseSettings):
     medium_match_threshold: Optional[float] = 60.0
     instant_alert_threshold: Optional[float] = 85.0
 
-    class Config:
-        env_file = ".env"
-        env_file_encoding = 'utf-8'
-        extra = 'ignore'
+    model_config = ConfigDict(
+        env_file=".env",
+        env_file_encoding='utf-8',
+        extra='ignore'
+    )
 
 
 class ConfigurationValidator(ABC):
