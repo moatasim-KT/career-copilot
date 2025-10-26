@@ -11,7 +11,7 @@ Supports:
 from typing import List, Dict, Optional
 import aiohttp
 import asyncio
-from datetime import datetime
+from datetime import datetime, timezone
 from ..core.logging import get_logger
 from ..models.job import Job
 from pydantic import BaseModel
@@ -33,7 +33,7 @@ class JobListing(BaseModel):
     url: Optional[str] = None
     source: Optional[str] = None
     posted_date: Optional[datetime] = None
-    scraped_date: datetime = datetime.utcnow()
+    scraped_date: datetime = datetime.now(timezone.utc)
 
 
 class JobScraperService:
@@ -42,10 +42,10 @@ class JobScraperService:
     def __init__(self):
         self.settings = get_settings()
         self.api_keys = {
-            'linkedin': self.settings.LINKEDIN_API_KEY,
-            'indeed': self.settings.INDEED_API_KEY,
-            'glassdoor': self.settings.GLASSDOOR_API_KEY,
-            'ziprecruiter': self.settings.ZIPRECRUITER_API_KEY
+            'linkedin': self.settings.linkedin_api_access_token,
+            'indeed': self.settings.indeed_api_key,
+            'glassdoor': self.settings.glassdoor_api_key,
+            'ziprecruiter': getattr(self.settings, 'ziprecruiter_api_key', None)
         }
 
     async def scrape_linkedin(self, keywords: str, location: str, limit: int = 100) -> List[Dict]:
@@ -182,7 +182,7 @@ class JobScraperService:
                         source_url=job_listing.url,
                         source="scraped",
                         status="not_applied",
-                        created_at=datetime.utcnow()
+                        created_at=datetime.now(timezone.utc)
                     )
                     
                     session.add(job)
