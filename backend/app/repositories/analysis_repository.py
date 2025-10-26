@@ -2,16 +2,15 @@
 Repository for analysis history and agent execution data access.
 """
 
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
 from decimal import Decimal
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Optional, Tuple, Any
 from uuid import UUID
 
 from sqlalchemy import and_, desc, func, or_
 from sqlalchemy.orm import Session, joinedload
 
 from ..models.database_models import AnalysisHistory, AgentExecution, ContractAnalysis
-from datetime import timedelta
 from ..models.analysis_models import (
     AnalysisHistoryCreate,
     AnalysisHistoryUpdate,
@@ -34,12 +33,12 @@ class AnalysisRepository:
     
     # Analysis History Methods
     
-    async def create_analysis_history(self, analysis_data: AnalysisHistoryCreate) -> AnalysisHistory:
+    def create_analysis_history(self, analysis_data: AnalysisHistoryCreate) -> AnalysisHistory:
         """Create a new analysis history record."""
         db_analysis = AnalysisHistory(**analysis_data.dict())
         self.db.add(db_analysis)
-        await self.db.commit()
-        await self.db.refresh(db_analysis)
+        self.db.commit()
+        self.db.refresh(db_analysis)
         return db_analysis
     
     def get_analysis_history(self, analysis_id: UUID) -> Optional[AnalysisHistory]:
@@ -58,9 +57,9 @@ class AnalysisRepository:
             AnalysisHistory.deleted_at.is_(None)
         ).first()
     
-    async def update_analysis_history(self, analysis_id: UUID, update_data: AnalysisHistoryUpdate) -> Optional[AnalysisHistory]:
+    def update_analysis_history(self, analysis_id: UUID, update_data: AnalysisHistoryUpdate) -> Optional[AnalysisHistory]:
         """Update analysis history record."""
-        db_analysis = await self.get_analysis_history(analysis_id)
+        db_analysis = self.get_analysis_history(analysis_id)
         if not db_analysis:
             return None
         
@@ -68,9 +67,9 @@ class AnalysisRepository:
         for field, value in update_dict.items():
             setattr(db_analysis, field, value)
         
-        db_analysis.updated_at = datetime.utcnow()
-        await self.db.commit()
-        await self.db.refresh(db_analysis)
+        db_analysis.updated_at = datetime.now(timezone.utc)
+        self.db.commit()
+        self.db.refresh(db_analysis)
         return db_analysis
     
     def soft_delete_analysis_history(self, analysis_id: UUID) -> bool:
@@ -79,7 +78,7 @@ class AnalysisRepository:
         if not db_analysis:
             return False
         
-        db_analysis.deleted_at = datetime.utcnow()
+        db_analysis.deleted_at = datetime.now(timezone.utc)
         self.db.commit()
         return True
         
@@ -104,7 +103,7 @@ class AnalysisRepository:
             query = query.filter(AgentExecution.agent_id == agent_id)
         
         if time_window:
-            cutoff_time = datetime.utcnow() - time_window
+            cutoff_time = datetime.now(timezone.utc) - time_window
             query = query.filter(AgentExecution.created_at >= cutoff_time)
         
         executions = query.all()
@@ -162,7 +161,7 @@ class AnalysisRepository:
         )
         
         if time_window:
-            cutoff_time = datetime.utcnow() - time_window
+            cutoff_time = datetime.now(timezone.utc) - time_window
             query = query.filter(AgentExecution.created_at >= cutoff_time)
             
         executions = query.all()
@@ -212,7 +211,7 @@ class AnalysisRepository:
         query = self.db.query(AgentExecution)
         
         if time_window:
-            cutoff_time = datetime.utcnow() - time_window
+            cutoff_time = datetime.now(timezone.utc) - time_window
             query = query.filter(AgentExecution.created_at >= cutoff_time)
             
         executions = query.all()
@@ -316,12 +315,12 @@ class AnalysisRepository:
     
     # Agent Execution Methods
     
-    async def create_agent_execution(self, execution_data: AgentExecutionCreate) -> AgentExecution:
+    def create_agent_execution(self, execution_data: AgentExecutionCreate) -> AgentExecution:
         """Create a new agent execution record."""
         db_execution = AgentExecution(**execution_data.dict())
         self.db.add(db_execution)
-        await self.db.commit()
-        await self.db.refresh(db_execution)
+        self.db.commit()
+        self.db.refresh(db_execution)
         return db_execution
     
     def get_agent_execution(self, execution_id: UUID) -> Optional[AgentExecution]:
@@ -340,7 +339,7 @@ class AnalysisRepository:
         for field, value in update_dict.items():
             setattr(db_execution, field, value)
         
-        db_execution.updated_at = datetime.utcnow()
+        db_execution.updated_at = datetime.now(timezone.utc)
         self.db.commit()
         self.db.refresh(db_execution)
         return db_execution
@@ -489,16 +488,36 @@ class AnalysisRepository:
             if analysis.total_cost:
                 cost_by_day[day_key] = cost_by_day.get(day_key, Decimal('0')) + analysis.total_cost
         
+        # Calculate agent performance
+        agent_performance = self._calculate_agent_performance_for_analyses(analyses)
+        
+        # Calculate provider performance
+        provider_performance = self._calculate_provider_performance_for_analyses(analyses)
+        
+        # Error analysis
+        error_analysis = {}
+        for analysis in analyses:
+            if analysis.status == 'failed':
+                # Get error details from associated agent executions
+                executions = self.db.query(AgentExecution).filter(
+                    AgentExecution.analysis_id == analysis.id
+                ).all()
+                
+                for execution in executions:
+                    if execution.error_type:
+                        error_analysis[execution.error_type] = error_analysis.get(execution.error_type, 0) + 1
+        
         return AnalysisPerformanceMetrics(
             total_analyses=total_analyses,
             avg_processing_time=avg_processing_time,
             avg_cost=avg_cost,
             avg_tokens=avg_tokens,
             success_rate=success_rate,
-            agent_performance={},  # TODO: Implement agent performance calculation
-            provider_performance={},  # TODO: Implement provider performance calculation
+            agent_performance=agent_performance,
+            provider_performance=provider_performance,
             analyses_by_day=analyses_by_day,
-            cost_by_day=cost_by_day
+            cost_by_day=cost_by_day,
+            error_analysis=error_analysis
         )
     
     def get_agent_performance_metrics(
@@ -558,6 +577,9 @@ class AnalysisRepository:
             
             fallback_usage = len([e for e in agent_executions if e.fallback_used])
             
+            # Calculate retry statistics
+            retry_statistics = self._calculate_retry_statistics_for_executions(agent_executions)
+            
             metrics.append(AgentPerformanceMetrics(
                 agent_name=agent_name,
                 total_executions=total_executions,
@@ -568,7 +590,7 @@ class AnalysisRepository:
                 avg_cost=avg_cost,
                 avg_tokens=avg_tokens,
                 error_types=error_types,
-                retry_statistics={},  # TODO: Implement retry statistics
+                retry_statistics=retry_statistics,
                 provider_usage=provider_usage,
                 fallback_usage=fallback_usage
             ))
@@ -601,12 +623,12 @@ class AnalysisRepository:
                 key = execution.started_at.date().isoformat()
             elif group_by == 'week':
                 # Get Monday of the week
-                monday = execution.started_at.date() - datetime.timedelta(days=execution.started_at.weekday())
+                monday = execution.started_at.date() - timedelta(days=execution.started_at.weekday())
                 key = monday.isoformat()
             elif group_by == 'month':
                 key = execution.started_at.strftime('%Y-%m')
             elif group_by == 'provider':
-                key = execution.llm_provider or 'unknown'
+                key = execution.llm_provider or execution.provider or 'unknown'
             elif group_by == 'model':
                 key = execution.model_name or 'unknown'
             else:
@@ -659,3 +681,151 @@ class AnalysisRepository:
                 avg_trends[day] = sum(values) / len(values)
         
         return avg_trends
+    
+    # Helper methods for TODO implementations
+    
+    def _calculate_agent_performance_for_analyses(self, analyses: List[AnalysisHistory]) -> Dict[str, AgentPerformanceMetrics]:
+        """Calculate agent performance metrics for a list of analyses."""
+        agent_performance = {}
+        
+        # Get all agent executions for these analyses
+        analysis_ids = [analysis.id for analysis in analyses]
+        executions = self.db.query(AgentExecution).filter(
+            AgentExecution.analysis_id.in_(analysis_ids)
+        ).all()
+        
+        # Group executions by agent name
+        agent_groups = {}
+        for execution in executions:
+            agent_name = execution.agent_name
+            if agent_name not in agent_groups:
+                agent_groups[agent_name] = []
+            agent_groups[agent_name].append(execution)
+        
+        # Calculate metrics for each agent
+        for agent_name, agent_executions in agent_groups.items():
+            total_executions = len(agent_executions)
+            successful = sum(1 for e in agent_executions if e.status == 'completed')
+            failed = sum(1 for e in agent_executions if e.status == 'failed')
+            
+            success_rate = float(successful / total_executions) if total_executions > 0 else 0.0
+            error_rate = float(failed / total_executions) if total_executions > 0 else 0.0
+            
+            # Calculate average duration
+            durations = [e.execution_time or e.duration for e in agent_executions if (e.execution_time or e.duration)]
+            avg_duration = float(sum(durations) / len(durations)) if durations else 0.0
+            
+            # Calculate retry statistics
+            retry_stats = self._calculate_retry_statistics_for_executions(agent_executions)
+            
+            agent_performance[agent_name] = AgentPerformanceMetrics(
+                agent_name=agent_name,
+                total_executions=total_executions,
+                success_count=successful,
+                failure_count=failed,
+                success_rate=success_rate,
+                error_rate=error_rate,
+                average_duration=avg_duration,
+                retry_stats=retry_stats
+            )
+        
+        return agent_performance
+    
+    def _calculate_provider_performance_for_analyses(self, analyses: List[AnalysisHistory]) -> Dict[str, ProviderPerformanceMetrics]:
+        """Calculate provider performance metrics for a list of analyses."""
+        provider_performance = {}
+        
+        # Get all agent executions for these analyses
+        analysis_ids = [analysis.id for analysis in analyses]
+        executions = self.db.query(AgentExecution).filter(
+            AgentExecution.analysis_id.in_(analysis_ids)
+        ).all()
+        
+        # Group executions by provider
+        provider_groups = {}
+        for execution in executions:
+            provider = execution.llm_provider or execution.provider or 'unknown'
+            if provider not in provider_groups:
+                provider_groups[provider] = []
+            provider_groups[provider].append(execution)
+        
+        # Calculate metrics for each provider
+        for provider, provider_executions in provider_groups.items():
+            total_requests = len(provider_executions)
+            successful = sum(1 for e in provider_executions if e.status == 'completed')
+            failed = sum(1 for e in provider_executions if e.status == 'failed')
+            
+            success_rate = float(successful / total_requests) if total_requests > 0 else 0.0
+            error_rate = float(failed / total_requests) if total_requests > 0 else 0.0
+            
+            # Calculate average latency
+            latencies = [e.execution_time or e.duration for e in provider_executions if (e.execution_time or e.duration)]
+            avg_latency = float(sum(latencies) / len(latencies)) if latencies else 0.0
+            
+            # Calculate cost metrics
+            costs = [e.cost for e in provider_executions if e.cost]
+            total_cost = sum(costs, Decimal('0.0'))
+            avg_cost = total_cost / len(costs) if costs else Decimal('0.0')
+            
+            # Model usage breakdown
+            model_usage = {}
+            for execution in provider_executions:
+                model = execution.model_name or 'unknown'
+                model_usage[model] = model_usage.get(model, 0) + 1
+            
+            # Error breakdown
+            error_breakdown = {}
+            for execution in provider_executions:
+                if execution.error_type:
+                    error_breakdown[execution.error_type] = error_breakdown.get(execution.error_type, 0) + 1
+            
+            provider_performance[provider] = ProviderPerformanceMetrics(
+                provider=provider,
+                total_requests=total_requests,
+                success_rate=success_rate,
+                average_latency=avg_latency,
+                error_rate=error_rate,
+                cost_metrics={
+                    'total_cost': total_cost,
+                    'average_cost': avg_cost
+                },
+                model_usage=model_usage,
+                error_breakdown=error_breakdown
+            )
+        
+        return provider_performance
+    
+    def _calculate_retry_statistics_for_executions(self, executions: List[AgentExecution]) -> Dict[str, Any]:
+        """Calculate retry statistics for a list of executions."""
+        if not executions:
+            return {
+                'total_retries': 0,
+                'average_retries': 0.0,
+                'max_retries': 0,
+                'retry_success_rate': 0.0,
+                'common_retry_reasons': {}
+            }
+        
+        retry_counts = [e.retry_count for e in executions if e.retry_count is not None]
+        total_retries = sum(retry_counts)
+        avg_retries = float(total_retries / len(retry_counts)) if retry_counts else 0.0
+        max_retries = max(retry_counts) if retry_counts else 0
+        
+        # Calculate retry success rate (executions that succeeded after retries)
+        retried_executions = [e for e in executions if e.retry_count and e.retry_count > 0]
+        successful_after_retry = sum(1 for e in retried_executions if e.status == 'completed')
+        retry_success_rate = float(successful_after_retry / len(retried_executions)) if retried_executions else 0.0
+        
+        # Common retry reasons (based on error types of failed executions that were retried)
+        retry_reasons = {}
+        for execution in executions:
+            if execution.retry_count and execution.retry_count > 0 and execution.error_type:
+                retry_reasons[execution.error_type] = retry_reasons.get(execution.error_type, 0) + 1
+        
+        return {
+            'total_retries': total_retries,
+            'average_retries': avg_retries,
+            'max_retries': max_retries,
+            'retry_success_rate': retry_success_rate,
+            'common_retry_reasons': retry_reasons
+        }

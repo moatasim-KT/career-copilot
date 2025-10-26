@@ -1,8 +1,8 @@
 from sqlalchemy import Column, Integer, String, DateTime, JSON
-from sqlalchemy.ext.declarative import declarative_base
+from ..core.database import Base
 from datetime import datetime
 
-Base = declarative_base()
+
 
 class Analytics(Base):
     __tablename__ = "analytics"

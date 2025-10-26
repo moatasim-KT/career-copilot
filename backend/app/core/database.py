@@ -18,7 +18,7 @@ from typing import Any, Dict, List, Optional, Union, AsyncGenerator, Generator
 import asyncpg
 from sqlalchemy import create_engine, text, MetaData, event
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
-from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import declarative_base
 from sqlalchemy.orm import sessionmaker, Session
 from sqlalchemy.pool import QueuePool, StaticPool
 from sqlalchemy.exc import SQLAlchemyError

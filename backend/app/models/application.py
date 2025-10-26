@@ -2,7 +2,7 @@
 
 from sqlalchemy import Column, Integer, String, Text, DateTime, ForeignKey, Date, JSON
 from sqlalchemy.orm import relationship
-from datetime import datetime
+from datetime import datetime, timezone
 from ..core.database import Base
 
 APPLICATION_STATUSES = [
@@ -22,7 +22,7 @@ class Application(Base):
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
     job_id = Column(Integer, ForeignKey("jobs.id"), nullable=False, index=True)
     status = Column(String, default="interested", index=True)  # interested, applied, interview, offer, rejected, accepted, declined
-    applied_date = Column(Date, default=datetime.utcnow().date)
+    applied_date = Column(Date, default=lambda: datetime.now(timezone.utc).date())
     response_date = Column(Date)
     interview_date = Column(DateTime)
     offer_date = Column(Date)
