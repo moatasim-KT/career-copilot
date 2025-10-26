@@ -12,7 +12,16 @@ import inspect
 import re
 import typing
 from typing import Any, Callable, Dict, List, Optional, Tuple, Type, Union, get_type_hints
-from typing._GenericAlias import _GenericAlias
+import sys
+
+# Handle different Python versions for generic alias checking
+if sys.version_info >= (3, 9):
+    from types import GenericAlias
+    def is_generic_alias(obj):
+        return isinstance(obj, (GenericAlias, type(List[int])))
+else:
+    def is_generic_alias(obj):
+        return hasattr(obj, '__origin__')
 from dataclasses import is_dataclass, fields
 
 
@@ -97,7 +106,7 @@ class TypeAnalyzer:
         if type_hint == Any:
             return 'Any'
             
-        if isinstance(type_hint, _GenericAlias):
+        if is_generic_alias(type_hint):
             if type_hint.__origin__ == Union:
                 return ' | '.join(TypeAnalyzer.format_type(t) for t in type_hint.__args__)
             if type_hint.__origin__ in (list, List):
@@ -388,7 +397,6 @@ class DocstringEnhancer:
             description=desc,
             attributes=attributes
         )
-    ) -> str:
         """
         Generate a Google-style class docstring.
         
@@ -737,9 +745,26 @@ def add_type_hints_to_function(func_source: str, type_hints: Dict[str, str]) -> 
                         # more sophisticated AST manipulation
                         pass
         
-        # For now, return the original source with a comment
-        # Full implementation would require more complex AST manipulation
-        return func_source + "\n# TODO: Add type hints programmatically"
+        # Add type hints to function signature
+        if type_hints:
+            lines = func_source.split('\n')
+            for i, line in enumerate(lines):
+                if 'def ' in line and '(' in line:
+                    # Extract function signature
+                    func_line = line.strip()
+                    if func_line.endswith(':'):
+                        # Add return type hint if available
+                        return_type = type_hints.get('return', None)
+                        if return_type and return_type != type(None):
+                            return_type_str = getattr(return_type, '__name__', str(return_type))
+                            if not ' -> ' in func_line:
+                                func_line = func_line[:-1] + f' -> {return_type_str}:'
+                        lines[i] = line.replace(line.strip(), func_line)
+                    break
+            
+            return '\n'.join(lines)
+        
+        return func_source
         
     except Exception as e:
         return func_source + f"\n# Error adding type hints: {e}"

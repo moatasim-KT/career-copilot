@@ -327,7 +327,6 @@ markers = [
 norecursedirs = [".git", ".tox", "dist", "build", "*.egg", "venv", "__pycache__", "tests/performance"]
 filterwarnings = [
     "error",
-    "ignore::DeprecationWarning",
     "ignore::PendingDeprecationWarning",
 ]
 log_cli = true

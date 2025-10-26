@@ -95,7 +95,7 @@ Important environment variables:
 - `DB_URL`: Database connection URL
 - `API_KEY`: API authentication key
 - `TEST_CONSOLIDATED_SERVICES`: Enable testing of consolidated services
-- `COMPATIBILITY_LAYER_ENABLED`: Test compatibility layer functionality
+- `TEST_CONSOLIDATED_SERVICES`: Test consolidated services functionality
 
 ## Consolidated Architecture Testing
 
@@ -127,12 +127,11 @@ def test_analytics_service_consolidation():
 #### Import Compatibility Testing
 
 ```python
-# Test backward compatibility
-def test_import_compatibility():
-    """Test that old import paths still work through compatibility layer."""
-    # This should work but show deprecation warning
-    with pytest.warns(DeprecationWarning):
-        from backend.app.services.analytics import Analytics
+# Test consolidated services
+def test_consolidated_services():
+    """Test that consolidated services work correctly."""
+    # Test new consolidated import paths
+    from backend.app.services.analytics_service import AnalyticsService
     
     # New import should work without warnings
     from backend.app.services.analytics_service import AnalyticsService
@@ -223,7 +222,7 @@ pipeline {
 
 4. **Consolidated Service Import Errors**
    - Verify new import paths are correct
-   - Check compatibility layer is enabled
+   - Check consolidated services are properly imported
    - Ensure consolidated services are properly initialized
 
 5. **Missing Test Coverage After Consolidation**

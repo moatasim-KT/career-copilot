@@ -10,7 +10,7 @@ This document outlines the mandatory docstring requirements for the Career Copil
 4. Document exceptions that may be raised
 5. Provide usage examples for complex functions
 6. Document consolidated service interfaces and their responsibilities
-7. Include migration notes for deprecated import paths
+7. Include migration notes for consolidated import paths
 
 ## Format Requirements
 
@@ -283,7 +283,7 @@ When documenting consolidated services, always include:
 1. **Consolidation Context**: List original files that were consolidated
 2. **Migration Notes**: Document import path changes and deprecated methods
 3. **Interface Changes**: Highlight any API changes from consolidation
-4. **Backward Compatibility**: Note any compatibility layers or breaking changes
+4. **Migration Notes**: Note any import path changes from consolidation
 
 ### Import Path Documentation
 
@@ -303,8 +303,8 @@ New import paths:
 - from backend.app.services.analytics_service import AnalyticsService
 - from backend.app.services.analytics_specialized import DomainAnalytics
 
-Deprecated imports (use compatibility layer):
-- from backend.app.services.analytics import Analytics  # Use AnalyticsService
-- from backend.app.services.analytics_data_collection_service import DataCollector  # Use AnalyticsService.collect_event
+Old imports (now removed - use consolidated modules):
+- from backend.app.services.analytics import Analytics  # Now: from backend.app.services.analytics_service import AnalyticsService
+- from backend.app.services.analytics_data_collection_service import DataCollector  # Now: use AnalyticsService.collect_event
 """
 ```

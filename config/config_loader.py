@@ -11,7 +11,8 @@ from typing import Dict, Any, Optional, List
 from dataclasses import dataclass
 from enum import Enum
 
-# Load environment variables from .env file
+# Load environment variables from .env file using python-dotenv package
+# dotenv is a Python package for loading environment variables from .env files
 from dotenv import load_dotenv
 load_dotenv()
 

@@ -116,3 +116,23 @@ class NotificationService:
         html_content = template.render(template_data)
 
         return self._send_email(user.email, subject, html_content)
+
+    def send_job_alert(self, user: User, jobs: List[Dict[str, Any]], total_count: int) -> bool:
+        """Send job alert notification to user."""
+        if not user.email:
+            logger.warning(f"User {user.username} has no email. Skipping job alert.")
+            return False
+
+        subject = f"🎯 {total_count} New Job Matches Found - Career Copilot"
+        template = self.jinja_env.get_template("job_alert.html")
+        
+        # Prepare data for template
+        template_data = {
+            "user_name": user.username,
+            "jobs": jobs,
+            "total_count": total_count,
+            "jobs_url": f"{self.settings.frontend_url}/jobs" if hasattr(self.settings, 'frontend_url') else "#"
+        }
+        html_content = template.render(template_data)
+        
+        return self._send_email(user.email, subject, html_content)
