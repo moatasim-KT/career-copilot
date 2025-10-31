@@ -5,57 +5,52 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
+import { Send, Trash2, Wifi, WifiOff } from 'lucide-react';
+import { useState } from 'react';
+
 import { useWebSocket } from '@/hooks/useWebSocket';
-import Card from './ui/Card';
-import Button from './ui/Button';
-import { Wifi, WifiOff, Send, Trash2 } from 'lucide-react';
+import { logger } from '@/lib/logger';
+
+import Button from '../ui/Button';
+import Card from '../ui/Card';
 
 interface TestMessage {
   id: string;
   timestamp: Date;
   type: string;
-  data: any;
+  data: unknown;
 }
 
 export default function WebSocketTest() {
   const [messages, setMessages] = useState<TestMessage[]>([]);
   const [testMessage, setTestMessage] = useState('');
 
-  const { 
-    connected, 
-    connecting, 
-    error, 
-    connect, 
-    disconnect, 
-    subscribe, 
-    subscribeToChannel 
-  } = useWebSocket({
+  const { connected, connecting, error, connect, disconnect } = useWebSocket({
     autoConnect: false,
     onConnect: () => {
-      console.log('WebSocket Test: Connected');
+      logger.log('WebSocket Test: Connected');
       addMessage('connection', { status: 'connected' });
     },
     onDisconnect: () => {
-      console.log('WebSocket Test: Disconnected');
+      logger.log('WebSocket Test: Disconnected');
       addMessage('connection', { status: 'disconnected' });
     },
-    onError: (error) => {
-      console.log('WebSocket Test: Error', error);
+    onError: error => {
+      logger.log('WebSocket Test: Error', error);
       addMessage('error', { error: error.toString() });
     },
-    onMessage: (message) => {
-      console.log('WebSocket Test: Message received', message);
+    onMessage: message => {
+      logger.log('WebSocket Test: Message received', message);
       addMessage(message.type, message);
-    }
+    },
   });
 
-  const addMessage = (type: string, data: any) => {
+  const addMessage = (type: string, data: unknown) => {
     const newMessage: TestMessage = {
       id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
       timestamp: new Date(),
       type,
-      data
+      data,
     };
     setMessages(prev => [newMessage, ...prev.slice(0, 49)]); // Keep last 50 messages
   };
@@ -81,11 +76,12 @@ export default function WebSocketTest() {
         title: 'Senior React Developer',
         company: 'Tech Corp',
         location: 'San Francisco, CA',
-        tech_stack: ['React', 'TypeScript', 'Node.js']
+        tech_stack: ['React', 'TypeScript', 'Node.js'],
       },
       match_score: 85.5,
       timestamp: new Date().toISOString(),
-      message: 'New job match found: Senior React Developer at Tech Corp (Score: 85.5%)'
+      message:
+        'New job match found: Senior React Developer at Tech Corp (Score: 85.5%)',
     };
     addMessage('job_match', mockJobMatch);
   };
@@ -99,10 +95,10 @@ export default function WebSocketTest() {
         job_title: 'Frontend Developer',
         job_company: 'StartupXYZ',
         status: 'interview',
-        old_status: 'applied'
+        old_status: 'applied',
       },
       timestamp: new Date().toISOString(),
-      message: 'Application status updated: interview'
+      message: 'Application status updated: interview',
     };
     addMessage('application_status_update', mockUpdate);
   };
@@ -115,10 +111,10 @@ export default function WebSocketTest() {
         total_jobs: 45,
         total_applications: 12,
         interviews_scheduled: 3,
-        offers_received: 1
+        offers_received: 1,
       },
       timestamp: new Date().toISOString(),
-      message: 'Analytics data updated'
+      message: 'Analytics data updated',
     };
     addMessage('analytics_update', mockAnalytics);
   };
@@ -131,7 +127,10 @@ export default function WebSocketTest() {
 
   const getStatusIcon = () => {
     if (connected) return <Wifi className="h-4 w-4" />;
-    if (connecting) return <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-yellow-600"></div>;
+    if (connecting)
+      return (
+        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-yellow-600"></div>
+      );
     return <WifiOff className="h-4 w-4" />;
   };
 
@@ -144,7 +143,11 @@ export default function WebSocketTest() {
             <div className={`flex items-center space-x-2 ${getStatusColor()}`}>
               {getStatusIcon()}
               <span className="text-sm font-medium">
-                {connected ? 'Connected' : connecting ? 'Connecting...' : 'Disconnected'}
+                {connected
+                  ? 'Connected'
+                  : connecting
+                    ? 'Connecting...'
+                    : 'Disconnected'}
               </span>
             </div>
           </div>
@@ -159,11 +162,7 @@ export default function WebSocketTest() {
             <div className="space-y-2">
               <h3 className="text-sm font-medium text-gray-700">Connection Control</h3>
               <div className="flex space-x-2">
-                <Button
-                  onClick={connect}
-                  disabled={connected || connecting}
-                  size="sm"
-                >
+                <Button onClick={connect} disabled={connected || connecting} size="sm">
                   Connect
                 </Button>
                 <Button
@@ -197,10 +196,10 @@ export default function WebSocketTest() {
             <input
               type="text"
               value={testMessage}
-              onChange={(e) => setTestMessage(e.target.value)}
+              onChange={e => setTestMessage(e.target.value)}
               placeholder="Enter test message..."
               className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              onKeyPress={(e) => e.key === 'Enter' && sendTestMessage()}
+              onKeyPress={e => e.key === 'Enter' && sendTestMessage()}
             />
             <Button onClick={sendTestMessage} size="sm">
               <Send className="h-4 w-4" />
@@ -216,9 +215,7 @@ export default function WebSocketTest() {
         <div className="p-6">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-lg font-semibold">Message Log</h3>
-            <span className="text-sm text-gray-500">
-              {messages.length} messages
-            </span>
+            <span className="text-sm text-gray-500">{messages.length} messages</span>
           </div>
 
           <div className="space-y-2 max-h-96 overflow-y-auto">
@@ -227,7 +224,7 @@ export default function WebSocketTest() {
                 No messages yet. Connect to start receiving messages.
               </div>
             ) : (
-              messages.map((message) => (
+              messages.map(message => (
                 <div
                   key={message.id}
                   className="p-3 bg-gray-50 rounded-lg border-l-4 border-blue-500"

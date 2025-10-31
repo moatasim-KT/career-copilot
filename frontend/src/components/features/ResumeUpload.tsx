@@ -1,8 +1,9 @@
 'use client';
 
 import React, { useState, useCallback } from 'react';
-import Card from '@/components/ui/Card';
+
 import Button from '@/components/ui/Button';
+import Card from '@/components/ui/Card';
 import { apiClient } from '@/lib/api';
 
 interface ParsedResumeData {
@@ -52,9 +53,9 @@ export default function ResumeUpload({ onUploadComplete, onProfileUpdate }: Resu
   const handleDrag = useCallback((e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    if (e.type === "dragenter" || e.type === "dragover") {
+    if (e.type === 'dragenter' || e.type === 'dragover') {
       setDragActive(true);
-    } else if (e.type === "dragleave") {
+    } else if (e.type === 'dragleave') {
       setDragActive(false);
     }
   }, []);
@@ -77,7 +78,7 @@ export default function ResumeUpload({ onUploadComplete, onProfileUpdate }: Resu
     const allowedTypes = [
       'application/pdf',
       'application/msword',
-      'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
     ];
     
     if (!allowedTypes.includes(file.type)) {

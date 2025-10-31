@@ -1,13 +1,5 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { apiClient, type Job } from '@/lib/api';
-import Modal, { ModalFooter } from '@/components/ui/Modal';
-import Button from '@/components/ui/Button';
-import Input from '@/components/ui/Input';
-import Select from '@/components/ui/Select';
-import Textarea from '@/components/ui/Textarea';
-import Card, { CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import { 
   Plus, 
   Search, 
@@ -26,14 +18,23 @@ import {
   SortAsc,
   SortDesc,
   Star,
-  StarOff
+  StarOff,
 } from 'lucide-react';
+import { useState, useEffect } from 'react';
+
+import Button from '@/components/ui/Button';
+import Card, { CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
+import Input from '@/components/ui/Input';
+import Modal, { ModalFooter } from '@/components/ui/Modal';
+import Select from '@/components/ui/Select';
+import Textarea from '@/components/ui/Textarea';
+import { apiClient, type Job } from '@/lib/api';
 
 const JOB_TYPES = [
   { value: 'full-time', label: 'Full-time' },
   { value: 'part-time', label: 'Part-time' },
   { value: 'contract', label: 'Contract' },
-  { value: 'internship', label: 'Internship' }
+  { value: 'internship', label: 'Internship' },
 ];
 
 const JOB_SOURCES = [
@@ -41,7 +42,7 @@ const JOB_SOURCES = [
   { value: 'scraped', label: 'Scraped' },
   { value: 'linkedin', label: 'LinkedIn' },
   { value: 'indeed', label: 'Indeed' },
-  { value: 'glassdoor', label: 'Glassdoor' }
+  { value: 'glassdoor', label: 'Glassdoor' },
 ];
 
 const SORT_OPTIONS = [
@@ -51,7 +52,7 @@ const SORT_OPTIONS = [
   { value: 'company_desc', label: 'Company Z-A' },
   { value: 'title_asc', label: 'Title A-Z' },
   { value: 'title_desc', label: 'Title Z-A' },
-  { value: 'match_score_desc', label: 'Best Match First' }
+  { value: 'match_score_desc', label: 'Best Match First' },
 ];
 
 const TECH_SKILLS = [
@@ -60,7 +61,7 @@ const TECH_SKILLS = [
   'PostgreSQL', 'MongoDB', 'Redis', 'Machine Learning', 'Data Science',
   'FastAPI', 'Django', 'Flask', 'Spring Boot', 'Go', 'Rust', 'C++', 'C#',
   '.NET', 'Ruby', 'PHP', 'Swift', 'Kotlin', 'Flutter', 'React Native',
-  'GraphQL', 'REST API', 'Microservices', 'CI/CD', 'Git', 'Linux'
+  'GraphQL', 'REST API', 'Microservices', 'CI/CD', 'Git', 'Linux',
 ];
 
 export default function JobsPage() {
@@ -86,7 +87,7 @@ export default function JobsPage() {
     remote: false,
     tech_stack: [] as string[],
     responsibilities: '',
-    source: 'manual'
+    source: 'manual',
   });
 
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
@@ -189,7 +190,7 @@ export default function JobsPage() {
       const response = await apiClient.createApplication({
         job_id: job.id,
         status: 'interested',
-        notes: 'Applied via job management'
+        notes: 'Applied via job management',
       });
 
       if (response.error) {
@@ -215,7 +216,7 @@ export default function JobsPage() {
       remote: false,
       tech_stack: [],
       responsibilities: '',
-      source: 'manual'
+      source: 'manual',
     });
     setFormErrors({});
   };
@@ -233,7 +234,7 @@ export default function JobsPage() {
       remote: job.remote,
       tech_stack: job.tech_stack || [],
       responsibilities: job.responsibilities || '',
-      source: job.source
+      source: job.source,
     });
     setFormErrors({});
     setShowJobModal(true);
@@ -258,7 +259,7 @@ export default function JobsPage() {
         job.company.toLowerCase().includes(searchTerm.toLowerCase()) ||
         (job.location && job.location.toLowerCase().includes(searchTerm.toLowerCase())) ||
         (job.tech_stack && job.tech_stack.some(tech => 
-          tech.toLowerCase().includes(searchTerm.toLowerCase())
+          tech.toLowerCase().includes(searchTerm.toLowerCase()),
         ));
       
       const matchesSource = sourceFilter === 'all' || job.source === sourceFilter;
@@ -351,7 +352,7 @@ export default function JobsPage() {
               onChange={(e) => setSourceFilter(e.target.value)}
               options={[
                 { value: 'all', label: 'All Sources' },
-                ...JOB_SOURCES
+                ...JOB_SOURCES,
               ]}
             />
             
@@ -360,7 +361,7 @@ export default function JobsPage() {
               onChange={(e) => setTypeFilter(e.target.value)}
               options={[
                 { value: 'all', label: 'All Types' },
-                ...JOB_TYPES
+                ...JOB_TYPES,
               ]}
             />
           </div>
@@ -462,12 +463,12 @@ export default function JobsPage() {
                       if (e.target.checked) {
                         setFormData(prev => ({
                           ...prev,
-                          tech_stack: [...prev.tech_stack, skill]
+                          tech_stack: [...prev.tech_stack, skill],
                         }));
                       } else {
                         setFormData(prev => ({
                           ...prev,
-                          tech_stack: prev.tech_stack.filter(s => s !== skill)
+                          tech_stack: prev.tech_stack.filter(s => s !== skill),
                         }));
                       }
                     }}

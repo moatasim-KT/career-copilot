@@ -1,16 +1,17 @@
-import type { Metadata } from "next";
-import { Inter } from "next/font/google";
-import "./globals.css";
+import type { Metadata } from 'next';
+import { Inter } from 'next/font/google';
+
+import './globals.css';
 import Layout from '@/components/layout/Layout';
 
 const inter = Inter({
-  variable: "--font-inter",
-  subsets: ["latin"],
+  variable: '--font-inter',
+  subsets: ['latin'],
 });
 
 export const metadata: Metadata = {
-  title: "Career Copilot - AI-Powered Job Application Tracking",
-  description: "Track your job applications, get personalized recommendations, and analyze your job search progress with AI-powered insights.",
+  title: 'Career Copilot - AI-Powered Job Application Tracking',
+  description: 'Track your job applications, get personalized recommendations, and analyze your job search progress with AI-powered insights.',
 };
 
 export default function RootLayout({

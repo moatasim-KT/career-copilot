@@ -6,325 +6,268 @@ functionality with custom examples, authentication helpers, and testing tools.
 """
 
 import json
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, Optional
+
 from fastapi import FastAPI, Request
 from fastapi.responses import HTMLResponse
-from fastapi.templating import Jinja2Templates
-from pathlib import Path
 
 
 class APIPlaygroundConfig:
-    """Configuration for the API playground."""
-    
-    def __init__(
-        self,
-        title: str = "Career Copilot API Playground",
-        description: str = "Interactive API testing environment",
-        version: str = "1.0.0",
-        enable_auth_helper: bool = True,
-        enable_examples: bool = True,
-        enable_code_generation: bool = True,
-        custom_css: Optional[str] = None,
-        custom_js: Optional[str] = None
-    ):
-        """
-        Initialize playground configuration.
-        
-        Args:
-            title: Playground title
-            description: Playground description
-            version: API version
-            enable_auth_helper: Enable authentication helper
-            enable_examples: Enable example requests
-            enable_code_generation: Enable code generation
-            custom_css: Custom CSS styles
-            custom_js: Custom JavaScript
-        """
-        self.title = title
-        self.description = description
-        self.version = version
-        self.enable_auth_helper = enable_auth_helper
-        self.enable_examples = enable_examples
-        self.enable_code_generation = enable_code_generation
-        self.custom_css = custom_css
-        self.custom_js = custom_js
+	"""Configuration for the API playground."""
+
+	def __init__(
+		self,
+		title: str = "Career Copilot API Playground",
+		description: str = "Interactive API testing environment",
+		version: str = "1.0.0",
+		enable_auth_helper: bool = True,
+		enable_examples: bool = True,
+		enable_code_generation: bool = True,
+		custom_css: Optional[str] = None,
+		custom_js: Optional[str] = None,
+	):
+		"""
+		Initialize playground configuration.
+
+		Args:
+		    title: Playground title
+		    description: Playground description
+		    version: API version
+		    enable_auth_helper: Enable authentication helper
+		    enable_examples: Enable example requests
+		    enable_code_generation: Enable code generation
+		    custom_css: Custom CSS styles
+		    custom_js: Custom JavaScript
+		"""
+		self.title = title
+		self.description = description
+		self.version = version
+		self.enable_auth_helper = enable_auth_helper
+		self.enable_examples = enable_examples
+		self.enable_code_generation = enable_code_generation
+		self.custom_css = custom_css
+		self.custom_js = custom_js
 
 
 class APIExampleGenerator:
-    """Generator for API request/response examples."""
-    
-    @staticmethod
-    def get_contract_upload_examples() -> Dict[str, Any]:
-        """
-        Get contract upload API examples.
-        
-        Returns:
-            Dict[str, Any]: Upload examples with different scenarios
-        """
-        return {
-            "basic_upload": {
-                "summary": "Basic Contract Upload",
-                "description": "Upload a simple PDF contract for analysis",
-                "request": {
-                    "method": "POST",
-                    "url": "/api/v1/contracts/upload",
-                    "headers": {
-                        "Authorization": "Bearer YOUR_JWT_TOKEN",
-                        "Content-Type": "multipart/form-data"
-                    },
-                    "form_data": {
-                        "file": "@contract.pdf",
-                        "analysis_options": json.dumps({
-                            "include_risk_assessment": True,
-                            "include_redlines": True,
-                            "analysis_depth": "standard"
-                        })
-                    }
-                },
-                "response": {
-                    "status": 200,
-                    "body": {
-                        "success": True,
-                        "message": "Contract uploaded and validated successfully",
-                        "data": {
-                            "file_id": "abc123def456",
-                            "filename": "contract_sanitized.pdf",
-                            "file_size": 2048576,
-                            "ready_for_analysis": True
-                        }
-                    }
-                },
-                "curl": """curl -X POST "http://localhost:8000/api/v1/contracts/upload" \\
+	"""Generator for API request/response examples."""
+
+	@staticmethod
+	def get_contract_upload_examples() -> Dict[str, Any]:
+		"""
+		Get contract upload API examples.
+
+		Returns:
+		    Dict[str, Any]: Upload examples with different scenarios
+		"""
+		return {
+			"basic_upload": {
+				"summary": "Basic Contract Upload",
+				"description": "Upload a simple PDF contract for analysis",
+				"request": {
+					"method": "POST",
+					"url": "/api/v1/contracts/upload",
+					"headers": {"Authorization": "Bearer YOUR_JWT_TOKEN", "Content-Type": "multipart/form-data"},
+					"form_data": {
+						"file": "@contract.pdf",
+						"analysis_options": json.dumps({"include_risk_assessment": True, "include_redlines": True, "analysis_depth": "standard"}),
+					},
+				},
+				"response": {
+					"status": 200,
+					"body": {
+						"success": True,
+						"message": "Contract uploaded and validated successfully",
+						"data": {"file_id": "abc123def456", "filename": "contract_sanitized.pdf", "file_size": 2048576, "ready_for_analysis": True},
+					},
+				},
+				"curl": """curl -X POST "http://localhost:8000/api/v1/contracts/upload" \\
      -H "Authorization: Bearer YOUR_JWT_TOKEN" \\
      -F "file=@contract.pdf" \\
-     -F 'analysis_options={"include_risk_assessment":true,"include_redlines":true}'"""
-            },
-            "chunked_upload": {
-                "summary": "Chunked Upload for Large Files",
-                "description": "Upload large contracts using chunked upload with progress tracking",
-                "steps": [
-                    {
-                        "step": 1,
-                        "description": "Initiate upload session",
-                        "request": {
-                            "method": "POST",
-                            "url": "/api/v1/contracts/upload/initiate",
-                            "body": {
-                                "filename": "large_contract.pdf",
-                                "total_size": 52428800,
-                                "chunk_size": 1048576
-                            }
-                        }
-                    },
-                    {
-                        "step": 2,
-                        "description": "Upload chunks",
-                        "request": {
-                            "method": "POST",
-                            "url": "/api/v1/contracts/upload/chunk/{session_id}",
-                            "form_data": {
-                                "chunk_index": 0,
-                                "chunk_hash": "sha256_hash",
-                                "file": "@chunk_0.bin"
-                            }
-                        }
-                    },
-                    {
-                        "step": 3,
-                        "description": "Finalize upload",
-                        "request": {
-                            "method": "POST",
-                            "url": "/api/v1/contracts/upload/finalize/{session_id}"
-                        }
-                    }
-                ]
-            }
-        }
-    
-    @staticmethod
-    def get_analysis_examples() -> Dict[str, Any]:
-        """
-        Get job application tracking API examples.
-        
-        Returns:
-            Dict[str, Any]: Analysis examples with different configurations
-        """
-        return {
-            "comprehensive_analysis": {
-                "summary": "Comprehensive Contract Analysis",
-                "description": "Perform full analysis with all features enabled",
-                "request": {
-                    "method": "POST",
-                    "url": "/api/v1/analyze-contract",
-                    "body": {
-                        "file_id": "abc123def456",
-                        "analysis_type": "comprehensive",
-                        "options": {
-                            "include_risk_assessment": True,
-                            "include_clause_analysis": True,
-                            "include_redlines": True,
-                            "include_precedents": True,
-                            "risk_threshold": "medium",
-                            "jurisdiction": "US",
-                            "contract_type": "employment"
-                        }
-                    }
-                },
-                "response": {
-                    "status": 200,
-                    "body": {
-                        "analysis_id": "analysis_789xyz",
-                        "status": "processing",
-                        "estimated_completion": "2024-01-15T10:35:00Z",
-                        "websocket_url": "/ws/analysis/analysis_789xyz"
-                    }
-                }
-            },
-            "quick_analysis": {
-                "summary": "Quick Risk Assessment",
-                "description": "Fast analysis focusing only on high-risk clauses",
-                "request": {
-                    "method": "POST",
-                    "url": "/api/v1/analyze-contract",
-                    "body": {
-                        "file_id": "abc123def456",
-                        "analysis_type": "quick",
-                        "options": {
-                            "include_risk_assessment": True,
-                            "risk_threshold": "high",
-                            "max_processing_time": 30
-                        }
-                    }
-                }
-            }
-        }
-    
-    @staticmethod
-    def get_websocket_examples() -> Dict[str, Any]:
-        """
-        Get WebSocket API examples.
-        
-        Returns:
-            Dict[str, Any]: WebSocket examples for real-time features
-        """
-        return {
-            "analysis_progress": {
-                "summary": "Real-time Analysis Progress",
-                "description": "Monitor job application tracking progress via WebSocket",
-                "connection": {
-                    "url": "ws://localhost:8000/ws/analysis/{analysis_id}",
-                    "headers": {
-                        "Authorization": "Bearer YOUR_JWT_TOKEN"
-                    }
-                },
-                "messages": [
-                    {
-                        "type": "progress_update",
-                        "data": {
-                            "analysis_id": "analysis_789xyz",
-                            "status": "running",
-                            "progress_percentage": 25.5,
-                            "current_agent": "contract_analyzer",
-                            "estimated_completion": "2024-01-15T10:35:00Z"
-                        }
-                    },
-                    {
-                        "type": "agent_completed",
-                        "data": {
-                            "agent_name": "contract_analyzer",
-                            "status": "completed",
-                            "execution_time": 12.3,
-                            "result_summary": "Found 5 clauses for review"
-                        }
-                    }
-                ]
-            },
-            "upload_progress": {
-                "summary": "File Upload Progress",
-                "description": "Track file upload progress in real-time",
-                "connection": {
-                    "url": "ws://localhost:8000/ws/contracts/upload/{session_id}"
-                },
-                "messages": [
-                    {
-                        "type": "upload_progress",
-                        "data": {
-                            "session_id": "upload_123",
-                            "progress_percentage": 75.0,
-                            "uploaded_size": 1572864,
-                            "upload_speed": 1048576
-                        }
-                    }
-                ]
-            }
-        }
-    
-    @staticmethod
-    def get_authentication_examples() -> Dict[str, Any]:
-        """
-        Get authentication API examples.
-        
-        Returns:
-            Dict[str, Any]: Authentication examples and flows
-        """
-        return {
-            "login": {
-                "summary": "User Login",
-                "description": "Authenticate user and obtain JWT token",
-                "request": {
-                    "method": "POST",
-                    "url": "/api/v1/auth/login",
-                    "body": {
-                        "username": "user@example.com",
-                        "password": "secure_password"
-                    }
-                },
-                "response": {
-                    "status": 200,
-                    "body": {
-                        "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
-                        "token_type": "bearer",
-                        "expires_in": 3600,
-                        "refresh_token": "refresh_token_here",
-                        "user": {
-                            "id": "user_123",
-                            "email": "user@example.com",
-                            "role": "user"
-                        }
-                    }
-                }
-            },
-            "refresh_token": {
-                "summary": "Refresh Access Token",
-                "description": "Refresh expired access token using refresh token",
-                "request": {
-                    "method": "POST",
-                    "url": "/api/v1/auth/refresh",
-                    "body": {
-                        "refresh_token": "refresh_token_here"
-                    }
-                }
-            }
-        }
+     -F 'analysis_options={"include_risk_assessment":true,"include_redlines":true}'""",
+			},
+			"chunked_upload": {
+				"summary": "Chunked Upload for Large Files",
+				"description": "Upload large contracts using chunked upload with progress tracking",
+				"steps": [
+					{
+						"step": 1,
+						"description": "Initiate upload session",
+						"request": {
+							"method": "POST",
+							"url": "/api/v1/contracts/upload/initiate",
+							"body": {"filename": "large_contract.pdf", "total_size": 52428800, "chunk_size": 1048576},
+						},
+					},
+					{
+						"step": 2,
+						"description": "Upload chunks",
+						"request": {
+							"method": "POST",
+							"url": "/api/v1/contracts/upload/chunk/{session_id}",
+							"form_data": {"chunk_index": 0, "chunk_hash": "sha256_hash", "file": "@chunk_0.bin"},
+						},
+					},
+					{
+						"step": 3,
+						"description": "Finalize upload",
+						"request": {"method": "POST", "url": "/api/v1/contracts/upload/finalize/{session_id}"},
+					},
+				],
+			},
+		}
+
+	@staticmethod
+	def get_analysis_examples() -> Dict[str, Any]:
+		"""
+		Get job application tracking API examples.
+
+		Returns:
+		    Dict[str, Any]: Analysis examples with different configurations
+		"""
+		return {
+			"comprehensive_analysis": {
+				"summary": "Comprehensive Contract Analysis",
+				"description": "Perform full analysis with all features enabled",
+				"request": {
+					"method": "POST",
+					"url": "/api/v1/analyze-contract",
+					"body": {
+						"file_id": "abc123def456",
+						"analysis_type": "comprehensive",
+						"options": {
+							"include_risk_assessment": True,
+							"include_clause_analysis": True,
+							"include_redlines": True,
+							"include_precedents": True,
+							"risk_threshold": "medium",
+							"jurisdiction": "US",
+							"contract_type": "employment",
+						},
+					},
+				},
+				"response": {
+					"status": 200,
+					"body": {
+						"analysis_id": "analysis_789xyz",
+						"status": "processing",
+						"estimated_completion": "2024-01-15T10:35:00Z",
+						"websocket_url": "/ws/analysis/analysis_789xyz",
+					},
+				},
+			},
+			"quick_analysis": {
+				"summary": "Quick Risk Assessment",
+				"description": "Fast analysis focusing only on high-risk clauses",
+				"request": {
+					"method": "POST",
+					"url": "/api/v1/analyze-contract",
+					"body": {
+						"file_id": "abc123def456",
+						"analysis_type": "quick",
+						"options": {"include_risk_assessment": True, "risk_threshold": "high", "max_processing_time": 30},
+					},
+				},
+			},
+		}
+
+	@staticmethod
+	def get_websocket_examples() -> Dict[str, Any]:
+		"""
+		Get WebSocket API examples.
+
+		Returns:
+		    Dict[str, Any]: WebSocket examples for real-time features
+		"""
+		return {
+			"analysis_progress": {
+				"summary": "Real-time Analysis Progress",
+				"description": "Monitor job application tracking progress via WebSocket",
+				"connection": {"url": "ws://localhost:8000/ws/analysis/{analysis_id}", "headers": {"Authorization": "Bearer YOUR_JWT_TOKEN"}},
+				"messages": [
+					{
+						"type": "progress_update",
+						"data": {
+							"analysis_id": "analysis_789xyz",
+							"status": "running",
+							"progress_percentage": 25.5,
+							"current_agent": "contract_analyzer",
+							"estimated_completion": "2024-01-15T10:35:00Z",
+						},
+					},
+					{
+						"type": "agent_completed",
+						"data": {
+							"agent_name": "contract_analyzer",
+							"status": "completed",
+							"execution_time": 12.3,
+							"result_summary": "Found 5 clauses for review",
+						},
+					},
+				],
+			},
+			"upload_progress": {
+				"summary": "File Upload Progress",
+				"description": "Track file upload progress in real-time",
+				"connection": {"url": "ws://localhost:8000/ws/contracts/upload/{session_id}"},
+				"messages": [
+					{
+						"type": "upload_progress",
+						"data": {"session_id": "upload_123", "progress_percentage": 75.0, "uploaded_size": 1572864, "upload_speed": 1048576},
+					}
+				],
+			},
+		}
+
+	@staticmethod
+	def get_authentication_examples() -> Dict[str, Any]:
+		"""
+		Get authentication API examples.
+
+		Returns:
+		    Dict[str, Any]: Authentication examples and flows
+		"""
+		return {
+			"login": {
+				"summary": "User Login",
+				"description": "Authenticate user and obtain JWT token",
+				"request": {"method": "POST", "url": "/api/v1/auth/login", "body": {"username": "user@example.com", "password": "<your-password>"}},
+				"response": {
+					"status": 200,
+					"body": {
+						"access_token": "<jwt-access-token>",
+						"token_type": "bearer",
+						"expires_in": 3600,
+						"refresh_token": "<refresh-token>",
+						"user": {"id": "user_123", "email": "user@example.com", "role": "user"},
+					},
+				},
+			},
+			"refresh_token": {
+				"summary": "Refresh Access Token",
+				"description": "Refresh expired access token using refresh token",
+				"request": {"method": "POST", "url": "/api/v1/auth/refresh", "body": {"refresh_token": "<refresh-token>"}},
+			},
+		}
 
 
 class CodeGenerator:
-    """Generator for client code examples in different languages."""
-    
-    @staticmethod
-    def generate_python_example(endpoint: str, method: str, body: Optional[Dict] = None) -> str:
-        """
-        Generate Python client code example.
-        
-        Args:
-            endpoint: API endpoint URL
-            method: HTTP method
-            body: Request body (optional)
-            
-        Returns:
-            str: Python code example
-        """
-        code = f"""import requests
+	"""Generator for client code examples in different languages."""
+
+	@staticmethod
+	def generate_python_example(endpoint: str, method: str, body: Optional[Dict] = None) -> str:
+		"""
+		Generate Python client code example.
+
+		Args:
+		    endpoint: API endpoint URL
+		    method: HTTP method
+		    body: Request body (optional)
+
+		Returns:
+		    str: Python code example
+		"""
+		code = f"""import requests
 import json
 
 # Configuration
@@ -339,23 +282,23 @@ headers = {{
 
 # Make request
 """
-        
-        if method.upper() == "GET":
-            code += f"""response = requests.get(f"{{BASE_URL}}{endpoint}", headers=headers)"""
-        elif method.upper() == "POST":
-            if body:
-                code += f"""
+
+		if method.upper() == "GET":
+			code += f"""response = requests.get(f"{{BASE_URL}}{endpoint}", headers=headers)"""
+		elif method.upper() == "POST":
+			if body:
+				code += f"""
 # Request body
 data = {json.dumps(body, indent=4)}
 
 response = requests.post(f"{{BASE_URL}}{endpoint}", headers=headers, json=data)"""
-            else:
-                code += f"""response = requests.post(f"{{BASE_URL}}{endpoint}", headers=headers)"""
-        else:
-            # Handle other HTTP methods
-            code += f"""response = requests.{method.lower()}(f"{{BASE_URL}}{endpoint}", headers=headers)"""
-        
-        code += """
+			else:
+				code += f"""response = requests.post(f"{{BASE_URL}}{endpoint}", headers=headers)"""
+		else:
+			# Handle other HTTP methods
+			code += f"""response = requests.{method.lower()}(f"{{BASE_URL}}{endpoint}", headers=headers)"""
+
+		code += """
 
 # Handle response
 if response.status_code == 200:
@@ -363,23 +306,23 @@ if response.status_code == 200:
     print("Success:", result)
 else:
     print(f"Error {response.status_code}: {response.text}")"""
-        
-        return code
-    
-    @staticmethod
-    def generate_javascript_example(endpoint: str, method: str, body: Optional[Dict] = None) -> str:
-        """
-        Generate JavaScript client code example.
-        
-        Args:
-            endpoint: API endpoint URL
-            method: HTTP method
-            body: Request body (optional)
-            
-        Returns:
-            str: JavaScript code example
-        """
-        code = f"""// Configuration
+
+		return code
+
+	@staticmethod
+	def generate_javascript_example(endpoint: str, method: str, body: Optional[Dict] = None) -> str:
+		"""
+		Generate JavaScript client code example.
+
+		Args:
+		    endpoint: API endpoint URL
+		    method: HTTP method
+		    body: Request body (optional)
+
+		Returns:
+		    str: JavaScript code example
+		"""
+		code = f"""// Configuration
 const BASE_URL = "http://localhost:8000";
 const JWT_TOKEN = "your_jwt_token_here";
 
@@ -390,12 +333,12 @@ const options = {{
         "Authorization": `Bearer ${{JWT_TOKEN}}`,
         "Content-Type": "application/json"
     }}"""
-        
-        if body:
-            code += f""",
+
+		if body:
+			code += f""",
     body: JSON.stringify({json.dumps(body, indent=8)})"""
-        
-        code += f"""
+
+		code += f"""
 }};
 
 // Make request
@@ -412,55 +355,55 @@ fetch(`${{BASE_URL}}{endpoint}`, options)
     .catch(error => {{
         console.error("Error:", error);
     }});"""
-        
-        return code
-    
-    @staticmethod
-    def generate_curl_example(endpoint: str, method: str, body: Optional[Dict] = None) -> str:
-        """
-        Generate cURL command example.
-        
-        Args:
-            endpoint: API endpoint URL
-            method: HTTP method
-            body: Request body (optional)
-            
-        Returns:
-            str: cURL command example
-        """
-        cmd = f"""curl -X {method.upper()} "http://localhost:8000{endpoint}" \\
+
+		return code
+
+	@staticmethod
+	def generate_curl_example(endpoint: str, method: str, body: Optional[Dict] = None) -> str:
+		"""
+		Generate cURL command example.
+
+		Args:
+		    endpoint: API endpoint URL
+		    method: HTTP method
+		    body: Request body (optional)
+
+		Returns:
+		    str: cURL command example
+		"""
+		cmd = f"""curl -X {method.upper()} "http://localhost:8000{endpoint}" \\
      -H "Authorization: Bearer YOUR_JWT_TOKEN" \\
      -H "Content-Type: application/json\""""
-        
-        if body:
-            cmd += f""" \\
+
+		if body:
+			cmd += f""" \\
      -d '{json.dumps(body)}'"""
-        
-        return cmd
+
+		return cmd
 
 
 class PlaygroundRenderer:
-    """Renderer for the interactive API playground HTML."""
-    
-    def __init__(self, config: APIPlaygroundConfig):
-        """
-        Initialize the playground renderer.
-        
-        Args:
-            config: Playground configuration
-        """
-        self.config = config
-        self.example_generator = APIExampleGenerator()
-        self.code_generator = CodeGenerator()
-    
-    def render_playground_html(self) -> str:
-        """
-        Render the complete playground HTML.
-        
-        Returns:
-            str: Complete HTML for the playground
-        """
-        return f"""
+	"""Renderer for the interactive API playground HTML."""
+
+	def __init__(self, config: APIPlaygroundConfig):
+		"""
+		Initialize the playground renderer.
+
+		Args:
+		    config: Playground configuration
+		"""
+		self.config = config
+		self.example_generator = APIExampleGenerator()
+		self.code_generator = CodeGenerator()
+
+	def render_playground_html(self) -> str:
+		"""
+		Render the complete playground HTML.
+
+		Returns:
+		    str: Complete HTML for the playground
+		"""
+		return f"""
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -492,20 +435,20 @@ class PlaygroundRenderer:
     {self._render_custom_js()}
 </body>
 </html>"""
-    
-    def _render_header(self) -> str:
-        """Render the playground header."""
-        return f"""
+
+	def _render_header(self) -> str:
+		"""Render the playground header."""
+		return f"""
         <header class="bg-primary text-white py-3 mb-4">
             <div class="container">
                 <h1><i class="fas fa-code"></i> {self.config.title}</h1>
                 <p class="mb-0">{self.config.description}</p>
             </div>
         </header>"""
-    
-    def _render_navigation(self) -> str:
-        """Render the navigation tabs."""
-        return """
+
+	def _render_navigation(self) -> str:
+		"""Render the navigation tabs."""
+		return """
         <nav class="mb-4">
             <div class="nav nav-tabs" id="nav-tab" role="tablist">
                 <button class="nav-link active" id="nav-examples-tab" data-bs-toggle="tab" 
@@ -526,10 +469,10 @@ class PlaygroundRenderer:
                 </button>
             </div>
         </nav>"""
-    
-    def _render_sidebar(self) -> str:
-        """Render the sidebar with endpoint categories."""
-        return """
+
+	def _render_sidebar(self) -> str:
+		"""Render the sidebar with endpoint categories."""
+		return """
         <div class="card">
             <div class="card-header">
                 <h5><i class="fas fa-list"></i> API Endpoints</h5>
@@ -573,10 +516,10 @@ class PlaygroundRenderer:
                 </div>
             </div>
         </div>"""
-    
-    def _render_main_content(self) -> str:
-        """Render the main content area."""
-        return f"""
+
+	def _render_main_content(self) -> str:
+		"""Render the main content area."""
+		return f"""
         <div class="tab-content" id="nav-tabContent">
             <div class="tab-pane fade show active" id="nav-examples" role="tabpanel">
                 {self._render_examples_tab()}
@@ -591,13 +534,13 @@ class PlaygroundRenderer:
                 {self._render_code_generator_tab()}
             </div>
         </div>"""
-    
-    def _render_examples_tab(self) -> str:
-        """Render the examples tab content."""
-        upload_examples = self.example_generator.get_contract_upload_examples()
-        analysis_examples = self.example_generator.get_analysis_examples()
-        
-        return f"""
+
+	def _render_examples_tab(self) -> str:
+		"""Render the examples tab content."""
+		upload_examples = self.example_generator.get_contract_upload_examples()
+		analysis_examples = self.example_generator.get_analysis_examples()
+
+		return f"""
         <div class="row">
             <div class="col-12">
                 <h3>API Examples</h3>
@@ -612,7 +555,7 @@ class PlaygroundRenderer:
                         <h5>Contract Upload</h5>
                     </div>
                     <div class="card-body">
-                        <pre><code class="language-bash">{upload_examples['basic_upload']['curl']}</code></pre>
+                        <pre><code class="language-bash">{upload_examples["basic_upload"]["curl"]}</code></pre>
                         <button class="btn btn-primary btn-sm" onclick="tryExample('upload')">
                             <i class="fas fa-play"></i> Try It
                         </button>
@@ -625,7 +568,7 @@ class PlaygroundRenderer:
                         <h5>Contract Analysis</h5>
                     </div>
                     <div class="card-body">
-                        <pre><code class="language-json">{json.dumps(analysis_examples['comprehensive_analysis']['request']['body'], indent=2)}</code></pre>
+                        <pre><code class="language-json">{json.dumps(analysis_examples["comprehensive_analysis"]["request"]["body"], indent=2)}</code></pre>
                         <button class="btn btn-primary btn-sm" onclick="tryExample('analyze')">
                             <i class="fas fa-play"></i> Try It
                         </button>
@@ -633,13 +576,13 @@ class PlaygroundRenderer:
                 </div>
             </div>
         </div>"""
-    
-    def _render_auth_tab(self) -> str:
-        """Render the authentication tab content."""
-        if not self.config.enable_auth_helper:
-            return "<p>Authentication helper is disabled.</p>"
-        
-        return """
+
+	def _render_auth_tab(self) -> str:
+		"""Render the authentication tab content."""
+		if not self.config.enable_auth_helper:
+			return "<p>Authentication helper is disabled.</p>"
+
+		return """
         <div class="row">
             <div class="col-12">
                 <h3>Authentication Helper</h3>
@@ -686,10 +629,10 @@ class PlaygroundRenderer:
                 </div>
             </div>
         </div>"""
-    
-    def _render_websocket_tab(self) -> str:
-        """Render the WebSocket tab content."""
-        return """
+
+	def _render_websocket_tab(self) -> str:
+		"""Render the WebSocket tab content."""
+		return """
         <div class="row">
             <div class="col-12">
                 <h3>WebSocket Testing</h3>
@@ -737,13 +680,13 @@ class PlaygroundRenderer:
                 </div>
             </div>
         </div>"""
-    
-    def _render_code_generator_tab(self) -> str:
-        """Render the code generator tab content."""
-        if not self.config.enable_code_generation:
-            return "<p>Code generation is disabled.</p>"
-        
-        return """
+
+	def _render_code_generator_tab(self) -> str:
+		"""Render the code generator tab content."""
+		if not self.config.enable_code_generation:
+			return "<p>Code generation is disabled.</p>"
+
+		return """
         <div class="row">
             <div class="col-12">
                 <h3>Code Generator</h3>
@@ -803,10 +746,10 @@ class PlaygroundRenderer:
                 </div>
             </div>
         </div>"""
-    
-    def _render_custom_css(self) -> str:
-        """Render custom CSS styles."""
-        default_css = """
+
+	def _render_custom_css(self) -> str:
+		"""Render custom CSS styles."""
+		default_css = """
         <style>
         .card { margin-bottom: 1rem; }
         .accordion-button:not(.collapsed) { background-color: #e7f3ff; }
@@ -818,15 +761,15 @@ class PlaygroundRenderer:
         .nav-tabs .nav-link { color: #495057; }
         .nav-tabs .nav-link.active { color: #0d6efd; }
         </style>"""
-        
-        if self.config.custom_css:
-            return f"{default_css}\n<style>{self.config.custom_css}</style>"
-        
-        return default_css
-    
-    def _render_custom_js(self) -> str:
-        """Render custom JavaScript functionality."""
-        default_js = """
+
+		if self.config.custom_css:
+			return f"{default_css}\n<style>{self.config.custom_css}</style>"
+
+		return default_css
+
+	def _render_custom_js(self) -> str:
+		"""Render custom JavaScript functionality."""
+		default_js = """
         <script>
         let currentToken = null;
         let websocket = null;
@@ -1021,53 +964,48 @@ fetch(`${BASE_URL}${endpoint}`, {
             alert(`This would execute the ${type} example. In a real implementation, this would make the actual API call.`);
         }
         </script>"""
-        
-        if self.config.custom_js:
-            return f"{default_js}\n<script>{self.config.custom_js}</script>"
-        
-        return default_js
+
+		if self.config.custom_js:
+			return f"{default_js}\n<script>{self.config.custom_js}</script>"
+
+		return default_js
 
 
 def setup_api_playground(app: FastAPI, config: Optional[APIPlaygroundConfig] = None) -> None:
-    """
-    Set up the interactive API playground for the FastAPI application.
-    
-    Args:
-        app: FastAPI application instance
-        config: Playground configuration (optional)
-    """
-    if not config:
-        config = APIPlaygroundConfig()
-    
-    renderer = PlaygroundRenderer(config)
-    
-    @app.get("/playground", response_class=HTMLResponse, include_in_schema=False)
-    async def api_playground(request: Request) -> HTMLResponse:
-        """
-        Serve the interactive API playground.
-        
-        Args:
-            request: FastAPI request object
-            
-        Returns:
-            HTMLResponse: HTML page for the playground
-        """
-        html_content = renderer.render_playground_html()
-        return HTMLResponse(content=html_content)
-    
-    # Add playground link to the main docs
-    @app.get("/playground-redirect", include_in_schema=False)
-    async def playground_redirect():
-        """Redirect to the playground from docs."""
-        from fastapi.responses import RedirectResponse
-        return RedirectResponse(url="/playground")
+	"""
+	Set up the interactive API playground for the FastAPI application.
+
+	Args:
+	    app: FastAPI application instance
+	    config: Playground configuration (optional)
+	"""
+	if not config:
+		config = APIPlaygroundConfig()
+
+	renderer = PlaygroundRenderer(config)
+
+	@app.get("/playground", response_class=HTMLResponse, include_in_schema=False)
+	async def api_playground(request: Request) -> HTMLResponse:
+		"""
+		Serve the interactive API playground.
+
+		Args:
+		    request: FastAPI request object
+
+		Returns:
+		    HTMLResponse: HTML page for the playground
+		"""
+		html_content = renderer.render_playground_html()
+		return HTMLResponse(content=html_content)
+
+	# Add playground link to the main docs
+	@app.get("/playground-redirect", include_in_schema=False)
+	async def playground_redirect():
+		"""Redirect to the playground from docs."""
+		from fastapi.responses import RedirectResponse
+
+		return RedirectResponse(url="/playground")
 
 
 # Export main components
-__all__ = [
-    'APIPlaygroundConfig',
-    'APIExampleGenerator', 
-    'CodeGenerator',
-    'PlaygroundRenderer',
-    'setup_api_playground'
-]
+__all__ = ["APIExampleGenerator", "APIPlaygroundConfig", "CodeGenerator", "PlaygroundRenderer", "setup_api_playground"]

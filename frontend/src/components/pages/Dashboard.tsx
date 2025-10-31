@@ -1,13 +1,5 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
-import { apiClient, type AnalyticsSummary, type Application } from '@/lib/api';
-import { 
-  useWebSocket, 
-  useAnalyticsUpdates, 
-  useApplicationStatusUpdates,
-  useJobMatchNotifications 
-} from '@/hooks/useWebSocket';
 import { 
   Briefcase, 
   FileText, 
@@ -20,8 +12,18 @@ import {
   Clock,
   XCircle,
   Wifi,
-  WifiOff
+  WifiOff,
 } from 'lucide-react';
+import { useState, useEffect, useCallback } from 'react';
+
+import { 
+  useWebSocket, 
+  useAnalyticsUpdates, 
+  useApplicationStatusUpdates,
+  useJobMatchNotifications, 
+} from '@/hooks/useWebSocket';
+import { apiClient, type AnalyticsSummary, type Application } from '@/lib/api';
+import { logger } from '@/lib/logger';
 
 export default function Dashboard() {
   const [analytics, setAnalytics] = useState<AnalyticsSummary | null>(null);
@@ -34,17 +36,17 @@ export default function Dashboard() {
   const { connected, connecting, error: wsError } = useWebSocket({
     autoConnect: true,
     onConnect: () => {
-      console.log('Dashboard WebSocket connected');
+      logger.log('Dashboard WebSocket connected');
       setLastUpdated(new Date());
     },
     onDisconnect: () => {
-      console.log('Dashboard WebSocket disconnected');
-    }
+      logger.log('Dashboard WebSocket disconnected');
+    },
   });
 
   // Handle real-time analytics updates
   const handleAnalyticsUpdate = useCallback((data: any) => {
-    console.log('Analytics update received:', data);
+    logger.log('Analytics update received:', data);
     if (data.analytics) {
       setAnalytics(data.analytics);
       setLastUpdated(new Date());
@@ -53,15 +55,15 @@ export default function Dashboard() {
 
   // Handle real-time application status updates
   const handleApplicationUpdate = useCallback((data: any) => {
-    console.log('Application update received:', data);
+    logger.log('Application update received:', data);
     if (data.application) {
       // Update the specific application in the list
       setRecentApplications(prev => 
         prev.map(app => 
           app.id === data.application.id 
             ? { ...app, ...data.application }
-            : app
-        )
+            : app,
+        ),
       );
       // Refresh analytics to reflect the change
       loadAnalytics();
@@ -71,7 +73,7 @@ export default function Dashboard() {
 
   // Handle job match notifications
   const handleJobMatch = useCallback((data: any) => {
-    console.log('Job match received:', data);
+    logger.log('Job match received:', data);
     // The notification system will handle displaying the notification
     // We might want to refresh recommendations or show a badge
     setLastUpdated(new Date());
@@ -102,7 +104,7 @@ export default function Dashboard() {
         setRecentApplications(response.data);
       }
     } catch (err) {
-      console.error('Failed to load recent applications:', err);
+      logger.error('Failed to load recent applications:', err);
     }
   };
 
@@ -115,7 +117,7 @@ export default function Dashboard() {
     try {
       await Promise.all([
         loadAnalytics(),
-        loadRecentApplications()
+        loadRecentApplications(),
       ]);
       setLastUpdated(new Date());
     } catch (err) {
@@ -311,7 +313,7 @@ export default function Dashboard() {
               <div
                 className="bg-blue-600 h-2 rounded-full transition-all duration-300"
                 style={{
-                  width: `${Math.min((analytics.daily_goal_progress || 0), 100)}%`
+                  width: `${Math.min((analytics.daily_goal_progress || 0), 100)}%`,
                 }}
               ></div>
             </div>

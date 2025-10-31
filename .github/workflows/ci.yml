@@ -137,7 +137,7 @@ jobs:
     - name: Run backend tests
       run: |
         cd backend
-        pytest tests/ -v --cov=app --cov-report=xml --cov-report=html --junitxml=test-results.xml
+        pytest backend/tests/ -v --cov=app --cov-report=xml --cov-report=html --junitxml=test-results.xml
       env:
         POSTGRES_URL: postgresql://postgres:postgres@localhost:5432/contract_analyzer_test
         REDIS_HOST: localhost

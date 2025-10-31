@@ -1,6 +1,7 @@
 'use client';
 
 import { ReactNode } from 'react';
+
 import { cn } from '@/lib/utils';
 
 interface GridProps {
@@ -30,14 +31,14 @@ export default function Grid({
   children, 
   cols = 1, 
   gap = 'md', 
-  className 
+  className, 
 }: GridProps) {
   return (
     <div className={cn(
       'grid',
       colsClasses[cols],
       gapClasses[gap],
-      className
+      className,
     )}>
       {children}
     </div>
@@ -62,12 +63,12 @@ const colSpanClasses = {
 export function GridItem({ 
   children, 
   colSpan = 1, 
-  className 
+  className, 
 }: GridItemProps) {
   return (
     <div className={cn(
       colSpanClasses[colSpan],
-      className
+      className,
     )}>
       {children}
     </div>

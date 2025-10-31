@@ -1,0 +1,13 @@
+# Security Tools Requirements
+
+# Dependency vulnerability scanning
+safety>=3.0.0
+
+# Python security linter
+bandit>=1.7.5
+
+# Secrets detection
+detect-secrets>=1.4.0
+
+# Code quality and security
+semgrep>=1.45.0

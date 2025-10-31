@@ -44,7 +44,7 @@ class AuditLogger:
 			console_handler.setFormatter(formatter)
 			self.logger.addHandler(console_handler)
 
-	def log_event(self, event_type: str, user_id: str = None, details: Dict[str, Any] = None, level: str = "INFO"):
+	def log_event(self, event_type: str, user_id: str | None = None, details: Dict[str, Any] | None = None, level: str = "INFO"):
 		"""Log an audit event"""
 		audit_data = {
 			"event_type": event_type,
@@ -56,19 +56,19 @@ class AuditLogger:
 
 		self.logger.info(f"AUDIT: {event_type} | {json.dumps(audit_data)}")
 
-	def log_security_event(self, event_type: str, user_id: str = None, details: Dict[str, Any] = None):
+	def log_security_event(self, event_type: str, user_id: str | None = None, details: Dict[str, Any] | None = None):
 		"""Log a security-related event"""
 		self.log_event(event_type, user_id, details, "WARNING")
 
-	def log_business_event(self, event_type: str, user_id: str = None, details: Dict[str, Any] = None):
+	def log_business_event(self, event_type: str, user_id: str | None = None, details: Dict[str, Any] | None = None):
 		"""Log a business-related event"""
 		self.log_event(event_type, user_id, details, "INFO")
 
-	def log_error_event(self, event_type: str, user_id: str = None, details: Dict[str, Any] = None):
+	def log_error_event(self, event_type: str, user_id: str | None = None, details: Dict[str, Any] | None = None):
 		"""Log an error event"""
 		self.log_event(event_type, user_id, details, "ERROR")
 
-	def log_performance_event(self, event_type: str, user_id: str = None, details: Dict[str, Any] = None):
+	def log_performance_event(self, event_type: str, user_id: str | None = None, details: Dict[str, Any] | None = None):
 		"""Log a performance-related event"""
 		self.log_event(event_type, user_id, details, "INFO")
 

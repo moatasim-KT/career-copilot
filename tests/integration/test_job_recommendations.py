@@ -9,8 +9,8 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 
 from app.core.database import get_db
-from app.models.job_models import Job
-from app.models.user_models import UserProfile
+from app.models.job import Job
+from app.models.user import User
 from app.services.job_service import JobManagementSystem
 from app.services.recommendation_service import RecommendationService
 from app.services.user_service import UserService
@@ -176,4 +176,4 @@ async def test_recommendation_explanation(recommendation_service, test_user_prof
             total_score = sum(score_components.values())
             assert (
                 abs(total_score - rec.score) < 0.01
-            )  # Allow for small floating point differences            assert abs(total_score - rec.score) < 0.01  # Allow for small floating point differences
+            )  # Allow for small floating point differences

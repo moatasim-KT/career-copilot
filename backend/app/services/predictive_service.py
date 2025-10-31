@@ -3,13 +3,11 @@ Predictive Analytics Service
 Provides predictive insights for job application tracking
 """
 
-import asyncio
-import json
 import logging
 from dataclasses import dataclass
-from datetime import datetime, timedelta
+from datetime import datetime
 from enum import Enum
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List
 
 try:
 	import numpy as np
@@ -18,7 +16,6 @@ try:
 	from sklearn.preprocessing import StandardScaler
 except ImportError:
 	# Fallback for when scikit-learn is not available
-	import random
 
 	np = None
 	RandomForestRegressor = None

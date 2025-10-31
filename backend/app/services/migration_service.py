@@ -16,7 +16,7 @@ from sqlalchemy import create_engine
 
 from app.models.user import User
 from app.models.job import Job
-from app.models.application import JobApplication
+from app.models.application import Application
 from app.models.document import Document
 from app.core.database import get_db
 
@@ -1200,7 +1200,7 @@ class MigrationService:
                 
                 # Create job application record if job was applied to
                 if job_data['status'] != 'not_applied' and job_data['date_applied']:
-                    application = JobApplication(
+    Application
                         job_id=job.id,
                         user_id=user_id,
                         status=job_data['status'],
@@ -1501,7 +1501,7 @@ class MigrationService:
                 self.db.flush()  # Get the ID without committing
                 
                 # Create job application record for contract analysis
-                application = JobApplication(
+                Application
                     job_id=job.id,
                     user_id=new_user_id,
                     status=contract_data['status'],

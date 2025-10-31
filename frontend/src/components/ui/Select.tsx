@@ -1,7 +1,8 @@
 'use client';
 
-import { SelectHTMLAttributes, forwardRef } from 'react';
 import { ChevronDown } from 'lucide-react';
+import { SelectHTMLAttributes, forwardRef } from 'react';
+
 import { cn } from '@/lib/utils';
 
 interface SelectProps extends SelectHTMLAttributes<HTMLSelectElement> {
@@ -28,7 +29,7 @@ const Select = forwardRef<HTMLSelectElement, SelectProps>(
               'disabled:cursor-not-allowed disabled:bg-gray-50 disabled:text-gray-500',
               'appearance-none bg-white',
               error && 'border-red-300 focus:border-red-500 focus:ring-red-500',
-              className
+              className,
             )}
             ref={ref}
             {...props}
@@ -49,7 +50,7 @@ const Select = forwardRef<HTMLSelectElement, SelectProps>(
         )}
       </div>
     );
-  }
+  },
 );
 
 Select.displayName = 'Select';

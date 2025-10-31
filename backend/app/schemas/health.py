@@ -1,26 +1,33 @@
-from pydantic import BaseModel
+from __future__ import annotations
+
 from datetime import datetime
-from typing import Dict, Any, Optional
+from typing import Any
+
+from pydantic import BaseModel
+
 
 class HealthResponse(BaseModel):
-    status: str
-    timestamp: datetime
-    components: Dict[str, Any]
+	status: str
+	timestamp: datetime
+	components: dict[str, Any]
+
 
 class ComponentHealth(BaseModel):
-    status: str
-    message: Optional[str] = None
-    details: Optional[Dict[str, Any]] = None
-    response_time_ms: Optional[float] = None
+	status: str
+	message: str | None = None
+	details: dict[str, Any] | None = None
+	response_time_ms: float | None = None
+
 
 class HealthCheckResponse(BaseModel):
-    status: str
-    timestamp: datetime
-    components: Dict[str, ComponentHealth]
+	status: str
+	timestamp: datetime
+	components: dict[str, ComponentHealth]
+
 
 class DetailedHealthResponse(BaseModel):
-    status: str
-    timestamp: datetime
-    components: Dict[str, ComponentHealth]
-    system_info: Optional[Dict[str, Any]] = None
-    performance_metrics: Optional[Dict[str, Any]] = None
+	status: str
+	timestamp: datetime
+	components: dict[str, ComponentHealth]
+	system_info: dict[str, Any] | None = None
+	performance_metrics: dict[str, Any] | None = None

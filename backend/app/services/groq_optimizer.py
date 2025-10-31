@@ -1,5 +1,7 @@
-"GROQ Optimization Service
-Provides GROQ-specific optimizations, intelligent routing, and performance tuning."
+"""
+GROQ Optimization Service
+Provides GROQ-specific optimizations, intelligent routing, and performance tuning.
+"""
 
 import asyncio
 import json

@@ -15,7 +15,7 @@ from pathlib import Path
 from typing import Dict, List, Any, Optional
 from dataclasses import dataclass
 
-from base import ConfigurationTestBase
+from tests.e2e.base import ConfigurationTestBase
 
 
 @dataclass

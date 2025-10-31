@@ -1,6 +1,7 @@
 'use client';
 
 import { TextareaHTMLAttributes, forwardRef } from 'react';
+
 import { cn } from '@/lib/utils';
 
 interface TextareaProps extends TextareaHTMLAttributes<HTMLTextAreaElement> {
@@ -26,7 +27,7 @@ const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
             'disabled:cursor-not-allowed disabled:bg-gray-50 disabled:text-gray-500',
             'resize-vertical',
             error && 'border-red-300 focus:border-red-500 focus:ring-red-500',
-            className
+            className,
           )}
           ref={ref}
           {...props}
@@ -39,7 +40,7 @@ const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
         )}
       </div>
     );
-  }
+  },
 );
 
 Textarea.displayName = 'Textarea';

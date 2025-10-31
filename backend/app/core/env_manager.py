@@ -7,14 +7,13 @@ import json
 import os
 import secrets
 from pathlib import Path
-from typing import Dict, List, Optional, Set
+from typing import Dict, List, Optional
 
 from cryptography.fernet import Fernet
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 
-from .config import get_settings
-from .exceptions import SecurityError
+from .config import settings
 from .logging import get_logger
 
 logger = get_logger(__name__)
@@ -36,16 +35,26 @@ class SecureEnvironmentManager:
 			if self.settings.encryption_key:
 				password = self.settings.encryption_key.get_secret_value().encode()
 			else:
-				# Fallback to a derived key from system info
-				password = f"{os.getenv('HOSTNAME', 'localhost')}-{os.getenv('USER', 'app')}".encode()
+				# Security: Generate a secure random key instead of using predictable system info
+				# In production, ENCRYPTION_KEY environment variable must be set
+				logger.warning("No encryption key configured. Using generated key (not persistent across restarts)")
+				password = secrets.token_bytes(32)
 
-			# Derive key using PBKDF2
-			salt = b"contract_analyzer_salt"  # In production, use random salt stored securely
+			# Derive key using PBKDF2 with strong parameters
+			# Use a unique salt per installation (stored in secure location)
+			salt_file = Path(".encryption_salt")
+			if salt_file.exists():
+				salt = salt_file.read_bytes()
+			else:
+				salt = secrets.token_bytes(32)
+				salt_file.write_bytes(salt)
+				salt_file.chmod(0o600)
+			
 			kdf = PBKDF2HMAC(
 				algorithm=hashes.SHA256(),
 				length=32,
 				salt=salt,
-				iterations=100000,
+				iterations=600000,  # Increased from 100k to 600k for better security (OWASP 2023)
 			)
 			key = base64.urlsafe_b64encode(kdf.derive(password))
 			self._encryption_key = key

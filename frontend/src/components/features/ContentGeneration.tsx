@@ -1,11 +1,12 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import Card from '@/components/ui/Card';
+import { useEffect, useState } from 'react';
+
 import Button from '@/components/ui/Button';
-import Input from '@/components/ui/Input';
+import Card from '@/components/ui/Card';
 import Textarea from '@/components/ui/Textarea';
 import { apiClient, Job } from '@/lib/api';
+import { logger } from '@/lib/logger';
 
 interface GeneratedContent {
   id: string;
@@ -21,14 +22,25 @@ interface ContentGenerationProps {
   onContentGenerated?: (content: GeneratedContent) => void;
 }
 
-export default function ContentGeneration({ selectedJob, onContentGenerated }: ContentGenerationProps) {
+export default function ContentGeneration({
+  selectedJob,
+  onContentGenerated,
+}: ContentGenerationProps) {
   const [jobs, setJobs] = useState<Job[]>([]);
-  const [selectedJobId, setSelectedJobId] = useState<number | null>(selectedJob?.id || null);
-  const [contentType, setContentType] = useState<'cover_letter' | 'resume_tailoring' | 'email_template'>('cover_letter');
-  const [tone, setTone] = useState<'professional' | 'casual' | 'enthusiastic'>('professional');
+  const [selectedJobId, setSelectedJobId] = useState<number | null>(
+    selectedJob?.id || null,
+  );
+  const [contentType, setContentType] = useState<
+    'cover_letter' | 'resume_tailoring' | 'email_template'
+  >('cover_letter');
+  const [tone, setTone] = useState<'professional' | 'casual' | 'enthusiastic'>(
+    'professional',
+  );
   const [customPrompt, setCustomPrompt] = useState('');
   const [generating, setGenerating] = useState(false);
-  const [generatedContent, setGeneratedContent] = useState<GeneratedContent | null>(null);
+  const [generatedContent, setGeneratedContent] = useState<GeneratedContent | null>(
+    null,
+  );
   const [editedContent, setEditedContent] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
@@ -50,7 +62,7 @@ export default function ContentGeneration({ selectedJob, onContentGenerated }: C
         setJobs(response.data);
       }
     } catch (err) {
-      console.error('Failed to load jobs:', err);
+      logger.error('Failed to load jobs:', err);
     }
   };
 
@@ -65,7 +77,7 @@ export default function ContentGeneration({ selectedJob, onContentGenerated }: C
 
     try {
       const selectedJobData = jobs.find(job => job.id === selectedJobId);
-      
+
       const requestData = {
         job_id: selectedJobId,
         content_type: contentType,
@@ -75,7 +87,7 @@ export default function ContentGeneration({ selectedJob, onContentGenerated }: C
       };
 
       const response = await apiClient.generateContent(contentType, requestData);
-      
+
       if (response.error) {
         setError(response.error);
         return;
@@ -89,12 +101,12 @@ export default function ContentGeneration({ selectedJob, onContentGenerated }: C
           job_id: selectedJobId,
           created_at: new Date().toISOString(),
         };
-        
+
         setGeneratedContent(content);
         setEditedContent(response.data.generated_content);
         onContentGenerated?.(content);
       }
-    } catch (err) {
+    } catch (_err) {
       setError('Failed to generate content. Please try again.');
     } finally {
       setGenerating(false);
@@ -114,10 +126,10 @@ export default function ContentGeneration({ selectedJob, onContentGenerated }: C
         ...generatedContent,
         user_modifications: editedContent,
       };
-      
+
       setGeneratedContent(updatedContent);
       // Show success message
-    } catch (err) {
+    } catch (_err) {
       setError('Failed to save modifications');
     } finally {
       setSaving(false);
@@ -153,22 +165,26 @@ export default function ContentGeneration({ selectedJob, onContentGenerated }: C
 
   const getContentTypeLabel = (type: string) => {
     switch (type) {
-      case 'cover_letter': return 'Cover Letter';
-      case 'resume_tailoring': return 'Resume Tailoring';
-      case 'email_template': return 'Email Template';
-      default: return type;
+      case 'cover_letter':
+        return 'Cover Letter';
+      case 'resume_tailoring':
+        return 'Resume Tailoring';
+      case 'email_template':
+        return 'Email Template';
+      default:
+        return type;
     }
   };
 
   const getContentTypeDescription = (type: string) => {
     switch (type) {
-      case 'cover_letter': 
+      case 'cover_letter':
         return 'Generate a personalized cover letter highlighting your relevant skills and experience for this specific job.';
-      case 'resume_tailoring': 
+      case 'resume_tailoring':
         return 'Get suggestions on how to tailor your resume to better match the job requirements and keywords.';
-      case 'email_template': 
+      case 'email_template':
         return 'Create professional email templates for following up on applications or networking.';
-      default: 
+      default:
         return '';
     }
   };
@@ -177,7 +193,7 @@ export default function ContentGeneration({ selectedJob, onContentGenerated }: C
     <div className="space-y-6">
       <Card className="p-6">
         <h3 className="text-lg font-semibold mb-4">AI Content Generation</h3>
-        
+
         {!generatedContent ? (
           <div className="space-y-6">
             {/* Content Type Selection */}
@@ -186,24 +202,26 @@ export default function ContentGeneration({ selectedJob, onContentGenerated }: C
                 Content Type
               </label>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {(['cover_letter', 'resume_tailoring', 'email_template'] as const).map((type) => (
-                  <div
-                    key={type}
-                    className={`p-4 border rounded-lg cursor-pointer transition-colors ${
-                      contentType === type
-                        ? 'border-blue-500 bg-blue-50'
-                        : 'border-gray-200 hover:border-gray-300'
-                    }`}
-                    onClick={() => setContentType(type)}
-                  >
-                    <h4 className="font-medium text-gray-900 mb-2">
-                      {getContentTypeLabel(type)}
-                    </h4>
-                    <p className="text-sm text-gray-600">
-                      {getContentTypeDescription(type)}
-                    </p>
-                  </div>
-                ))}
+                {(['cover_letter', 'resume_tailoring', 'email_template'] as const).map(
+                  type => (
+                    <div
+                      key={type}
+                      className={`p-4 border rounded-lg cursor-pointer transition-colors ${
+                        contentType === type
+                          ? 'border-blue-500 bg-blue-50'
+                          : 'border-gray-200 hover:border-gray-300'
+                      }`}
+                      onClick={() => setContentType(type)}
+                    >
+                      <h4 className="font-medium text-gray-900 mb-2">
+                        {getContentTypeLabel(type)}
+                      </h4>
+                      <p className="text-sm text-gray-600">
+                        {getContentTypeDescription(type)}
+                      </p>
+                    </div>
+                  ),
+                )}
               </div>
             </div>
 
@@ -214,11 +232,11 @@ export default function ContentGeneration({ selectedJob, onContentGenerated }: C
               </label>
               <select
                 value={selectedJobId || ''}
-                onChange={(e) => setSelectedJobId(Number(e.target.value) || null)}
+                onChange={e => setSelectedJobId(Number(e.target.value) || null)}
                 className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               >
                 <option value="">Choose a job...</option>
-                {jobs.map((job) => (
+                {jobs.map(job => (
                   <option key={job.id} value={job.id}>
                     {job.title} at {job.company}
                   </option>
@@ -232,19 +250,21 @@ export default function ContentGeneration({ selectedJob, onContentGenerated }: C
                 Tone
               </label>
               <div className="flex space-x-4">
-                {(['professional', 'casual', 'enthusiastic'] as const).map((toneOption) => (
-                  <label key={toneOption} className="flex items-center">
-                    <input
-                      type="radio"
-                      name="tone"
-                      value={toneOption}
-                      checked={tone === toneOption}
-                      onChange={(e) => setTone(e.target.value as typeof tone)}
-                      className="mr-2"
-                    />
-                    <span className="capitalize">{toneOption}</span>
-                  </label>
-                ))}
+                {(['professional', 'casual', 'enthusiastic'] as const).map(
+                  toneOption => (
+                    <label key={toneOption} className="flex items-center">
+                      <input
+                        type="radio"
+                        name="tone"
+                        value={toneOption}
+                        checked={tone === toneOption}
+                        onChange={e => setTone(e.target.value as typeof tone)}
+                        className="mr-2"
+                      />
+                      <span className="capitalize">{toneOption}</span>
+                    </label>
+                  ),
+                )}
               </div>
             </div>
 
@@ -255,7 +275,7 @@ export default function ContentGeneration({ selectedJob, onContentGenerated }: C
               </label>
               <Textarea
                 value={customPrompt}
-                onChange={(e) => setCustomPrompt(e.target.value)}
+                onChange={e => setCustomPrompt(e.target.value)}
                 placeholder="Add any specific requirements or information you'd like to include..."
                 rows={3}
               />
@@ -290,10 +310,7 @@ export default function ContentGeneration({ selectedJob, onContentGenerated }: C
                   {jobs.find(job => job.id === generatedContent.job_id)?.company}
                 </p>
               </div>
-              <Button
-                variant="outline"
-                onClick={resetGeneration}
-              >
+              <Button variant="outline" onClick={resetGeneration}>
                 Generate New
               </Button>
             </div>
@@ -305,7 +322,7 @@ export default function ContentGeneration({ selectedJob, onContentGenerated }: C
               </label>
               <Textarea
                 value={editedContent}
-                onChange={(e) => setEditedContent(e.target.value)}
+                onChange={e => setEditedContent(e.target.value)}
                 rows={15}
                 className="font-mono text-sm"
               />
@@ -320,27 +337,16 @@ export default function ContentGeneration({ selectedJob, onContentGenerated }: C
               >
                 {saving ? 'Saving...' : 'Save Changes'}
               </Button>
-              
-              <Button
-                onClick={() => handleExport('txt')}
-                variant="outline"
-              >
+
+              <Button onClick={() => handleExport('txt')} variant="outline">
                 Export as TXT
               </Button>
-              
-              <Button
-                onClick={() => handleExport('pdf')}
-                variant="outline"
-                disabled
-              >
+
+              <Button onClick={() => handleExport('pdf')} variant="outline" disabled>
                 Export as PDF
               </Button>
-              
-              <Button
-                onClick={() => handleExport('docx')}
-                variant="outline"
-                disabled
-              >
+
+              <Button onClick={() => handleExport('docx')} variant="outline" disabled>
                 Export as DOCX
               </Button>
             </div>
@@ -362,7 +368,10 @@ export default function ContentGeneration({ selectedJob, onContentGenerated }: C
                 <div>
                   <span className="text-gray-600">Paragraphs:</span>
                   <span className="ml-2 font-medium">
-                    {editedContent.split('\n\n').filter(p => p.trim().length > 0).length}
+                    {
+                      editedContent.split('\n\n').filter(p => p.trim().length > 0)
+                        .length
+                    }
                   </span>
                 </div>
                 <div>

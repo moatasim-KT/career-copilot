@@ -112,28 +112,30 @@ setup_test_env() {
 run_tests() {
     echo "Running tests..."
     
-    # Construct test command
-    CMD="python scripts/test_runner.py run"
+    # Use the unified test orchestrator
+    CMD="python scripts/test_orchestrator.py run"
     
     # Add suite if specified
     if [ "$SUITE" != "all" ]; then
-        CMD="$CMD -s $SUITE"
+        CMD="$CMD --suite $SUITE"
     fi
     
     # Add parallel execution options
     if [ "$PARALLEL" = true ]; then
         CMD="$CMD --parallel --workers $WORKERS"
-    else
-        CMD="$CMD --no-parallel"
     fi
-    
-    # Add report directory
-    CMD="$CMD --report $REPORT_DIR"
     
     # Add timeout
     CMD="$CMD --timeout $TIMEOUT"
     
+    # Add coverage
+    CMD="$CMD --coverage"
+    
+    # Add output directory
+    CMD="$CMD --output $REPORT_DIR"
+    
     # Run tests
+    echo "Executing: $CMD"
     eval $CMD
 }
 
@@ -144,12 +146,17 @@ generate_reports() {
     # Create report directory if it doesn't exist
     mkdir -p "$REPORT_DIR"
     
-    # Generate coverage report
-    coverage xml -o "$REPORT_DIR/coverage.xml"
-    coverage html -d "$REPORT_DIR/coverage_html"
+    # Generate coverage report if coverage data exists
+    if [ -f ".coverage" ]; then
+        echo "Generating coverage reports..."
+        coverage xml -o "$REPORT_DIR/coverage.xml"
+        coverage html -d "$REPORT_DIR/coverage_html"
+        coverage report
+    else
+        echo "No coverage data found, skipping coverage reports"
+    fi
     
-    # Generate test report
-    python scripts/test_runner.py report "$REPORT_DIR"
+    echo "Test reports available in: $REPORT_DIR"
 }
 
 # Main execution

@@ -6,10 +6,10 @@ Provides workflow management and execution endpoints
 import logging
 from typing import Any, Dict, List
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, HTTPException
 
 from ..core.monitoring import log_audit_event
-from ..models.api_models import ErrorResponse, SuccessResponse
+from ..models.api_models import SuccessResponse
 from ..services.workflow_service import workflow_service
 
 logger = logging.getLogger(__name__)
@@ -57,7 +57,7 @@ async def get_workflow_details(workflow_id: str):
 
 
 @router.post("/{workflow_id}/execute", response_model=Dict[str, Any])
-async def execute_workflow(workflow_id: str, parameters: Dict[str, Any] = None):
+async def execute_workflow(workflow_id: str, parameters: Dict[str, Any] | None = None):
 	"""Execute a workflow with given parameters"""
 	try:
 		log_audit_event("workflow_execution_requested", details={"workflow_id": workflow_id, "parameters": parameters})

@@ -10,7 +10,7 @@ import pytest
 
 from app.core.celery_app import celery_app
 from app.core.database import get_db
-from app.models.job_models import Job
+from app.models.job import Job
 from app.services.job_service import JobManagementSystem
 from app.services.task_queue_manager import TaskQueueManager
 from app.tasks.job_scraping_tasks import scrape_jobs_for_user_async
@@ -164,4 +164,4 @@ async def test_duplicate_job_handling(job_service):
         stored_urls = [job.url for job in stored_jobs]
         assert len(stored_urls) == len(
             set(stored_urls)
-        )  # No duplicate URLs        assert len(stored_urls) == len(set(stored_urls))  # No duplicate URLs
+        )  # No duplicate URLs

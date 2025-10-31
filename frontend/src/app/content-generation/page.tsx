@@ -1,6 +1,6 @@
 'use client';
 
-import ContentGeneration from '@/components/ui/ContentGeneration';
+import ContentGeneration from '@/components/features/ContentGeneration';
 import Card from '@/components/ui/Card';
 
 export default function ContentGenerationPage() {

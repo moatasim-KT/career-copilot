@@ -1,4 +1,5 @@
 import { useCallback, useState } from 'react';
+
 import { Notification } from '../../lib/types';
 
 interface NotificationsHook {
@@ -27,14 +28,14 @@ export function useNotifications(): NotificationsHook {
       prev.map(notification =>
         notification.id === id
           ? { ...notification, read: true }
-          : notification
-      )
+          : notification,
+      ),
     );
   }, []);
 
   const clearNotification = useCallback((id: string) => {
     setNotifications(prev =>
-      prev.filter(notification => notification.id !== id)
+      prev.filter(notification => notification.id !== id),
     );
   }, []);
 

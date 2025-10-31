@@ -1,6 +1,7 @@
 'use client';
 
 import { ReactNode } from 'react';
+
 import { cn } from '@/lib/utils';
 
 interface ContainerProps {
@@ -20,13 +21,13 @@ const sizeClasses = {
 export default function Container({ 
   children, 
   className, 
-  size = 'xl' 
+  size = 'xl', 
 }: ContainerProps) {
   return (
     <div className={cn(
       'mx-auto px-4 sm:px-6 lg:px-8',
       sizeClasses[size],
-      className
+      className,
     )}>
       {children}
     </div>

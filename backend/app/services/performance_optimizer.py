@@ -12,22 +12,16 @@ This module provides optimizations for:
 import asyncio
 import gc
 import hashlib
-import io
-import logging
 import os
 import time
 from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor
 from dataclasses import dataclass
-from functools import lru_cache
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any, Dict, List, Tuple
 
-import aiofiles
-import numpy as np
 import psutil
 from langchain.embeddings import OpenAIEmbeddings
 from langchain.text_splitter import RecursiveCharacterTextSplitter
-from langchain.vectorstores import Chroma
 
 from ..core.config import get_settings
 from ..core.logging import get_logger
@@ -148,7 +142,7 @@ class DocumentChunker:
 		"""Split document into chunks."""
 		return self.text_splitter.split_text(text)
 
-	def chunk_document_with_metadata(self, text: str, metadata: Dict[str, Any] = None) -> List[Dict[str, Any]]:
+	def chunk_document_with_metadata(self, text: str, metadata: Dict[str, Any] | None = None) -> List[Dict[str, Any]]:
 		"""Split document into chunks with metadata."""
 		chunks = self.chunk_document(text)
 
@@ -160,7 +154,7 @@ class DocumentChunker:
 
 		return result
 
-	def process_large_document(self, text: str, max_chunk_size: int = None) -> List[Dict[str, Any]]:
+	def process_large_document(self, text: str, max_chunk_size: int | None = None) -> List[Dict[str, Any]]:
 		"""Process very large documents with adaptive chunking."""
 		if max_chunk_size and len(text) > max_chunk_size:
 			# For very large documents, use smaller chunks
@@ -332,7 +326,7 @@ class PerformanceOptimizer:
 
 	@monitor_performance("large_document_processing", "performance_optimizer")
 	async def process_large_contract(
-		self, contract_text: str, contract_filename: str, chunk_size: int = None, enable_caching: bool = True
+		self, contract_text: str, contract_filename: str, chunk_size: int | None = None, enable_caching: bool = True
 	) -> Dict[str, Any]:
 		"""Process large contract with performance optimizations."""
 		start_time = time.time()

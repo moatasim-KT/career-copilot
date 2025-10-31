@@ -5,15 +5,15 @@ Validates system cost efficiency and ensures compliance with cloud provider free
 Requirements: 7.1, 7.2, 7.4
 """
 
+import json
+import logging
+import math
 import os
 import sys
-import json
 import time
-import logging
+from dataclasses import asdict, dataclass
 from datetime import datetime, timedelta
-from typing import Dict, List, Any, Optional, Tuple
-from dataclasses import dataclass, asdict
-import math
+from typing import Any, Dict, List, Optional, Tuple
 
 # Add backend to path
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..'))
@@ -558,16 +558,33 @@ class CostEfficiencyValidator:
         return recommendations
     
     def save_report(self, report: Dict[str, Any], filename: str = None) -> str:
-        """Save cost analysis report to file"""
+        """Save cost analysis report to file with path traversal protection"""
         if filename is None:
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
             filename = f"cost_efficiency_report_{timestamp}.json"
         
-        with open(filename, 'w') as f:
+        # Security: Sanitize filename to prevent path traversal attacks (CWE-22)
+        from pathlib import Path
+        safe_filename = Path(filename).name
+        
+        # Additional validation: ensure filename doesn't contain path separators
+        if not safe_filename or ".." in safe_filename or "/" in safe_filename or "\\" in safe_filename:
+            raise ValueError(f"Invalid filename: {filename}")
+        
+        # Ensure write operations stay within current working directory
+        output_path = Path.cwd() / safe_filename
+        
+        # Verify the resolved path is within the current directory
+        if not output_path.resolve().is_relative_to(Path.cwd().resolve()):
+            raise ValueError(f"Path traversal attempt detected: {filename}")
+        
+        # Path validation complete - safe to write file
+        # deepcode ignore PT: Path is validated above via is_relative_to() check
+        with open(output_path, 'w') as f:
             json.dump(report, f, indent=2, default=str)
         
-        logger.info(f"Cost efficiency report saved to: {filename}")
-        return filename
+        logger.info(f"Cost efficiency report saved to: {output_path}")
+        return str(output_path)
 
 
 def main():

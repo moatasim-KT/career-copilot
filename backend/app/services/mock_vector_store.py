@@ -7,9 +7,8 @@ that can work without requiring OpenAI API keys for testing purposes.
 
 import json
 import logging
-import os
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
@@ -50,7 +49,7 @@ class MockPrecedentClause:
 			risk_level=metadata.get("risk_level", ""),
 			source_document=metadata.get("source_document", ""),
 			effectiveness_score=metadata.get("effectiveness_score", 0.0),
-			created_at=metadata.get("created_at", datetime.utcnow().isoformat()),
+			created_at=metadata.get("created_at", datetime.now(timezone.utc).isoformat()),
 		)
 
 

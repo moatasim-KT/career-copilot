@@ -1,21 +1,24 @@
+from ..core.logging import get_logger
+
+logger = get_logger(__name__)
 """
+from ..core.logging import get_logger
+logger = get_logger(__name__)
+
 Monitoring middleware for request tracking and metrics collection.
 Simplified version that works with the consolidated monitoring system.
 """
 
 import time
 import uuid
-from typing import Any, Dict
 
-from fastapi import Request, Response
+from fastapi import Request
 from fastapi.responses import JSONResponse
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.types import ASGIApp
 
 from ..core.config import get_settings
 from ..core.monitoring import (
-	monitor_performance,
-	monitoring_system,
 	record_metric,
 )
 from ..monitoring.metrics_collector import get_metrics_collector
@@ -44,6 +47,7 @@ class MonitoringMiddleware(BaseHTTPMiddleware):
 
 		# Set correlation ID in logging context
 		from ..core.logging import set_correlation_id
+
 		set_correlation_id(correlation_id)
 
 		# Increment active requests
@@ -79,17 +83,17 @@ class MonitoringMiddleware(BaseHTTPMiddleware):
 			# Record HTTP request metrics in Prometheus collector
 			request_size = request.headers.get("content-length")
 			request_size = int(request_size) if request_size else None
-			
+
 			response_size = response.headers.get("content-length")
 			response_size = int(response_size) if response_size else None
-			
+
 			self.metrics_collector.record_http_request(
 				method=request.method,
 				endpoint=str(request.url.path),
 				status_code=response.status_code,
 				duration=duration,
 				request_size=request_size,
-				response_size=response_size
+				response_size=response_size,
 			)
 
 			# Record success metrics
@@ -103,6 +107,7 @@ class MonitoringMiddleware(BaseHTTPMiddleware):
 			# Record in comprehensive monitoring system
 			try:
 				from ..core.monitoring import get_comprehensive_monitoring
+
 				monitoring_system = get_comprehensive_monitoring()
 				monitoring_system.record_request(duration, success)
 			except Exception as monitor_error:
@@ -127,16 +132,13 @@ class MonitoringMiddleware(BaseHTTPMiddleware):
 			# Record HTTP error metrics in Prometheus collector
 			error_type = type(e).__name__
 			self.metrics_collector.record_http_request(
-				method=request.method,
-				endpoint=str(request.url.path),
-				status_code=500,
-				duration=duration,
-				error_type=error_type
+				method=request.method, endpoint=str(request.url.path), status_code=500, duration=duration, error_type=error_type
 			)
 
 			# Record in comprehensive monitoring system
 			try:
 				from ..core.monitoring import get_comprehensive_monitoring
+
 				monitoring_system = get_comprehensive_monitoring()
 				monitoring_system.record_request(duration, False)
 			except Exception as monitor_error:

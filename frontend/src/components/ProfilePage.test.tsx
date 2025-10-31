@@ -1,8 +1,8 @@
-import React from 'react';
-import { render, screen, waitFor, fireEvent, act } from '@testing-library/react';
-import '@testing-library/jest-dom';
-import ProfilePage from './ProfilePage';
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
+
+import ProfilePage from '@/components/pages/ProfilePage';
 import { apiClient } from '@/lib/api';
+import '@testing-library/jest-dom';
 
 // Mock the apiClient module
 jest.mock('@/lib/api', () => ({
@@ -14,11 +14,17 @@ jest.mock('@/lib/api', () => ({
 
 // Mock the FileUpload component
 jest.mock('./ui/FileUpload', () => {
-  return function MockFileUpload({ onUploadSuccess }: { onUploadSuccess: (data: any) => void }) {
+  return function MockFileUpload({
+    onUploadSuccess,
+  }: {
+    onUploadSuccess: (_data: unknown) => void;
+  }) {
     return (
       <div>
         <input type="file" data-testid="file-upload-input" />
-        <button onClick={() => onUploadSuccess({ message: 'Upload successful' })}>Upload</button>
+        <button onClick={() => onUploadSuccess({ message: 'Upload successful' })}>
+          Upload
+        </button>
       </div>
     );
   };
@@ -37,8 +43,12 @@ const mockUserProfile = {
 describe('ProfilePage', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    (apiClient.getUserProfile as jest.Mock).mockResolvedValue({ data: mockUserProfile });
-    (apiClient.updateUserProfile as jest.Mock).mockResolvedValue({ data: mockUserProfile });
+    (apiClient.getUserProfile as jest.Mock).mockResolvedValue({
+      data: mockUserProfile,
+    });
+    (apiClient.updateUserProfile as jest.Mock).mockResolvedValue({
+      data: mockUserProfile,
+    });
   });
 
   it('renders loading state initially', () => {
@@ -53,7 +63,9 @@ describe('ProfilePage', () => {
       expect(screen.getByText('Profile')).toBeInTheDocument();
       expect(screen.getByLabelText(/Full Name/i)).toHaveValue('Test User');
       expect(screen.getByLabelText(/Email/i)).toHaveValue('test@example.com');
-      expect(screen.getByLabelText(/Skills \(comma-separated\)/i)).toHaveValue('React, Node.js, Python');
+      expect(screen.getByLabelText(/Skills \(comma-separated\)/i)).toHaveValue(
+        'React, Node.js, Python',
+      );
     });
   });
 
@@ -62,20 +74,26 @@ describe('ProfilePage', () => {
     await waitFor(() => expect(screen.getByText('Profile')).toBeInTheDocument());
 
     await act(async () => {
-      fireEvent.change(screen.getByLabelText(/Full Name/i), { target: { value: 'Updated Name' } });
+      fireEvent.change(screen.getByLabelText(/Full Name/i), {
+        target: { value: 'Updated Name' },
+      });
       fireEvent.click(screen.getByRole('button', { name: /Save Profile/i }));
     });
 
     await waitFor(() => {
-      expect(apiClient.updateUserProfile).toHaveBeenCalledWith(expect.objectContaining({
-        full_name: 'Updated Name',
-      }));
+      expect(apiClient.updateUserProfile).toHaveBeenCalledWith(
+        expect.objectContaining({
+          full_name: 'Updated Name',
+        }),
+      );
       expect(screen.getByText('Profile updated successfully!')).toBeInTheDocument();
     });
   });
 
   it('displays an error message on profile update failure', async () => {
-    (apiClient.updateUserProfile as jest.Mock).mockResolvedValue({ error: 'Failed to update' });
+    (apiClient.updateUserProfile as jest.Mock).mockResolvedValue({
+      error: 'Failed to update',
+    });
     render(<ProfilePage />);
     await waitFor(() => expect(screen.getByText('Profile')).toBeInTheDocument());
 
@@ -94,7 +112,9 @@ describe('ProfilePage', () => {
 
     const skillsInput = screen.getByLabelText(/Skills \(comma-separated\)/i);
     await act(async () => {
-      fireEvent.change(skillsInput, { target: { value: 'Java, Spring, Microservices' } });
+      fireEvent.change(skillsInput, {
+        target: { value: 'Java, Spring, Microservices' },
+      });
     });
 
     expect(skillsInput).toHaveValue('Java, Spring, Microservices');
@@ -103,9 +123,11 @@ describe('ProfilePage', () => {
     });
 
     await waitFor(() => {
-      expect(apiClient.updateUserProfile).toHaveBeenCalledWith(expect.objectContaining({
-        skills: ['Java', 'Spring', 'Microservices'],
-      }));
+      expect(apiClient.updateUserProfile).toHaveBeenCalledWith(
+        expect.objectContaining({
+          skills: ['Java', 'Spring', 'Microservices'],
+        }),
+      );
     });
   });
 });

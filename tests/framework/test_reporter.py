@@ -292,5 +292,4 @@ class TestReporter:
         plt.grid(True)
         plt.tight_layout()
         plt.savefig(output_path)
-        plt.close()        plt.savefig(output_path)
         plt.close()

@@ -5,7 +5,6 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
 import { 
   CheckCircle, 
   AlertCircle, 
@@ -13,9 +12,12 @@ import {
   X, 
   Briefcase,
   TrendingUp,
-  Bell
+  Bell,
 } from 'lucide-react';
+import { useState, useEffect } from 'react';
+
 import { useWebSocket } from '@/hooks/useWebSocket';
+import { logger } from '@/lib/logger';
 import type { WebSocketMessage } from '@/lib/websocket';
 
 export interface Notification {
@@ -135,7 +137,7 @@ export default function NotificationSystem() {
     const newNotification: Notification = {
       ...notification,
       id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
-      timestamp: new Date()
+      timestamp: new Date(),
     };
 
     setNotifications(prev => [newNotification, ...prev.slice(0, 4)]); // Keep max 5 notifications
@@ -153,7 +155,7 @@ export default function NotificationSystem() {
           title: 'New Job Match!',
           message: message.message || 'A new job matches your profile',
           data: message,
-          autoHide: false // Keep job matches visible until manually closed
+          autoHide: false, // Keep job matches visible until manually closed
         });
         break;
 
@@ -162,7 +164,7 @@ export default function NotificationSystem() {
           type: 'application_update',
           title: 'Application Updated',
           message: message.message || 'Your application status has been updated',
-          data: message
+          data: message,
         });
         break;
 
@@ -171,7 +173,7 @@ export default function NotificationSystem() {
           type: 'info',
           title: 'Analytics Updated',
           message: 'Your dashboard analytics have been refreshed',
-          duration: 3000
+          duration: 3000,
         });
         break;
 
@@ -181,7 +183,7 @@ export default function NotificationSystem() {
                 message.notification_type === 'warning' ? 'warning' : 'info',
           title: 'System Notification',
           message: message.message || 'System update',
-          autoHide: message.notification_type !== 'error'
+          autoHide: message.notification_type !== 'error',
         });
         break;
 
@@ -190,7 +192,7 @@ export default function NotificationSystem() {
           type: 'info',
           title: 'Skill Analysis Updated',
           message: 'Your skill gap analysis has been refreshed',
-          duration: 4000
+          duration: 4000,
         });
         break;
 
@@ -199,7 +201,7 @@ export default function NotificationSystem() {
           type: 'success',
           title: 'Connected',
           message: 'Real-time updates are now active',
-          duration: 2000
+          duration: 2000,
         });
         break;
 
@@ -210,7 +212,7 @@ export default function NotificationSystem() {
             type: 'info',
             title: 'Update',
             message: message.message,
-            duration: 4000
+            duration: 4000,
           });
         }
         break;
@@ -222,14 +224,14 @@ export default function NotificationSystem() {
     autoConnect: true,
     onMessage: handleWebSocketMessage,
     onConnect: () => {
-      console.log('WebSocket connected - notifications active');
+      logger.log('WebSocket connected - notifications active');
     },
     onDisconnect: () => {
       addNotification({
         type: 'warning',
         title: 'Disconnected',
         message: 'Real-time updates are temporarily unavailable',
-        autoHide: false
+        autoHide: false,
       });
     },
     onError: (error) => {
@@ -237,15 +239,15 @@ export default function NotificationSystem() {
         type: 'error',
         title: 'Connection Error',
         message: 'Failed to connect to real-time updates',
-        autoHide: false
+        autoHide: false,
       });
-    }
+    },
   });
 
   // Show connection status in development
   useEffect(() => {
     if (process.env.NODE_ENV === 'development') {
-      console.log('WebSocket status:', { connected, connecting, error });
+      logger.log('WebSocket status:', { connected, connecting, error });
     }
   }, [connected, connecting, error]);
 

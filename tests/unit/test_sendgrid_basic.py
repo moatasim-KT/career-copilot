@@ -1,8 +1,10 @@
+# mypy: disable-error-code="import-untyped"
 import os
 import json
 import time
 from datetime import datetime
 import re
+from typing import Any, Dict, List
 import pytest
 
 # Helper functions (moved outside test functions for reusability)
@@ -13,7 +15,7 @@ def validate_email(email: str) -> bool:
         return False
     return re.match(pattern, email) is not None
 
-def format_job_recommendations(recommendations):
+def format_job_recommendations(recommendations: List[Dict[str, Any]]) -> str:
     """Format job recommendations for email"""
     if not recommendations:
         return "<p>No new recommendations available at this time.</p>"
@@ -74,17 +76,17 @@ def create_basic_email_template(user_name: str, content: str) -> str:
     </html>
     """
 
-def test_sendgrid_imports():
+def test_sendgrid_imports() -> None:
     """Test that SendGrid can be imported"""
-    import sendgrid
-    from sendgrid.helpers.mail import Mail, Email, To, Content
+    import sendgrid  # type: ignore[import-untyped]
+    from sendgrid.helpers.mail import Mail, Email, To, Content  # type: ignore[import-untyped]
     assert sendgrid is not None
     assert Mail is not None
     assert Email is not None
     assert To is not None
     assert Content is not None
 
-def test_email_validation_standalone():
+def test_email_validation_standalone() -> None:
     """Test email validation without full service initialization"""
     # Test valid emails
     valid_emails = [
@@ -105,7 +107,7 @@ def test_email_validation_standalone():
     for email in invalid_emails:
         assert not validate_email(email), f"Invalid email {email} was accepted"
 
-def test_email_content_formatting():
+def test_email_content_formatting() -> None:
     """Test email content formatting functions"""
     recommendations = [
         {
@@ -121,23 +123,23 @@ def test_email_content_formatting():
             'match_score': 78
         }
     ]
-    formatted_html = format_job_recommendations(recommendations)
+    formatted_html: str = format_job_recommendations(recommendations)
     
     assert 'Senior Software Engineer' in formatted_html
     assert 'TechCorp' in formatted_html
     assert '85%' in formatted_html
     
-    empty_html = format_job_recommendations([])
+    empty_html: str = format_job_recommendations([])
     assert "No new recommendations" in empty_html
 
-def test_motivational_messages_standalone():
+def test_motivational_messages_standalone() -> None:
     """Test motivational message generation"""
     test_counts = [0, 1, 2, 3, 4, 5, 10]
     for count in test_counts:
         message = get_motivational_message(count)
         assert message is not None and len(message) >= 10
 
-def test_configuration_validation():
+def test_configuration_validation() -> None:
     """Test configuration validation"""
     original_key = os.environ.get('SENDGRID_API_KEY')
     
@@ -159,7 +161,7 @@ def test_configuration_validation():
     if original_key:
         os.environ['SENDGRID_API_KEY'] = original_key
 
-def test_email_template_structure():
+def test_email_template_structure() -> None:
     """Test email template structure"""
     template = create_basic_email_template("John Doe", "<p>Test content</p>")
     

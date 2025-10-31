@@ -1,26 +1,33 @@
+from __future__ import annotations
+
 from datetime import datetime
-from typing import Dict, Any, Optional
+from typing import Any
+
 from pydantic import BaseModel, Field
 
+
 class SavedSearchBase(BaseModel):
-    name: str = Field(..., min_length=1, max_length=255)
-    filters: Dict[str, Any] = Field(default_factory=dict)
-    is_default: bool = False
+	name: str = Field(..., min_length=1, max_length=255)
+	filters: dict[str, Any] = Field(default_factory=dict)
+	is_default: bool = False
+
 
 class SavedSearchCreate(SavedSearchBase):
-    pass
+	pass
+
 
 class SavedSearchUpdate(BaseModel):
-    name: Optional[str] = Field(None, min_length=1, max_length=255)
-    filters: Optional[Dict[str, Any]] = None
-    is_default: Optional[bool] = None
+	name: str | None = Field(None, min_length=1, max_length=255)
+	filters: dict[str, Any] | None = None
+	is_default: bool | None = None
+
 
 class SavedSearchResponse(SavedSearchBase):
-    id: str
-    user_id: int
-    created_at: datetime
-    updated_at: datetime
-    last_used: datetime
+	id: str
+	user_id: int
+	created_at: datetime
+	updated_at: datetime
+	last_used: datetime
 
-    class Config:
-        from_attributes = True
+	class Config:
+		from_attributes = True

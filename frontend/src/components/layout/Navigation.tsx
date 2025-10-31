@@ -1,8 +1,5 @@
 'use client';
 
-import { useState } from 'react';
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
 import { 
   BarChart3, 
   Briefcase, 
@@ -13,8 +10,11 @@ import {
   Menu,
   X,
   LogOut,
-  MessageSquare
+  MessageSquare,
 } from 'lucide-react';
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+import { useState } from 'react';
 
 interface NavigationProps {
   user?: any;

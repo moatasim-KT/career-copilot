@@ -5,12 +5,11 @@ Provides memory monitoring, cleanup, and optimization features.
 
 import gc
 import logging
-import os
 import threading
 import time
 import weakref
 from contextlib import contextmanager
-from datetime import datetime, timedelta
+from datetime import datetime, timezone
 from typing import Any, Callable, Dict, List, Optional, Set
 
 import psutil
@@ -87,7 +86,7 @@ class MemoryManager:
 			self._cleanup_tracked_objects()
 
 			self.memory_stats["cleanup_count"] += 1
-			self.memory_stats["last_cleanup"] = datetime.utcnow()
+			self.memory_stats["last_cleanup"] = datetime.now(timezone.utc)
 
 		except Exception as e:
 			logger.error(f"Memory cleanup error: {e}")

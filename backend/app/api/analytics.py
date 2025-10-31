@@ -2,18 +2,15 @@
 Analytics API endpoints for advanced job application tracking features.
 """
 
-from datetime import datetime, timedelta
-from typing import Dict, List, Optional
+from datetime import datetime, timezone
+from typing import List, Optional
 
-from fastapi import APIRouter, Depends, HTTPException, Query, Request
-from fastapi.responses import JSONResponse
+from fastapi import APIRouter, HTTPException, Query, Request
 
 from ..core.langsmith_integration import LangSmithMetrics, get_langsmith_metrics_summary
 from ..core.logging import get_logger
 from ..core.monitoring import log_audit_event
-from ..core.pagination import PaginationParams, create_paginated_response
-from ..models.api_models import ErrorResponse
-from ..services.analytics_service import AnalysisType, get_analytics_service
+from ..services.analytics_service import get_analytics_service
 
 logger = get_logger(__name__)
 router = APIRouter()
@@ -324,7 +321,7 @@ async def get_analytics_dashboard(request: Request, time_period: str = Query(def
 			},
 			"cost_analysis": cost_analysis,
 			"performance_metrics": performance,
-			"metadata": {"generated_at": datetime.utcnow().isoformat(), "time_period": time_period},
+			"metadata": {"generated_at": datetime.now(timezone.utc).isoformat(), "time_period": time_period},
 		}
 
 		# Log successful dashboard generation
@@ -376,7 +373,7 @@ async def get_langsmith_metrics(
 		)
 
 		return {
-			"timestamp": datetime.utcnow().isoformat(),
+			"timestamp": datetime.now(timezone.utc).isoformat(),
 			"period_hours": hours,
 			"performance": performance,
 			"errors": errors,
@@ -424,7 +421,7 @@ async def get_langsmith_summary(
 		)
 
 		return {
-			"timestamp": datetime.utcnow().isoformat(),
+			"timestamp": datetime.now(timezone.utc).isoformat(),
 			"langsmith": summary,
 		}
 

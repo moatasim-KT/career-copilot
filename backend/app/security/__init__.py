@@ -6,15 +6,18 @@ from .file_validator import FileSecurityValidator, FileValidationResult
 from .malware_scanner import MalwareScanner, ScanResult
 from .threat_detector import ThreatDetector, ThreatLevel
 from .temp_file_manager import TempFileManager, TempFileInfo, temp_file_manager
+from .input_validation import InputValidator, validate_and_sanitize
 
 __all__ = [
-    "FileSecurityValidator",
-    "FileValidationResult", 
-    "MalwareScanner",
-    "ScanResult",
-    "ThreatDetector",
-    "ThreatLevel",
-    "TempFileManager",
-    "TempFileInfo",
-    "temp_file_manager",
+	"FileSecurityValidator",
+	"FileValidationResult",
+	"MalwareScanner",
+	"ScanResult",
+	"ThreatDetector",
+	"ThreatLevel",
+	"TempFileManager",
+	"TempFileInfo",
+	"temp_file_manager",
+	"InputValidator",
+	"validate_and_sanitize",
 ]

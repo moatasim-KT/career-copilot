@@ -2,7 +2,8 @@
  * React hook for managing WebSocket connections and real-time updates
  */
 
-import { useEffect, useRef, useState, useCallback } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
+
 import { webSocketService, type WebSocketMessage } from '@/lib/websocket';
 
 export interface UseWebSocketOptions {
@@ -21,22 +22,18 @@ export interface WebSocketState {
 }
 
 export function useWebSocket(options: UseWebSocketOptions = {}) {
-  const {
-    autoConnect = true,
-    onConnect,
-    onDisconnect,
-    onError,
-    onMessage
-  } = options;
+  const { autoConnect = true, onConnect, onDisconnect, onError, onMessage } = options;
 
   const [state, setState] = useState<WebSocketState>({
     connected: false,
     connecting: false,
     error: null,
-    reconnectAttempts: 0
+    reconnectAttempts: 0,
   });
 
-  const eventListenersRef = useRef<Map<string, (data: WebSocketMessage) => void>>(new Map());
+  const eventListenersRef = useRef<Map<string, (data: WebSocketMessage) => void>>(
+    new Map(),
+  );
   const isInitializedRef = useRef(false);
 
   /**
@@ -53,20 +50,20 @@ export function useWebSocket(options: UseWebSocketOptions = {}) {
 
     try {
       await webSocketService.connect(token);
-      setState(prev => ({ 
-        ...prev, 
-        connected: true, 
-        connecting: false, 
+      setState(prev => ({
+        ...prev,
+        connected: true,
+        connecting: false,
         error: null,
-        reconnectAttempts: 0
+        reconnectAttempts: 0,
       }));
       onConnect?.();
     } catch (error) {
-      setState(prev => ({ 
-        ...prev, 
-        connected: false, 
-        connecting: false, 
-        error: error instanceof Error ? error.message : 'Connection failed'
+      setState(prev => ({
+        ...prev,
+        connected: false,
+        connecting: false,
+        error: error instanceof Error ? error.message : 'Connection failed',
       }));
       onError?.(error);
     }
@@ -77,11 +74,11 @@ export function useWebSocket(options: UseWebSocketOptions = {}) {
    */
   const disconnect = useCallback(() => {
     webSocketService.disconnect();
-    setState(prev => ({ 
-      ...prev, 
-      connected: false, 
+    setState(prev => ({
+      ...prev,
+      connected: false,
       connecting: false,
-      reconnectAttempts: 0
+      reconnectAttempts: 0,
     }));
     onDisconnect?.();
   }, [onDisconnect]);
@@ -89,10 +86,13 @@ export function useWebSocket(options: UseWebSocketOptions = {}) {
   /**
    * Subscribe to a specific event type
    */
-  const subscribe = useCallback((eventType: string, callback: (data: WebSocketMessage) => void) => {
-    eventListenersRef.current.set(eventType, callback);
-    webSocketService.on(eventType, callback);
-  }, []);
+  const subscribe = useCallback(
+    (eventType: string, callback: (data: WebSocketMessage) => void) => {
+      eventListenersRef.current.set(eventType, callback);
+      webSocketService.on(eventType, callback);
+    },
+    [],
+  );
 
   /**
    * Unsubscribe from a specific event type
@@ -158,7 +158,7 @@ export function useWebSocket(options: UseWebSocketOptions = {}) {
       setState(prev => ({
         ...prev,
         connected: info.connected,
-        reconnectAttempts: info.reconnectAttempts
+        reconnectAttempts: info.reconnectAttempts,
       }));
     }, 1000);
 
@@ -173,7 +173,7 @@ export function useWebSocket(options: UseWebSocketOptions = {}) {
     unsubscribe,
     subscribeToChannel,
     unsubscribeFromChannel,
-    getConnectionInfo
+    getConnectionInfo,
   };
 }
 

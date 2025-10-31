@@ -133,5 +133,4 @@ def setup(check_only):
     # Environment setup logic here
 
 if __name__ == '__main__':
-    cli()if __name__ == '__main__':
     cli()

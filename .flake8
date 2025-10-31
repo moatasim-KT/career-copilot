@@ -59,3 +59,11 @@ max-cognitive-complexity = 10
 # Import order settings
 application-import-names = app,career_copilot
 application-package-names = app,career_copilot
+
+[flake8:local-plugins]
+extension =
+    B029 = backend.app.services.cloud_storage_manager:B029
+    B030 = backend.app.services.cloud_storage_service:B030
+    B031 = backend.app.services.file_storage_service:B031
+    B032 = backend.app.services.google_drive_service:B032
+    B033 = backend.app.services.local_storage_service:B033

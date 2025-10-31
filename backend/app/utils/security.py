@@ -9,10 +9,10 @@ import re
 import secrets
 import tempfile
 from pathlib import Path
-from typing import Dict, List, Optional, Set, Tuple
+from typing import Dict, Optional, Tuple
 
 import magic
-from fastapi import HTTPException, UploadFile
+from fastapi import UploadFile
 
 from ..core.config import get_settings
 from ..core.exceptions import SecurityError, ValidationError

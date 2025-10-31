@@ -1,22 +1,46 @@
 import { useCallback, useState } from 'react';
+
 import { API_ENDPOINTS } from '../../lib/constants';
 import { User } from '../../lib/types';
 
+/**
+ * Return type for useAuth hook
+ */
 interface AuthHook {
-  user: User | null;
-  isLoading: boolean;
-  error: string | null;
-  login: (email: string, password: string) => Promise<void>;
-  logout: () => Promise<void>;
-  register: (email: string, password: string, name: string) => Promise<void>;
+	/** Current authenticated user or null */
+	user: User | null;
+	/** Loading state for auth operations */
+	isLoading: boolean;
+	/** Error message if auth operation failed */
+	error: string | null;
+	/** Login function */
+	login: (email: string, password: string) => Promise<void>;
+	/** Logout function */
+	logout: () => Promise<void>;
+	/** Register function */
+	register: (email: string, password: string, name: string) => Promise<void>;
 }
 
+/**
+ * Custom hook for authentication operations
+ * 
+ * Provides login, logout, and registration functionality with state management.
+ * 
+ * @returns {AuthHook} Authentication state and methods
+ * 
+ * @example
+ * ```tsx
+ * const { user, login, logout, isLoading, error } = useAuth();
+ * 
+ * await login('user@example.com', 'password');
+ * ```
+ */
 export function useAuth(): AuthHook {
-  const [user, setUser] = useState<User | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+	const [user, setUser] = useState<User | null>(null);
+	const [isLoading, setIsLoading] = useState(false);
+	const [error, setError] = useState<string | null>(null);
 
-  const login = useCallback(async (email: string, password: string) => {
+	const login = useCallback(async (email: string, password: string) => {
     setIsLoading(true);
     setError(null);
     try {
@@ -34,12 +58,12 @@ export function useAuth(): AuthHook {
       setUser(data.user);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
+		} finally {
+			setIsLoading(false);
+		}
+	}, []);
 
-  const logout = useCallback(async () => {
+	const logout = useCallback(async () => {
     setIsLoading(true);
     setError(null);
     try {
@@ -49,12 +73,12 @@ export function useAuth(): AuthHook {
       setUser(null);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
+		} finally {
+			setIsLoading(false);
+		}
+	}, []);
 
-  const register = useCallback(async (email: string, password: string, name: string) => {
+	const register = useCallback(async (email: string, password: string, name: string) => {
     setIsLoading(true);
     setError(null);
     try {
@@ -72,17 +96,17 @@ export function useAuth(): AuthHook {
       setUser(data.user);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
+		} finally {
+			setIsLoading(false);
+		}
+	}, []);
 
-  return {
-    user,
-    isLoading,
-    error,
-    login,
-    logout,
-    register,
-  };
+	return {
+		user,
+		isLoading,
+		error,
+		login,
+		logout,
+		register,
+	};
 }

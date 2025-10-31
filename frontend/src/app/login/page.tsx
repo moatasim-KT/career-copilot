@@ -1,18 +1,16 @@
 'use client';
 
-import LoginForm from '@/components/LoginForm';
-import { useState, useEffect } from 'react';
-import { apiClient } from '@/lib/api';
 import { useRouter } from 'next/navigation';
+
+import LoginForm from '@/components/forms/LoginForm';
+import { apiClient } from '@/lib/api';
 
 export default function LoginPage() {
   const router = useRouter();
-  const [user, setUser] = useState<any>(null);
 
-  const handleLogin = (token: string, userData: any) => {
+  const handleLogin = (token: string, _userData: unknown) => {
     localStorage.setItem('auth_token', token);
     apiClient.setToken(token);
-    setUser(userData);
     router.push('/dashboard');
   };
 

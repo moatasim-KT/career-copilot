@@ -1,7 +1,8 @@
-import React from 'react';
 import { render, screen, waitFor, fireEvent, act } from '@testing-library/react';
+import React from 'react';
+
 import '@testing-library/jest-dom';
-import RegistrationForm from './RegistrationForm';
+import RegistrationForm from '@/components/forms/RegistrationForm';
 import { apiClient } from '@/lib/api';
 
 // Mock the apiClient module

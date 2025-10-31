@@ -1,4 +1,4 @@
-.PHONY: help install lint format type-check security test quality-check quality-fix clean
+.PHONY: help install lint format type-check security test quality-check quality-fix clean verify-pyproject
 .DEFAULT_GOAL := help
 
 # Python environment
@@ -117,6 +117,11 @@ ci-check: ## Run all CI checks (used in CI/CD)
 	@$(MAKE) quality-check
 	@$(MAKE) test
 	@echo "✅ All CI checks passed!"
+
+# Pyproject validation
+verify-pyproject: ## Validate pyproject.toml for duplicates and invalid extras
+	@echo "Validating pyproject.toml..."
+	python scripts/verify/validate_pyproject.py
 
 # Cleanup
 clean: ## Clean up generated files

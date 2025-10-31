@@ -68,6 +68,8 @@ class AnalyticsE2ETest(BaseE2ETest):
         """Set up analytics test environment"""
         self.logger.info("Setting up analytics test environment")
         # Initialize test data and connections
+        from app.models.user import User
+        self.test_user = User(id=1, username="test_user", email="test@example.com")
     
     async def teardown(self):
         """Clean up analytics test environment"""
@@ -103,18 +105,15 @@ class AnalyticsE2ETest(BaseE2ETest):
     async def test_analytics_performance(self) -> Dict[str, Any]:
         """Test analytics performance monitoring"""
         try:
-            # Mock analytics operations for testing
-            async def mock_user_analytics():
-                await asyncio.sleep(0.1)
-                return {"total_jobs": 10, "total_applications": 5, "success_rates": {"interview_rate": 20.0}}
-            
-            async def mock_system_analytics():
-                await asyncio.sleep(0.2)
-                return {"users": {"total": 100}, "jobs": {"total": 500}, "applications": {"total": 200}}
-            
+            from app.services.analytics_service import AnalyticsService
+            from app.core.database import get_db
+
+            db = next(get_db())
+            analytics_service = AnalyticsService(db)
+
             # Test timing verification
-            user_metrics = await self.monitor_analytics_timing("user_analytics", mock_user_analytics)
-            system_metrics = await self.monitor_analytics_timing("system_analytics", mock_system_analytics)
+            user_metrics = await self.monitor_analytics_timing("user_analytics", lambda: analytics_service.get_user_analytics(self.test_user))
+            system_metrics = await self.monitor_analytics_timing("system_analytics", lambda: analytics_service.get_metrics(self.test_user.id, "last_30_days"))
             
             return {
                 "success": user_metrics.success and system_metrics.success,
@@ -130,23 +129,23 @@ class AnalyticsE2ETest(BaseE2ETest):
     async def test_analytics_tasks(self) -> Dict[str, Any]:
         """Test analytics task execution"""
         try:
-            # Mock analytics task execution
+            from app.services.analytics_service import AnalyticsService
+            from app.core.database import get_db
+
+            db = next(get_db())
+            analytics_service = AnalyticsService(db)
+
             task_results = []
             
-            for task_type in ["user_analytics", "system_analytics", "daily_analytics"]:
-                start_time = time.time()
-                
-                # Simulate task execution
-                await asyncio.sleep(0.05)
-                success = True  # Mock success
-                
-                execution_time = time.time() - start_time
-                
-                task_results.append({
-                    "task_type": task_type,
-                    "success": success,
-                    "execution_time": execution_time
-                })
+            # Simulate processing analytics for a user
+            start_time = time.time()
+            result = analytics_service.process_analytics()
+            execution_time = time.time() - start_time
+            task_results.append({
+                "task_type": "process_analytics",
+                "success": result.get("processed_count", 0) > 0,
+                "execution_time": execution_time
+            })
             
             overall_success = all(result["success"] for result in task_results)
             
@@ -163,15 +162,16 @@ class AnalyticsE2ETest(BaseE2ETest):
     async def test_analytics_data_validation(self) -> Dict[str, Any]:
         """Test analytics data validation"""
         try:
-            # Test data accuracy validation
-            test_data = {
-                "total_jobs": 15,
-                "total_applications": 8,
-                "success_rates": {"interview_rate": 25.0, "offer_rate": 12.0},
-                "recent_activity": {"jobs_added": 3}
-            }
+            from app.services.analytics_service import AnalyticsService
+            from app.core.database import get_db
+
+            db = next(get_db())
+            analytics_service = AnalyticsService(db)
+
+            # Get actual user analytics data
+            user_analytics_data = analytics_service.get_user_analytics(self.test_user)
             
-            accuracy_report = await self.validate_data_accuracy(test_data, "user_analytics")
+            accuracy_report = await self.validate_data_accuracy(user_analytics_data, "user_analytics")
             
             return {
                 "success": accuracy_report.accuracy_score > 0.8,
@@ -187,15 +187,30 @@ class AnalyticsE2ETest(BaseE2ETest):
     async def test_analytics_storage(self) -> Dict[str, Any]:
         """Test analytics storage verification"""
         try:
-            # Test storage verification
-            storage_result = await self.verify_analytics_storage("analytics_tables")
+            from app.services.analytics_service import AnalyticsService
+            from app.core.database import get_db
+            from app.models.analytics import Analytics
+
+            db = next(get_db())
+            analytics_service = AnalyticsService(db)
+
+            # Verify analytics records in the database
+            total_records = db.query(Analytics).count()
+            recent_records = db.query(Analytics).filter(Analytics.generated_at >= datetime.now() - timedelta(days=7)).count()
             
-            return {
-                "success": storage_result.accessible,
-                "total_records": storage_result.total_records,
-                "recent_records": storage_result.recent_records,
-                "response_time": storage_result.response_time
-            }
+            storage_result = StorageVerificationResult(
+                storage_type=storage_type,
+                accessible=True,
+                total_records=total_records,
+                recent_records=recent_records,
+                storage_size=None, # Not easily verifiable in E2E
+                response_time=0.0,
+                error_message=None,
+                timestamp=datetime.now()
+            )
+            
+            self.storage_verifications.append(storage_result)
+            return storage_result
             
         except Exception as e:
             self.logger.error(f"Analytics storage test failed: {e}")
@@ -206,10 +221,7 @@ class AnalyticsE2ETest(BaseE2ETest):
         start_time = time.time()
         
         try:
-            if asyncio.iscoroutinefunction(operation_func):
-                result = await operation_func()
-            else:
-                result = operation_func()
+            result = await operation_func()
             
             execution_time = time.time() - start_time
             
@@ -337,11 +349,15 @@ import pytest
 async def test_analytics_e2e():
     """Test the consolidated analytics E2E functionality"""
     test_instance = AnalyticsE2ETest()
-    result = await test_instance.execute()
-    
-    assert result is not None
-    assert result["test_class"] == "AnalyticsE2ETest"
-    assert result["status"] == "completed"
+    await test_instance.setup()
+    try:
+        result = await test_instance.execute()
+        
+        assert result is not None
+        assert result["test_class"] == "AnalyticsE2ETest"
+        assert result["status"] == "completed"
+    finally:
+        await test_instance.teardown()
 
 
 @pytest.mark.asyncio

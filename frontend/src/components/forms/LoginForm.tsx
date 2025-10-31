@@ -1,14 +1,33 @@
 'use client';
 
-import { useState } from 'react';
-import { apiClient } from '@/lib/api';
 import { Briefcase, Eye, EyeOff, AlertCircle } from 'lucide-react';
 import Link from 'next/link';
+import { useState } from 'react';
 
+import { apiClient } from '@/lib/api';
+
+/**
+ * Props for LoginForm component
+ */
 interface LoginFormProps {
-  onLogin: (token: string, user: any) => void;
+	/** Callback function called after successful login with token and user data */
+	onLogin: (token: string, user: any) => void;
 }
 
+/**
+ * Login form component with username/password authentication
+ * 
+ * Features:
+ * - Password visibility toggle
+ * - Form validation
+ * - Error display
+ * - Loading state
+ * 
+ * @example
+ * ```tsx
+ * <LoginForm onLogin={(token, user) => console.log('Logged in', user)} />
+ * ```
+ */
 export default function LoginForm({ onLogin }: LoginFormProps) {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -16,7 +35,7 @@ export default function LoginForm({ onLogin }: LoginFormProps) {
   
   const [formData, setFormData] = useState({
     username: '',
-    password: ''
+    password: '',
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -41,7 +60,7 @@ export default function LoginForm({ onLogin }: LoginFormProps) {
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData(prev => ({
       ...prev,
-      [e.target.name]: e.target.value
+      [e.target.name]: e.target.value,
     }));
   };
 

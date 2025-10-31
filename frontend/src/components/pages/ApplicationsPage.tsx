@@ -1,14 +1,5 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
-import { apiClient, type Application } from '@/lib/api';
-import { useApplicationStatusUpdates } from '@/hooks/useWebSocket';
-import Card, { CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
-import Button from '@/components/ui/Button';
-import Select from '@/components/ui/Select';
-import Modal, { ModalFooter } from '@/components/ui/Modal';
-import Input from '@/components/ui/Input';
-import Textarea from '@/components/ui/Textarea';
 import { 
   FileText, 
   Calendar, 
@@ -25,8 +16,19 @@ import {
   Filter,
   Search,
   SortAsc,
-  SortDesc
+  SortDesc,
 } from 'lucide-react';
+import { useState, useEffect, useCallback } from 'react';
+
+import Button from '@/components/ui/Button';
+import Card, { CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
+import Input from '@/components/ui/Input';
+import Modal, { ModalFooter } from '@/components/ui/Modal';
+import Select from '@/components/ui/Select';
+import Textarea from '@/components/ui/Textarea';
+import { useApplicationStatusUpdates } from '@/hooks/useWebSocket';
+import { apiClient, type Application } from '@/lib/api';
+import { logger } from '@/lib/logger';
 
 const STATUS_OPTIONS = [
   { value: 'interested', label: 'Interested' },
@@ -35,7 +37,7 @@ const STATUS_OPTIONS = [
   { value: 'offer', label: 'Offer' },
   { value: 'rejected', label: 'Rejected' },
   { value: 'accepted', label: 'Accepted' },
-  { value: 'declined', label: 'Declined' }
+  { value: 'declined', label: 'Declined' },
 ];
 
 const SORT_OPTIONS = [
@@ -44,7 +46,7 @@ const SORT_OPTIONS = [
   { value: 'applied_date_desc', label: 'Recently Applied' },
   { value: 'applied_date_asc', label: 'Oldest Applied' },
   { value: 'status_asc', label: 'Status A-Z' },
-  { value: 'company_asc', label: 'Company A-Z' }
+  { value: 'company_asc', label: 'Company A-Z' },
 ];
 
 export default function ApplicationsPage() {
@@ -61,14 +63,14 @@ export default function ApplicationsPage() {
 
   // Handle real-time application status updates
   const handleApplicationUpdate = useCallback((data: any) => {
-    console.log('Application update received:', data);
+    logger.log('Application update received:', data);
     if (data.application) {
       setApplications(prev => 
         prev.map(app => 
           app.id === data.application.id 
             ? { ...app, ...data.application }
-            : app
-        )
+            : app,
+        ),
       );
       setLastUpdated(new Date());
     }
@@ -83,7 +85,7 @@ export default function ApplicationsPage() {
     notes: '',
     applied_date: '',
     interview_date: '',
-    response_date: ''
+    response_date: '',
   });
 
   useEffect(() => {
@@ -158,7 +160,7 @@ export default function ApplicationsPage() {
       notes: '',
       applied_date: '',
       interview_date: '',
-      response_date: ''
+      response_date: '',
     });
   };
 
@@ -176,7 +178,7 @@ export default function ApplicationsPage() {
       notes: application.notes || '',
       applied_date: application.applied_date ? application.applied_date.split('T')[0] : '',
       interview_date: application.interview_date ? application.interview_date.split('T')[0] : '',
-      response_date: application.response_date ? application.response_date.split('T')[0] : ''
+      response_date: application.response_date ? application.response_date.split('T')[0] : '',
     });
     setShowApplicationModal(true);
   };
@@ -339,7 +341,7 @@ export default function ApplicationsPage() {
               onChange={(e) => setStatusFilter(e.target.value)}
               options={[
                 { value: 'all', label: 'All Status' },
-                ...STATUS_OPTIONS
+                ...STATUS_OPTIONS,
               ]}
             />
             

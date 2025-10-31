@@ -1,6 +1,6 @@
 'use client';
 
-import InterviewPractice from '@/components/ui/InterviewPractice';
+import InterviewPractice from '@/components/features/InterviewPractice';
 import Card from '@/components/ui/Card';
 
 export default function InterviewPracticePage() {

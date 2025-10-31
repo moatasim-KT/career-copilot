@@ -1,41 +1,43 @@
 """Application schemas"""
 
+from __future__ import annotations
+
+from datetime import date, datetime
+from typing import Any, Literal
+
 from pydantic import BaseModel
-from typing import Optional, Literal, Dict, Any
-from datetime import datetime, date
 
 
 class ApplicationCreate(BaseModel):
-    job_id: int
-    status: Optional[Literal["interested", "applied", "interview", "offer", "rejected", "accepted", "declined"]] = "interested"
-    applied_date: Optional[date] = None
-    notes: Optional[str] = None
+	job_id: int
+	status: Literal["interested", "applied", "interview", "offer", "rejected", "accepted", "declined"] | None = "interested"
+	applied_date: date | None = None
+	notes: str | None = None
 
 
 class ApplicationUpdate(BaseModel):
-    status: Optional[Literal["interested", "applied", "interview", "offer", "rejected", "accepted", "declined"]] = None
-    response_date: Optional[date] = None
-    interview_date: Optional[datetime] = None
-    offer_date: Optional[date] = None
-    notes: Optional[str] = None
-    interview_feedback: Optional[Dict[str, Any]] = None
-    follow_up_date: Optional[date] = None
+	status: Literal["interested", "applied", "interview", "offer", "rejected", "accepted", "declined"] | None = None
+	response_date: date | None = None
+	interview_date: datetime | None = None
+	offer_date: date | None = None
+	notes: str | None = None
+	interview_feedback: dict[str, Any] | None = None
+	follow_up_date: date | None = None
 
 
 class ApplicationResponse(BaseModel):
-    id: int
-    user_id: int
-    job_id: int
-    status: str
-    applied_date: Optional[date]
-    response_date: Optional[date]
-    interview_date: Optional[datetime]
-    offer_date: Optional[date]
-    notes: Optional[str]
-    interview_feedback: Optional[Dict[str, Any]]
-    follow_up_date: Optional[date]
-    created_at: datetime
-    updated_at: datetime
-    
-    class Config:
-        from_attributes = True
+	id: int
+	user_id: int
+	job_id: int
+	status: str
+	applied_date: date | None
+	response_date: date | None
+	interview_date: datetime | None
+	offer_date: date | None
+	notes: str | None
+	interview_feedback: dict[str, Any] | None
+	follow_up_date: date | None
+	created_at: datetime
+	updated_at: datetime
+
+	model_config = {"from_attributes": True}

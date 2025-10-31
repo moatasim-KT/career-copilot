@@ -2,7 +2,6 @@
 Advanced Health Checking System
 """
 
-import asyncio
 import logging
 from collections import deque
 from datetime import datetime, timezone

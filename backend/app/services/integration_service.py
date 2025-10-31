@@ -3,17 +3,13 @@ Integration Service
 Handles integrations with external services like Microsoft 365, DocuSign, and other platforms
 """
 
-import asyncio
-import base64
-import json
 import os
 from dataclasses import dataclass
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from enum import Enum
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional
 
 import httpx
-from pydantic import BaseModel
 
 from ..core.config import get_settings
 from ..core.logging import get_logger
@@ -102,8 +98,8 @@ class Microsoft365Integration:
 		try:
 			# In production, you would implement OAuth2 flow
 			# For now, we'll use a placeholder
-			self.access_token = "placeholder_token"
-			self.token_expires_at = datetime.utcnow() + timedelta(hours=1)
+			self.access_token = None
+			self.token_expires_at = datetime.now(timezone.utc) + timedelta(hours=1)
 			return True
 		except Exception as e:
 			logger.error(f"Microsoft 365 authentication failed: {e}")
@@ -123,8 +119,8 @@ class Microsoft365Integration:
 					title="Contract Template.docx",
 					file_type="docx",
 					size=1024000,
-					created_at=datetime.utcnow() - timedelta(days=1),
-					modified_at=datetime.utcnow(),
+					created_at=datetime.now(timezone.utc) - timedelta(days=1),
+					modified_at=datetime.now(timezone.utc),
 					owner="user@company.com",
 					permissions=["read", "write"],
 					tags=["contract", "template"],
@@ -143,7 +139,7 @@ class Microsoft365Integration:
 
 			# In production, you would upload the file
 			# For now, return a mock document ID
-			return f"uploaded_doc_{datetime.utcnow().timestamp()}"
+			return f"uploaded_doc_{datetime.now(timezone.utc).timestamp()}"
 		except Exception as e:
 			logger.error(f"Failed to upload document to Microsoft 365: {e}")
 			return None
@@ -163,7 +159,7 @@ class Microsoft365Integration:
 
 	async def _ensure_authenticated(self) -> bool:
 		"""Ensure we have a valid access token"""
-		if not self.access_token or (self.token_expires_at and self.token_expires_at <= datetime.utcnow()):
+		if not self.access_token or (self.token_expires_at and self.token_expires_at <= datetime.now(timezone.utc)):
 			return await self.authenticate()
 		return True
 
@@ -181,9 +177,8 @@ class DocuSignIntegration:
 		"""Authenticate with DocuSign API"""
 		try:
 			# In production, you would implement OAuth2 flow
-			# For now, we'll use a placeholder
-			self.access_token = "placeholder_token"
-			self.token_expires_at = datetime.utcnow() + timedelta(hours=1)
+			self.access_token = None
+			self.token_expires_at = datetime.now(timezone.utc) + timedelta(hours=1)
 			return True
 		except Exception as e:
 			logger.error(f"DocuSign authentication failed: {e}")
@@ -197,7 +192,7 @@ class DocuSignIntegration:
 
 			# In production, you would create the envelope
 			# For now, return a mock envelope ID
-			return f"envelope_{datetime.utcnow().timestamp()}"
+			return f"envelope_{datetime.now(timezone.utc).timestamp()}"
 		except Exception as e:
 			logger.error(f"Failed to create DocuSign envelope: {e}")
 			return None
@@ -213,8 +208,8 @@ class DocuSignIntegration:
 			return {
 				"envelope_id": envelope_id,
 				"status": "sent",
-				"created": datetime.utcnow().isoformat(),
-				"sent": datetime.utcnow().isoformat(),
+				"created": datetime.now(timezone.utc).isoformat(),
+				"sent": datetime.now(timezone.utc).isoformat(),
 				"recipients": [],
 			}
 		except Exception as e:
@@ -235,7 +230,7 @@ class DocuSignIntegration:
 
 	async def _ensure_authenticated(self) -> bool:
 		"""Ensure we have a valid access token"""
-		if not self.access_token or (self.token_expires_at and self.token_expires_at <= datetime.utcnow()):
+		if not self.access_token or (self.token_expires_at and self.token_expires_at <= datetime.now(timezone.utc)):
 			return await self.authenticate()
 		return True
 

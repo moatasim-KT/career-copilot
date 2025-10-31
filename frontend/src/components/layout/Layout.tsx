@@ -1,10 +1,13 @@
 'use client';
 
-import { ReactNode, useEffect, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
-import Navigation from './Navigation';
+import { ReactNode, useEffect, useState } from 'react';
+
+import NotificationSystem from '@/components/notifications/NotificationSystem';
+
 import Footer from './Footer';
-import NotificationSystem from '@/components/NotificationSystem';
+import Navigation from './Navigation';
+
 
 interface AppLayoutProps {
   children: ReactNode;

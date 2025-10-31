@@ -4,12 +4,12 @@ Comprehensive observability service for monitoring and tracing.
 
 import asyncio
 import logging
-from datetime import datetime, timedelta
+from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 
 from ..core.langsmith_integration import LangSmithMetrics, get_langsmith_metrics_summary
-from ..core.monitoring import get_application_metrics, get_business_metrics, get_metrics_summary, get_system_metrics
-from ..core.observability_config import DEVELOPMENT_OBSERVABILITY_CONFIG, PRODUCTION_OBSERVABILITY_CONFIG, ObservabilityConfig
+from ..core.monitoring import get_application_metrics, get_business_metrics, get_system_metrics
+from ..core.observability_config import DEVELOPMENT_OBSERVABILITY_CONFIG, ObservabilityConfig
 
 logger = logging.getLogger(__name__)
 
@@ -35,7 +35,7 @@ class ObservabilityService:
 			system_metrics, app_metrics, business_metrics, langsmith_metrics = await asyncio.gather(*tasks)
 
 			return {
-				"timestamp": datetime.utcnow().isoformat(),
+				"timestamp": datetime.now(timezone.utc).isoformat(),
 				"period_hours": hours,
 				"system": system_metrics,
 				"application": app_metrics,
@@ -71,7 +71,7 @@ class ObservabilityService:
 				overall_health = "partial"
 
 			return {
-				"timestamp": datetime.utcnow().isoformat(),
+				"timestamp": datetime.now(timezone.utc).isoformat(),
 				"overall_health": overall_health,
 				"langsmith": langsmith_health,
 				"ai_operations": ai_operations_status,
@@ -85,7 +85,7 @@ class ObservabilityService:
 		except Exception as e:
 			logger.error(f"Failed to get AI operations health: {e}")
 			return {
-				"timestamp": datetime.utcnow().isoformat(),
+				"timestamp": datetime.now(timezone.utc).isoformat(),
 				"overall_health": "error",
 				"error": str(e),
 			}
@@ -123,7 +123,7 @@ class ObservabilityService:
 			alerts = self._check_performance_thresholds(performance_analysis, thresholds)
 
 			return {
-				"timestamp": datetime.utcnow().isoformat(),
+				"timestamp": datetime.now(timezone.utc).isoformat(),
 				"period_hours": hours,
 				"performance": performance_analysis,
 				"alerts": alerts,
@@ -157,7 +157,7 @@ class ObservabilityService:
 			cost_alerts = self._check_cost_thresholds(cost_efficiency, cost_thresholds)
 
 			return {
-				"timestamp": datetime.utcnow().isoformat(),
+				"timestamp": datetime.now(timezone.utc).isoformat(),
 				"period_hours": hours,
 				"costs": cost_efficiency,
 				"alerts": cost_alerts,
@@ -195,7 +195,7 @@ class ObservabilityService:
 			error_alerts = self._check_error_thresholds(error_analysis, error_thresholds)
 
 			return {
-				"timestamp": datetime.utcnow().isoformat(),
+				"timestamp": datetime.now(timezone.utc).isoformat(),
 				"period_hours": hours,
 				"errors": error_analysis,
 				"alerts": error_alerts,
@@ -217,7 +217,7 @@ class ObservabilityService:
 			errors = await self.get_error_analysis(24)
 
 			return {
-				"timestamp": datetime.utcnow().isoformat(),
+				"timestamp": datetime.now(timezone.utc).isoformat(),
 				"health": health,
 				"metrics": metrics,
 				"performance": performance,

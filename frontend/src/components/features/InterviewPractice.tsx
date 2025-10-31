@@ -1,10 +1,12 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
-import Card from '@/components/ui/Card';
+
 import Button from '@/components/ui/Button';
+import Card from '@/components/ui/Card';
 import Textarea from '@/components/ui/Textarea';
 import { apiClient, Job } from '@/lib/api';
+import { logger } from '@/lib/logger';
 
 interface InterviewQuestion {
   id: string;
@@ -101,7 +103,7 @@ export default function InterviewPractice({ selectedJob, onSessionComplete }: In
         setJobs(response.data);
       }
     } catch (err) {
-      console.error('Failed to load jobs:', err);
+      logger.error('Failed to load jobs:', err);
     }
   };
 
@@ -216,7 +218,7 @@ export default function InterviewPractice({ selectedJob, onSessionComplete }: In
     // Mock feedback generation
     const feedback: InterviewFeedback = generateMockFeedback(
       currentSession.questions[currentQuestionIndex],
-      currentAnswer
+      currentAnswer,
     );
 
     const updatedSession = {

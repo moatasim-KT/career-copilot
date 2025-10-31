@@ -1,9 +1,10 @@
 
 'use client';
 
-import { useState } from 'react';
-import { apiClient } from '@/lib/api';
 import { Briefcase, Eye, EyeOff, AlertCircle } from 'lucide-react';
+import { useState } from 'react';
+
+import { apiClient } from '@/lib/api';
 
 interface RegistrationFormProps {
   onRegister: () => void;
@@ -18,7 +19,7 @@ export default function RegistrationForm({ onRegister }: RegistrationFormProps) 
     username: '',
     email: '',
     password: '',
-    confirmPassword: ''
+    confirmPassword: '',
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -50,7 +51,7 @@ export default function RegistrationForm({ onRegister }: RegistrationFormProps) 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData(prev => ({
       ...prev,
-      [e.target.name]: e.target.value
+      [e.target.name]: e.target.value,
     }));
   };
 

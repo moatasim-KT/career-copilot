@@ -5,7 +5,7 @@ Input sanitization utilities to prevent injection attacks and ensure data safety
 import html
 import re
 import urllib.parse
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, Optional
 
 from ..core.logging import get_logger
 

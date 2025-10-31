@@ -81,7 +81,9 @@ class VectorStoreService:
 
 			# Get or create collection
 			self.collection = self.client.get_or_create_collection(
-				name="precedent_clauses", embedding_function=openai_ef, metadata={"description": "Legal precedent clauses for job application tracking"}
+				name="precedent_clauses",
+				embedding_function=openai_ef,
+				metadata={"description": "Legal precedent clauses for job application tracking"},
 			)
 
 			logger.info(f"ChromaDB initialized with persistent storage at {persist_directory}")

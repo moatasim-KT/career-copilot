@@ -1,21 +1,26 @@
 """Pydantic schemas for User Profile"""
 
-from pydantic import BaseModel, field_validator
-from typing import List, Optional, Literal
+from __future__ import annotations
+
+from typing import Literal
+
+from pydantic import BaseModel
+
 
 class ProfileBase(BaseModel):
-    skills: Optional[List[str]] = []
-    preferred_locations: Optional[List[str]] = []
-    experience_level: Optional[Literal["junior", "mid", "senior"]] = None
-    daily_application_goal: Optional[int] = None
+	skills: list[str] | None = []
+	preferred_locations: list[str] | None = []
+	experience_level: Literal["junior", "mid", "senior"] | None = None
+	daily_application_goal: int | None = None
+
 
 class ProfileUpdate(ProfileBase):
-    pass
+	pass
+
 
 class ProfileResponse(ProfileBase):
-    id: int
-    username: str
-    email: str
+	id: int
+	username: str
+	email: str
 
-    class Config:
-        from_attributes = True  # Pydantic v2 syntax (replaces orm_mode)
+	model_config = {"from_attributes": True}

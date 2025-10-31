@@ -1,12 +1,13 @@
 
 'use client';
 
-import FileUpload from '@/components/ui/FileUpload';
 import withAuth from '@/components/auth/withAuth';
+import FileUpload from '@/components/ui/FileUpload';
+import { logger } from '@/lib/logger';
 
 function ResumePage() {
   const handleUploadSuccess = (data: any) => {
-    console.log('Upload successful:', data);
+    logger.log('Upload successful:', data);
     // Handle success, e.g., show a success message or update user profile
   };
 

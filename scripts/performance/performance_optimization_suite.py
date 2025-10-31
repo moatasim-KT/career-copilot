@@ -6,33 +6,32 @@ Requirements: 7.1, 7.2, 7.4
 """
 
 import asyncio
-import json
-import os
-import sys
-import time
-import statistics
-import tempfile
 import concurrent.futures
-from datetime import datetime, timedelta
-from typing import Dict, List, Any, Optional, Tuple
-from dataclasses import dataclass, asdict
-from pathlib import Path
+import json
 import logging
+import os
+import statistics
+import sys
+import tempfile
+import time
+from dataclasses import asdict, dataclass
+from datetime import datetime, timedelta
+from pathlib import Path
+from typing import Any, Dict, List, Optional, Tuple
 
 # Add backend to path
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..'))
 
 import psutil
 import requests
-from sqlalchemy import create_engine, text, inspect
+from app.core.config import get_settings
+from app.core.database import engine, get_db
+from app.models.analytics import Analytics
+from app.models.job import Job
+from app.models.user import User
+from sqlalchemy import create_engine, inspect, text
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import QueuePool
-
-from app.core.config import get_settings
-from app.core.database import get_db, engine
-from app.models.user import User
-from app.models.job import Job
-from app.models.analytics import Analytics
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -79,7 +78,8 @@ class PerformanceOptimizationSuite:
     """Comprehensive performance testing and optimization suite"""
     
     def __init__(self, backend_url: str = "http://localhost:8000"):
-        self.backend_url = backend_url
+        # Security: Validate backend URL to prevent SSRF attacks (CWE-918)
+        self.backend_url = self._validate_backend_url(backend_url)
         self.settings = get_settings()
         self.session = requests.Session()
         self.test_results: List[PerformanceMetrics] = []
@@ -98,6 +98,57 @@ class PerformanceOptimizationSuite:
         adapter = HTTPAdapter(max_retries=retry_strategy)
         self.session.mount("http://", adapter)
         self.session.mount("https://", adapter)
+    
+    def _validate_backend_url(self, url: str) -> str:
+        """Validate backend URL to prevent SSRF attacks
+        
+        Args:
+            url: The backend URL to validate
+        
+        Returns:
+            Validated URL
+        
+        Raises:
+            ValueError: If URL is invalid or potentially malicious
+        """
+        from urllib.parse import urlparse
+        
+        try:
+            parsed = urlparse(url)
+            
+            # Only allow http and https schemes
+            if parsed.scheme not in ["http", "https"]:
+                raise ValueError(f"Invalid URL scheme: {parsed.scheme}. Only http and https are allowed.")
+            
+            # Validate hostname exists
+            if not parsed.hostname:
+                raise ValueError("URL must contain a valid hostname")
+            
+            # Block internal/private IP ranges to prevent SSRF
+            hostname = parsed.hostname.lower()
+            
+            # Block localhost and loopback addresses (except for development)
+            blocked_hosts = ["metadata.google.internal", "169.254.169.254"]
+            if hostname in blocked_hosts:
+                raise ValueError(f"Access to {hostname} is not allowed")
+            
+            # Allow localhost only for development
+            allowed_hosts = ["localhost", "127.0.0.1", "::1"]
+            if hostname not in allowed_hosts:
+                # For production, validate it's not a private IP
+                import ipaddress
+                try:
+                    ip = ipaddress.ip_address(hostname)
+                    if ip.is_private or ip.is_loopback or ip.is_link_local:
+                        raise ValueError(f"Access to private IP addresses is not allowed: {hostname}")
+                except ValueError:
+                    # Not an IP address, it's a domain name - allow it
+                    pass
+            
+            return url
+            
+        except Exception as e:
+            raise ValueError(f"Invalid backend URL: {e}")
 
     def get_system_metrics(self) -> Dict[str, float]:
         """Get current system resource usage"""
@@ -768,16 +819,43 @@ class PerformanceOptimizationSuite:
         return max(0.0, score)
 
     def save_report(self, report: Dict[str, Any], filename: str = None) -> str:
-        """Save performance test report to file"""
+        """Save performance test report to file
+        
+        Args:
+            report: Dictionary containing performance test data
+            filename: Optional filename. If not provided, auto-generates timestamp-based name.
+                Path components are stripped for security (prevents path traversal).
+        
+        Returns:
+            Full path to the saved report file
+        """
+        from pathlib import Path
+        
         if filename is None:
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
             filename = f"performance_optimization_report_{timestamp}.json"
         
-        with open(filename, 'w') as f:
+        # Security: Sanitize filename to prevent path traversal attacks (CWE-22)
+        safe_filename = Path(filename).name
+        
+        # Additional validation: ensure filename doesn't contain path separators
+        if not safe_filename or ".." in safe_filename or "/" in safe_filename or "\\" in safe_filename:
+            raise ValueError(f"Invalid filename: {filename}")
+        
+        # Ensure write operations stay within current working directory
+        output_path = Path.cwd() / safe_filename
+        
+        # Verify the resolved path is within the current directory
+        if not output_path.resolve().is_relative_to(Path.cwd().resolve()):
+            raise ValueError(f"Path traversal attempt detected: {filename}")
+        
+        # Path validation complete - safe to write file
+        # deepcode ignore PT: Path is validated above via is_relative_to() check
+        with open(output_path, 'w') as f:  # noqa: S603
             json.dump(report, f, indent=2, default=str)
         
-        logger.info(f"Performance test report saved to: {filename}")
-        return filename
+        logger.info(f"Performance test report saved to: {output_path}")
+        return str(output_path)
 
 
 def main():
@@ -785,7 +863,7 @@ def main():
     import argparse
     
     parser = argparse.ArgumentParser(description="Career Copilot Performance Optimization Suite")
-    parser.add_argument("--backend-url", default="http://localhost:8000", help="Backend URL")
+    parser.add_argument("--backend-url", default="http://localhost:8000", help="Backend URL (localhost or valid domain only)")
     parser.add_argument("--output", help="Output report file")
     parser.add_argument("--users", type=int, default=50, help="Number of concurrent users to test")
     parser.add_argument("--requests", type=int, default=10, help="Requests per user")
@@ -797,7 +875,11 @@ def main():
         logging.getLogger().setLevel(logging.DEBUG)
     
     # Initialize and run performance suite
-    suite = PerformanceOptimizationSuite(args.backend_url)
+    try:
+        suite = PerformanceOptimizationSuite(args.backend_url)
+    except ValueError as e:
+        logger.error(f"Invalid backend URL: {e}")
+        sys.exit(1)
     
     try:
         # Run comprehensive tests

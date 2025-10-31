@@ -2,7 +2,7 @@ import pytest
 from unittest.mock import MagicMock
 from sqlalchemy.orm import Session
 
-from app.services.recommendation_engine import RecommendationEngine
+from app.services.job_recommendation_service import JobRecommendationService
 from app.models.user import User
 from app.models.job import Job
 
@@ -85,8 +85,7 @@ def mock_db_session():
 
 
 # Test cases for calculate_match_score
-def test_calculate_match_score_perfect_match(mock_user, mock_job_perfect_match):
-    engine = RecommendationEngine(db=MagicMock())
+    engine = JobRecommendationService(db=MagicMock())
     score = engine.calculate_match_score(mock_user, mock_job_perfect_match)
     assert score == 100 # Expecting a perfect match score
 

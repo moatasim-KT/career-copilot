@@ -1,8 +1,8 @@
 'use client';
 
 import withAuth from '@/components/auth/withAuth';
-import Dashboard from '@/components/Dashboard';
-import ResponsiveDemo from '@/components/ResponsiveDemo';
+import ResponsiveDemo from '@/components/common/ResponsiveDemo';
+import Dashboard from '@/components/pages/Dashboard';
 
 function DashboardPage() {
   return (

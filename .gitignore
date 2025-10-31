@@ -98,6 +98,14 @@ node_modules/
 # Build artifacts
 .next/
 build/
+
+# Secrets (CRITICAL: Never commit secrets)
+secrets/
+*.key
+*.pem
+*_secret.txt
+*_password.txt
+*_api_key.txt
 dist/
 
 # Snyk Security Extension - AI Rules (auto-generated)

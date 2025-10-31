@@ -1,6 +1,7 @@
 
 import { render, screen, fireEvent } from '@testing-library/react';
-import RegistrationForm from '../RegistrationForm';
+
+import RegistrationForm from '@/components/forms/RegistrationForm';
 
 describe('RegistrationForm', () => {
   it('renders the registration form', () => {

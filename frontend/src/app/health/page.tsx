@@ -1,8 +1,9 @@
 'use client';
 
-import { HealthMonitor } from '@/components/monitoring/HealthMonitor';
 import axios from 'axios';
 import { useEffect, useState } from 'react';
+
+import { HealthMonitor } from '@/components/monitoring/HealthMonitor';
 
 interface ComponentHealth {
   status: string;
@@ -109,18 +110,12 @@ export default function HealthPage() {
             >
               {systemHealth.components.database.status}
             </div>
-            <pre className="mt-4 bg-gray-50 p-4 rounded text-sm overflow-auto">
+            <pre className="mt-4 bg-gray-50 p-4 rounded text-sm overflow-auto max-h-[300px]">
               {JSON.stringify(systemHealth.components.database, null, 2)}
             </pre>
           </div>
         </div>
       )}
-
-      <style jsx>{`
-        pre {
-          max-height: 300px;
-        }
-      `}</style>
     </div>
   );
 }

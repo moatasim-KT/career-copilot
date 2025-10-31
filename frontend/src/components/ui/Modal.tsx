@@ -1,7 +1,8 @@
 'use client';
 
-import { ReactNode, useEffect } from 'react';
 import { X } from 'lucide-react';
+import { ReactNode, useEffect } from 'react';
+
 import { cn } from '@/lib/utils';
 
 interface ModalProps {
@@ -26,7 +27,7 @@ export default function Modal({
   title, 
   children, 
   size = 'md',
-  className 
+  className, 
 }: ModalProps) {
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
@@ -67,7 +68,7 @@ export default function Modal({
           className={cn(
             'relative bg-white rounded-lg shadow-xl w-full',
             sizeClasses[size],
-            className
+            className,
           )}
         >
           {/* Header */}
@@ -95,7 +96,7 @@ export default function Modal({
 
 export function ModalHeader({ 
   children, 
-  className 
+  className, 
 }: { 
   children: ReactNode; 
   className?: string; 
@@ -109,7 +110,7 @@ export function ModalHeader({
 
 export function ModalFooter({ 
   children, 
-  className 
+  className, 
 }: { 
   children: ReactNode; 
   className?: string; 

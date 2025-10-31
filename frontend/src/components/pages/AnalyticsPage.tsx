@@ -1,9 +1,16 @@
 'use client';
 
+import { 
+  TrendingUp, 
+  Users, 
+  Briefcase, 
+  Calendar, 
+  Award,
+  Target,
+  Activity,
+  BarChart3,
+} from 'lucide-react';
 import { useState, useEffect, useCallback } from 'react';
-import { useAnalyticsUpdates } from '@/hooks/useWebSocket';
-import { apiClient } from '@/lib/api';
-import Card from './ui/Card';
 import { 
   BarChart, 
   Bar, 
@@ -18,19 +25,14 @@ import {
   LineChart,
   Line,
   Legend,
-  ComposedChart
+  ComposedChart,
 } from 'recharts';
-import { 
-  TrendingUp, 
-  Users, 
-  Briefcase, 
-  Calendar, 
-  Award,
-  Target,
-  Activity,
-  BarChart3
-} from 'lucide-react';
-import { AnalyticsSummary } from '@/lib/api';
+
+import { useAnalyticsUpdates } from '@/hooks/useWebSocket';
+import { apiClient , AnalyticsSummary } from '@/lib/api';
+import { logger } from '@/lib/logger';
+
+import Card from '../ui/Card';
 
 interface StatusBreakdownData {
   status: string;
@@ -55,7 +57,7 @@ const STATUS_COLORS = {
   offer: '#8B5CF6',
   rejected: '#EF4444',
   accepted: '#059669',
-  declined: '#6B7280'
+  declined: '#6B7280',
 };
 
 const STATUS_LABELS = {
@@ -65,7 +67,7 @@ const STATUS_LABELS = {
   offer: 'Offer',
   rejected: 'Rejected',
   accepted: 'Accepted',
-  declined: 'Declined'
+  declined: 'Declined',
 };
 
 export default function AnalyticsPage() {
@@ -78,7 +80,7 @@ export default function AnalyticsPage() {
 
   // Handle real-time analytics updates
   const handleAnalyticsUpdate = useCallback((data: any) => {
-    console.log('Analytics page received update:', data);
+    logger.log('Analytics page received update:', data);
     if (data.analytics) {
       setAnalytics(data.analytics);
       setLastUpdated(new Date());
@@ -99,7 +101,7 @@ export default function AnalyticsPage() {
     try {
       const [analyticsResponse, comprehensiveResponse] = await Promise.all([
         apiClient.getAnalyticsSummary(),
-        apiClient.getComprehensiveAnalytics(timeframe)
+        apiClient.getComprehensiveAnalytics(timeframe),
       ]);
 
       if (analyticsResponse.error) {
@@ -177,23 +179,23 @@ export default function AnalyticsPage() {
     .map(([status, count]) => ({
       status: STATUS_LABELS[status as keyof typeof STATUS_LABELS] || status,
       count: count as number,
-      color: STATUS_COLORS[status as keyof typeof STATUS_COLORS] || '#6B7280'
+      color: STATUS_COLORS[status as keyof typeof STATUS_COLORS] || '#6B7280',
     }));
 
   const skillsData: SkillData[] = (analytics.top_skills_in_jobs || []).map(item => ({
     skill: item.skill,
-    count: item.count
+    count: item.count,
   }));
 
   const companiesData: CompanyData[] = (analytics.top_companies_applied || []).map(item => ({
     company: item.company,
-    count: item.count
+    count: item.count,
   }));
 
   const applicationTrendData = [
     { period: 'Today', applications: analytics.daily_applications_today },
     { period: 'This Week', applications: analytics.weekly_applications },
-    { period: 'This Month', applications: analytics.monthly_applications }
+    { period: 'This Month', applications: analytics.monthly_applications },
   ];
 
   return (
@@ -434,7 +436,7 @@ export default function AnalyticsPage() {
                     labelFormatter={(date) => `Week of ${new Date(date).toLocaleDateString()}`}
                     formatter={(value, name) => [
                       typeof name === 'string' && name.includes('rate') ? `${(value as number).toFixed(1)}%` : value,
-                      name
+                      name,
                     ]}
                   />
                   <Legend />

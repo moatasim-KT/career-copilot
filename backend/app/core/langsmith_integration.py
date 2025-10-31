@@ -10,20 +10,17 @@ This module provides:
 """
 
 import asyncio
-import json
-import logging
 import time
 from contextlib import asynccontextmanager
-from datetime import datetime
+from datetime import datetime, timezone
 from functools import wraps
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional
 
 import structlog
 from langsmith import Client as LangSmithClient
-from langsmith.run_helpers import traceable
-from langsmith.schemas import Run, RunTypeEnum
+from langsmith.schemas import Run
 
-from .config import get_settings
+from .config import settings
 
 logger = structlog.get_logger(__name__)
 
@@ -138,7 +135,7 @@ async def trace_ai_workflow(workflow_name: str, inputs: Dict[str, Any], workflow
 
 		if run_id:
 			try:
-				client.update_run(run_id, error=str(e), end_time=datetime.utcnow())
+				client.update_run(run_id, error=str(e), end_time=datetime.now(timezone.utc))
 			except Exception as update_error:
 				logger.error("Failed to update LangSmith run with error", error=str(update_error))
 
@@ -150,7 +147,7 @@ async def trace_ai_workflow(workflow_name: str, inputs: Dict[str, Any], workflow
 
 		if run_id:
 			try:
-				client.update_run(run_id, end_time=datetime.utcnow())
+				client.update_run(run_id, end_time=datetime.now(timezone.utc))
 			except Exception as update_error:
 				logger.error("Failed to update LangSmith run", error=str(update_error))
 
@@ -181,16 +178,11 @@ def trace_ai_operation(operation_name: str, operation_type: str = "llm", include
 
 			metadata = {}
 			if include_metadata:
-				metadata = {"function_name": func.__name__, "module": func.__module__, "timestamp": datetime.utcnow().isoformat()}
+				metadata = {"function_name": func.__name__, "module": func.__module__, "timestamp": datetime.now(timezone.utc).isoformat()}
 
 			# Map operation types to valid LangSmith run types
-			valid_run_type = {
-				"orchestration": "chain",
-				"agent": "chain", 
-				"workflow": "chain",
-				"analysis": "chain"
-			}.get(operation_type, "chain")
-			
+			valid_run_type = {"orchestration": "chain", "agent": "chain", "workflow": "chain", "analysis": "chain"}.get(operation_type, "chain")
+
 			async with trace_ai_workflow(
 				workflow_name=f"{operation_name}.{func.__name__}", inputs=inputs, workflow_type=valid_run_type, metadata=metadata
 			) as run:
@@ -198,7 +190,7 @@ def trace_ai_operation(operation_name: str, operation_type: str = "llm", include
 					result = await func(*args, **kwargs)
 
 					# Update run with outputs
-					if run and hasattr(run, 'id') and run.id and include_io:
+					if run and hasattr(run, "id") and run.id and include_io:
 						client = get_langsmith_client()
 						if client:
 							try:
@@ -229,7 +221,7 @@ def trace_ai_operation(operation_name: str, operation_type: str = "llm", include
 
 			metadata = {}
 			if include_metadata:
-				metadata = {"function_name": func.__name__, "module": func.__module__, "timestamp": datetime.utcnow().isoformat()}
+				metadata = {"function_name": func.__name__, "module": func.__module__, "timestamp": datetime.now(timezone.utc).isoformat()}
 
 			run_id = None
 			start_time = time.time()
@@ -250,16 +242,16 @@ def trace_ai_operation(operation_name: str, operation_type: str = "llm", include
 				# Update run with outputs
 				if include_io:
 					outputs = {"result": str(result)[:1000]}
-					client.update_run(run_id, outputs=outputs, end_time=datetime.utcnow())
+					client.update_run(run_id, outputs=outputs, end_time=datetime.now(timezone.utc))
 				else:
-					client.update_run(run_id, end_time=datetime.utcnow())
+					client.update_run(run_id, end_time=datetime.now(timezone.utc))
 
 				return result
 
 			except Exception as e:
 				if run_id:
 					try:
-						client.update_run(run_id, error=str(e), end_time=datetime.utcnow())
+						client.update_run(run_id, error=str(e), end_time=datetime.now(timezone.utc))
 					except Exception:
 						pass
 				raise
@@ -287,7 +279,7 @@ class LangSmithMetrics:
 		try:
 			from datetime import timedelta
 
-			start_time = datetime.utcnow() - timedelta(hours=hours)
+			start_time = datetime.now(timezone.utc) - timedelta(hours=hours)
 
 			runs = list(self.client.list_runs(project_name=langsmith_manager.project_name, start_time=start_time, limit=1000))
 

@@ -1,108 +1,105 @@
 """Job schemas"""
 
-from pydantic import BaseModel, Field, field_validator
-from typing import Optional, List
+from __future__ import annotations
+
 from datetime import datetime
+from typing import Any
+
+from pydantic import BaseModel, Field, field_validator
 
 
 class JobCreate(BaseModel):
-    company: str = Field(..., min_length=1, description="Company name is required")
-    title: str = Field(..., min_length=1, description="Job title is required")
-    location: Optional[str] = None
-    description: Optional[str] = None
-    requirements: Optional[str] = None
-    responsibilities: Optional[str] = None
-    salary_min: Optional[int] = None
-    salary_max: Optional[int] = None
-    job_type: Optional[str] = None
-    remote_option: Optional[str] = None
-    tech_stack: Optional[List[str]] = Field(default_factory=list, description="List of technologies/skills")
-    application_url: Optional[str] = None
-    notes: Optional[str] = None
-    documents_required: Optional[List[str]] = None
-    source: Optional[str] = Field(default="manual", description="Source of the job posting")
-    currency: Optional[str] = None
-    
-    @field_validator('tech_stack')
-    @classmethod
-    def validate_tech_stack(cls, v):
-        if v is None:
-            return []
-        return v
-    
-    @field_validator('source')
-    @classmethod
-    def validate_source(cls, v):
-        allowed_sources = [
-            "manual", "scraped", "api", "linkedin", "indeed", 
-            "glassdoor", "adzuna", "usajuna", "github_jobs", "remoteok"
-        ]
-        if v and v not in allowed_sources:
-            return "manual"
-        return v or "manual"
+	company: str = Field(..., min_length=1, description="Company name is required")
+	title: str = Field(..., min_length=1, description="Job title is required")
+	location: str | None = None
+	description: str | None = None
+	requirements: str | None = None
+	responsibilities: str | None = None
+	salary_min: int | None = None
+	salary_max: int | None = None
+	job_type: str | None = None
+	remote_option: str | None = None
+	tech_stack: list[str] | None = Field(default_factory=list, description="List of technologies/skills")
+	application_url: str | None = None
+	notes: str | None = None
+	documents_required: list[str] | None = None
+	source: str | None = Field(default="manual", description="Source of the job posting")
+	currency: str | None = None
+
+	@field_validator("tech_stack")
+	@classmethod
+	def validate_tech_stack(cls, v):
+		if v is None:
+			return []
+		return v
+
+	@field_validator("source")
+	@classmethod
+	def validate_source(cls, v):
+		allowed_sources = ["manual", "scraped", "api", "linkedin", "indeed", "glassdoor", "adzuna", "usajobs", "github_jobs", "remoteok"]
+		if v and v not in allowed_sources:
+			return "manual"
+		return v or "manual"
 
 
 class JobUpdate(BaseModel):
-    company: Optional[str] = Field(None, min_length=1)
-    title: Optional[str] = Field(None, min_length=1)
-    location: Optional[str] = None
-    description: Optional[str] = None
-    requirements: Optional[str] = None
-    responsibilities: Optional[str] = None
-    salary_min: Optional[int] = None
-    salary_max: Optional[int] = None
-    job_type: Optional[str] = None
-    remote_option: Optional[str] = None
-    tech_stack: Optional[List[str]] = None
-    application_url: Optional[str] = None
-    source: Optional[str] = None
-    status: Optional[str] = None
-    date_applied: Optional[datetime] = None
-    notes: Optional[str] = None
-    documents_required: Optional[List[str]] = None
-    
-    @field_validator('source')
-    @classmethod
-    def validate_source(cls, v):
-        if v is not None:
-            allowed_sources = [
-                "manual", "scraped", "api", "linkedin", "indeed", 
-                "glassdoor", "adzuna", "usajuna", "github_jobs", "remoteok"
-            ]
-            if v not in allowed_sources:
-                raise ValueError(f"Source must be one of: {', '.join(allowed_sources)}")
-        return v
-    
-    @field_validator('status')
-    @classmethod
-    def validate_status(cls, v):
-        if v is not None:
-            allowed_statuses = ["not_applied", "applied", "interviewing", "offer", "rejected"]
-            if v not in allowed_statuses:
-                raise ValueError(f"Status must be one of: {', '.join(allowed_statuses)}")
-        return v
+	company: str | None = Field(None, min_length=1)
+	title: str | None = Field(None, min_length=1)
+	location: str | None = None
+	description: str | None = None
+	requirements: str | None = None
+	responsibilities: str | None = None
+	salary_min: int | None = None
+	salary_max: int | None = None
+	job_type: str | None = None
+	remote_option: str | None = None
+	tech_stack: list[str] | None = None
+	application_url: str | None = None
+	source: str | None = None
+	status: str | None = None
+	date_applied: datetime | None = None
+	notes: str | None = None
+	documents_required: list[str] | None = None
+
+	@field_validator("source")
+	@classmethod
+	def validate_source(cls, v):
+		if v is not None:
+			allowed_sources = ["manual", "scraped", "api", "linkedin", "indeed", "glassdoor", "adzuna", "usajobs", "github_jobs", "remoteok"]
+			if v not in allowed_sources:
+				raise ValueError(f"Source must be one of: {', '.join(allowed_sources)}")
+		return v
+
+	@field_validator("status")
+	@classmethod
+	def validate_status(cls, v):
+		if v is not None:
+			allowed_statuses = ["not_applied", "applied", "interviewing", "offer", "rejected"]
+			if v not in allowed_statuses:
+				raise ValueError(f"Status must be one of: {', '.join(allowed_statuses)}")
+		return v
 
 
 class JobResponse(BaseModel):
-    id: int
-    user_id: int
-    company: str
-    title: str
-    location: Optional[str]
-    description: Optional[str]
-    requirements: Optional[str]
-    responsibilities: Optional[str]
-    salary_min: Optional[int]
-    salary_max: Optional[int]
-    job_type: Optional[str]
-    remote_option: Optional[str]
-    tech_stack: Optional[List[str]]
-    documents_required: Optional[List[str]]
-    application_url: Optional[str]
-    source: Optional[str]
-    status: str
-    date_applied: Optional[datetime]
-    notes: Optional[str]
-    created_at: datetime
-    updated_at: datetime
-    currency: Optional[str]
+	id: int
+	user_id: int
+	company: str
+	title: str
+	location: str | None
+	description: str | None
+	requirements: str | None
+	responsibilities: str | None
+	salary_min: int | None
+	salary_max: int | None
+	job_type: str | None
+	remote_option: str | None
+	tech_stack: list[str] | None
+	documents_required: list[str] | None
+	application_url: str | None
+	source: str | None
+	status: str
+	date_applied: datetime | None
+	notes: str | None
+	created_at: datetime
+	updated_at: datetime
+	currency: str | None

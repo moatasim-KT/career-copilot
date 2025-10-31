@@ -169,10 +169,7 @@ jobs:
         echo "Backend health check passed"
         
     - name: Run E2E tests - All Categories
-      if: github.event.inputs.test_category == 'all' || github.event.inputs.test_category == ''
-      run: |
-        cd tests/e2e
-        python run_comprehensive_e2e_tests.py \
+        python -m tests.framework.orchestrator --all \
           --backend-url http://localhost:8000 \
           --frontend-url http://localhost:8501 \
           --use-test-client \
@@ -183,7 +180,7 @@ jobs:
       if: github.event.inputs.test_category != 'all' && github.event.inputs.test_category != ''
       run: |
         cd tests/e2e
-        python run_comprehensive_e2e_tests.py \
+        python -m tests.framework.orchestrator --category ${{ github.event.inputs.test_category }} \
           --backend-url http://localhost:8000 \
           --frontend-url http://localhost:8501 \
           --use-test-client \

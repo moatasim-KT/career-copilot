@@ -8,8 +8,8 @@ from .user_repository import UserRepository
 # from .audit_repository import AuditRepository  # Temporarily disabled
 
 __all__ = [
-    "BaseRepository",
-    "UserRepository", 
-    # "ContractRepository",
-    # "AuditRepository",
+	"BaseRepository",
+	"UserRepository",
+	# "ContractRepository",
+	# "AuditRepository",
 ]

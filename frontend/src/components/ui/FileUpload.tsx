@@ -1,8 +1,9 @@
 'use client';
 
-import { useState } from 'react';
-import { apiClient } from '@/lib/api';
 import { Upload } from 'lucide-react';
+import { useState } from 'react';
+
+import { apiClient } from '@/lib/api';
 
 interface FileUploadProps {
   onUploadSuccess: (data: any) => void;

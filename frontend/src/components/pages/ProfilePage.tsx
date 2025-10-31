@@ -1,9 +1,12 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+
 import { apiClient, UserProfile } from '@/lib/api';
-import FileUpload from './ui/FileUpload';
-import Card from './ui/Card';
+import { logger } from '@/lib/logger';
+
+import Card from '../ui/Card';
+import FileUpload from '../ui/FileUpload';
 
 export default function ProfilePage() {
   const [profile, setProfile] = useState<Partial<UserProfile>>({});
@@ -30,7 +33,7 @@ export default function ProfilePage() {
 
   const handleUploadSuccess = (data: any) => {
     // Handle resume upload success
-    console.log('Upload successful:', data);
+    logger.log('Upload successful:', data);
   };
 
   const [successMessage, setSuccessMessage] = useState<string | null>(null);

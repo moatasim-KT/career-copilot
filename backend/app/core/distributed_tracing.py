@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 class TraceContext:
 	"""Trace context for distributed tracing"""
 
-	def __init__(self, trace_id: str = None, parent_span_id: str = None):
+	def __init__(self, trace_id: str | None = None, parent_span_id: str | None = None):
 		self.trace_id = trace_id or str(uuid.uuid4())
 		self.parent_span_id = parent_span_id
 		self.span_id = str(uuid.uuid4())
@@ -51,7 +51,7 @@ class TraceContext:
 class Span:
 	"""A span in a distributed trace"""
 
-	def __init__(self, trace_id: str, span_id: str, name: str, parent_span_id: str = None):
+	def __init__(self, trace_id: str, span_id: str, name: str, parent_span_id: str | None = None):
 		self.trace_id = trace_id
 		self.span_id = span_id
 		self.name = name
@@ -72,7 +72,7 @@ class Span:
 		"""Add a log entry to the span"""
 		self.logs.append({"timestamp": datetime.now(timezone.utc).isoformat(), "level": level, "message": message, **kwargs})
 
-	def finish(self, status: str = "success", error: str = None):
+	def finish(self, status: str = "success", error: str | None = None):
 		"""Finish the span"""
 		self.end_time = time.time()
 		self.status = status
@@ -111,7 +111,7 @@ class DistributedTracer:
 		self.active_spans: Dict[str, Span] = {}
 		self.completed_spans: List[Span] = []
 
-	def start_span(self, name: str, trace_context: TraceContext = None, tags: Dict[str, Any] = None) -> Span:
+	def start_span(self, name: str, trace_context: TraceContext = None, tags: Dict[str, Any] | None = None) -> Span:
 		"""Start a new span"""
 		if trace_context is None:
 			trace_context = TraceContext()
@@ -129,7 +129,7 @@ class DistributedTracer:
 		self.active_spans[span.span_id] = span
 		return span
 
-	def finish_span(self, span_id: str, status: str = "success", error: str = None):
+	def finish_span(self, span_id: str, status: str = "success", error: str | None = None):
 		"""Finish a span"""
 		if span_id in self.active_spans:
 			span = self.active_spans[span_id]

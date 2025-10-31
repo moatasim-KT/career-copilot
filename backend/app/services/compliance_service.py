@@ -3,13 +3,12 @@ Compliance Checking Service
 Checks contracts against regulatory requirements and standards
 """
 
-import asyncio
 import logging
 import re
 from dataclasses import dataclass
 from datetime import datetime
 from enum import Enum
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List
 
 from ..core.config import get_settings
 
@@ -128,7 +127,7 @@ class ComplianceService:
 			},
 		}
 
-	async def check_contract_compliance(self, contract_text: str, contract_name: str, standards: List[ComplianceStandard] = None) -> ComplianceReport:
+	async def check_contract_compliance(self, contract_text: str, contract_name: str, standards: List[ComplianceStandard] | None = None) -> ComplianceReport:
 		"""Check contract compliance against specified standards"""
 		try:
 			if standards is None:

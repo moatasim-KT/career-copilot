@@ -1,10 +1,11 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { apiClient, Job } from '@/lib/api';
-import Card, { CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
+
 import Button from '@/components/ui/Button';
+import Card, { CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import Container from '@/components/ui/Container';
+import { apiClient, Job } from '@/lib/api';
 
 interface SkillGapAnalysis {
   user_skills: string[];
@@ -55,7 +56,7 @@ export default function RecommendationsPage() {
       const response = await apiClient.createApplication({
         job_id: jobId,
         status: 'interested',
-        notes: 'Applied from recommendations'
+        notes: 'Applied from recommendations',
       });
       
       if (response.error) {

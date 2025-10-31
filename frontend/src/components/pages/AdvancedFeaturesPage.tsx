@@ -1,11 +1,13 @@
 'use client';
 
 import React, { useState } from 'react';
-import Card from '@/components/ui/Card';
+
+import ContentGeneration from '@/components/features/ContentGeneration';
+import InterviewPractice from '@/components/features/InterviewPractice';
+import ResumeUpload from '@/components/features/ResumeUpload';
 import Button from '@/components/ui/Button';
-import ResumeUpload from '@/components/ResumeUpload';
-import ContentGeneration from '@/components/ContentGeneration';
-import InterviewPractice from '@/components/InterviewPractice';
+import Card from '@/components/ui/Card';
+import { logger } from '@/lib/logger';
 
 type ActiveFeature = 'resume' | 'content' | 'interview' | null;
 
@@ -98,10 +100,10 @@ export default function AdvancedFeaturesPage() {
           {activeFeature === 'resume' && (
             <ResumeUpload
               onUploadComplete={(data) => {
-                console.log('Resume upload completed:', data);
+                logger.log('Resume upload completed:', data);
               }}
               onProfileUpdate={(updates) => {
-                console.log('Profile updated:', updates);
+                logger.log('Profile updated:', updates);
               }}
             />
           )}
@@ -109,7 +111,7 @@ export default function AdvancedFeaturesPage() {
           {activeFeature === 'content' && (
             <ContentGeneration
               onContentGenerated={(content) => {
-                console.log('Content generated:', content);
+                logger.log('Content generated:', content);
               }}
             />
           )}
@@ -117,7 +119,7 @@ export default function AdvancedFeaturesPage() {
           {activeFeature === 'interview' && (
             <InterviewPractice
               onSessionComplete={(session) => {
-                console.log('Interview session completed:', session);
+                logger.log('Interview session completed:', session);
               }}
             />
           )}

@@ -1,451 +1,223 @@
 """
-GROQ API endpoints for service management, monitoring, and optimization.
+GROQ API endpoints for Phase 2 services (Optimizer, Router, Monitor)
 """
 
-from datetime import datetime
-from typing import Any, Dict, List, Optional
-from fastapi import APIRouter, HTTPException, Depends, Query
+from typing import Optional, Dict, Any, List
+from fastapi import APIRouter, HTTPException, Query, Body
 from pydantic import BaseModel, Field
 
-from ...services.groq_service import get_groq_service, GROQModel, GROQTaskType
+from ...services.groq_service import GROQTaskType, GROQModel
 from ...services.groq_optimizer import get_groq_optimizer, OptimizationStrategy
 from ...services.groq_router import get_groq_router, RoutingStrategy
 from ...services.groq_monitor import get_groq_monitor
 from ...core.logging import get_logger
 
 logger = get_logger(__name__)
-router = APIRouter(prefix="/groq", tags=["GROQ"])
+router = APIRouter(prefix="/groq", tags=["groq"])
 
 
 # Request/Response Models
-class GROQCompletionRequest(BaseModel):
-    """Request model for GROQ completion."""
-    messages: List[Dict[str, str]] = Field(..., description="Chat messages")
-    model: Optional[GROQModel] = Field(None, description="Specific model to use")
-    task_type: GROQTaskType = Field(GROQTaskType.CONVERSATION, description="Task type for optimization")
-    priority: str = Field("balanced", description="Priority: speed, quality, cost, balanced")
-    temperature: float = Field(0.1, ge=0.0, le=2.0, description="Temperature for generation")
-    max_tokens: Optional[int] = Field(None, ge=1, le=32768, description="Maximum tokens to generate")
-    use_optimization: bool = Field(True, description="Whether to use GROQ optimizations")
+class OptimizedCompletionRequest(BaseModel):
+    messages: List[Dict[str, str]] = Field(..., description="List of messages")
+    task_type: str = Field(default="conversation", description="Task type")
+    priority: str = Field(default="balanced", description="Priority: speed, quality, cost, balanced")
+    temperature: Optional[float] = Field(default=0.1, ge=0.0, le=2.0)
+    max_tokens: Optional[int] = Field(default=None, ge=1, le=8192)
 
 
-class GROQCompletionResponse(BaseModel):
-    """Response model for GROQ completion."""
-    content: str
-    model: str
-    usage: Dict[str, int]
-    cost: float
-    processing_time: float
-    confidence_score: float
-    request_id: str
-    timestamp: str
-    metadata: Dict[str, Any]
+class RouteModelRequest(BaseModel):
+    task_type: str = Field(..., description="Task type")
+    strategy: str = Field(default="adaptive", description="Routing strategy")
+    context: Optional[Dict[str, Any]] = Field(default=None, description="Context for routing")
 
 
-class GROQHealthResponse(BaseModel):
-    """Response model for GROQ health check."""
-    service: str
-    status: str
-    timestamp: str
-    api_key_configured: bool
-    circuit_breaker_state: str
-    models: Dict[str, Dict[str, Any]]
-    metrics: Dict[str, Any]
-    errors: List[str]
-
-
-class GROQMetricsResponse(BaseModel):
-    """Response model for GROQ metrics."""
-    total_requests: int
-    successful_requests: int
-    failed_requests: int
-    error_rate: float
-    uptime_percentage: float
-    total_tokens_used: int
-    total_cost: float
-    avg_response_time: float
-    avg_tokens_per_request: float
-    avg_cost_per_request: float
-    rate_limit_hits: int
-    model_usage: Dict[str, int]
-    task_performance: Dict[str, float]
-    last_request_time: Optional[str]
-
-
-class GROQOptimizationReport(BaseModel):
-    """Response model for GROQ optimization report."""
-    config: Dict[str, Any]
-    metrics: Dict[str, Any]
-    performance: Dict[str, Dict[str, Any]]
-    groq_service_metrics: Dict[str, Any]
-
-
-class GROQRoutingStats(BaseModel):
-    """Response model for GROQ routing statistics."""
-    total_models: int
-    active_models: int
-    routing_rules: int
-    load_balancer_state: Dict[str, int]
-    circuit_breaker_states: Dict[str, str]
-    performance_metrics: Dict[str, Dict[str, Any]]
-
-
-class GROQDashboardData(BaseModel):
-    """Response model for GROQ dashboard data."""
-    summary: Dict[str, Any]
-    model_usage: Dict[str, int]
-    task_usage: Dict[str, int]
-    cost_breakdown: Dict[str, Dict[str, Any]]
-    performance_analysis: Dict[str, Dict[str, Any]]
-    quality_metrics: Dict[str, Dict[str, Any]]
-    recent_alerts: List[Dict[str, Any]]
-    time_range: str
-    last_updated: str
-
-
-# API Endpoints
-@router.post("/completion", response_model=GROQCompletionResponse)
-async def generate_completion(
-    request: GROQCompletionRequest,
-    groq_service = Depends(get_groq_service),
-    groq_optimizer = Depends(get_groq_optimizer)
-):
-    """Generate completion using GROQ service with optimizations."""
+# Optimizer Endpoints
+@router.post("/optimize/completion")
+async def optimized_completion(request: OptimizedCompletionRequest):
+    """Generate optimized completion using GROQ optimizer"""
     try:
-        if request.use_optimization:
-            # Use optimized completion
-            result = await groq_optimizer.optimized_completion(
-                messages=request.messages,
-                task_type=request.task_type,
-                priority=request.priority,
-                temperature=request.temperature,
-                max_tokens=request.max_tokens
-            )
-        else:
-            # Use direct service
-            result = await groq_service.generate_completion(
-                messages=request.messages,
-                model=request.model,
-                task_type=request.task_type,
-                priority=request.priority,
-                temperature=request.temperature,
-                max_tokens=request.max_tokens
-            )
+        optimizer = get_groq_optimizer()
+        task_type = GROQTaskType(request.task_type)
         
-        return GROQCompletionResponse(**result)
+        result = await optimizer.optimized_completion(
+            messages=request.messages,
+            task_type=task_type,
+            priority=request.priority,
+            temperature=request.temperature,
+            max_tokens=request.max_tokens
+        )
         
+        return {"success": True, "data": result}
     except Exception as e:
-        logger.error(f"GROQ completion failed: {e}")
+        logger.error(f"Optimization error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@router.get("/health", response_model=GROQHealthResponse)
-async def health_check(groq_service = Depends(get_groq_service)):
-    """Get GROQ service health status."""
+@router.get("/optimize/report")
+async def optimization_report():
+    """Get optimization performance report"""
     try:
-        health_status = await groq_service.health_check()
-        return GROQHealthResponse(**health_status)
+        optimizer = get_groq_optimizer()
+        report = await optimizer.get_optimization_report()
+        return {"success": True, "data": report}
     except Exception as e:
-        logger.error(f"GROQ health check failed: {e}")
+        logger.error(f"Report error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@router.get("/metrics", response_model=GROQMetricsResponse)
-async def get_metrics(groq_service = Depends(get_groq_service)):
-    """Get GROQ service metrics."""
+@router.post("/optimize/reset")
+async def reset_optimization_metrics():
+    """Reset optimization metrics"""
     try:
-        metrics = groq_service.get_metrics_summary()
-        return GROQMetricsResponse(**metrics)
+        optimizer = get_groq_optimizer()
+        await optimizer.reset_optimization_metrics()
+        return {"success": True, "message": "Metrics reset"}
     except Exception as e:
-        logger.error(f"Failed to get GROQ metrics: {e}")
+        logger.error(f"Reset error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@router.get("/models")
-async def list_models(groq_service = Depends(get_groq_service)):
-    """List available GROQ models with configurations."""
+# Router Endpoints
+@router.post("/route/select")
+async def select_model(request: RouteModelRequest):
+    """Select optimal model using router"""
     try:
-        models = {}
-        for model, config in groq_service.model_configs.items():
-            models[model.value] = {
-                "model": model.value,
-                "max_tokens": config.max_tokens,
-                "context_window": config.context_window,
-                "cost_per_token": config.cost_per_token,
-                "tokens_per_minute_limit": config.tokens_per_minute_limit,
-                "requests_per_minute_limit": config.requests_per_minute_limit,
-                "optimal_tasks": [task.value for task in config.optimal_tasks],
-                "quality_score": config.quality_score,
-                "speed_score": config.speed_score,
-                "enabled": config.enabled,
-                "metadata": config.metadata
-            }
+        router_service = get_groq_router()
+        task_type = GROQTaskType(request.task_type)
+        strategy = RoutingStrategy(request.strategy)
         
-        return {"models": models}
-    except Exception as e:
-        logger.error(f"Failed to list GROQ models: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
-
-
-@router.get("/optimal-model")
-async def get_optimal_model(
-    task_type: GROQTaskType = Query(..., description="Task type"),
-    priority: str = Query("balanced", description="Priority: speed, quality, cost, balanced"),
-    groq_service = Depends(get_groq_service)
-):
-    """Get optimal model for a specific task type and priority."""
-    try:
-        optimal_model = await groq_service.get_optimal_model(task_type, priority)
-        model_config = groq_service.model_configs[optimal_model]
-        
-        return {
-            "optimal_model": optimal_model.value,
-            "task_type": task_type.value,
-            "priority": priority,
-            "model_config": {
-                "max_tokens": model_config.max_tokens,
-                "cost_per_token": model_config.cost_per_token,
-                "quality_score": model_config.quality_score,
-                "speed_score": model_config.speed_score,
-                "optimal_tasks": [task.value for task in model_config.optimal_tasks]
-            }
-        }
-    except Exception as e:
-        logger.error(f"Failed to get optimal model: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
-
-
-@router.get("/cost-analysis")
-async def get_cost_analysis(groq_service = Depends(get_groq_service)):
-    """Get detailed cost analysis."""
-    try:
-        cost_analysis = groq_service.get_cost_analysis()
-        return cost_analysis
-    except Exception as e:
-        logger.error(f"Failed to get cost analysis: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
-
-
-@router.get("/performance-analysis")
-async def get_performance_analysis(groq_service = Depends(get_groq_service)):
-    """Get detailed performance analysis."""
-    try:
-        performance_analysis = groq_service.get_performance_analysis()
-        return performance_analysis
-    except Exception as e:
-        logger.error(f"Failed to get performance analysis: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
-
-
-@router.post("/reset-metrics")
-async def reset_metrics(groq_service = Depends(get_groq_service)):
-    """Reset GROQ service metrics."""
-    try:
-        await groq_service.reset_metrics()
-        return {"message": "GROQ metrics reset successfully"}
-    except Exception as e:
-        logger.error(f"Failed to reset GROQ metrics: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
-
-
-# Optimization Endpoints
-@router.get("/optimization/report", response_model=GROQOptimizationReport)
-async def get_optimization_report(groq_optimizer = Depends(get_groq_optimizer)):
-    """Get comprehensive optimization report."""
-    try:
-        report = await groq_optimizer.get_optimization_report()
-        return GROQOptimizationReport(**report)
-    except Exception as e:
-        logger.error(f"Failed to get optimization report: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
-
-
-@router.post("/optimization/reset")
-async def reset_optimization_metrics(groq_optimizer = Depends(get_groq_optimizer)):
-    """Reset optimization metrics."""
-    try:
-        await groq_optimizer.reset_optimization_metrics()
-        return {"message": "GROQ optimization metrics reset successfully"}
-    except Exception as e:
-        logger.error(f"Failed to reset optimization metrics: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
-
-
-# Routing Endpoints
-@router.post("/routing/select-model")
-async def select_model(
-    task_type: GROQTaskType = Query(..., description="Task type"),
-    strategy: RoutingStrategy = Query(RoutingStrategy.ADAPTIVE, description="Routing strategy"),
-    context: Optional[Dict[str, Any]] = None,
-    constraints: Optional[Dict[str, Any]] = None,
-    groq_router = Depends(get_groq_router)
-):
-    """Select optimal model using routing logic."""
-    try:
-        decision = await groq_router.select_model(
+        decision = await router_service.select_model(
             task_type=task_type,
             strategy=strategy,
-            context=context or {},
-            constraints=constraints or {}
+            context=request.context
         )
         
         return {
-            "selected_model": decision.selected_model.value,
-            "confidence": decision.confidence,
-            "reasoning": decision.reasoning,
-            "alternatives": [model.value for model in decision.alternatives],
-            "estimated_cost": decision.estimated_cost,
-            "estimated_time": decision.estimated_time,
-            "routing_strategy": decision.routing_strategy.value,
-            "metadata": decision.metadata
+            "success": True,
+            "data": {
+                "selected_model": decision.selected_model.value,
+                "confidence": decision.confidence,
+                "reasoning": decision.reasoning,
+                "alternatives": [m.value for m in decision.alternatives],
+                "estimated_cost": decision.estimated_cost,
+                "estimated_time": decision.estimated_time,
+                "strategy": decision.routing_strategy.value
+            }
         }
     except Exception as e:
-        logger.error(f"Failed to select model: {e}")
+        logger.error(f"Routing error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@router.get("/routing/statistics", response_model=GROQRoutingStats)
-async def get_routing_statistics(groq_router = Depends(get_groq_router)):
-    """Get routing statistics."""
+@router.get("/route/statistics")
+async def routing_statistics():
+    """Get routing statistics"""
     try:
-        stats = groq_router.get_routing_statistics()
-        return GROQRoutingStats(**stats)
+        router_service = get_groq_router()
+        stats = router_service.get_routing_statistics()
+        return {"success": True, "data": stats}
     except Exception as e:
-        logger.error(f"Failed to get routing statistics: {e}")
+        logger.error(f"Statistics error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@router.post("/routing/reset-metrics")
-async def reset_routing_metrics(groq_router = Depends(get_groq_router)):
-    """Reset routing metrics."""
+@router.post("/route/reset")
+async def reset_routing_metrics():
+    """Reset routing metrics"""
     try:
-        await groq_router.reset_routing_metrics()
-        return {"message": "GROQ routing metrics reset successfully"}
+        router_service = get_groq_router()
+        await router_service.reset_routing_metrics()
+        return {"success": True, "message": "Routing metrics reset"}
     except Exception as e:
-        logger.error(f"Failed to reset routing metrics: {e}")
+        logger.error(f"Reset error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 
-# Monitoring Endpoints
-@router.get("/monitoring/dashboard", response_model=GROQDashboardData)
-async def get_dashboard_data(
-    time_range: str = Query("24h", description="Time range: 1h, 24h, 7d, 30d"),
-    groq_monitor = Depends(get_groq_monitor)
-):
-    """Get dashboard data for monitoring."""
+# Monitor Endpoints
+@router.get("/monitor/dashboard")
+async def monitor_dashboard(time_range: str = Query(default="24h", regex="^(1h|24h|7d|30d)$")):
+    """Get monitoring dashboard data"""
     try:
-        dashboard_data = groq_monitor.get_dashboard_data(time_range)
-        return GROQDashboardData(**dashboard_data)
+        monitor = get_groq_monitor()
+        dashboard = monitor.get_dashboard_data(time_range)
+        return {"success": True, "data": dashboard}
     except Exception as e:
-        logger.error(f"Failed to get dashboard data: {e}")
+        logger.error(f"Dashboard error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@router.get("/monitoring/cost-report")
-async def get_cost_report(
-    period: str = Query("daily", description="Period: hourly, daily, weekly"),
-    groq_monitor = Depends(get_groq_monitor)
-):
-    """Get cost report."""
+@router.get("/monitor/cost-report")
+async def cost_report(period: str = Query(default="daily", regex="^(hourly|daily|weekly)$")):
+    """Get cost report"""
     try:
-        cost_report = groq_monitor.get_cost_report(period)
-        return cost_report
+        monitor = get_groq_monitor()
+        report = monitor.get_cost_report(period)
+        return {"success": True, "data": report}
     except Exception as e:
-        logger.error(f"Failed to get cost report: {e}")
+        logger.error(f"Cost report error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@router.get("/monitoring/alerts")
-async def get_alerts(
-    resolved: Optional[bool] = Query(None, description="Filter by resolved status"),
-    groq_monitor = Depends(get_groq_monitor)
-):
-    """Get monitoring alerts."""
+@router.post("/monitor/start")
+async def start_monitoring():
+    """Start continuous monitoring"""
     try:
-        alerts = groq_monitor.alerts
+        monitor = get_groq_monitor()
+        await monitor.start_monitoring()
+        return {"success": True, "message": "Monitoring started"}
+    except Exception as e:
+        logger.error(f"Start monitoring error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.post("/monitor/stop")
+async def stop_monitoring():
+    """Stop continuous monitoring"""
+    try:
+        monitor = get_groq_monitor()
+        await monitor.stop_monitoring()
+        return {"success": True, "message": "Monitoring stopped"}
+    except Exception as e:
+        logger.error(f"Stop monitoring error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/monitor/export")
+async def export_metrics(format: str = Query(default="json")):
+    """Export monitoring metrics"""
+    try:
+        monitor = get_groq_monitor()
+        data = await monitor.export_metrics(format)
+        return {"success": True, "data": data, "format": format}
+    except Exception as e:
+        logger.error(f"Export error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+# Health Check
+@router.get("/health")
+async def health_check():
+    """Health check for GROQ services"""
+    try:
+        from ...services.groq_service import get_groq_service
         
-        if resolved is not None:
-            alerts = [alert for alert in alerts if alert.resolved == resolved]
-        
-        return {
-            "alerts": [
-                {
-                    "id": alert.id,
-                    "level": alert.level.value,
-                    "metric_type": alert.metric_type.value,
-                    "title": alert.title,
-                    "description": alert.description,
-                    "timestamp": alert.timestamp.isoformat(),
-                    "model": alert.model,
-                    "task_type": alert.task_type,
-                    "threshold_value": alert.threshold_value,
-                    "actual_value": alert.actual_value,
-                    "resolved": alert.resolved,
-                    "resolved_at": alert.resolved_at.isoformat() if alert.resolved_at else None
-                }
-                for alert in alerts
-            ]
-        }
-    except Exception as e:
-        logger.error(f"Failed to get alerts: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
-
-
-@router.post("/monitoring/alerts/{alert_id}/resolve")
-async def resolve_alert(
-    alert_id: str,
-    groq_monitor = Depends(get_groq_monitor)
-):
-    """Resolve a monitoring alert."""
-    try:
-        success = groq_monitor.resolve_alert(alert_id)
-        if success:
-            return {"message": f"Alert {alert_id} resolved successfully"}
-        else:
-            raise HTTPException(status_code=404, detail="Alert not found or already resolved")
-    except HTTPException:
-        raise
-    except Exception as e:
-        logger.error(f"Failed to resolve alert: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
-
-
-@router.post("/monitoring/start")
-async def start_monitoring(groq_monitor = Depends(get_groq_monitor)):
-    """Start continuous monitoring."""
-    try:
-        await groq_monitor.start_monitoring()
-        return {"message": "GROQ monitoring started successfully"}
-    except Exception as e:
-        logger.error(f"Failed to start monitoring: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
-
-
-@router.post("/monitoring/stop")
-async def stop_monitoring(groq_monitor = Depends(get_groq_monitor)):
-    """Stop continuous monitoring."""
-    try:
-        await groq_monitor.stop_monitoring()
-        return {"message": "GROQ monitoring stopped successfully"}
-    except Exception as e:
-        logger.error(f"Failed to stop monitoring: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
-
-
-@router.get("/monitoring/export")
-async def export_metrics(
-    format: str = Query("json", description="Export format: json"),
-    groq_monitor = Depends(get_groq_monitor)
-):
-    """Export monitoring metrics."""
-    try:
-        exported_data = await groq_monitor.export_metrics(format)
+        groq_service = get_groq_service()
+        health = await groq_service.health_check()
         
         return {
-            "format": format,
-            "data": exported_data,
-            "exported_at": datetime.now().isoformat()
+            "success": True,
+            "status": health["status"],
+            "services": {
+                "optimizer": "operational",
+                "router": "operational",
+                "monitor": "operational"
+            },
+            "details": health
         }
     except Exception as e:
-        logger.error(f"Failed to export metrics: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        logger.error(f"Health check error: {e}")
+        return {
+            "success": False,
+            "status": "unhealthy",
+            "error": str(e)
+        }

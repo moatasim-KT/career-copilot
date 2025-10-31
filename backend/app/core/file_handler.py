@@ -5,7 +5,6 @@ Secure file handling with automatic cleanup and memory management.
 import asyncio
 import hashlib
 import os
-import shutil
 import tempfile
 import time
 from contextlib import contextmanager
@@ -13,7 +12,6 @@ from datetime import datetime
 from pathlib import Path
 from typing import Dict, List, Optional, Set, Tuple
 
-import magic
 
 from ..core.audit import AuditEventType, audit_logger
 from ..core.config import get_settings
@@ -205,9 +203,9 @@ class FileSecurityValidator:
 			ValidationError: If MIME type detection fails
 		"""
 		detected_mime = self._detect_mime_type_robust(content, filename)
-		
+
 		# Get allowed MIME types from global settings
-		from .config import get_settings
+		from .config import settings
 
 		settings = get_settings()
 		allowed_mime_types = settings.allowed_mime_types
@@ -227,52 +225,55 @@ class FileSecurityValidator:
 	def _detect_mime_type_robust(self, content: bytes, filename: str) -> str:
 		"""
 		Robust MIME type detection using multiple methods with fallbacks.
-		
+
 		Args:
 			content: File content bytes
 			filename: Original filename
-			
+
 		Returns:
 			str: Detected MIME type
-			
+
 		Raises:
 			ValidationError: If MIME type cannot be determined
 		"""
 		if not content:
 			raise ValidationError("Cannot detect MIME type of empty file")
-		
+
 		detection_methods = []
-		
+
 		# Method 1: Magic number detection (most reliable)
 		magic_mime = self._detect_by_magic_numbers(content)
 		if magic_mime:
 			detection_methods.append(("magic_numbers", magic_mime))
-		
+
 		# Method 2: python-magic library (if available)
 		try:
 			import magic
+
 			magic_mime_lib = magic.from_buffer(content, mime=True)
 			if magic_mime_lib and magic_mime_lib != "application/octet-stream":
 				detection_methods.append(("python_magic", magic_mime_lib))
 		except (ImportError, Exception) as e:
 			logger.debug(f"python-magic not available or failed: {e}")
-		
+
 		# Method 3: Content analysis
 		content_mime = self._detect_by_content_analysis(content)
 		if content_mime:
 			detection_methods.append(("content_analysis", content_mime))
-		
+
 		# Method 4: File extension fallback
 		extension_mime = self._detect_by_extension(filename)
 		if extension_mime:
 			detection_methods.append(("extension", extension_mime))
-		
+
 		# Validate consistency and choose best detection
 		final_mime = self._choose_best_mime_detection(detection_methods, filename)
-		
+
 		if not final_mime:
-			raise ValidationError(f"Unable to determine MIME type for file '{filename}'. Detection methods tried: {[method for method, _ in detection_methods]}")
-		
+			raise ValidationError(
+				f"Unable to determine MIME type for file '{filename}'. Detection methods tried: {[method for method, _ in detection_methods]}"
+			)
+
 		logger.debug(f"MIME type detection for '{filename}': {detection_methods} -> chosen: {final_mime}")
 		return final_mime
 
@@ -280,11 +281,11 @@ class FileSecurityValidator:
 		"""Detect MIME type by file magic numbers (signatures)."""
 		if len(content) < 4:
 			return None
-		
+
 		# PDF files
 		if content.startswith(b"%PDF-"):
 			return "application/pdf"
-		
+
 		# Microsoft Office Open XML formats (ZIP-based)
 		if content.startswith(b"PK\x03\x04") or content.startswith(b"PK\x05\x06") or content.startswith(b"PK\x07\x08"):
 			# Look deeper into ZIP structure to identify Office documents
@@ -300,199 +301,199 @@ class FileSecurityValidator:
 					return "application/vnd.openxmlformats-officedocument.presentationml.presentation"
 			# Generic ZIP if we can't identify specific Office format
 			return "application/zip"
-		
+
 		# Legacy Microsoft Office formats
 		if content.startswith(b"\xd0\xcf\x11\xe0\xa1\xb1\x1a\xe1"):
 			return "application/msword"  # Could also be Excel or PowerPoint
-		
+
 		# RTF files
 		if content.startswith(b"{\\rtf"):
 			return "application/rtf"
-		
+
 		# HTML files
 		if content.lstrip().lower().startswith(b"<!doctype html") or content.lstrip().lower().startswith(b"<html"):
 			return "text/html"
-		
+
 		# XML files
 		if content.lstrip().startswith(b"<?xml"):
 			return "application/xml"
-		
+
 		return None
 
 	def _detect_by_content_analysis(self, content: bytes) -> Optional[str]:
 		"""Detect MIME type by analyzing file content patterns."""
 		if len(content) == 0:
 			return None
-		
+
 		# Sample first 2KB for analysis
 		sample_size = min(2048, len(content))
 		sample = content[:sample_size]
-		
+
 		# Check for text content
 		try:
 			# Try to decode as UTF-8
-			decoded = sample.decode('utf-8', errors='ignore')
-			
+			decoded = sample.decode("utf-8", errors="ignore")
+
 			# Calculate ratio of printable characters
 			printable_chars = sum(1 for c in decoded if c.isprintable() or c.isspace())
 			printable_ratio = printable_chars / len(decoded) if decoded else 0
-			
+
 			# If mostly printable characters, likely text
 			if printable_ratio > 0.85:
 				# Check for specific text patterns
 				decoded_lower = decoded.lower()
-				
+
 				# HTML content
-				if any(tag in decoded_lower for tag in ['<html', '<head', '<body', '<!doctype']):
+				if any(tag in decoded_lower for tag in ["<html", "<head", "<body", "<!doctype"]):
 					return "text/html"
-				
+
 				# XML content
-				if decoded_lower.strip().startswith('<?xml'):
+				if decoded_lower.strip().startswith("<?xml"):
 					return "application/xml"
-				
+
 				# CSV content (simple heuristic)
-				lines = decoded.split('\n')[:5]  # Check first 5 lines
-				if len(lines) > 1 and all(',' in line for line in lines if line.strip()):
-					comma_count = sum(line.count(',') for line in lines)
+				lines = decoded.split("\n")[:5]  # Check first 5 lines
+				if len(lines) > 1 and all("," in line for line in lines if line.strip()):
+					comma_count = sum(line.count(",") for line in lines)
 					if comma_count > len(lines) * 2:  # At least 2 commas per line on average
 						return "text/csv"
-				
+
 				# Plain text
 				return "text/plain"
-		
+
 		except UnicodeDecodeError:
 			# Try other encodings for text detection
-			for encoding in ['latin-1', 'cp1252', 'iso-8859-1']:
+			for encoding in ["latin-1", "cp1252", "iso-8859-1"]:
 				try:
-					decoded = sample.decode(encoding, errors='ignore')
+					decoded = sample.decode(encoding, errors="ignore")
 					printable_chars = sum(1 for c in decoded if c.isprintable() or c.isspace())
 					printable_ratio = printable_chars / len(decoded) if decoded else 0
-					
+
 					if printable_ratio > 0.85:
 						return "text/plain"
 				except UnicodeDecodeError:
 					continue
-		
+
 		# Binary content analysis
 		# Check for common binary patterns
 		if b"\x00" in sample[:100]:  # Null bytes early in file suggest binary
 			return "application/octet-stream"
-		
+
 		return None
 
 	def _detect_by_extension(self, filename: str) -> Optional[str]:
 		"""Detect MIME type by file extension as fallback."""
-		if not filename or '.' not in filename:
+		if not filename or "." not in filename:
 			return None
-		
+
 		extension = Path(filename).suffix.lower()
-		
+
 		extension_map = {
-			'.pdf': 'application/pdf',
-			'.docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-			'.doc': 'application/msword',
-			'.txt': 'text/plain',
-			'.csv': 'text/csv',
-			'.html': 'text/html',
-			'.htm': 'text/html',
-			'.xml': 'application/xml',
-			'.rtf': 'application/rtf',
-			'.zip': 'application/zip'
+			".pdf": "application/pdf",
+			".docx": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+			".doc": "application/msword",
+			".txt": "text/plain",
+			".csv": "text/csv",
+			".html": "text/html",
+			".htm": "text/html",
+			".xml": "application/xml",
+			".rtf": "application/rtf",
+			".zip": "application/zip",
 		}
-		
+
 		return extension_map.get(extension)
 
 	def _choose_best_mime_detection(self, detection_methods: List[Tuple[str, str]], filename: str) -> Optional[str]:
 		"""
 		Choose the best MIME type from multiple detection methods.
-		
+
 		Args:
 			detection_methods: List of (method_name, detected_mime) tuples
 			filename: Original filename for context
-			
+
 		Returns:
 			str: Best MIME type choice
 		"""
 		if not detection_methods:
 			return None
-		
+
 		# If only one detection method succeeded, use it
 		if len(detection_methods) == 1:
 			return detection_methods[0][1]
-		
+
 		# Create a map of detected MIME types
 		detections = {method: mime for method, mime in detection_methods}
-		
+
 		# Priority order for detection methods (most reliable first)
 		method_priority = ["magic_numbers", "python_magic", "content_analysis", "extension"]
-		
+
 		# Check for consensus among methods
 		mime_counts = {}
 		for _, mime in detection_methods:
 			mime_counts[mime] = mime_counts.get(mime, 0) + 1
-		
+
 		# If there's a clear consensus (majority agreement), use it
 		max_count = max(mime_counts.values())
 		consensus_mimes = [mime for mime, count in mime_counts.items() if count == max_count]
-		
+
 		if len(consensus_mimes) == 1 and max_count > 1:
 			logger.debug(f"MIME type consensus reached: {consensus_mimes[0]} (agreed by {max_count} methods)")
 			return consensus_mimes[0]
-		
+
 		# No consensus, use priority order
 		for method in method_priority:
 			if method in detections:
 				chosen_mime = detections[method]
 				logger.debug(f"MIME type chosen by priority: {chosen_mime} (method: {method})")
-				
+
 				# Validate the choice makes sense
 				if self._validate_mime_consistency(chosen_mime, filename, detections):
 					return chosen_mime
-		
+
 		# Fallback to first detection if no priority method worked
 		return detection_methods[0][1]
 
 	def _validate_mime_consistency(self, chosen_mime: str, filename: str, all_detections: Dict[str, str]) -> bool:
 		"""
 		Validate that the chosen MIME type is consistent with other evidence.
-		
+
 		Args:
 			chosen_mime: The MIME type we want to validate
 			filename: Original filename
 			all_detections: All MIME types detected by different methods
-			
+
 		Returns:
 			bool: True if the choice seems consistent
 		"""
 		# Get file extension
 		extension = Path(filename).suffix.lower() if filename else ""
-		
+
 		# Define expected MIME types for extensions
 		extension_mime_map = {
-			'.pdf': 'application/pdf',
-			'.docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-			'.doc': 'application/msword',
-			'.txt': 'text/plain',
-			'.csv': 'text/csv'
+			".pdf": "application/pdf",
+			".docx": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+			".doc": "application/msword",
+			".txt": "text/plain",
+			".csv": "text/csv",
 		}
-		
+
 		expected_mime = extension_mime_map.get(extension)
-		
+
 		# If we have an expected MIME type based on extension, check consistency
 		if expected_mime:
 			if chosen_mime == expected_mime:
 				return True
-			
+
 			# Some flexibility for text files
-			if expected_mime == 'text/plain' and chosen_mime in ['text/csv', 'text/html']:
+			if expected_mime == "text/plain" and chosen_mime in ["text/csv", "text/html"]:
 				return True
-			
+
 			# Log inconsistency but don't reject yet
 			logger.warning(f"MIME type inconsistency: extension suggests {expected_mime}, but detected {chosen_mime}")
-		
+
 		# Check if the chosen MIME type appears in multiple detection methods
 		mime_frequency = sum(1 for mime in all_detections.values() if mime == chosen_mime)
-		
+
 		return mime_frequency >= 1  # At least one method detected it
 
 	def _validate_pdf_content(self, content: bytes) -> None:
@@ -897,10 +898,10 @@ class TemporaryFileHandler:
 	def file_exists(self, file_id: str) -> bool:
 		"""
 		Check if a file exists by file ID.
-		
+
 		Args:
 		    file_id: The file ID (hash) to check
-		    
+
 		Returns:
 		    bool: True if file exists
 		"""
@@ -910,14 +911,14 @@ class TemporaryFileHandler:
 				# Verify file actually exists on disk
 				return Path(file_path).exists()
 		return False
-	
+
 	def get_file_info(self, file_id: str) -> Optional[Dict]:
 		"""
 		Get file information by file ID.
-		
+
 		Args:
 		    file_id: The file ID (hash) to get info for
-		    
+
 		Returns:
 		    dict: File information or None if not found
 		"""
@@ -928,24 +929,26 @@ class TemporaryFileHandler:
 				if Path(file_path).exists():
 					# Add additional info
 					file_info_copy = file_info.copy()
-					file_info_copy.update({
-						"temp_path": file_path,
-						"upload_timestamp": datetime.fromtimestamp(file_info["created_at"]).isoformat(),
-						"expires_at": datetime.fromtimestamp(
-							file_info["created_at"] + (self.settings.temp_file_cleanup_hours * 3600)
-						).isoformat(),
-						"age_seconds": time.time() - file_info["created_at"]
-					})
+					file_info_copy.update(
+						{
+							"temp_path": file_path,
+							"upload_timestamp": datetime.fromtimestamp(file_info["created_at"]).isoformat(),
+							"expires_at": datetime.fromtimestamp(
+								file_info["created_at"] + (self.settings.temp_file_cleanup_hours * 3600)
+							).isoformat(),
+							"age_seconds": time.time() - file_info["created_at"],
+						}
+					)
 					return file_info_copy
 		return None
-	
+
 	def get_file_path_by_id(self, file_id: str) -> Optional[str]:
 		"""
 		Get file path by file ID.
-		
+
 		Args:
 		    file_id: The file ID (hash) to get path for
-		    
+
 		Returns:
 		    str: File path or None if not found
 		"""

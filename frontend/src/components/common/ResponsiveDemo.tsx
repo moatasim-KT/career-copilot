@@ -1,18 +1,11 @@
 'use client';
 
-import Card, { CardHeader, CardTitle, CardContent } from './ui/Card';
-import Grid, { GridItem } from './ui/Grid';
-import Button from './ui/Button';
-import Container from './ui/Container';
-import { 
-  Smartphone, 
-  Tablet, 
-  Monitor, 
-  CheckCircle, 
-  Palette,
-  Layout,
-  Zap
-} from 'lucide-react';
+import { CheckCircle, Monitor, Palette, Smartphone, Tablet } from 'lucide-react';
+
+import Button from '../ui/Button';
+import Card, { CardContent, CardHeader, CardTitle } from '../ui/Card';
+import Container from '../ui/Container';
+import Grid, { GridItem } from '../ui/Grid';
 
 export default function ResponsiveDemo() {
   return (
@@ -23,8 +16,9 @@ export default function ResponsiveDemo() {
           Career Copilot
         </h1>
         <p className="text-lg md:text-xl text-gray-600 max-w-3xl mx-auto mb-8">
-          Experience our responsive design that works seamlessly across all devices. 
-          From mobile phones to desktop computers, your job search tools are always accessible.
+          Experience our responsive design that works seamlessly across all devices.
+          From mobile phones to desktop computers, your job search tools are always
+          accessible.
         </p>
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
           <Button size="lg" className="w-full sm:w-auto">
@@ -44,31 +38,34 @@ export default function ResponsiveDemo() {
               <Smartphone className="h-12 w-12 text-blue-600 mx-auto mb-4" />
               <CardTitle className="mb-2">Mobile First</CardTitle>
               <p className="text-gray-600 text-sm">
-                Optimized for mobile devices with touch-friendly interfaces and responsive navigation.
+                Optimized for mobile devices with touch-friendly interfaces and
+                responsive navigation.
               </p>
             </CardContent>
           </Card>
         </GridItem>
-        
+
         <GridItem>
           <Card hover className="h-full text-center">
             <CardContent className="pt-6">
               <Tablet className="h-12 w-12 text-blue-600 mx-auto mb-4" />
               <CardTitle className="mb-2">Tablet Ready</CardTitle>
               <p className="text-gray-600 text-sm">
-                Perfect layout adaptation for tablets with optimized spacing and component sizing.
+                Perfect layout adaptation for tablets with optimized spacing and
+                component sizing.
               </p>
             </CardContent>
           </Card>
         </GridItem>
-        
+
         <GridItem>
           <Card hover className="h-full text-center">
             <CardContent className="pt-6">
               <Monitor className="h-12 w-12 text-blue-600 mx-auto mb-4" />
               <CardTitle className="mb-2">Desktop Enhanced</CardTitle>
               <p className="text-gray-600 text-sm">
-                Full desktop experience with advanced layouts and comprehensive navigation.
+                Full desktop experience with advanced layouts and comprehensive
+                navigation.
               </p>
             </CardContent>
           </Card>
@@ -90,9 +87,15 @@ export default function ResponsiveDemo() {
               <div className="space-y-3">
                 <div className="flex flex-wrap gap-2">
                   <Button size="sm">Primary</Button>
-                  <Button variant="secondary" size="sm">Secondary</Button>
-                  <Button variant="outline" size="sm">Outline</Button>
-                  <Button variant="ghost" size="sm">Ghost</Button>
+                  <Button variant="secondary" size="sm">
+                    Secondary
+                  </Button>
+                  <Button variant="outline" size="sm">
+                    Outline
+                  </Button>
+                  <Button variant="ghost" size="sm">
+                    Ghost
+                  </Button>
                 </div>
                 <div className="flex flex-wrap gap-2">
                   <Button>Medium</Button>
@@ -100,15 +103,17 @@ export default function ResponsiveDemo() {
                 </div>
                 <div className="flex flex-wrap gap-2">
                   <Button size="lg">Large Primary</Button>
-                  <Button variant="outline" size="lg">Large Outline</Button>
+                  <Button variant="outline" size="lg">
+                    Large Outline
+                  </Button>
                 </div>
               </div>
             </GridItem>
-            
+
             <GridItem>
               <h3 className="font-semibold mb-4">Responsive Grid</h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
-                {[1, 2, 3, 4].map((i) => (
+                {[1, 2, 3, 4].map(i => (
                   <div key={i} className="bg-blue-100 p-3 rounded text-center text-sm">
                     Item {i}
                   </div>
@@ -152,7 +157,7 @@ export default function ResponsiveDemo() {
                 </li>
               </ul>
             </GridItem>
-            
+
             <GridItem>
               <ul className="space-y-3">
                 <li className="flex items-center gap-2">

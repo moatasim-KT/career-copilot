@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useEffect } from 'react';
 import { XCircle, CheckCircle, Info, AlertTriangle } from 'lucide-react';
+import { useState, useEffect } from 'react';
 
 interface NotificationProps {
   message: string;

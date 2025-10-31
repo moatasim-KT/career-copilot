@@ -3,13 +3,11 @@ HubSpot Integration Service
 Integrates with HubSpot CRM for contact and deal management
 """
 
-import asyncio
-import json
 import logging
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 from enum import Enum
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional
 
 import httpx
 
@@ -81,7 +79,7 @@ class HubSpotService:
 
 		logger.info(f"HubSpot service initialized: enabled={self.enabled}")
 
-	async def _make_request(self, method: str, endpoint: str, data: Dict[str, Any] = None, params: Dict[str, Any] = None) -> Dict[str, Any]:
+	async def _make_request(self, method: str, endpoint: str, data: Dict[str, Any] | None = None, params: Dict[str, Any] | None = None) -> Dict[str, Any]:
 		"""Make API request to HubSpot"""
 		try:
 			if not self.enabled or not self.api_key:

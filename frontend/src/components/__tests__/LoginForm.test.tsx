@@ -1,6 +1,7 @@
 
 import { render, screen, fireEvent } from '@testing-library/react';
-import LoginForm from '../LoginForm';
+
+import LoginForm from '@/components/forms/LoginForm';
 
 describe('LoginForm', () => {
   it('renders the login form', () => {

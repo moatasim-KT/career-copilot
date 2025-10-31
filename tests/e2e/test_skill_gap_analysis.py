@@ -13,7 +13,7 @@ from datetime import datetime, timedelta
 from typing import Dict, List, Any, Optional
 from dataclasses import dataclass
 
-from base import BaseE2ETest
+from tests.e2e.base import BaseE2ETest
 
 
 @dataclass
