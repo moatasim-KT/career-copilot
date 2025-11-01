@@ -40,11 +40,7 @@ export function useWebSocket(options: UseWebSocketOptions = {}) {
    * Connect to WebSocket server
    */
   const connect = useCallback(async () => {
-    const token = localStorage.getItem('auth_token');
-    if (!token) {
-      setState(prev => ({ ...prev, error: 'No authentication token found' }));
-      return;
-    }
+    const token = localStorage.getItem('auth_token') ?? 'guest';
 
     setState(prev => ({ ...prev, connecting: true, error: null }));
 

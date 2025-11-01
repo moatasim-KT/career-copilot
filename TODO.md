@@ -1,0 +1,11 @@
+- [ ] **Code Modification** [backend]
+  - [ ] Open `backend/app/main.py`
+  - [ ] In the `websocket_endpoint` function, delete the line `await websocket.accept()`
+  - [ ] Save the file
+- [ ] **Verification** [test]
+  - [ ] Run the backend server using `make run-backend` [backend]
+  - [ ] Create a WebSocket test client file named `test_websocket.py` [test]
+  - [ ] Add the provided Python code to `test_websocket.py` [test]
+  - [ ] Run the test client using `python test_websocket.py` [test]
+  - [ ] Run existing Python tests using `make test-python` [test]
+- [ ] **Cleanup** [cleanup]

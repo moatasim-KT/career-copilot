@@ -1,16 +1,15 @@
 'use client';
 
-import { 
-  BarChart3, 
-  Briefcase, 
-  FileText, 
-  User, 
-  Sparkles, 
+import {
+  BarChart3,
+  Briefcase,
+  FileText,
+  User,
+  Sparkles,
   TrendingUp,
   Menu,
   X,
   LogOut,
-  MessageSquare,
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -18,7 +17,7 @@ import { useState } from 'react';
 
 interface NavigationProps {
   user?: any;
-  onLogout: () => void;
+  onLogout?: () => void;
 }
 
 const navigationItems = [
@@ -81,13 +80,15 @@ export default function Navigation({ user, onLogout }: NavigationProps) {
                 {user?.username || 'User'}
               </span>
             </div>
-            <button
-              onClick={onLogout}
-              className="flex items-center space-x-1 px-3 py-2 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-md transition-colors"
-            >
-              <LogOut className="h-4 w-4" />
-              <span>Logout</span>
-            </button>
+            {onLogout && (
+              <button
+                onClick={onLogout}
+                className="flex items-center space-x-1 px-3 py-2 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-md transition-colors"
+              >
+                <LogOut className="h-4 w-4" />
+                <span>Logout</span>
+              </button>
+            )}
           </div>
 
           {/* Mobile menu button */}
@@ -136,16 +137,18 @@ export default function Navigation({ user, onLogout }: NavigationProps) {
                   <User className="h-5 w-5 text-gray-400 flex-shrink-0" />
                   <span className="truncate">{user?.username || 'User'}</span>
                 </div>
-                <button
-                  onClick={() => {
-                    onLogout();
-                    setIsMobileMenuOpen(false);
-                  }}
-                  className="flex items-center space-x-3 w-full px-3 py-3 text-base text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-md transition-colors"
-                >
-                  <LogOut className="h-5 w-5 flex-shrink-0" />
-                  <span>Logout</span>
-                </button>
+                {onLogout && (
+                  <button
+                    onClick={() => {
+                      onLogout();
+                      setIsMobileMenuOpen(false);
+                    }}
+                    className="flex items-center space-x-3 w-full px-3 py-3 text-base text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-md transition-colors"
+                  >
+                    <LogOut className="h-5 w-5 flex-shrink-0" />
+                    <span>Logout</span>
+                  </button>
+                )}
               </div>
             </div>
           </div>

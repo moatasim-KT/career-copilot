@@ -8,12 +8,7 @@ const AppRouter = () => {
   const router = useRouter();
 
   useEffect(() => {
-    const token = localStorage.getItem('auth_token');
-    if (token) {
-      router.push('/dashboard');
-    } else {
-      router.push('/login');
-    }
+    router.replace('/dashboard');
   }, [router]);
 
   return null;
