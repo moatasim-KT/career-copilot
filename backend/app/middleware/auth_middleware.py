@@ -13,28 +13,27 @@ Handles Firebase ID token validation, JWT token processing, API key authenticati
 session management, and security headers.
 """
 
-import jwt
 import time
-from datetime import datetime, timezone, timedelta
-from typing import Optional, Dict, Any, Callable
+from datetime import datetime, timedelta, timezone
 from functools import wraps
+from typing import Any, Callable, Dict, Optional
 
 import firebase_admin
-from firebase_admin import auth as firebase_auth, credentials
+import jwt
 from fastapi import HTTPException, Request, status
 from fastapi.security import HTTPBearer
+from firebase_admin import auth as firebase_auth
+from firebase_admin import credentials
 from starlette.middleware.base import BaseHTTPMiddleware
-
-from ..core.config import get_settings
-from ..core.logging import get_logger, get_audit_logger
-from ..core.audit import AuditEventType, AuditSeverity, audit_logger
 
 # Security utilities are imported as needed
 from ..config.firebase_config import get_firebase_config
+from ..core.audit import AuditEventType, AuditSeverity, audit_logger
+from ..core.config import get_settings
+from ..core.logging import get_logger
 from ..services.api_key_service import get_api_key_manager
 
 logger = get_logger(__name__)
-audit_logger = get_audit_logger()
 security = HTTPBearer(auto_error=False)
 
 

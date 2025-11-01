@@ -5,7 +5,7 @@ User repository for user management and authentication operations.
 from typing import List, Optional
 from uuid import UUID
 
-from sqlalchemy import select, or_
+from sqlalchemy import or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
@@ -69,7 +69,22 @@ class UserRepository(BaseRepository[User]):
 		Returns:
 		    Created user instance
 		"""
-		return await self.create(username=username, email=email, hashed_password=hashed_password, is_superuser=is_superuser, is_active=True)
+		create_kwargs = {
+			"username": username,
+			"email": email,
+			"hashed_password": hashed_password,
+		}
+
+		# Legacy schemas may expose admin/active flags under different names; map gracefully.
+		if hasattr(User, "is_superuser"):
+			create_kwargs["is_superuser"] = is_superuser
+		elif hasattr(User, "is_admin"):
+			create_kwargs["is_admin"] = is_superuser
+
+		if hasattr(User, "is_active"):
+			create_kwargs["is_active"] = True
+
+		return await self.create(**create_kwargs)
 
 	async def update_password(self, user_id: UUID, hashed_password: str) -> Optional[User]:
 		"""
@@ -94,7 +109,9 @@ class UserRepository(BaseRepository[User]):
 		Returns:
 		    Updated user instance or None if not found
 		"""
-		return await self.update_by_id(user_id, is_active=True)
+		if hasattr(User, "is_active"):
+			return await self.update_by_id(user_id, is_active=True)
+		return await self.get_by_id(user_id)
 
 	async def deactivate_user(self, user_id: UUID) -> Optional[User]:
 		"""
@@ -106,7 +123,9 @@ class UserRepository(BaseRepository[User]):
 		Returns:
 		    Updated user instance or None if not found
 		"""
-		return await self.update_by_id(user_id, is_active=False)
+		if hasattr(User, "is_active"):
+			return await self.update_by_id(user_id, is_active=False)
+		return await self.get_by_id(user_id)
 
 	async def get_active_users(self, limit: Optional[int] = None, offset: Optional[int] = None) -> List[User]:
 		"""
@@ -119,7 +138,9 @@ class UserRepository(BaseRepository[User]):
 		Returns:
 		    List of active user instances
 		"""
-		return await self.list_by_field("is_active", True, limit=limit, offset=offset)
+		if hasattr(User, "is_active"):
+			return await self.list_by_field("is_active", True, limit=limit, offset=offset)
+		return await self.list_all(limit=limit, offset=offset)
 
 	async def get_superusers(self) -> List[User]:
 		"""
@@ -128,7 +149,11 @@ class UserRepository(BaseRepository[User]):
 		Returns:
 		    List of superuser instances
 		"""
-		return await self.list_by_field("is_superuser", True)
+		if hasattr(User, "is_superuser"):
+			return await self.list_by_field("is_superuser", True)
+		if hasattr(User, "is_admin"):
+			return await self.list_by_field("is_admin", True)
+		return []
 
 	async def search_users(self, search_term: str, limit: Optional[int] = None, offset: Optional[int] = None) -> List[User]:
 		"""
@@ -211,8 +236,16 @@ class UserRepository(BaseRepository[User]):
 		    Dictionary with user statistics
 		"""
 		total_users = await self.count()
-		active_users = await self.count(is_active=True)
-		superusers = await self.count(is_superuser=True)
+		if hasattr(User, "is_active"):
+			active_users = await self.count(is_active=True)
+		else:
+			active_users = total_users
+		if hasattr(User, "is_superuser"):
+			superusers = await self.count(is_superuser=True)
+		elif hasattr(User, "is_admin"):
+			superusers = await self.count(is_admin=True)
+		else:
+			superusers = 0
 
 		return {
 			"total_users": total_users,

@@ -12,7 +12,7 @@ from enum import Enum
 import hashlib
 from typing import Any
 
-from langchain.schema import BaseMessage, HumanMessage, SystemMessage
+from langchain_core.messages import BaseMessage, HumanMessage, SystemMessage
 
 from .logging import get_logger
 from .monitoring import get_performance_metrics_collector

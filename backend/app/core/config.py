@@ -7,6 +7,13 @@ from pydantic import SecretStr
 from .unified_config import UnifiedSettings, get_config
 
 
+class _SecretStrProxy(str):
+    """String proxy that adds get_secret_value for compatibility."""
+
+    def get_secret_value(self) -> str:  # noqa: D401 - tiny helper
+        return str(self)
+
+
 class Settings:
     """
     Thin adapter over UnifiedSettings to preserve backward-compatible attributes.
@@ -36,6 +43,13 @@ class Settings:
     def log_level(self) -> str:
         return getattr(self._u, "log_level", "INFO")
 
+    @property
+    def development_mode(self) -> bool:
+        # Unified settings may not expose this flag directly; fall back to environment check.
+        if hasattr(self._u, "development_mode"):
+            return bool(getattr(self._u, "development_mode"))
+        return self.environment.lower() == "development"
+
     # -------- Job board API keys (expected by scrapers/tests) --------
     @property
     def adzuna_app_id(self) -> Any:
@@ -59,12 +73,16 @@ class Settings:
 
     # -------- Security keys --------
     @property
-    def jwt_secret_key(self) -> str:
+    def jwt_secret_key(self) -> _SecretStrProxy:
         val = getattr(self._u, "jwt_secret_key", None)
         if isinstance(val, SecretStr):
-            return val.get_secret_value()
-        # Fallback to env
-        return val or os.getenv("JWT_SECRET_KEY", "")
+            secret = val.get_secret_value()
+        elif isinstance(val, str):
+            secret = val
+        else:
+            secret = os.getenv("JWT_SECRET_KEY", "")
+
+        return _SecretStrProxy(secret)
 
     @property
     def encryption_key(self) -> str:

@@ -12,8 +12,8 @@ import json
 from datetime import datetime
 from typing import Any, Dict, Optional, Set
 
-from fastapi import WebSocket, WebSocketDisconnect, status
-from sqlalchemy.orm import Session
+from fastapi import WebSocket, WebSocketDisconnect
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..core.config import get_settings
 from ..core.logging import get_logger
@@ -21,9 +21,8 @@ from ..core.websocket_manager import websocket_manager
 from ..repositories.user_repository import UserRepository
 
 try:
-	from ..services.firebase_auth_service import (
-		get_firebase_auth_service,  # type: ignore
-	)
+	from ..services.firebase_auth_service import \
+	    get_firebase_auth_service  # type: ignore
 except ImportError:  # Optional service may not be available in test environment
 
 	def get_firebase_auth_service() -> None:  # type: ignore[override]
@@ -36,12 +35,16 @@ logger = get_logger(__name__)
 class WebSocketService:
 	"""Service for managing WebSocket connections and real-time notifications."""
 
+	GUEST_USERNAME = "guest"
+	GUEST_EMAIL = "guest@example.com"
+	GUEST_PASSWORD = "guest"
+
 	def __init__(self):
 		self.manager = websocket_manager
 		self.settings = get_settings()
 		self.firebase_service = get_firebase_auth_service()
 
-	async def authenticate_websocket(self, websocket: WebSocket, token: str, session: Session) -> Optional[int]:
+	async def authenticate_websocket(self, websocket: WebSocket, token: Optional[str], session: AsyncSession) -> Optional[int]:
 		"""
 		Authenticate a WebSocket connection using JWT token.
 
@@ -54,29 +57,65 @@ class WebSocketService:
 		    User ID if authentication successful, None otherwise
 		"""
 		try:
+			if self.settings.disable_auth or getattr(self.settings, "development_mode", False):
+				return await self._ensure_guest_user(session)
+
+			if not token:
+				logger.warning("WebSocket connection missing authentication token")
+				return None
+
+			# Authentication service is optional in this environment; if unavailable we cannot verify.
 			auth_service = None  # get_authentication_service()
+			if not auth_service:
+				logger.error("Authentication service not configured for WebSocket connections")
+				return None
 
 			# Validate token
 			token_data = auth_service.verify_access_token(token)
-
 			if not token_data:
-				await websocket.close(code=status.WS_1008_POLICY_VIOLATION, reason="Invalid token")
+				logger.warning("WebSocket token validation failed")
 				return None
 
 			# Get user from database
 			user_repo = UserRepository(session)
 			db_user = await user_repo.get_by_id(token_data.user_id)
-
-			if not db_user or not db_user.is_active:
-				await websocket.close(code=status.WS_1008_POLICY_VIOLATION, reason="User not found or inactive")
+			if not db_user or not getattr(db_user, "is_active", True):
+				logger.warning("WebSocket user not found or inactive")
 				return None
 
 			return db_user.id
 
 		except Exception as e:
 			logger.error(f"WebSocket authentication error: {e}")
-			await websocket.close(code=status.WS_1011_INTERNAL_ERROR, reason="Authentication failed")
 			return None
+
+	async def _ensure_guest_user(self, session: AsyncSession) -> int:
+		"""Ensure a persistent guest user exists for development mode connections."""
+		user_repo = UserRepository(session)
+		existing_user = await user_repo.get_by_username(self.GUEST_USERNAME)
+		if existing_user:
+			return existing_user.id
+
+		guest_email = self.GUEST_EMAIL
+		index = 1
+		while True:
+			if index == 1:
+				candidate_email = guest_email
+			else:
+				candidate_email = f"guest{index}@example.com"
+
+			if not await user_repo.get_by_email(candidate_email):
+				break
+			index += 1
+
+		guest = await user_repo.create_user(
+			username=self.GUEST_USERNAME if index == 1 else f"guest{index}",
+			email=candidate_email,
+			hashed_password=self.GUEST_PASSWORD,
+			is_superuser=False,
+		)
+		logger.info("Created guest user %s for development WebSocket access", guest.username)
+		return guest.id
 
 	async def handle_websocket_connection(self, websocket: WebSocket, user_id: int):
 		"""

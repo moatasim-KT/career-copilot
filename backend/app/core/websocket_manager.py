@@ -1,7 +1,9 @@
-from typing import Dict, Optional, Set
-from fastapi import WebSocket
 import json
 from datetime import datetime
+from typing import Dict, Optional, Set
+
+from fastapi import WebSocket
+
 from ..core.logging import get_logger
 
 logger = get_logger(__name__)
@@ -58,8 +60,13 @@ class WebSocketManager:
 		self.channels: Dict[str, Set[int]] = {}
 
 	async def connect(self, user_id: int, websocket: WebSocket) -> WebSocketConnection:
-		"""Connect a user's WebSocket."""
-		await websocket.accept()
+		"""Connect a user's WebSocket.
+
+		The FastAPI endpoint is responsible for accepting the connection. We avoid
+		calling `websocket.accept()` here because doing so after the endpoint already
+		accepted the socket raises a runtime error. This helper simply records the
+		connection and sends the welcome payload.
+		"""
 
 		# Disconnect existing connection if any
 		if user_id in self.active_connections:

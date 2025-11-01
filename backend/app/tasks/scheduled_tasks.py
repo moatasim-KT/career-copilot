@@ -21,7 +21,8 @@ from ..core.logging import get_logger
 from ..models.application import Application
 from ..models.user import User
 from ..services.analytics_service import AnalyticsService
-from ..services.job_recommendation_service import get_job_recommendation_service
+from ..services.job_recommendation_service import \
+    get_job_recommendation_service
 from ..services.job_scraping_service import JobScrapingService
 from ..services.notification_service import NotificationService
 from ..services.recommendation_engine import RecommendationEngine
@@ -90,8 +91,22 @@ def run_health_snapshot():
 	run_async(record_health_snapshot())
 
 
+def run_scrape_jobs():
+	"""Wrapper function for scrape_jobs task"""
+	run_async(scrape_jobs())
+
+
+def _get_sync_jobstore_url(database_url: str) -> str:
+	"""Convert async-style URLs to synchronous equivalents for APScheduler."""
+	if database_url.startswith("postgresql+asyncpg"):
+		return database_url.replace("+asyncpg", "", 1)
+	if database_url.startswith("sqlite+aiosqlite"):
+		return database_url.replace("+aiosqlite", "", 1)
+	return database_url
+
+
 # Configure job stores
-jobstores = {"default": SQLAlchemyJobStore(url=settings.database_url)}
+jobstores = {"default": SQLAlchemyJobStore(url=_get_sync_jobstore_url(settings.database_url))}
 
 # Configure executors
 executors = {"default": ThreadPoolExecutor(20), "processpool": ProcessPoolExecutor(5)}
@@ -433,7 +448,7 @@ def start_scheduler():
 
 		# Register ingest_jobs task - runs at 4:00 AM daily
 		scheduler.add_job(
-			func=lambda: run_async(scrape_jobs()),
+			func=run_scrape_jobs,
 			trigger=CronTrigger(hour=4, minute=0, timezone=utc),
 			id="ingest_jobs",
 			name="Nightly Job Ingestion",

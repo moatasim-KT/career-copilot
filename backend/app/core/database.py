@@ -77,7 +77,12 @@ class DatabaseManager:
 
         # Prepare URLs
         # If DATABASE_URL already has async drivers, convert them for appropriate engines
-        async_url = self.database_url.replace("postgresql://", "postgresql+asyncpg://").replace("sqlite:///", "sqlite+aiosqlite:///")
+        if "postgresql://" in self.database_url:
+            async_url = self.database_url.replace("postgresql://", "postgresql+asyncpg://")
+        elif "sqlite:///" in self.database_url and "aiosqlite" not in self.database_url:
+            async_url = self.database_url.replace("sqlite:///", "sqlite+aiosqlite:///")
+        else:
+            async_url = self.database_url
         # For sync engine, use standard drivers
         sync_url = self.database_url.replace("postgresql+asyncpg://", "postgresql://").replace("sqlite+aiosqlite:///", "sqlite:///")
 
@@ -216,6 +221,22 @@ def get_db_manager() -> DatabaseManager:
 # Backward compatibility alias
 def get_database_manager() -> DatabaseManager:
     return get_db_manager()
+
+
+def init_db() -> None:
+    """Legacy-compatible synchronous database bootstrapper."""
+    manager = get_db_manager()
+
+    try:
+        import app.models  # noqa: F401  # Ensure model metadata is registered
+    except Exception as exc:  # pragma: no cover - defensive logging
+        logger.warning("Failed to import app.models during init_db: %s", exc)
+
+    if manager.sync_engine is None:
+        raise RuntimeError("Database sync engine is not initialized")
+
+    Base.metadata.create_all(bind=manager.sync_engine)
+    logger.info("Database schema ensured via init_db()")
 
 # Backward compatibility for FastAPI dependency injection
 async def get_db() -> AsyncGenerator[AsyncSession, None]:
