@@ -1,62 +1,31 @@
-# Plan: Fix WebSocket `RuntimeError`
+# Plan to resolve "Error loading analytics: HTTP 403: Not authenticated" (Local Development)
 
-This plan outlines the steps to resolve the `RuntimeError: Expected ASGI message "websocket.send" or "websocket.close", but got 'websocket.accept'` in the FastAPI application.
+Based on the new information that the application is running locally in a development environment, this plan focuses on investigating the application code to identify and fix the root cause of the authentication error.
 
-## 1. Code Modification
+## 1. Confirm `development_mode` is active
 
-*   **Objective:** Remove the redundant `websocket.accept()` call.
-*   **File to Modify:** `backend/app/main.py`
-*   **Action:**
-    1.  Open `backend/app/main.py`.
-    2.  Locate the `websocket_endpoint` function.
-    3.  Delete the line `await websocket.accept()`.
-    4.  Save the file.
+- **Action:** Ask the user to confirm that they are running the application in development mode.
+- **Rationale:** The `AuthMiddleware` has a special code path for `development_mode` that needs to be investigated.
 
-## 2. Verification
+## 2. Investigate the `AuthMiddleware` in `development_mode`
 
-*   **Objective:** Ensure the fix resolves the error and doesn't introduce new issues.
-*   **Steps:**
-    1.  **Run the backend server:**
-        *   Execute the command `make run-backend` from the project root directory.
-        *   Observe the console output for any startup errors.
-    2.  **Create a WebSocket test client:**
-        *   Create a new file named `test_websocket.py` in the project root.
-        *   Add the following Python code to the file to create a simple WebSocket client that connects to the endpoint:
-            ```python
-            import asyncio
-            import websockets
+- **Action:** Analyze the `ConsolidatedAuthMiddleware.dispatch` method in `backend/app/middleware/auth_middleware.py` to understand what happens when `development_mode` is true.
+- **Rationale:** The middleware might be setting the authentication state in a way that causes the downstream authentication checks to fail.
 
-            async def test_websocket():
-                uri = "ws://localhost:8002/ws"
-                try:
-                    async with websockets.connect(uri, extra_headers={"Authorization": "Bearer development_token"}) as websocket:
-                        print("Connection established.")
-                        # Test receiving the welcome message
-                        welcome_message = await websocket.recv()
-                        print(f"< {welcome_message}")
+## 3. Trace the request flow
 
-                        # Test sending a message
-                        await websocket.send('{"type": "ping"}')
-                        print("> PING")
+- **Action:** Trace the request from the `AuthMiddleware` to the `get_analytics_summary` endpoint in `backend/app/api/v1/analytics.py` and its `get_current_user` dependency in `backend/app/core/dependencies.py`.
+- **Rationale:** This will help to pinpoint the exact location where the 403 error is being generated.
 
-                        # Test receiving a response
-                        response = await websocket.recv()
-                        print(f"< {response}")
+## 4. Propose a fix
 
-                except Exception as e:
-                    print(f"Connection failed: {e}")
+- **Action:** Based on the analysis, propose a fix to resolve the authentication issue in development mode. The fix might involve:
+    - Modifying the `AuthMiddleware` to correctly handle authentication in development mode.
+    - Modifying the `get_current_user` dependency to work correctly when no authentication is provided in development mode.
+    - Adding a mock user to the request state in development mode.
+- **Rationale:** The proposed fix will address the root cause of the authentication error in the local development environment.
 
-            if __name__ == "__main__":
-                asyncio.run(test_websocket())
-            ```
-    3.  **Run the test client:**
-        *   In a new terminal, execute `python test_websocket.py`.
-        *   Observe the output. A successful connection and message exchange will confirm the fix. The `RuntimeError` should no longer appear in the backend server's console output.
-    4.  **Run existing tests:**
-        *   Execute `make test-python` to ensure no existing tests have been broken by the change.
+## 5. Verify the fix
 
-## 3. Cleanup
-
-*   **Objective:** Remove the temporary test file.
-*   **Action:**
-    1.  Delete the `test_websocket.py` file.
+- **Action:** After applying the fix, verify that the analytics page loads without any errors.
+- **Rationale:** This will confirm that the fix has resolved the issue.

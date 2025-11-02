@@ -1,7 +1,7 @@
 services:
   - type: web
     name: career-copilot-backend
-    env: python
+    runtime: python
     plan: free
     buildCommand: "pip install -U pip && pip install .[all]"
     startCommand: "gunicorn backend.app.main:app -w 4 -k uvicorn.workers.UvicornWorker"
@@ -14,14 +14,14 @@ services:
         value: 3.11
   - type: web
     name: career-copilot-frontend
-    env: node
+    runtime: node
     plan: free
     buildCommand: "npm install && npm run build"
     startCommand: "npm start"
     envVars:
       - key: NEXT_PUBLIC_API_BASE_URL
         value: http://career-copilot-backend.onrender.com # This will be replaced by Render's dynamic URL
-  - type: pserv
-    name: career-copilot-db
-    env: postgres
+
+databases:
+  - name: career-copilot-db
     plan: free

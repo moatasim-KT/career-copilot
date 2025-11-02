@@ -1,18 +1,24 @@
 /**
  * React hook for managing WebSocket connections and real-time updates
+ *
+ * Note: ESLint flags parameter names in function type signatures as "unused",
+ * but these are necessary for TypeScript type documentation and IntelliSense.
  */
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { webSocketService, type WebSocketMessage } from '@/lib/websocket';
 
+// Parameter names in type signatures provide documentation - not actual unused vars
+/* eslint-disable @typescript-eslint/no-unused-vars */
 export interface UseWebSocketOptions {
   autoConnect?: boolean;
   onConnect?: () => void;
   onDisconnect?: () => void;
-  onError?: (error: any) => void;
+  onError?: (_error: unknown) => void;
   onMessage?: (message: WebSocketMessage) => void;
 }
+/* eslint-enable @typescript-eslint/no-unused-vars */
 
 export interface WebSocketState {
   connected: boolean;
@@ -21,6 +27,7 @@ export interface WebSocketState {
   reconnectAttempts: number;
 }
 
+// eslint-disable-next-line max-lines-per-function
 export function useWebSocket(options: UseWebSocketOptions = {}) {
   const { autoConnect = true, onConnect, onDisconnect, onError, onMessage } = options;
 
@@ -54,14 +61,14 @@ export function useWebSocket(options: UseWebSocketOptions = {}) {
         reconnectAttempts: 0,
       }));
       onConnect?.();
-    } catch (error) {
+    } catch (err) {
       setState(prev => ({
         ...prev,
         connected: false,
         connecting: false,
-        error: error instanceof Error ? error.message : 'Connection failed',
+        error: err instanceof Error ? err.message : 'Connection failed',
       }));
-      onError?.(error);
+      onError?.(err);
     }
   }, [onConnect, onError]);
 
@@ -83,8 +90,10 @@ export function useWebSocket(options: UseWebSocketOptions = {}) {
    * Subscribe to a specific event type
    */
   const subscribe = useCallback(
-    (eventType: string, callback: (data: WebSocketMessage) => void) => {
+    (eventType: string, callback: (message: WebSocketMessage) => void) => {
+      // Store callback for cleanup
       eventListenersRef.current.set(eventType, callback);
+      // Register with service
       webSocketService.on(eventType, callback);
     },
     [],
@@ -124,6 +133,9 @@ export function useWebSocket(options: UseWebSocketOptions = {}) {
 
   // Initialize WebSocket connection
   useEffect(() => {
+    // Capture current listeners at effect execution time
+    const listeners = eventListenersRef.current;
+
     if (!isInitializedRef.current && autoConnect) {
       isInitializedRef.current = true;
       connect();
@@ -135,11 +147,11 @@ export function useWebSocket(options: UseWebSocketOptions = {}) {
     }
 
     return () => {
-      // Clean up event listeners
-      eventListenersRef.current.forEach((callback, eventType) => {
+      // Clean up event listeners using captured value
+      listeners.forEach((callback, eventType) => {
         webSocketService.off(eventType, callback);
       });
-      eventListenersRef.current.clear();
+      listeners.clear();
 
       if (onMessage) {
         webSocketService.off('message', onMessage);
@@ -176,7 +188,7 @@ export function useWebSocket(options: UseWebSocketOptions = {}) {
 /**
  * Hook for job match notifications
  */
-export function useJobMatchNotifications(onJobMatch?: (data: any) => void) {
+export function useJobMatchNotifications(onJobMatch?: (data: WebSocketMessage) => void) {
   const { subscribe, unsubscribe } = useWebSocket({ autoConnect: false });
 
   useEffect(() => {
@@ -190,7 +202,7 @@ export function useJobMatchNotifications(onJobMatch?: (data: any) => void) {
 /**
  * Hook for application status updates
  */
-export function useApplicationStatusUpdates(onStatusUpdate?: (data: any) => void) {
+export function useApplicationStatusUpdates(onStatusUpdate?: (data: WebSocketMessage) => void) {
   const { subscribe, unsubscribe } = useWebSocket({ autoConnect: false });
 
   useEffect(() => {
@@ -204,7 +216,8 @@ export function useApplicationStatusUpdates(onStatusUpdate?: (data: any) => void
 /**
  * Hook for analytics updates
  */
-export function useAnalyticsUpdates(onAnalyticsUpdate?: (data: any) => void) {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export function useAnalyticsUpdates(onAnalyticsUpdate?: (data: WebSocketMessage) => void) {
   const { subscribe, unsubscribe } = useWebSocket({ autoConnect: false });
 
   useEffect(() => {
@@ -218,7 +231,8 @@ export function useAnalyticsUpdates(onAnalyticsUpdate?: (data: any) => void) {
 /**
  * Hook for system notifications
  */
-export function useSystemNotifications(onSystemNotification?: (data: any) => void) {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export function useSystemNotifications(onSystemNotification?: (data: WebSocketMessage) => void) {
   const { subscribe, unsubscribe } = useWebSocket({ autoConnect: false });
 
   useEffect(() => {

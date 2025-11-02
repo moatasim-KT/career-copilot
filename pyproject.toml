@@ -158,10 +158,9 @@ include = ["app*"]
 
 
 [tool.pytest.ini_options]
-pythonpath = ["."]
 minversion = "7.0"
 addopts = "-v --tb=short --strict-markers --color=yes"
-testpaths = ["tests"]
+testpaths = ["tests", "backend"]
 python_files = ["test_*.py", "*_test.py"]
 markers = [
     "slow: marks tests as slow",

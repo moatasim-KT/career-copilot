@@ -3,6 +3,7 @@ import { Inter } from 'next/font/google';
 
 import './globals.css';
 import Layout from '@/components/layout/Layout';
+import { AuthProvider } from '@/contexts/AuthContext';
 
 const inter = Inter({
   variable: '--font-inter',
@@ -24,7 +25,9 @@ export default function RootLayout({
       <body
         className={`${inter.variable} font-sans antialiased bg-gray-50 min-h-screen`}
       >
-        <Layout>{children}</Layout>
+        <AuthProvider>
+          <Layout>{children}</Layout>
+        </AuthProvider>
       </body>
     </html>
   );

@@ -9,12 +9,15 @@ from app.models.user import User
 from app.models.job import Job
 from app.models.application import Application
 from app.core.security import get_password_hash
+from app.core.config import get_settings, Settings
 
-# Override settings for testing
-from app.core.config import get_settings
-settings = get_settings()
-settings.database_url = "sqlite:///./test.db"
-settings.disable_auth = True # Bypass auth for easier testing
+@pytest.fixture(autouse=True)
+def override_settings(monkeypatch):
+    settings = get_settings()
+    new_settings = settings.model_copy(update={"database_url": "sqlite:///./test.db", "disable_auth": True})
+    monkeypatch.setattr("app.core.config.get_settings", lambda: new_settings)
+
+
 
 # Create a test client fixture
 @pytest.fixture(scope="module")

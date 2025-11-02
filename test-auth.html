@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Authentication Test - Career Copilot</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            color: #333;
+        }
+
+        .test-section {
+            margin: 20px 0;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+
+        button {
+            background: #3b82f6;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+
+        button:hover {
+            background: #2563eb;
+        }
+
+        .success {
+            color: #10b981;
+            background: #d1fae5;
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+
+        .error {
+            color: #ef4444;
+            background: #fee2e2;
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+
+        pre {
+            background: #f3f4f6;
+            padding: 15px;
+            border-radius: 4px;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>🧪 Authentication System Test</h1>
+
+        <div class="test-section">
+            <h2>Test 1: Access Analytics Without Authentication</h2>
+            <p>This should fail with a 403 error</p>
+            <button onclick="testWithoutAuth()">Test Without Auth</button>
+            <div id="no-auth-result"></div>
+        </div>
+
+        <div class="test-section">
+            <h2>Test 2: Login and Get Token</h2>
+            <p>Login with credentials to get an auth token</p>
+            <button onclick="testLogin()">Test Login</button>
+            <div id="login-result"></div>
+        </div>
+
+        <div class="test-section">
+            <h2>Test 3: Access Analytics With Authentication</h2>
+            <p>This should succeed after logging in</p>
+            <button onclick="testWithAuth()">Test With Auth</button>
+            <div id="with-auth-result"></div>
+        </div>
+
+        <div class="test-section">
+            <h2>Test 4: Full Frontend Test</h2>
+            <p>Open the actual application</p>
+            <button onclick="window.open('http://localhost:3000', '_blank')">Open App</button>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:8002';
+        let authToken = null;
+
+        async function testWithoutAuth() {
+            const resultDiv = document.getElementById('no-auth-result');
+            resultDiv.innerHTML = '<p>Testing...</p>';
+
+            try {
+                const response = await fetch(`${API_URL}/api/v1/analytics/summary`);
+                const data = await response.json();
+
+                if (response.status === 403) {
+                    resultDiv.innerHTML = `
+                        <div class="success">
+                            ✅ Test Passed! Got expected 403 error
+                            <pre>${JSON.stringify(data, null, 2)}</pre>
+                        </div>
+                    `;
+                } else {
+                    resultDiv.innerHTML = `
+                        <div class="error">
+                            ❌ Test Failed! Expected 403 but got ${response.status}
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div class="error">
+                        ❌ Error: ${error.message}
+                    </div>
+                `;
+            }
+        }
+
+        async function testLogin() {
+            const resultDiv = document.getElementById('login-result');
+            resultDiv.innerHTML = '<p>Testing login...</p>';
+
+            try {
+                const response = await fetch(`${API_URL}/api/v1/auth/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        username: 'testuser',
+                        password: 'testpass'
+                    })
+                });
+
+                const data = await response.json();
+
+                if (response.ok && data.access_token) {
+                    authToken = data.access_token;
+                    localStorage.setItem('auth_token', authToken);
+                    resultDiv.innerHTML = `
+                        <div class="success">
+                            ✅ Login Successful!
+                            <p><strong>Token:</strong> ${authToken.substring(0, 20)}...</p>
+                            <p><strong>User:</strong> ${data.user.username}</p>
+                            <pre>${JSON.stringify(data.user, null, 2)}</pre>
+                        </div>
+                    `;
+                } else {
+                    resultDiv.innerHTML = `
+                        <div class="error">
+                            ❌ Login Failed!
+                            <pre>${JSON.stringify(data, null, 2)}</pre>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div class="error">
+                        ❌ Error: ${error.message}
+                    </div>
+                `;
+            }
+        }
+
+        async function testWithAuth() {
+            const resultDiv = document.getElementById('with-auth-result');
+
+            if (!authToken) {
+                authToken = localStorage.getItem('auth_token');
+            }
+
+            if (!authToken) {
+                resultDiv.innerHTML = `
+                    <div class="error">
+                        ❌ No auth token! Please login first.
+                    </div>
+                `;
+                return;
+            }
+
+            resultDiv.innerHTML = '<p>Testing with authentication...</p>';
+
+            try {
+                const response = await fetch(`${API_URL}/api/v1/analytics/summary`, {
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`
+                    }
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    resultDiv.innerHTML = `
+                        <div class="success">
+                            ✅ Test Passed! Analytics data retrieved successfully
+                            <pre>${JSON.stringify(data, null, 2)}</pre>
+                        </div>
+                    `;
+                } else {
+                    resultDiv.innerHTML = `
+                        <div class="error">
+                            ❌ Test Failed! Status: ${response.status}
+                            <pre>${JSON.stringify(data, null, 2)}</pre>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div class="error">
+                        ❌ Error: ${error.message}
+                    </div>
+                `;
+            }
+        }
+    </script>
+</body>
+
+</html>

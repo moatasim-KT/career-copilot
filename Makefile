@@ -76,7 +76,7 @@ security: security-python ## Run all security checks
 
 test-python: ## Run Python tests
 	@echo "Running Python tests..."
-	pytest -v --cov=$(BACKEND_DIR) --cov-report=html --cov-report=term
+	PYTHONPATH=. pytest -v --cov=$(BACKEND_DIR) --cov-report=html --cov-report=term
 
 test-frontend: ## Run frontend tests
 	@echo "Running frontend tests..."

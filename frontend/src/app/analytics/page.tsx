@@ -1,7 +1,10 @@
 'use client';
 
+import withAuth from '@/components/auth/withAuth';
 import AnalyticsPage from '@/components/pages/AnalyticsPage';
 
-export default function Analytics() {
+function Analytics() {
   return <AnalyticsPage />;
 }
+
+export default withAuth(Analytics);

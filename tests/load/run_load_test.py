@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import patch
 """
 Load test runner script for Career Copilot.
 Executes different load testing scenarios based on configuration.
