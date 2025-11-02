@@ -4,12 +4,16 @@ Reporting and Insights API endpoints
 
 from datetime import datetime, timezone
 from fastapi import APIRouter, Depends, HTTPException, Query
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select
 
 from app.core.database import get_db
 from app.core.dependencies import get_current_user
 from app.models.user import User
 from app.services.analytics_service import AnalyticsService
+
+# NOTE: This file has been converted to use AsyncSession.
+# Database queries need to be converted to async: await db.execute(select(...)) instead of db.query(...)
 
 router = APIRouter()
 
@@ -17,7 +21,7 @@ router = APIRouter()
 @router.get("/weekly-progress")
 async def get_weekly_progress_report(
 	current_user: User = Depends(get_current_user),
-	db: Session = Depends(get_db),
+	db: AsyncSession = Depends(get_db),
 	week_offset: int = Query(0, description="Week offset (0 = current week, -1 = last week, etc.)"),
 ):
 	"""Get comprehensive weekly progress report"""
@@ -27,7 +31,7 @@ analytics_service = AnalyticsService(db)
 @router.get("/monthly-progress")
 async def get_monthly_progress_report(
 	current_user: User = Depends(get_current_user),
-	db: Session = Depends(get_db),
+	db: AsyncSession = Depends(get_db),
 	month_offset: int = Query(0, description="Month offset (0 = current month, -1 = last month, etc.)"),
 ):
 	"""Get comprehensive monthly progress report"""
@@ -36,25 +40,25 @@ async def get_monthly_progress_report(
 
 @router.get("/salary-trends-comprehensive")
 async def get_comprehensive_salary_trends(
-	current_user: User = Depends(get_current_user), db: Session = Depends(get_db), days: int = Query(180, description="Analysis period in days")
+	current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db), days: int = Query(180, description="Analysis period in days")
 ):
 	"""Get comprehensive salary trend analysis with career insights"""
 	return analytics_service.get_metrics(current_user.id, f"{days}d")
 
 @router.get("/career-insights")
-async def get_career_insights_report(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+async def get_career_insights_report(current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
 	"""Get comprehensive career insights and progression analysis"""
 	return analytics_service.get_metrics(current_user.id, "career_insights")
 
 @router.get("/recommendation-effectiveness")
 async def get_recommendation_effectiveness(
-	current_user: User = Depends(get_current_user), db: Session = Depends(get_db), days: int = Query(90, description="Analysis period in days")
+	current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db), days: int = Query(90, description="Analysis period in days")
 ):
 	"""Track and analyze recommendation system effectiveness"""
 	return analytics_service.get_metrics(current_user.id, "recommendation_effectiveness")
 
 @router.get("/progress-summary")
-async def get_progress_summary(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+async def get_progress_summary(current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
 	"""Get high-level progress summary for dashboard"""
 	try:
 		# Get current week and month reports
@@ -105,7 +109,7 @@ async def get_progress_summary(current_user: User = Depends(get_current_user), d
 
 
 @router.get("/career-trajectory")
-async def get_career_trajectory_analysis(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+async def get_career_trajectory_analysis(current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
 	"""Get focused career trajectory analysis"""
 		career_insights = analytics_service.get_metrics(current_user.id, "career_insights")
 
@@ -131,7 +135,7 @@ async def get_career_trajectory_analysis(current_user: User = Depends(get_curren
 
 @router.get("/salary-insights")
 async def get_salary_insights(
-	current_user: User = Depends(get_current_user), db: Session = Depends(get_db), days: int = Query(180, description="Analysis period in days")
+	current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db), days: int = Query(180, description="Analysis period in days")
 ):
 	"""Get focused salary insights and negotiation guidance"""
 	try:
@@ -160,7 +164,7 @@ async def get_salary_insights(
 
 @router.get("/recommendation-performance")
 async def get_recommendation_performance_summary(
-	current_user: User = Depends(get_current_user), db: Session = Depends(get_db), days: int = Query(90, description="Analysis period in days")
+	current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db), days: int = Query(90, description="Analysis period in days")
 ):
 	"""Get recommendation system performance summary"""
 	try:
@@ -189,7 +193,7 @@ async def get_recommendation_performance_summary(
 @router.get("/comprehensive-report")
 async def get_comprehensive_insights_report(
 	current_user: User = Depends(get_current_user),
-	db: Session = Depends(get_db),
+	db: AsyncSession = Depends(get_db),
 	period: str = Query("monthly", description="Report period: 'weekly' or 'monthly'"),
 ):
 	"""Get comprehensive insights report combining all analysis types"""
@@ -261,7 +265,7 @@ async def get_comprehensive_insights_report(
 async def get_historical_reports(
 	report_type: str,
 	current_user: User = Depends(get_current_user),
-	db: Session = Depends(get_db),
+	db: AsyncSession = Depends(get_db),
 	limit: int = Query(10, description="Number of historical reports to return"),
 ):
 	"""Get historical reports for trend analysis"""
@@ -279,13 +283,13 @@ async def get_historical_reports(
 	try:
 		from app.models.analytics import Analytics
 
-		historical_reports = (
-			db.query(Analytics)
-			.filter(Analytics.user_id == current_user.id, Analytics.type == report_type)
+		result = await db.execute(
+			select(Analytics)
+			.where(Analytics.user_id == current_user.id, Analytics.type == report_type)
 			.order_by(Analytics.generated_at.desc())
 			.limit(limit)
-			.all()
 		)
+		historical_reports = result.scalars().all()
 
 		reports = []
 		for report in historical_reports:

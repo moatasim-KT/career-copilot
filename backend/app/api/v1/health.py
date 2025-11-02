@@ -27,11 +27,14 @@ from app.schemas.health import HealthResponse
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
-from sqlalchemy import text
-from sqlalchemy.orm import Session
+from sqlalchemy import select, text
+from sqlalchemy.ext.asyncio import AsyncSession
 
 logger = get_logger(__name__)
 settings = get_settings()
+# NOTE: This file has been converted to use AsyncSession.
+# Database queries need to be converted to async: await db.execute(select(...)) instead of db.query(...)
+
 router = APIRouter(tags=["health"])
 
 # Application start time for uptime calculation
@@ -263,7 +266,7 @@ health_checker = HealthChecker()
 
 
 @router.get("/api/v1/health", response_model=HealthResponse)
-async def health_check(db: Session = Depends(get_db)) -> dict[str, Any]:
+async def health_check(db: AsyncSession = Depends(get_db)) -> dict[str, Any]:
 	"""
 	Basic health check endpoint that verifies system component status.
 
@@ -352,7 +355,7 @@ async def health_check(db: Session = Depends(get_db)) -> dict[str, Any]:
 
 
 @router.get("/api/v1/health/db")
-async def health_check_db(db: Session = Depends(get_db)) -> dict[str, Any]:
+async def health_check_db(db: AsyncSession = Depends(get_db)) -> dict[str, Any]:
 	"""Basic database connectivity check."""
 	try:
 		await db.execute(text("SELECT 1"))

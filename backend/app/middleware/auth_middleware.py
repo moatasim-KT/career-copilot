@@ -1,17 +1,17 @@
 """
-def None  # get_authentication_service(): return None
-def None  # get_authorization_service(): return None
-from ..services.authentication_service import get_authentication_service
-
-def None  # get_authentication_service(): return None
-def None  # get_authorization_service(): return None
-
-from ..services.authorization_service import get_authorization_service
-
 Consolidated Authentication Middleware for Career Copilot System.
 Handles Firebase ID token validation, JWT token processing, API key authentication,
 session management, and security headers.
 """
+
+# def None  # get_authentication_service(): return None
+# def None  # get_authorization_service(): return None
+# from ..services.authentication_service import get_authentication_service
+
+# def None  # get_authentication_service(): return None
+# def None  # get_authorization_service(): return None
+
+# from ..services.authorization_service import get_authorization_service
 
 import time
 from datetime import datetime, timedelta, timezone

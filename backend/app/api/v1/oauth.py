@@ -2,7 +2,8 @@
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import RedirectResponse
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select
 from authlib.integrations.base_client import OAuthError
 from ...core.database import get_db
 from ...core.config import get_settings
@@ -17,6 +18,9 @@ import logging
 
 logger = logging.getLogger(__name__)
 settings = get_settings()
+
+# NOTE: This file has been converted to use AsyncSession.
+# Database queries need to be converted to async: await db.execute(select(...)) instead of db.query(...)
 
 router = APIRouter(tags=["oauth"])
 
@@ -56,7 +60,7 @@ async def oauth_login(provider: str, redirect_url: Optional[str] = Query(None)):
 
 @router.get("/api/v1/auth/oauth/{provider}/callback")
 async def oauth_callback(
-	provider: str, code: str = Query(...), state: Optional[str] = Query(None), error: Optional[str] = Query(None), db: Session = Depends(get_db)
+	provider: str, code: str = Query(...), state: Optional[str] = Query(None), error: Optional[str] = Query(None), db: AsyncSession = Depends(get_db)
 ):
 	"""Handle OAuth callback from provider"""
 	if not settings.oauth_enabled:
@@ -103,7 +107,7 @@ async def oauth_callback(
 
 
 @router.post("/api/v1/auth/oauth/disconnect")
-async def disconnect_oauth(request: OAuthDisconnectRequest, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+async def disconnect_oauth(request: OAuthDisconnectRequest, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
 	"""Disconnect OAuth account from current user"""
 	if not settings.oauth_enabled:
 		raise HTTPException(status_code=400, detail="OAuth authentication is not enabled")
@@ -142,7 +146,7 @@ async def oauth_status(current_user: User = Depends(get_current_user)) -> OAuthS
 
 @router.post("/api/v1/auth/oauth/set-password")
 async def set_password_for_oauth_user(
-	request: SetPasswordRequest, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)
+	request: SetPasswordRequest, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)
 ) -> SetPasswordResponse:
 	"""Set password for OAuth user to enable account disconnection"""
 	if not settings.oauth_enabled:
@@ -166,7 +170,7 @@ async def set_password_for_oauth_user(
 		# Set the password
 		current_user.hashed_password = get_password_hash(request.password)
 		current_user.updated_at = current_user.updated_at
-		db.commit()
+		await db.commit()
 
 		logger.info(f"Password set for OAuth user {current_user.id}")
 		return SetPasswordResponse(message="Password set successfully. You can now disconnect your OAuth account if desired.")

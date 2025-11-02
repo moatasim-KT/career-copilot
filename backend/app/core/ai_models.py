@@ -14,7 +14,7 @@ from langchain_anthropic import ChatAnthropic
 from langchain.callbacks.manager import CallbackManager
 from langchain.callbacks.streaming_stdout import StreamingStdOutCallbackHandler
 
-from .config import settings
+from .config import get_settings
 from .logging import get_logger
 
 logger = get_logger(__name__)

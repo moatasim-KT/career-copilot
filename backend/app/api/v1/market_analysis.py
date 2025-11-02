@@ -3,7 +3,8 @@ Market trend analysis API endpoints
 """
 
 from fastapi import APIRouter, Depends, HTTPException, Query
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select
 from typing import Optional
 from datetime import datetime
 
@@ -19,6 +20,9 @@ from ...schemas.market_analysis import (
 	AdvancedUserAnalyticsResponse,
 )
 
+# NOTE: This file has been converted to use AsyncSession.
+# Database queries need to be converted to async: await db.execute(select(...)) instead of db.query(...)
+
 router = APIRouter(tags=["market-analysis"])
 
 
@@ -27,7 +31,7 @@ async def get_salary_trends(
 	days: int = Query(default=180, ge=30, le=365, description="Analysis period in days"),
 	role_filter: Optional[str] = Query(default=None, description="Filter by specific role"),
 	current_user: User = Depends(get_current_user),
-	db: Session = Depends(get_db),
+	db: AsyncSession = Depends(get_db),
 ):
 	"""
 	Get comprehensive salary trend analysis for the user's job market.
@@ -57,7 +61,7 @@ async def get_salary_trends(
 async def get_job_market_patterns(
 	days: int = Query(default=90, ge=30, le=365, description="Analysis period in days"),
 	current_user: User = Depends(get_current_user),
-	db: Session = Depends(get_db),
+	db: AsyncSession = Depends(get_db),
 ):
 	"""
 	Get comprehensive job market pattern analysis.
@@ -87,7 +91,7 @@ async def get_job_market_patterns(
 
 
 @router.get("/api/v1/market-analysis/opportunity-alerts")
-async def get_opportunity_alerts(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+async def get_opportunity_alerts(current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
 	"""
 	Get personalized market opportunity alerts.
 
@@ -117,7 +121,7 @@ async def get_opportunity_alerts(current_user: User = Depends(get_current_user),
 
 
 @router.get("/api/v1/market-analysis/dashboard", response_model=MarketDashboardResponse)
-async def get_market_dashboard(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+async def get_market_dashboard(current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
 	"""
 	Get comprehensive market dashboard data.
 
@@ -143,7 +147,7 @@ async def get_market_dashboard(current_user: User = Depends(get_current_user), d
 async def save_market_analysis(
 	analysis_type: str = Query(..., description="Type of analysis to save"),
 	current_user: User = Depends(get_current_user),
-	db: Session = Depends(get_db),
+	db: AsyncSession = Depends(get_db),
 ):
 	"""
 	Save market analysis results to database for historical tracking.
@@ -194,7 +198,7 @@ async def get_skill_demand_forecast(
 	days: int = Query(default=180, ge=90, le=365, description="Historical analysis period"),
 	forecast_days: int = Query(default=90, ge=30, le=180, description="Forecast period"),
 	current_user: User = Depends(get_current_user),
-	db: Session = Depends(get_db),
+	db: AsyncSession = Depends(get_db),
 ):
 	"""
 	Get skill demand forecasting based on job posting data.
@@ -268,7 +272,7 @@ async def get_skill_demand_forecast(
 
 
 @router.get("/api/v1/market-analysis/competitive-analysis")
-async def get_competitive_analysis(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+async def get_competitive_analysis(current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
 	"""
 	Get competitive analysis for job seekers.
 
@@ -353,7 +357,7 @@ async def get_competitive_analysis(current_user: User = Depends(get_current_user
 
 
 @router.post("/api/v1/market-analysis/user-analytics", response_model=AdvancedUserAnalyticsResponse)
-async def get_advanced_user_analytics(request: UserAnalyticsRequest, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+async def get_advanced_user_analytics(request: UserAnalyticsRequest, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
 	"""
 	Get advanced user analytics with conversion funnel and performance benchmarking.
 

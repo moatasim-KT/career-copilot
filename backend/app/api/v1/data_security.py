@@ -4,7 +4,7 @@ API endpoints for data compression and encryption management
 
 from typing import Dict, Any
 from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.dependencies import get_db, get_current_user
 from app.models.user import User
@@ -13,11 +13,14 @@ from app.services.crypto_service import crypto_service
 from app.services.compression_service import compression_service
 from app.core.config import settings
 
+# NOTE: This file has been converted to use AsyncSession.
+# Database queries need to be converted to async: await db.execute(select(...)) instead of db.query(...)
+
 router = APIRouter(prefix="/data-security", tags=["data-security"])
 
 
 @router.get("/status")
-async def get_security_status(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)) -> Dict[str, Any]:
+async def get_security_status(db: AsyncSession = Depends(get_db), current_user: User = Depends(get_current_user)) -> Dict[str, Any]:
 	"""Get current data security and compression status"""
 
 	migration_service = DataMigrationService(db)
@@ -40,7 +43,7 @@ async def get_security_status(db: Session = Depends(get_db), current_user: User 
 
 @router.post("/migrate/encryption")
 async def migrate_to_encryption(
-	background_tasks: BackgroundTasks, batch_size: int = 100, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)
+	background_tasks: BackgroundTasks, batch_size: int = 100, db: AsyncSession = Depends(get_db), current_user: User = Depends(get_current_user)
 ) -> Dict[str, Any]:
 	"""Start migration to encrypt existing data"""
 
@@ -70,7 +73,7 @@ async def migrate_to_encryption(
 
 @router.post("/migrate/compression")
 async def migrate_to_compression(
-	background_tasks: BackgroundTasks, batch_size: int = 100, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)
+	background_tasks: BackgroundTasks, batch_size: int = 100, db: AsyncSession = Depends(get_db), current_user: User = Depends(get_current_user)
 ) -> Dict[str, Any]:
 	"""Start migration to compress existing data"""
 
@@ -100,7 +103,7 @@ async def migrate_to_compression(
 
 @router.post("/rollback/encryption")
 async def rollback_encryption(
-	background_tasks: BackgroundTasks, batch_size: int = 100, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)
+	background_tasks: BackgroundTasks, batch_size: int = 100, db: AsyncSession = Depends(get_db), current_user: User = Depends(get_current_user)
 ) -> Dict[str, Any]:
 	"""Rollback encryption migration (decrypt data back to plaintext)"""
 
@@ -206,7 +209,7 @@ async def test_compression(
 
 
 @router.get("/analytics")
-async def get_security_analytics(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)) -> Dict[str, Any]:
+async def get_security_analytics(db: AsyncSession = Depends(get_db), current_user: User = Depends(get_current_user)) -> Dict[str, Any]:
 	"""Get analytics on data security and compression effectiveness"""
 
 	migration_service = DataMigrationService(db)
@@ -281,7 +284,7 @@ def _generate_security_recommendations(status: Dict[str, Any]) -> list:
 
 def _calculate_average_compression_ratio(db: Session) -> float:
 	"""Calculate average compression ratio across all compressed documents"""
-	from sqlalchemy import text
+	from sqlalchemy import select, text
 
 	result = db.execute(
 		text("""

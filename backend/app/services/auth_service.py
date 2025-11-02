@@ -13,12 +13,8 @@ import jwt
 from app.core.config import get_settings
 from app.core.logging import get_audit_logger, get_logger
 from app.core.password_validator import default_validator as password_validator
-from app.core.security import (
-	create_access_token,
-	decode_access_token,
-	get_password_hash,
-	verify_password,
-)
+from app.core.security import (create_access_token, decode_access_token,
+                               get_password_hash, verify_password)
 from app.core.token_blacklist import session_blacklist, token_blacklist
 from app.models.user import User
 from app.schemas.auth import UserCreate, UserLogin, UserUpdate
@@ -107,6 +103,7 @@ class AuthenticationSystem:
 		# Use Redis-based blacklists (with in-memory fallback)
 		self.token_blacklist = token_blacklist
 		self.session_blacklist = session_blacklist
+		self.blacklisted_tokens = set()  # In-memory fallback for compatibility
 
 		# Define role permissions
 		self.role_permissions = {

@@ -1,16 +1,18 @@
 """Dependencies for authentication"""
 
 from fastapi import Depends, HTTPException, status
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
-from sqlalchemy.orm import Session
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from ..models.user import User
 from .database import get_db
 from .security import decode_access_token
-from ..models.user import User
 
 security = HTTPBearer()
 
 
-async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security), db: Session = Depends(get_db)) -> User:
+async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security), db: AsyncSession = Depends(get_db)) -> User:
 	"""Get current authenticated user"""
 	token = credentials.credentials
 	payload = decode_access_token(token)
@@ -19,7 +21,8 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(s
 		raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid authentication credentials")
 
 	user_id = payload.get("user_id")
-	user = db.query(User).filter(User.id == user_id).first()
+	result = await db.execute(select(User).where(User.id == user_id))
+	user = result.scalar_one_or_none()
 
 	if not user:
 		raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="User not found")

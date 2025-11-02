@@ -258,8 +258,8 @@ async def send_morning_briefing():
 
 	db = SessionLocal()
 	try:
-		# Initialize notification service with settings
-		notification_service = NotificationService(settings=settings)
+		# Initialize notification service
+		notification_service = NotificationService(db=db)
 
 		# Query all users
 		users = db.query(User).all()
@@ -331,7 +331,7 @@ async def send_evening_summary():
 	db = SessionLocal()
 	try:
 		# Initialize services
-		notification_service = NotificationService(settings=settings)
+		notification_service = NotificationService(db=db)
 		analytics_service = AnalyticsService(db)
 
 		# Query all users
@@ -446,15 +446,15 @@ def start_scheduler():
 	try:
 		logger.info("Starting APScheduler...")
 
-		# Register ingest_jobs task - runs at 4:00 AM daily
+		# Register ingest_jobs task - runs every 6 hours
 		scheduler.add_job(
 			func=run_scrape_jobs,
-			trigger=CronTrigger(hour=4, minute=0, timezone=utc),
+			trigger=CronTrigger(hour="*/6", minute=0, timezone=utc),
 			id="ingest_jobs",
-			name="Nightly Job Ingestion",
+			name="6-Hourly Job Ingestion",
 			replace_existing=True,
 		)
-		logger.info("Registered task: ingest_jobs (cron: 0 4 * * *)")
+		logger.info("Registered task: ingest_jobs (cron: 0 */6 * * *)")
 
 		# Register send_morning_briefing task - runs at 8:00 AM daily
 		scheduler.add_job(

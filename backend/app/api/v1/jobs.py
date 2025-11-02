@@ -4,7 +4,8 @@ from datetime import datetime, timezone
 from typing import List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.orm import Session
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from ...core.database import get_db
 from ...core.dependencies import get_current_user
@@ -13,11 +14,14 @@ from ...models.user import User
 from ...schemas.job import JobCreate, JobResponse, JobUpdate
 from ...services.cache_service import cache_service
 
+# NOTE: This file has been converted to use AsyncSession.
+# Database queries need to be converted to async: await db.execute(select(...)) instead of db.query(...)
+
 router = APIRouter(tags=["jobs"])
 
 
 @router.get("/api/v1/jobs", response_model=List[JobResponse])
-async def list_jobs(skip: int = 0, limit: int = 100, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+async def list_jobs(skip: int = 0, limit: int = 100, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
 	"""
 	List all jobs for the current user with pagination support.
 
@@ -34,17 +38,16 @@ async def list_jobs(skip: int = 0, limit: int = 100, current_user: User = Depend
 		raise HTTPException(status_code=400, detail="Limit must be between 1 and 1000")
 
 	try:
-		jobs = db.query(Job).filter(Job.user_id == current_user.id).order_by(Job.created_at.desc()).offset(skip).limit(limit).all()
+		stmt = select(Job).where(Job.user_id == current_user.id).order_by(Job.created_at.desc()).offset(skip).limit(limit)
+		result = await db.execute(stmt)
+		jobs = result.scalars().all()
 		return jobs
 	except Exception as e:
 		raise HTTPException(status_code=500, detail=f"Error retrieving jobs: {e!s}")
 
 
-router = APIRouter(tags=["jobs"])
-
-
 @router.post("/api/v1/jobs", response_model=JobResponse)
-async def create_job(job_data: JobCreate, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+async def create_job(job_data: JobCreate, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
 	"""
 	Create a new job with validation for required fields.
 
@@ -66,16 +69,20 @@ async def create_job(job_data: JobCreate, current_user: User = Depends(get_curre
 
 	job = Job(**job_dict, user_id=current_user.id)
 	db.add(job)
-	db.commit()
-	db.refresh(job)
+	await db.commit()
+	await db.refresh(job)
 
-	# Invalidate all recommendation caches since new job affects all users' recommendations
-	cache_service.invalidate_all_recommendations()
+	# Invalidate user cache for this user since new job affects recommendations
+	try:
+		cache_service.invalidate_user_cache(current_user.id)
+	except Exception:
+		pass  # Don't fail job creation if cache invalidation fails
 
 	# Trigger real-time job matching for scraped jobs
 	if job.source == "scraped":
 		try:
-			from ...services.job_recommendation_service import get_job_recommendation_service
+			from ...services.job_recommendation_service import \
+			    get_job_recommendation_service
 
 			matching_service = get_job_recommendation_service(db)
 			await matching_service.check_job_matches_for_user(current_user, [job])
@@ -103,7 +110,7 @@ async def create_job(job_data: JobCreate, current_user: User = Depends(get_curre
 
 
 @router.get("/api/v1/jobs/{job_id}", response_model=JobResponse)
-async def get_job(job_id: int, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+async def get_job(job_id: int, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
 	"""
 	Get a specific job by ID.
 
@@ -112,7 +119,8 @@ async def get_job(job_id: int, current_user: User = Depends(get_current_user), d
 	Returns 404 if the job doesn't exist or doesn't belong to the current user.
 	"""
 	try:
-		job = db.query(Job).filter(Job.id == job_id, Job.user_id == current_user.id).first()
+		result = await db.execute(select(Job).where(Job.id == job_id, Job.user_id == current_user.id))
+		job = result.scalar_one_or_none()
 		if not job:
 			raise HTTPException(status_code=404, detail="Job not found")
 		return job
@@ -123,7 +131,7 @@ async def get_job(job_id: int, current_user: User = Depends(get_current_user), d
 
 
 @router.put("/api/v1/jobs/{job_id}", response_model=JobResponse)
-async def update_job(job_id: int, job_data: JobUpdate, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+async def update_job(job_id: int, job_data: JobUpdate, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
 	"""
 	Update a job with all fields supported.
 
@@ -131,7 +139,8 @@ async def update_job(job_id: int, job_data: JobUpdate, current_user: User = Depe
 	- Sets date_applied when status changes to "applied"
 	- Validates that the job belongs to the current user
 	"""
-	job = db.query(Job).filter(Job.id == job_id, Job.user_id == current_user.id).first()
+	result = await db.execute(select(Job).where(Job.id == job_id, Job.user_id == current_user.id))
+	job = result.scalar_one_or_none()
 	if not job:
 		raise HTTPException(status_code=404, detail="Job not found")
 
@@ -151,8 +160,8 @@ async def update_job(job_id: int, job_data: JobUpdate, current_user: User = Depe
 	# Ensure updated_at is set (SQLAlchemy should handle this with onupdate, but being explicit)
 	job.updated_at = datetime.now(timezone.utc)
 
-	db.commit()
-	db.refresh(job)
+	await db.commit()
+	await db.refresh(job)
 
 	# Invalidate recommendations cache for this user since job details changed
 	cache_service.invalidate_user_cache(current_user.id)
@@ -174,7 +183,7 @@ async def update_job(job_id: int, job_data: JobUpdate, current_user: User = Depe
 
 
 @router.delete("/api/v1/jobs/{job_id}", status_code=204)
-async def delete_job(job_id: int, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+async def delete_job(job_id: int, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
 	"""
 	Delete a job and all associated applications (cascade delete).
 
@@ -183,7 +192,8 @@ async def delete_job(job_id: int, current_user: User = Depends(get_current_user)
 	The cascade delete is configured in the Job model relationship,
 	so all associated Application records will be automatically deleted.
 	"""
-	job = db.query(Job).filter(Job.id == job_id, Job.user_id == current_user.id).first()
+	result = await db.execute(select(Job).where(Job.id == job_id, Job.user_id == current_user.id))
+	job = result.scalar_one_or_none()
 	if not job:
 		raise HTTPException(status_code=404, detail="Job not found")
 
@@ -192,7 +202,7 @@ async def delete_job(job_id: int, current_user: User = Depends(get_current_user)
 		app_count = len(job.applications)
 
 		db.delete(job)
-		db.commit()
+		await db.commit()
 
 		# Invalidate recommendations cache for this user since job was deleted
 		cache_service.invalidate_user_cache(current_user.id)
@@ -204,7 +214,7 @@ async def delete_job(job_id: int, current_user: User = Depends(get_current_user)
 
 
 @router.get("/api/v1/jobs/sources/analytics")
-async def get_source_analytics(timeframe_days: int = 30, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+async def get_source_analytics(timeframe_days: int = 30, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
 	"""Get analytics for job sources"""
 	try:
 		source_manager = JobRecommendationService(db)
@@ -218,7 +228,7 @@ async def get_source_analytics(timeframe_days: int = 30, current_user: User = De
 
 
 @router.get("/api/v1/jobs/sources/recommendations")
-async def get_source_recommendations(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+async def get_source_recommendations(current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
 	"""
 	Get personalized job source recommendations for the current user.
 
@@ -242,7 +252,7 @@ async def get_source_recommendations(current_user: User = Depends(get_current_us
 
 
 @router.get("/api/v1/jobs/{job_id}/source-info")
-async def get_job_source_info(job_id: int, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+async def get_job_source_info(job_id: int, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
 	"""
 	Get detailed source information for a specific job.
 
@@ -251,7 +261,8 @@ async def get_job_source_info(job_id: int, current_user: User = Depends(get_curr
 	Returns source quality metrics, reliability indicators, and enriched data.
 	"""
 	try:
-		job = db.query(Job).filter(Job.id == job_id, Job.user_id == current_user.id).first()
+		result = await db.execute(select(Job).where(Job.id == job_id, Job.user_id == current_user.id))
+		job = result.scalar_one_or_none()
 		if not job:
 			raise HTTPException(status_code=404, detail="Job not found")
 
@@ -269,7 +280,7 @@ async def get_job_source_info(job_id: int, current_user: User = Depends(get_curr
 
 
 @router.post("/api/v1/jobs/scrape")
-async def trigger_job_scraping(search_params: dict, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+async def trigger_job_scraping(search_params: dict, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
 	"""
 	Manually trigger job scraping from multiple sources.
 
@@ -300,7 +311,7 @@ async def trigger_job_scraping(search_params: dict, current_user: User = Depends
 
 
 @router.get("/api/v1/jobs/sources/available")
-async def get_available_sources(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+async def get_available_sources(current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
 	"""
 	Get information about all available job sources.
 
@@ -325,7 +336,7 @@ async def get_available_sources(current_user: User = Depends(get_current_user), 
 
 
 @router.get("/api/v1/jobs/sources/performance")
-async def get_source_performance_summary(timeframe_days: int = 30, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+async def get_source_performance_summary(timeframe_days: int = 30, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
 	"""
 	Get comprehensive performance summary for all job sources.
 
@@ -346,7 +357,7 @@ async def get_source_performance_summary(timeframe_days: int = 30, current_user:
 
 
 @router.put("/api/v1/jobs/sources/preferences")
-async def update_source_preferences(preferences_data: dict, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+async def update_source_preferences(preferences_data: dict, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
 	"""
 	Update user's job source preferences.
 
@@ -381,7 +392,7 @@ async def update_source_preferences(preferences_data: dict, current_user: User =
 
 @router.get("/api/v1/jobs/{job_id}/enrichment")
 async def get_job_enrichment_data(
-	job_id: int, include_external: bool = False, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)
+	job_id: int, include_external: bool = False, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)
 ):
 	"""
 	Get enriched data for a specific job including source quality and external data.
@@ -392,7 +403,8 @@ async def get_job_enrichment_data(
 	Returns comprehensive job enrichment data including source metrics and external insights.
 	"""
 	try:
-		job = db.query(Job).filter(Job.id == job_id, Job.user_id == current_user.id).first()
+		result = await db.execute(select(Job).where(Job.id == job_id, Job.user_id == current_user.id))
+		job = result.scalar_one_or_none()
 		if not job:
 			raise HTTPException(status_code=404, detail="Job not found")
 

@@ -3,7 +3,8 @@ Scheduled Analytics Reports API endpoints
 """
 
 from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select
 from datetime import datetime
 
 from ...core.database import get_db
@@ -11,11 +12,14 @@ from ...core.dependencies import get_current_user
 from ...models.user import User
 from ...services.scheduled_analytics_reports_service import scheduled_analytics_reports_service
 
+# NOTE: This file has been converted to use AsyncSession.
+# Database queries need to be converted to async: await db.execute(select(...)) instead of db.query(...)
+
 router = APIRouter(tags=["scheduled-reports"])
 
 
 @router.get("/api/v1/reports/weekly")
-async def generate_weekly_report(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+async def generate_weekly_report(current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
 	"""
 	Generate a comprehensive weekly analytics report.
 
@@ -41,7 +45,7 @@ async def generate_weekly_report(current_user: User = Depends(get_current_user),
 
 
 @router.get("/api/v1/reports/monthly")
-async def generate_monthly_report(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+async def generate_monthly_report(current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
 	"""
 	Generate a comprehensive monthly analytics report.
 
@@ -69,7 +73,7 @@ async def generate_monthly_report(current_user: User = Depends(get_current_user)
 
 
 @router.post("/api/v1/reports/email/weekly")
-async def email_weekly_report(background_tasks: BackgroundTasks, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+async def email_weekly_report(background_tasks: BackgroundTasks, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
 	"""
 	Generate and email weekly analytics report.
 
@@ -108,7 +112,7 @@ async def email_weekly_report(background_tasks: BackgroundTasks, current_user: U
 
 
 @router.post("/api/v1/reports/email/monthly")
-async def email_monthly_report(background_tasks: BackgroundTasks, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+async def email_monthly_report(background_tasks: BackgroundTasks, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
 	"""
 	Generate and email monthly analytics report.
 
@@ -152,7 +156,7 @@ async def email_monthly_report(background_tasks: BackgroundTasks, current_user: 
 
 @router.post("/api/v1/admin/reports/weekly/all")
 async def schedule_all_weekly_reports(
-	background_tasks: BackgroundTasks, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)
+	background_tasks: BackgroundTasks, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)
 ):
 	"""
 	Schedule weekly reports for all users (Admin only).
@@ -185,7 +189,7 @@ async def schedule_all_weekly_reports(
 
 @router.post("/api/v1/admin/reports/monthly/all")
 async def schedule_all_monthly_reports(
-	background_tasks: BackgroundTasks, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)
+	background_tasks: BackgroundTasks, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)
 ):
 	"""
 	Schedule monthly reports for all users (Admin only).
@@ -217,7 +221,7 @@ async def schedule_all_monthly_reports(
 
 
 @router.get("/api/v1/reports/preview/weekly")
-async def preview_weekly_report(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+async def preview_weekly_report(current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
 	"""
 	Preview weekly report content without generating full report.
 
@@ -260,7 +264,7 @@ async def preview_weekly_report(current_user: User = Depends(get_current_user), 
 
 
 @router.get("/api/v1/reports/preview/monthly")
-async def preview_monthly_report(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+async def preview_monthly_report(current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
 	"""
 	Preview monthly report content without generating full report.
 

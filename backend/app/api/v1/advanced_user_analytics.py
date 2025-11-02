@@ -3,13 +3,17 @@ Advanced User Analytics API endpoints
 """
 
 from fastapi import APIRouter, Depends, HTTPException, Query
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select
 from datetime import datetime
 
 from ...core.database import get_db
 from ...core.dependencies import get_current_user
 from ...models.user import User
 from ...services.analytics_specialized import analytics_specialized_service
+
+# NOTE: This file has been converted to use AsyncSession.
+# Database queries need to be converted to async: await db.execute(select(...)) instead of db.query(...)
 
 router = APIRouter(tags=["advanced-user-analytics"])
 
@@ -18,7 +22,7 @@ router = APIRouter(tags=["advanced-user-analytics"])
 async def get_detailed_success_rates(
 	days: int = Query(default=90, ge=30, le=365, description="Analysis period in days"),
 	current_user: User = Depends(get_current_user),
-	db: Session = Depends(get_db),
+	db: AsyncSession = Depends(get_db),
 ):
 	"""
 	Get detailed application success rate analysis.
@@ -49,7 +53,7 @@ async def get_detailed_success_rates(
 async def get_conversion_funnel_analysis(
 	days: int = Query(default=90, ge=30, le=365, description="Analysis period in days"),
 	current_user: User = Depends(get_current_user),
-	db: Session = Depends(get_db),
+	db: AsyncSession = Depends(get_db),
 ):
 	"""
 	Get detailed conversion funnel analysis.
@@ -86,7 +90,7 @@ async def get_conversion_funnel_analysis(
 async def get_performance_benchmarks(
 	days: int = Query(default=90, ge=30, le=365, description="Analysis period in days"),
 	current_user: User = Depends(get_current_user),
-	db: Session = Depends(get_db),
+	db: AsyncSession = Depends(get_db),
 ):
 	"""
 	Get personalized performance benchmarking against market averages.
@@ -123,7 +127,7 @@ async def get_performance_benchmarks(
 async def get_predictive_analytics(
 	days: int = Query(default=90, ge=30, le=365, description="Historical analysis period"),
 	current_user: User = Depends(get_current_user),
-	db: Session = Depends(get_db),
+	db: AsyncSession = Depends(get_db),
 ):
 	"""
 	Get predictive analytics for job search success.
@@ -164,7 +168,7 @@ async def get_predictive_analytics(
 async def get_comprehensive_analytics_dashboard(
 	days: int = Query(default=90, ge=30, le=365, description="Analysis period in days"),
 	current_user: User = Depends(get_current_user),
-	db: Session = Depends(get_db),
+	db: AsyncSession = Depends(get_db),
 ):
 	"""
 	Get comprehensive analytics dashboard combining all advanced analytics.
@@ -274,7 +278,7 @@ async def get_comprehensive_analytics_dashboard(
 async def get_performance_trends(
 	days: int = Query(default=180, ge=90, le=365, description="Analysis period in days"),
 	current_user: User = Depends(get_current_user),
-	db: Session = Depends(get_db),
+	db: AsyncSession = Depends(get_db),
 ):
 	"""
 	Get long-term performance trends analysis.

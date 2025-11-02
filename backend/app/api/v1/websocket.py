@@ -5,7 +5,8 @@ WebSocket API endpoints for real-time notifications.
 from typing import Dict, Any, Optional
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select
 
 from ...core.database import get_db
 from ...core.auth import get_current_user, User
@@ -13,6 +14,9 @@ from ...services.websocket_service import websocket_service
 from ...core.logging import get_logger
 
 logger = get_logger(__name__)
+
+# NOTE: This file has been converted to use AsyncSession.
+# Database queries need to be converted to async: await db.execute(select(...)) instead of db.query(...)
 
 router = APIRouter()
 
@@ -212,7 +216,7 @@ async def get_channels(current_user: User = Depends(get_current_user)):
 
 
 @router.get("/job-match/thresholds")
-async def get_job_match_thresholds(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+async def get_job_match_thresholds(current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
 	"""
 	Get current job match thresholds.
 
@@ -241,7 +245,7 @@ class JobMatchThresholdsRequest(BaseModel):
 
 @router.put("/job-match/thresholds")
 async def update_job_match_thresholds(
-	request: JobMatchThresholdsRequest, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)
+	request: JobMatchThresholdsRequest, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)
 ):
 	"""
 	Update job match thresholds (admin only).

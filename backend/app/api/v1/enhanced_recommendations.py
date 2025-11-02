@@ -10,7 +10,8 @@ from typing import Any
 
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query
 from pydantic import BaseModel, Field
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select
 
 from app.core.cache import get_cache  # type: ignore[import-untyped]
 from app.core.database import get_db  # type: ignore[import-untyped]
@@ -18,6 +19,9 @@ from app.core.dependencies import get_current_user  # type: ignore[import-untype
 from app.core.logging import get_logger  # type: ignore[attr-defined]
 from app.models.user import User  # type: ignore[import-untyped]
 from app.services.job_recommendation_service import JobRecommendationService  # type: ignore[attr-defined]
+
+# NOTE: This file has been converted to use AsyncSession.
+# Database queries need to be converted to async: await db.execute(select(...)) instead of db.query(...)
 
 router = APIRouter()
 logger = get_logger(__name__)
@@ -56,7 +60,7 @@ async def get_enhanced_recommendations(
 	filters: RecommendationFilters = Depends(RecommendationFilters),
 	force_refresh: bool = Query(default=False, description="Force cache refresh"),
 	current_user: User = Depends(get_current_user),
-	db: Session = Depends(get_db),
+	db: AsyncSession = Depends(get_db),
 ) -> Any:
 	"""
 	Get enhanced personalized job recommendations with advanced scoring
@@ -130,7 +134,7 @@ async def get_enhanced_recommendations(
 
 @router.get("/job/{job_id}/analysis")
 async def get_job_recommendation_analysis(
-	job_id: int, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)
+	job_id: int, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)
 ) -> dict[str, Any]:
 	"""
 	Get detailed recommendation analysis for a specific job
@@ -141,7 +145,10 @@ async def get_job_recommendation_analysis(
 	try:
 		from app.models.job import Job  # type: ignore[import-untyped]
 
-		job = db.query(Job).filter(Job.id == job_id).first()
+		result = await db.execute(select(Job).where(Job.id == job_id))
+
+
+		job = result.scalar_one_or_none()
 		if not job:
 			raise HTTPException(status_code=404, detail="Job not found")
 
@@ -163,7 +170,7 @@ async def get_job_recommendation_analysis(
 
 
 @router.get("/insights/profile")
-async def get_recommendation_insights(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)) -> dict[str, Any]:
+async def get_recommendation_insights(current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)) -> dict[str, Any]:
 	"""
 	Get insights about user's recommendation patterns and profile optimization suggestions
 
@@ -209,7 +216,7 @@ async def submit_recommendation_feedback(
 	feedback_type: str = Query(..., pattern="^(helpful|not_helpful|applied|not_interested)$"),
 	feedback_details: str | None = Query(default=None, max_length=500),
 	current_user: User = Depends(get_current_user),
-	db: Session = Depends(get_db),
+	db: AsyncSession = Depends(get_db),
 ) -> dict[str, Any]:
 	"""
 	Submit feedback on recommendation quality
@@ -250,7 +257,7 @@ async def submit_recommendation_feedback(
 async def get_recommendation_performance_metrics(
 	days: int = Query(default=30, ge=1, le=365, description="Number of days to analyze"),
 	current_user: User = Depends(get_current_user),
-	db: Session = Depends(get_db),
+	db: AsyncSession = Depends(get_db),
 ) -> dict[str, Any]:
 	"""
 	Get recommendation system performance metrics for the user
@@ -270,7 +277,7 @@ async def get_recommendation_performance_metrics(
 
 @router.post("/cache/refresh")
 async def refresh_recommendation_cache(
-	background_tasks: BackgroundTasks, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)
+	background_tasks: BackgroundTasks, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)
 ) -> dict[str, Any]:
 	"""
 	Refresh recommendation cache for the current user

@@ -3,13 +3,17 @@
 from typing import Dict, List
 
 from fastapi import APIRouter, Depends, Query
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select
 
 from ...core.database import get_db
 from ...core.dependencies import get_current_user
 from ...models.user import User
 from ...services.cache_service import cache_service
 from ...services.job_recommendation_service import JobRecommendationService
+
+# NOTE: This file has been converted to use AsyncSession.
+# Database queries need to be converted to async: await db.execute(select(...)) instead of db.query(...)
 
 router = APIRouter(tags=["recommendations"])
 
@@ -19,7 +23,7 @@ async def get_recommendations(
 	limit: int = 5,
 	use_adaptive: bool = Query(True, description="Use adaptive recommendation engine"),
 	current_user: User = Depends(get_current_user),
-	db: Session = Depends(get_db),
+	db: AsyncSession = Depends(get_db),
 ):
 	"""Get personalized job recommendations with caching and adaptive algorithm"""
 	cache_key = f"recommendations:{current_user.id}:{limit}:adaptive_{use_adaptive}"
@@ -67,7 +71,7 @@ async def get_recommendations(
 
 
 @router.get("/api/v1/recommendations/algorithm-info")
-async def get_recommendation_algorithm_info(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+async def get_recommendation_algorithm_info(current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
 	"""Get information about the recommendation algorithm being used for the current user"""
 	job_recommendation_service = JobRecommendationService(db=db)
 	weights = job_recommendation_service.get_algorithm_weights(current_user.id)

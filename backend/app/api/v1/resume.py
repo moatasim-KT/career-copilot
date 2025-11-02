@@ -1,35 +1,37 @@
 """Resume parsing API endpoints"""
 
+import logging
 import os
 import uuid
-import logging
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, BackgroundTasks, Response
-from sqlalchemy.orm import Session
+
+from fastapi import (APIRouter, BackgroundTasks, Depends, File, HTTPException,
+                     Response, UploadFile)
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from ...core.database import get_db
 from ...dependencies import get_current_user
-from ...models.user import User
-from ...models.resume_upload import ResumeUpload
 from ...models.content_generation import ContentGeneration
-from ...services.content_quality_service import ContentQualityService
 from ...models.job import Job
-from ...schemas.resume import (
-	ResumeUploadResponse,
-	ResumeParsingStatus,
-	ProfileUpdateSuggestions,
-	ResumeParsingRequest,
-	JobDescriptionParseRequest,
-	JobDescriptionParseResponse,
-	ParsedJobDescription,
-	ContentGenerationRequest,
-	ContentGenerationResponse,
-	ContentUpdateRequest,
-	ContentResponse,
-)
-from ...services.resume_parser_service import ResumeParserService
-from ...services.job_description_parser_service import JobDescriptionParserService
+from ...models.resume_upload import ResumeUpload
+from ...models.user import User
+from ...schemas.resume import (ContentGenerationRequest,
+                               ContentGenerationResponse, ContentResponse,
+                               ContentUpdateRequest,
+                               JobDescriptionParseRequest,
+                               JobDescriptionParseResponse,
+                               ParsedJobDescription, ProfileUpdateSuggestions,
+                               ResumeParsingRequest, ResumeParsingStatus,
+                               ResumeUploadResponse)
 from ...services.content_generator_service import ContentGeneratorService
+from ...services.content_quality_service import ContentQualityService
+from ...services.job_description_parser_service import \
+    JobDescriptionParserService
 from ...services.profile_service import ProfileService
+from ...services.resume_parser_service import ResumeParserService
+
+# NOTE: This file has been converted to use AsyncSession.
+# Database queries need to be converted to async: await db.execute(select(...)) instead of db.query(...)
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
@@ -48,7 +50,7 @@ os.makedirs(UPLOAD_DIR, exist_ok=True)
 
 @router.post("/upload", response_model=ResumeUploadResponse)
 async def upload_resume(
-	background_tasks: BackgroundTasks, file: UploadFile = File(...), current_user: User = Depends(get_current_user), db: Session = Depends(get_db)
+	background_tasks: BackgroundTasks, file: UploadFile = File(...), current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)
 ):
 	"""
 	Upload a resume file for parsing
@@ -99,8 +101,8 @@ async def upload_resume(
 		)
 
 		db.add(resume_upload)
-		db.commit()
-		db.refresh(resume_upload)
+		await db.commit()
+		await db.refresh(resume_upload)
 
 		# Start background parsing task
 		background_tasks.add_task(parse_resume_background, resume_upload.id, file_path, file.filename, current_user.id)
@@ -124,13 +126,15 @@ async def upload_resume(
 
 
 @router.get("/{upload_id}/status", response_model=ResumeParsingStatus)
-async def get_parsing_status(upload_id: int, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+async def get_parsing_status(upload_id: int, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
 	"""
 	Get the parsing status and results for a resume upload
 	"""
 	try:
 		# Get the resume upload record
-		resume_upload = db.query(ResumeUpload).filter(ResumeUpload.id == upload_id, ResumeUpload.user_id == current_user.id).first()
+		result = await db.execute(select(ResumeUpload).where(ResumeUpload.id == upload_id, ResumeUpload.user_id == current_user.id))
+
+		resume_upload = result.scalar_one_or_none()
 
 		if not resume_upload:
 			raise HTTPException(status_code=404, detail="Resume upload not found")
@@ -155,13 +159,15 @@ async def get_parsing_status(upload_id: int, current_user: User = Depends(get_cu
 
 
 @router.get("/{upload_id}/suggestions", response_model=ProfileUpdateSuggestions)
-async def get_profile_suggestions(upload_id: int, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+async def get_profile_suggestions(upload_id: int, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
 	"""
 	Get profile update suggestions based on parsed resume data
 	"""
 	try:
 		# Get the resume upload record
-		resume_upload = db.query(ResumeUpload).filter(ResumeUpload.id == upload_id, ResumeUpload.user_id == current_user.id).first()
+		result = await db.execute(select(ResumeUpload).where(ResumeUpload.id == upload_id, ResumeUpload.user_id == current_user.id))
+
+		resume_upload = result.scalar_one_or_none()
 
 		if not resume_upload:
 			raise HTTPException(status_code=404, detail="Resume upload not found")
@@ -186,14 +192,16 @@ async def get_profile_suggestions(upload_id: int, current_user: User = Depends(g
 
 @router.post("/{upload_id}/apply-suggestions")
 async def apply_profile_suggestions(
-	upload_id: int, request: ResumeParsingRequest, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)
+	upload_id: int, request: ResumeParsingRequest, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)
 ):
 	"""
 	Apply profile update suggestions from parsed resume data
 	"""
 	try:
 		# Get the resume upload record
-		resume_upload = db.query(ResumeUpload).filter(ResumeUpload.id == upload_id, ResumeUpload.user_id == current_user.id).first()
+		result = await db.execute(select(ResumeUpload).where(ResumeUpload.id == upload_id, ResumeUpload.user_id == current_user.id))
+
+		resume_upload = result.scalar_one_or_none()
 
 		if not resume_upload:
 			raise HTTPException(status_code=404, detail="Resume upload not found")
@@ -222,7 +230,7 @@ async def apply_profile_suggestions(
 				current_user.experience_level = suggestions["experience_level_suggestion"]
 				updates_applied["experience_level"] = suggestions["experience_level_suggestion"]
 
-			db.commit()
+			await db.commit()
 
 			logger.info(f"Applied profile suggestions for user {current_user.id}: {updates_applied}")
 
@@ -244,10 +252,12 @@ async def parse_resume_background(upload_id: int, file_path: str, filename: str,
 	db = next(get_db())
 	try:
 		# Update status to processing
-		resume_upload = db.query(ResumeUpload).filter(ResumeUpload.id == upload_id).first()
+		result = await db.execute(select(ResumeUpload).where(ResumeUpload.id == upload_id))
+
+		resume_upload = result.scalar_one_or_none()
 		if resume_upload:
 			resume_upload.parsing_status = "processing"
-			db.commit()
+			await db.commit()
 
 		# Parse the resume
 		parsed_data = await resume_parser.parse_resume(file_path, filename, user_id)
@@ -259,7 +269,7 @@ async def parse_resume_background(upload_id: int, file_path: str, filename: str,
 			resume_upload.extracted_skills = parsed_data.get("skills", [])
 			resume_upload.extracted_experience = parsed_data.get("experience_level")
 			resume_upload.extracted_contact_info = parsed_data.get("contact_info", {})
-			db.commit()
+			await db.commit()
 
 		logger.info(f"Resume parsing completed for upload {upload_id}")
 
@@ -270,7 +280,7 @@ async def parse_resume_background(upload_id: int, file_path: str, filename: str,
 		if resume_upload:
 			resume_upload.parsing_status = "failed"
 			resume_upload.parsing_error = str(e)
-			db.commit()
+			await db.commit()
 
 	finally:
 		db.close()
@@ -319,7 +329,7 @@ async def test_job_description_parsing(url: str, current_user: User = Depends(ge
 
 
 @router.post("/content/generate", response_model=ContentGenerationResponse)
-async def generate_content(request: ContentGenerationRequest, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+async def generate_content(request: ContentGenerationRequest, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
 	"""
 	Generate personalized content (cover letters, resume tailoring, email templates)
 	"""
@@ -327,7 +337,9 @@ async def generate_content(request: ContentGenerationRequest, current_user: User
 		# Get job if job_id is provided
 		job = None
 		if request.job_id:
-			job = db.query(Job).filter(Job.id == request.job_id, Job.user_id == current_user.id).first()
+			result = await db.execute(select(Job).where(Job.id == request.job_id, Job.user_id == current_user.id))
+
+			job = result.scalar_one_or_none()
 
 			if not job:
 				raise HTTPException(status_code=404, detail="Job not found")
@@ -385,12 +397,14 @@ async def generate_content(request: ContentGenerationRequest, current_user: User
 
 
 @router.get("/content/{content_id}", response_model=ContentResponse)
-async def get_content(content_id: int, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+async def get_content(content_id: int, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
 	"""
 	Get generated content by ID
 	"""
 	try:
-		content = db.query(ContentGeneration).filter(ContentGeneration.id == content_id, ContentGeneration.user_id == current_user.id).first()
+		result = await db.execute(select(ContentGeneration).where(ContentGeneration.id == content_id, ContentGeneration.user_id == current_user.id))
+
+		content = result.scalar_one_or_none()
 
 		if not content:
 			raise HTTPException(status_code=404, detail="Content not found")
@@ -419,13 +433,15 @@ async def get_content(content_id: int, current_user: User = Depends(get_current_
 
 @router.put("/content/{content_id}", response_model=ContentResponse)
 async def update_content(
-	content_id: int, request: ContentUpdateRequest, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)
+	content_id: int, request: ContentUpdateRequest, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)
 ):
 	"""
 	Update generated content with user modifications
 	"""
 	try:
-		content = db.query(ContentGeneration).filter(ContentGeneration.id == content_id, ContentGeneration.user_id == current_user.id).first()
+		result = await db.execute(select(ContentGeneration).where(ContentGeneration.id == content_id, ContentGeneration.user_id == current_user.id))
+
+		content = result.scalar_one_or_none()
 
 		if not content:
 			raise HTTPException(status_code=404, detail="Content not found")
@@ -434,8 +450,8 @@ async def update_content(
 		content.user_modifications = request.user_modifications
 		content.status = request.status
 
-		db.commit()
-		db.refresh(content)
+		await db.commit()
+		await db.refresh(content)
 
 		logger.info(f"Updated content {content_id} for user {current_user.id}")
 
@@ -463,7 +479,7 @@ async def update_content(
 
 @router.get("/content/user/{user_id}")
 async def get_user_content(
-	user_id: int, content_type: str | None = None, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)
+	user_id: int, content_type: str | None = None, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)
 ):
 	"""
 	Get all content generated by a user (only accessible by the user themselves)
@@ -473,12 +489,13 @@ async def get_user_content(
 		if user_id != current_user.id:
 			raise HTTPException(status_code=403, detail="Access denied")
 
-		query = db.query(ContentGeneration).filter(ContentGeneration.user_id == user_id)
+		stmt = select(ContentGeneration).where(ContentGeneration.user_id == user_id)
 
 		if content_type:
-			query = query.filter(ContentGeneration.content_type == content_type)
+			stmt = stmt.where(ContentGeneration.content_type == content_type)
 
-		content_list = query.order_by(ContentGeneration.created_at.desc()).all()
+		result = await db.execute(stmt.order_by(ContentGeneration.created_at.desc()))
+		content_list = result.scalars().all()
 
 		return {
 			"content": [
@@ -502,13 +519,15 @@ async def get_user_content(
 
 
 @router.get("/content/{content_id}/versions")
-async def get_content_versions(content_id: int, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+async def get_content_versions(content_id: int, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
 	"""
 	Get all versions of a content generation
 	"""
 	try:
 		# Verify content belongs to user
-		content = db.query(ContentGeneration).filter(ContentGeneration.id == content_id, ContentGeneration.user_id == current_user.id).first()
+		result = await db.execute(select(ContentGeneration).where(ContentGeneration.id == content_id, ContentGeneration.user_id == current_user.id))
+
+		content = result.scalar_one_or_none()
 
 		if not content:
 			raise HTTPException(status_code=404, detail="Content not found")
@@ -539,13 +558,15 @@ async def get_content_versions(content_id: int, current_user: User = Depends(get
 
 
 @router.post("/content/{content_id}/rollback/{version_number}")
-async def rollback_content(content_id: int, version_number: int, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+async def rollback_content(content_id: int, version_number: int, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
 	"""
 	Rollback content to a specific version
 	"""
 	try:
 		# Verify content belongs to user
-		content = db.query(ContentGeneration).filter(ContentGeneration.id == content_id, ContentGeneration.user_id == current_user.id).first()
+		result = await db.execute(select(ContentGeneration).where(ContentGeneration.id == content_id, ContentGeneration.user_id == current_user.id))
+
+		content = result.scalar_one_or_none()
 
 		if not content:
 			raise HTTPException(status_code=404, detail="Content not found")
@@ -570,13 +591,15 @@ async def rollback_content(content_id: int, version_number: int, current_user: U
 
 
 @router.get("/content/{content_id}/suggestions")
-async def get_template_suggestions(content_id: int, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+async def get_template_suggestions(content_id: int, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
 	"""
 	Get template suggestions for content based on job and user context
 	"""
 	try:
 		# Get content and associated job
-		content = db.query(ContentGeneration).filter(ContentGeneration.id == content_id, ContentGeneration.user_id == current_user.id).first()
+		result = await db.execute(select(ContentGeneration).where(ContentGeneration.id == content_id, ContentGeneration.user_id == current_user.id))
+
+		content = result.scalar_one_or_none()
 
 		if not content:
 			raise HTTPException(status_code=404, detail="Content not found")
@@ -584,7 +607,10 @@ async def get_template_suggestions(content_id: int, current_user: User = Depends
 		if not content.job_id:
 			raise HTTPException(status_code=400, detail="Content must be associated with a job for suggestions")
 
-		job = db.query(Job).filter(Job.id == content.job_id).first()
+		result = await db.execute(select(Job).where(Job.id == content.job_id))
+
+
+		job = result.scalar_one_or_none()
 		if not job:
 			raise HTTPException(status_code=404, detail="Associated job not found")
 
@@ -602,14 +628,16 @@ async def get_template_suggestions(content_id: int, current_user: User = Depends
 
 @router.post("/content/{content_id}/track-modifications")
 async def track_content_modifications(
-	content_id: int, request: ContentUpdateRequest, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)
+	content_id: int, request: ContentUpdateRequest, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)
 ):
 	"""
 	Track user modifications to content for learning purposes
 	"""
 	try:
 		# Get content
-		content = db.query(ContentGeneration).filter(ContentGeneration.id == content_id, ContentGeneration.user_id == current_user.id).first()
+		result = await db.execute(select(ContentGeneration).where(ContentGeneration.id == content_id, ContentGeneration.user_id == current_user.id))
+
+		content = result.scalar_one_or_none()
 
 		if not content:
 			raise HTTPException(status_code=404, detail="Content not found")
@@ -628,13 +656,15 @@ async def track_content_modifications(
 
 
 @router.post("/content/{content_id}/analyze-quality")
-async def analyze_content_quality(content_id: int, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+async def analyze_content_quality(content_id: int, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
 	"""
 	Analyze content quality and provide scoring and suggestions
 	"""
 	try:
 		# Get content
-		content = db.query(ContentGeneration).filter(ContentGeneration.id == content_id, ContentGeneration.user_id == current_user.id).first()
+		result = await db.execute(select(ContentGeneration).where(ContentGeneration.id == content_id, ContentGeneration.user_id == current_user.id))
+
+		content = result.scalar_one_or_none()
 
 		if not content:
 			raise HTTPException(status_code=404, detail="Content not found")
@@ -642,7 +672,9 @@ async def analyze_content_quality(content_id: int, current_user: User = Depends(
 		# Get job keywords if available
 		job_keywords = []
 		if content.job_id:
-			job = db.query(Job).filter(Job.id == content.job_id).first()
+			result = await db.execute(select(Job).where(Job.id == content.job_id))
+
+			job = result.scalar_one_or_none()
 			if job and job.tech_stack:
 				job_keywords = job.tech_stack
 
@@ -677,13 +709,15 @@ async def analyze_content_quality(content_id: int, current_user: User = Depends(
 
 
 @router.post("/content/{content_id}/check-grammar")
-async def check_content_grammar(content_id: int, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+async def check_content_grammar(content_id: int, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
 	"""
 	Check content for spelling and grammar issues
 	"""
 	try:
 		# Get content
-		content = db.query(ContentGeneration).filter(ContentGeneration.id == content_id, ContentGeneration.user_id == current_user.id).first()
+		result = await db.execute(select(ContentGeneration).where(ContentGeneration.id == content_id, ContentGeneration.user_id == current_user.id))
+
+		content = result.scalar_one_or_none()
 
 		if not content:
 			raise HTTPException(status_code=404, detail="Content not found")
@@ -701,7 +735,7 @@ async def check_content_grammar(content_id: int, current_user: User = Depends(ge
 
 
 @router.get("/content/{content_id}/export/{format_type}")
-async def export_content(content_id: int, format_type: str, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+async def export_content(content_id: int, format_type: str, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
 	"""
 	Export content in different formats (txt, html, markdown)
 	"""
@@ -711,7 +745,9 @@ async def export_content(content_id: int, format_type: str, current_user: User =
 			raise HTTPException(status_code=400, detail="Invalid format type. Supported: txt, html, markdown")
 
 		# Get content
-		content = db.query(ContentGeneration).filter(ContentGeneration.id == content_id, ContentGeneration.user_id == current_user.id).first()
+		result = await db.execute(select(ContentGeneration).where(ContentGeneration.id == content_id, ContentGeneration.user_id == current_user.id))
+
+		content = result.scalar_one_or_none()
 
 		if not content:
 			raise HTTPException(status_code=404, detail="Content not found")
@@ -737,7 +773,7 @@ async def export_content(content_id: int, format_type: str, current_user: User =
 
 @router.post("/content/preview")
 async def preview_content_with_quality(
-	request: ContentGenerationRequest, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)
+	request: ContentGenerationRequest, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)
 ):
 	"""
 	Generate content preview with quality analysis before saving
@@ -747,7 +783,9 @@ async def preview_content_with_quality(
 		job = None
 		job_keywords = []
 		if request.job_id:
-			job = db.query(Job).filter(Job.id == request.job_id, Job.user_id == current_user.id).first()
+			result = await db.execute(select(Job).where(Job.id == request.job_id, Job.user_id == current_user.id))
+
+			job = result.scalar_one_or_none()
 
 			if not job:
 				raise HTTPException(status_code=404, detail="Job not found")

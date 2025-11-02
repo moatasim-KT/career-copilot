@@ -8,14 +8,19 @@ This module consolidates functionality from:
 """
 
 from datetime import datetime, timezone
-from typing import List, Dict, Optional, Any
+from typing import Any, Dict, List, Optional
+
 from fastapi import APIRouter, Depends, HTTPException, Query
-from sqlalchemy.orm import Session
 from pydantic import BaseModel, Field
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from ...core.database import get_db
 from ...core.dependencies import get_current_user
 from ...schemas.skill_gap import SkillGapAnalysisResponse
+
+# NOTE: This file has been converted to use AsyncSession.
+# Database queries need to be converted to async: await db.execute(select(...)) instead of db.query(...)
 
 router = APIRouter(tags=["skill-gap"])
 
@@ -24,7 +29,7 @@ router = APIRouter(tags=["skill-gap"])
 
 
 @router.get("/api/v1/skill-gap", response_model=SkillGapAnalysisResponse)
-async def analyze_skill_gap(current_user=Depends(get_current_user), db: Session = Depends(get_db)):
+async def analyze_skill_gap(current_user=Depends(get_current_user), db: AsyncSession = Depends(get_db)):
 	"""Analyze user's skill gaps based on job market (basic endpoint)"""
 	try:
 		# Try to use the skill gap analyzer if available
@@ -37,7 +42,8 @@ async def analyze_skill_gap(current_user=Depends(get_current_user), db: Session 
 		except ImportError:
 			# Fallback to skill gap analysis service
 			try:
-				from ...services.skill_gap_analysis_service import skill_gap_analysis_service
+				from ...services.skill_gap_analysis_service import \
+				    skill_gap_analysis_service
 
 				analysis = skill_gap_analysis_service.get_comprehensive_skill_analysis(db=db, user_id=current_user.id, include_trends=False)
 
@@ -93,7 +99,7 @@ class SkillGapAnalysisResponseLocal(BaseModel):
 
 
 @router.get("/analysis", response_model=SkillGapAnalysisResponseLocal)
-async def get_skill_gap_analysis(request: SkillGapRequest = Depends(), current_user=Depends(get_current_user), db: Session = Depends(get_db)):
+async def get_skill_gap_analysis(request: SkillGapRequest = Depends(), current_user=Depends(get_current_user), db: AsyncSession = Depends(get_db)):
 	"""
 	Get comprehensive skill gap analysis for the current user
 
@@ -106,7 +112,8 @@ async def get_skill_gap_analysis(request: SkillGapRequest = Depends(), current_u
 	try:
 		# Try to use skill gap analysis service if available
 		try:
-			from ...services.skill_gap_analysis_service import skill_gap_analysis_service
+			from ...services.skill_gap_analysis_service import \
+			    skill_gap_analysis_service
 
 			analysis = skill_gap_analysis_service.get_comprehensive_skill_analysis(
 				db=db, user_id=current_user.id, include_trends=request.include_trends
@@ -163,7 +170,7 @@ async def get_skill_gap_analysis(request: SkillGapRequest = Depends(), current_u
 async def get_market_trends(
 	days_back: int = Query(default=90, ge=7, le=365, description="Days of data to analyze"),
 	current_user=Depends(get_current_user),
-	db: Session = Depends(get_db),
+	db: AsyncSession = Depends(get_db),
 ):
 	"""
 	Get current market trends for skills and technologies
@@ -177,7 +184,8 @@ async def get_market_trends(
 	try:
 		# Try to use skill gap analysis service if available
 		try:
-			from ...services.skill_gap_analysis_service import skill_gap_analysis_service
+			from ...services.skill_gap_analysis_service import \
+			    skill_gap_analysis_service
 
 			trends = skill_gap_analysis_service.analyze_market_trends(db=db, days_back=days_back)
 			return trends
@@ -213,7 +221,7 @@ async def get_learning_recommendations(
 	skill_focus: Optional[str] = Query(default=None, description="Focus on specific skill area"),
 	priority_level: str = Query(default="all", pattern="^(high|medium|low|all)$"),
 	current_user=Depends(get_current_user),
-	db: Session = Depends(get_db),
+	db: AsyncSession = Depends(get_db),
 ):
 	"""
 	Get personalized learning recommendations based on skill gaps
@@ -227,7 +235,8 @@ async def get_learning_recommendations(
 	try:
 		# Try to use skill gap analysis service if available
 		try:
-			from ...services.skill_gap_analysis_service import skill_gap_analysis_service
+			from ...services.skill_gap_analysis_service import \
+			    skill_gap_analysis_service
 
 			analysis = skill_gap_analysis_service.get_comprehensive_skill_analysis(db=db, user_id=current_user.id, include_trends=False)
 
@@ -286,7 +295,7 @@ async def get_skill_frequency_analysis(
 	sort_by: str = Query(default="market_score", pattern="^(frequency|market_score|avg_salary)$"),
 	limit: int = Query(default=20, ge=1, le=100),
 	current_user=Depends(get_current_user),
-	db: Session = Depends(get_db),
+	db: AsyncSession = Depends(get_db),
 ):
 	"""
 	Get skill frequency analysis across job market
@@ -300,18 +309,23 @@ async def get_skill_frequency_analysis(
 	try:
 		# Try to get job model and analyze skills
 		try:
-			from ...models.job import Job
 			from datetime import timedelta
 
+			from ...models.job import Job
+
 			# Get recent jobs
-			recent_jobs = db.query(Job).filter(Job.status == "active", Job.date_posted >= datetime.now() - timedelta(days=60)).limit(1000).all()
+			result = await db.execute(
+				select(Job).where(Job.status == "active", Job.date_posted >= datetime.now() - timedelta(days=60)).limit(1000)
+			)
+			recent_jobs = result.scalars().all()
 
 			if not recent_jobs:
 				raise HTTPException(status_code=404, detail="No recent jobs found for analysis")
 
 			# Try to use skill gap analysis service
 			try:
-				from ...services.skill_gap_analysis_service import skill_gap_analysis_service
+				from ...services.skill_gap_analysis_service import \
+				    skill_gap_analysis_service
 
 				skill_data = skill_gap_analysis_service.extract_skills_from_jobs(recent_jobs)
 				market_analysis = skill_gap_analysis_service.analyze_skill_frequency(skill_data)
@@ -374,7 +388,7 @@ async def get_skill_frequency_analysis(
 
 
 @router.get("/skill-coverage")
-async def get_user_skill_coverage(current_user=Depends(get_current_user), db: Session = Depends(get_db)):
+async def get_user_skill_coverage(current_user=Depends(get_current_user), db: AsyncSession = Depends(get_db)):
 	"""
 	Get user's skill coverage analysis compared to market demand
 
@@ -395,12 +409,17 @@ async def get_user_skill_coverage(current_user=Depends(get_current_user), db: Se
 
 		# Try to analyze skill coverage
 		try:
-			from ...models.job import Job
-			from ...services.skill_gap_analysis_service import skill_gap_analysis_service
 			from datetime import timedelta
 
+			from ...models.job import Job
+			from ...services.skill_gap_analysis_service import \
+			    skill_gap_analysis_service
+
 			# Get recent jobs for market analysis
-			recent_jobs = db.query(Job).filter(Job.status == "active", Job.date_posted >= datetime.now() - timedelta(days=60)).limit(500).all()
+			result = await db.execute(
+				select(Job).where(Job.status == "active", Job.date_posted >= datetime.now() - timedelta(days=60)).limit(500)
+			)
+			recent_jobs = result.scalars().all()
 
 			if not recent_jobs:
 				raise HTTPException(status_code=404, detail="No recent jobs found for analysis")
@@ -467,7 +486,7 @@ async def update_learning_progress(
 	progress_percentage: int = Query(..., ge=0, le=100),
 	notes: Optional[str] = Query(default=None, max_length=500),
 	current_user=Depends(get_current_user),
-	db: Session = Depends(get_db),
+	db: AsyncSession = Depends(get_db),
 ):
 	"""
 	Update learning progress for a specific skill

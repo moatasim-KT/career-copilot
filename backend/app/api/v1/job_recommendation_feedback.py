@@ -8,19 +8,21 @@ from app.core.database import get_db
 from app.core.dependencies import get_current_user
 from app.models.user import User
 from app.schemas.job_recommendation_feedback import (
-	JobRecommendationFeedbackCreate,
-	JobRecommendationFeedbackResponse,
-)
+    JobRecommendationFeedbackCreate, JobRecommendationFeedbackResponse)
 from app.services.job_recommendation_service import JobRecommendationService
 from fastapi import APIRouter, Depends, HTTPException, Query, status
-from sqlalchemy.orm import Session
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+
+# NOTE: This file has been converted to use AsyncSession.
+# Database queries need to be converted to async: await db.execute(select(...)) instead of db.query(...)
 
 router = APIRouter()
 
 
 @router.post("/job-recommendation-feedback", response_model=JobRecommendationFeedbackResponse, status_code=status.HTTP_201_CREATED)
 async def create_job_recommendation_feedback(
-	feedback_data: JobRecommendationFeedbackCreate, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)
+	feedback_data: JobRecommendationFeedbackCreate, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)
 ):
 	"""Create job recommendation feedback"""
 	try:
@@ -32,12 +34,13 @@ async def create_job_recommendation_feedback(
 
 @router.get("/job-recommendation-feedback", response_model=List[JobRecommendationFeedbackResponse])
 async def get_user_job_recommendation_feedback(
-	limit: int = Query(50, ge=1, le=100), offset: int = Query(0, ge=0), current_user: User = Depends(get_current_user), db: Session = Depends(get_db)
+	limit: int = Query(50, ge=1, le=100), offset: int = Query(0, ge=0), current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)
 ):
 	"""Get user's job recommendation feedback"""
-	feedback_items = (
-		db.query(JobRecommendationFeedback).filter(JobRecommendationFeedback.user_id == current_user.id).offset(offset).limit(limit).all()
+	result = await db.execute(
+		select(JobRecommendationFeedback).where(JobRecommendationFeedback.user_id == current_user.id).offset(offset).limit(limit)
 	)
+	feedback_items = result.scalars().all()
 	return feedback_items
 
 
@@ -48,7 +51,7 @@ async def quick_job_feedback(
 	is_helpful: bool = Query(..., description="True for thumbs up, False for thumbs down"),
 	comment: Optional[str] = Query(None, max_length=1000),
 	current_user: User = Depends(get_current_user),
-	db: Session = Depends(get_db),
+	db: AsyncSession = Depends(get_db),
 ):
 	"""Quick endpoint for providing thumbs up/down feedback on a job recommendation"""
 	feedback_service = JobRecommendationFeedbackService(db)

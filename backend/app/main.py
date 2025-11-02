@@ -22,6 +22,44 @@ from sqlalchemy.orm import Session
 logger = get_logger(__name__)
 
 
+from contextlib import asynccontextmanager
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    logger.info("🚀 Career Copilot API starting...")
+    logger.info(f"🌐 Running on {get_settings().api_host}:{get_settings().api_port}")
+
+    # Initialize database
+    from .core.database import init_db
+    init_db()
+    logger.info("✅ Database initialized")
+
+    # Initialize cache service
+    from .services.cache_service import cache_service
+    if cache_service.enabled:
+        logger.info("✅ Redis cache service initialized")
+    else:
+        logger.warning("⚠️ Redis cache service disabled")
+
+    # Start scheduler
+    if get_settings().enable_scheduler:
+        from .tasks.scheduled_tasks import start_scheduler
+        start_scheduler()
+        logger.info("✅ Scheduler started")
+
+    # Initialize Celery (workers should be started separately)
+    logger.info("✅ Celery application configured")
+    
+    yield
+    
+    logger.info("🛑 Career Copilot API shutting down...")
+    # Shutdown scheduler
+    if get_settings().enable_scheduler:
+        from .tasks.scheduled_tasks import shutdown_scheduler
+        shutdown_scheduler()
+        logger.info("✅ Scheduler shut down")
+
 def create_app() -> FastAPI:
 	"""Create and configure the FastAPI application."""
 
@@ -41,7 +79,7 @@ def create_app() -> FastAPI:
 	logger.info("-----------------------------")
 
 	# Create FastAPI application
-	app = FastAPI(title="Career Copilot API", description="AI-powered job application tracking and career management system", version="1.0.0")
+	app = FastAPI(title="Career Copilot API", description="AI-powered job application tracking and career management system", version="1.0.0", lifespan=lifespan)
 
 	# CORS configuration
 	if isinstance(settings.cors_origins, str):
@@ -168,8 +206,8 @@ def create_app() -> FastAPI:
 
 	# Include routers
 	from .api.v1 import (advanced_user_analytics, analytics, applications, auth,
-	                     database_performance, feedback_analysis, groq, health,
-	                     job_recommendation_feedback, job_sources, jobs,
+	                     dashboard, database_performance, feedback_analysis, groq,
+	                     health, job_recommendation_feedback, job_sources, jobs,
 	                     linkedin_jobs, market_analysis, profile, recommendations,
 	                     scheduled_reports, skill_gap_analysis, tasks)
 
@@ -179,6 +217,7 @@ def create_app() -> FastAPI:
 	app.include_router(jobs.router)
 	app.include_router(job_sources.router)
 	app.include_router(analytics.router)
+	app.include_router(dashboard.router)
 	app.include_router(recommendations.router)
 	app.include_router(skill_gap_analysis.router)
 	app.include_router(applications.router)
@@ -197,46 +236,7 @@ def create_app() -> FastAPI:
 
 	app.include_router(interview.router)
 
-	@app.on_event("startup")
-	async def startup_event():
-		logger.info("🚀 Career Copilot API starting...")
-		logger.info(f"🌐 Running on {settings.api_host}:{settings.api_port}")
 
-		# Initialize database
-		from .core.database import init_db
-
-		init_db()
-		logger.info("✅ Database initialized")
-
-		# Initialize cache service
-		from .services.cache_service import cache_service
-
-		if cache_service.enabled:
-			logger.info("✅ Redis cache service initialized")
-		else:
-			logger.warning("⚠️ Redis cache service disabled")
-
-		# Start scheduler
-		if settings.enable_scheduler:
-			from .tasks.scheduled_tasks import start_scheduler
-
-			start_scheduler()
-			logger.info("✅ Scheduler started")
-
-		# Initialize Celery (workers should be started separately)
-
-		logger.info("✅ Celery application configured")
-
-	@app.on_event("shutdown")
-	async def shutdown_event():
-		logger.info("🛑 Career Copilot API shutting down...")
-
-		# Shutdown scheduler
-		if settings.enable_scheduler:
-			from .tasks.scheduled_tasks import shutdown_scheduler
-
-			shutdown_scheduler()
-			logger.info("✅ Scheduler shut down")
 
 	return app
 

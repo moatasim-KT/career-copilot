@@ -4,13 +4,17 @@ API endpoints for notification management
 
 from typing import Dict, List, Any
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select
 from pydantic import BaseModel, Field
 
 from ...core.database import get_db
 from ...core.auth import get_current_user
 from ...models.user import User
 from ...services.scheduled_notification_service import scheduled_notification_service
+
+# NOTE: This file has been converted to use AsyncSession.
+# Database queries need to be converted to async: await db.execute(select(...)) instead of db.query(...)
 
 router = APIRouter(prefix="/notifications", tags=["notifications"])
 
@@ -41,7 +45,7 @@ class OptInRequest(BaseModel):
 
 
 @router.get("/preferences")
-async def get_notification_preferences(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)) -> Dict[str, Any]:
+async def get_notification_preferences(current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)) -> Dict[str, Any]:
 	"""Get current user's notification preferences"""
 
 	result = await scheduled_notification_service.get_user_notification_preferences(user_id=current_user.id, db=db)
@@ -54,7 +58,7 @@ async def get_notification_preferences(current_user: User = Depends(get_current_
 
 @router.put("/preferences")
 async def update_notification_preferences(
-	preferences: NotificationPreferences, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)
+	preferences: NotificationPreferences, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)
 ) -> Dict[str, Any]:
 	"""Update user's notification preferences"""
 
@@ -68,7 +72,7 @@ async def update_notification_preferences(
 
 @router.post("/opt-out")
 async def opt_out_notifications(
-	request: OptOutRequest, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)
+	request: OptOutRequest, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)
 ) -> Dict[str, Any]:
 	"""Opt user out of specific notification types"""
 
@@ -89,7 +93,7 @@ async def opt_out_notifications(
 
 @router.post("/opt-in")
 async def opt_in_notifications(
-	request: OptInRequest, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)
+	request: OptInRequest, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)
 ) -> Dict[str, Any]:
 	"""Opt user back into specific notification types"""
 
@@ -105,7 +109,7 @@ async def opt_in_notifications(
 
 
 @router.post("/test/morning-briefing")
-async def test_morning_briefing(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)) -> Dict[str, Any]:
+async def test_morning_briefing(current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)) -> Dict[str, Any]:
 	"""Send a test morning briefing to the current user"""
 
 	result = await scheduled_notification_service.send_morning_briefing(
@@ -126,7 +130,7 @@ async def test_morning_briefing(current_user: User = Depends(get_current_user), 
 
 
 @router.post("/test/evening-update")
-async def test_evening_update(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)) -> Dict[str, Any]:
+async def test_evening_update(current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)) -> Dict[str, Any]:
 	"""Send a test evening update to the current user"""
 
 	result = await scheduled_notification_service.send_evening_update(
@@ -147,7 +151,7 @@ async def test_evening_update(current_user: User = Depends(get_current_user), db
 
 
 @router.get("/statistics")
-async def get_notification_statistics(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)) -> Dict[str, Any]:
+async def get_notification_statistics(current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)) -> Dict[str, Any]:
 	"""Get notification statistics (admin only)"""
 
 	# Check if user is admin (simplified check)

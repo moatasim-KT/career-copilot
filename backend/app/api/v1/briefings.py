@@ -6,7 +6,8 @@ import logging
 from typing import Dict, Any, Optional
 from datetime import datetime, time
 from fastapi import APIRouter, Depends, HTTPException, Query
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select
 from pydantic import BaseModel, Field
 
 from ...core.database import get_db
@@ -16,6 +17,9 @@ from ...services.briefing_service import briefing_service
 from ...tasks.email_tasks import send_morning_briefing_task, send_evening_summary_task, track_email_engagement
 
 logger = logging.getLogger(__name__)
+
+# NOTE: This file has been converted to use AsyncSession.
+# Database queries need to be converted to async: await db.execute(select(...)) instead of db.query(...)
 
 router = APIRouter(prefix="/briefings", tags=["briefings"])
 
@@ -38,7 +42,7 @@ class EmailEngagement(BaseModel):
 
 
 @router.get("/preferences")
-async def get_briefing_preferences(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)) -> Dict[str, Any]:
+async def get_briefing_preferences(current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)) -> Dict[str, Any]:
 	"""
 	Get user's briefing preferences and optimal timing
 	"""
@@ -68,7 +72,7 @@ async def get_briefing_preferences(current_user: User = Depends(get_current_user
 
 @router.put("/preferences")
 async def update_briefing_preferences(
-	preferences: BriefingPreferences, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)
+	preferences: BriefingPreferences, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)
 ) -> Dict[str, Any]:
 	"""
 	Update user's briefing preferences
@@ -107,7 +111,7 @@ async def update_briefing_preferences(
 		# Mark settings as modified for SQLAlchemy
 		current_user.settings = current_user.settings.copy()
 
-		db.commit()
+		await db.commit()
 
 		logger.info(f"Updated briefing preferences for user {current_user.id}")
 
@@ -192,7 +196,7 @@ async def track_engagement(engagement: EmailEngagement, current_user: User = Dep
 
 
 @router.get("/preview/morning-briefing")
-async def preview_morning_briefing(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)) -> Dict[str, Any]:
+async def preview_morning_briefing(current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)) -> Dict[str, Any]:
 	"""
 	Preview morning briefing content without sending email
 	"""
@@ -208,7 +212,7 @@ async def preview_morning_briefing(current_user: User = Depends(get_current_user
 
 
 @router.get("/preview/evening-summary")
-async def preview_evening_summary(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)) -> Dict[str, Any]:
+async def preview_evening_summary(current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)) -> Dict[str, Any]:
 	"""
 	Preview evening summary content without sending email
 	"""
@@ -226,7 +230,7 @@ async def preview_evening_summary(current_user: User = Depends(get_current_user)
 @router.get("/analytics")
 async def get_briefing_analytics(
 	current_user: User = Depends(get_current_user),
-	db: Session = Depends(get_db),
+	db: AsyncSession = Depends(get_db),
 	days: int = Query(default=30, ge=1, le=90, description="Number of days to analyze"),
 ) -> Dict[str, Any]:
 	"""
@@ -265,11 +269,14 @@ async def _get_engagement_stats(db: Session, user_id: int, days: int = 30) -> Di
 		cutoff_date = datetime.now() - timedelta(days=days)
 
 		# Get engagement data
-		engagement_data = (
-			db.query(Analytics)
-			.filter(Analytics.user_id == user_id, Analytics.type == "email_engagement", Analytics.generated_at >= cutoff_date)
-			.all()
+		result = await db.execute(
+			select(Analytics).where(
+				Analytics.user_id == user_id,
+				Analytics.type == "email_engagement",
+				Analytics.generated_at >= cutoff_date
+			)
 		)
+		engagement_data = result.scalars().all()
 
 		if not engagement_data:
 			return {

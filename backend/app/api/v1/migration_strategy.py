@@ -4,7 +4,8 @@ API endpoints for data migration strategies
 
 from typing import Dict, List, Any, Optional
 from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select
 from pydantic import BaseModel, Field
 from datetime import datetime, timezone
 
@@ -16,6 +17,9 @@ from app.services.sharding_migration_strategy_service import (
 	MigrationStrategy,
 	MigrationPlan,
 )
+
+# NOTE: This file has been converted to use AsyncSession.
+# Database queries need to be converted to async: await db.execute(select(...)) instead of db.query(...)
 
 router = APIRouter()
 
@@ -87,7 +91,7 @@ class SystemStatsRequest(BaseModel):
 
 
 @router.get("/strategies", response_model=List[Dict[str, Any]])
-async def list_migration_strategies(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+async def list_migration_strategies(current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
 	"""List all available migration strategies"""
 
 	service = ShardingMigrationStrategyService(db)
@@ -97,7 +101,7 @@ async def list_migration_strategies(current_user: User = Depends(get_current_use
 
 
 @router.post("/validate-prerequisites")
-async def validate_migration_prerequisites(strategy: str, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+async def validate_migration_prerequisites(strategy: str, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
 	"""Validate prerequisites for a migration strategy"""
 
 	try:
@@ -113,7 +117,7 @@ async def validate_migration_prerequisites(strategy: str, current_user: User = D
 
 @router.post("/plan/sharding", response_model=MigrationPlanResponse)
 async def create_sharding_migration_plan(
-	config: ShardingConfigRequest, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)
+	config: ShardingConfigRequest, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)
 ):
 	"""Create a sharding migration plan"""
 
@@ -142,7 +146,7 @@ async def create_sharding_migration_plan(
 
 @router.post("/plan/encryption", response_model=MigrationPlanResponse)
 async def create_encryption_migration_plan(
-	config: EncryptionConfigRequest, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)
+	config: EncryptionConfigRequest, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)
 ):
 	"""Create an encryption migration plan"""
 
@@ -174,7 +178,7 @@ async def create_encryption_migration_plan(
 
 @router.post("/plan/version", response_model=MigrationPlanResponse)
 async def create_version_migration_plan(
-	config: VersionMigrationConfigRequest, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)
+	config: VersionMigrationConfigRequest, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)
 ):
 	"""Create a version migration plan"""
 
@@ -206,7 +210,7 @@ async def create_version_migration_plan(
 
 @router.post("/plan/combined", response_model=MigrationPlanResponse)
 async def create_combined_migration_plan(
-	config: CombinedMigrationRequest, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)
+	config: CombinedMigrationRequest, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)
 ):
 	"""Create a combined migration plan"""
 
@@ -250,7 +254,7 @@ async def create_combined_migration_plan(
 
 @router.post("/execute/{migration_id}")
 async def execute_migration(
-	migration_id: str, background_tasks: BackgroundTasks, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)
+	migration_id: str, background_tasks: BackgroundTasks, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)
 ):
 	"""Execute a migration plan"""
 
@@ -289,7 +293,7 @@ async def execute_migration(
 
 
 @router.get("/status/{migration_id}", response_model=Dict[str, Any])
-async def get_migration_status(migration_id: str, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+async def get_migration_status(migration_id: str, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
 	"""Get the status of a migration"""
 
 	service = ShardingMigrationStrategyService(db)
@@ -302,7 +306,7 @@ async def get_migration_status(migration_id: str, current_user: User = Depends(g
 
 
 @router.get("/result/{migration_id}")
-async def get_migration_result(migration_id: str, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+async def get_migration_result(migration_id: str, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
 	"""Get the result of a completed migration"""
 
 	from app.services.cache_service import cache_service
@@ -317,7 +321,7 @@ async def get_migration_result(migration_id: str, current_user: User = Depends(g
 
 @router.post("/recommendations")
 async def get_migration_recommendations(
-	system_stats: SystemStatsRequest, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)
+	system_stats: SystemStatsRequest, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)
 ):
 	"""Get migration strategy recommendations based on current system stats"""
 
@@ -338,7 +342,7 @@ async def get_migration_recommendations(
 
 
 @router.delete("/cancel/{migration_id}")
-async def cancel_migration(migration_id: str, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+async def cancel_migration(migration_id: str, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
 	"""Cancel an ongoing migration"""
 
 	from app.services.cache_service import cache_service
@@ -363,7 +367,7 @@ async def cancel_migration(migration_id: str, current_user: User = Depends(get_c
 
 @router.post("/rollback/{migration_id}")
 async def rollback_migration(
-	migration_id: str, background_tasks: BackgroundTasks, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)
+	migration_id: str, background_tasks: BackgroundTasks, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)
 ):
 	"""Rollback a completed migration"""
 
@@ -430,7 +434,7 @@ async def rollback_migration(
 
 
 @router.get("/rollback-status/{migration_id}")
-async def get_rollback_status(migration_id: str, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+async def get_rollback_status(migration_id: str, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
 	"""Get the status of a migration rollback"""
 
 	from app.services.cache_service import cache_service

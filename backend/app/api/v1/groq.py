@@ -135,7 +135,7 @@ async def reset_routing_metrics():
 
 # Monitor Endpoints
 @router.get("/monitor/dashboard")
-async def monitor_dashboard(time_range: str = Query(default="24h", regex="^(1h|24h|7d|30d)$")):
+async def monitor_dashboard(time_range: str = Query(default="24h", pattern="^(1h|24h|7d|30d)$")):
     """Get monitoring dashboard data"""
     try:
         monitor = get_groq_monitor()
@@ -147,7 +147,7 @@ async def monitor_dashboard(time_range: str = Query(default="24h", regex="^(1h|2
 
 
 @router.get("/monitor/cost-report")
-async def cost_report(period: str = Query(default="daily", regex="^(hourly|daily|weekly)$")):
+async def cost_report(period: str = Query(default="daily", pattern="^(hourly|daily|weekly)$")):
     """Get cost report"""
     try:
         monitor = get_groq_monitor()

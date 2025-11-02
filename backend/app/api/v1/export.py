@@ -3,19 +3,23 @@ Data export API endpoints
 """
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Response
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select
 
 from app.core.database import get_db
 from app.core.dependencies import get_current_user
 from app.models.user import User
 from app.services.export_service import export_service
 
+# NOTE: This file has been converted to use AsyncSession.
+# Database queries need to be converted to async: await db.execute(select(...)) instead of db.query(...)
+
 router = APIRouter()
 
 
 @router.get("/user-data")
 async def export_user_data(
-	format: str = Query("json", regex="^(json|csv)$"), current_user: User = Depends(get_current_user), db: Session = Depends(get_db)
+	format: str = Query("json", regex="^(json|csv)$"), current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)
 ):
 	"""Export all user data in specified format"""
 	result = export_service.export_user_data(db, current_user.id, format)
@@ -27,7 +31,7 @@ async def export_user_data(
 
 
 @router.get("/jobs/csv")
-async def export_jobs_csv(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+async def export_jobs_csv(current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
 	"""Export jobs as CSV file"""
 	csv_content = export_service.export_jobs_to_csv(db, current_user.id)
 
@@ -38,7 +42,7 @@ async def export_jobs_csv(current_user: User = Depends(get_current_user), db: Se
 
 
 @router.post("/import")
-async def import_user_data(data: dict, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+async def import_user_data(data: dict, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
 	"""Import user data from export"""
 	result = export_service.import_user_data(db, current_user.id, data)
 
@@ -49,7 +53,7 @@ async def import_user_data(data: dict, current_user: User = Depends(get_current_
 
 
 @router.get("/backup")
-async def create_backup_archive(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+async def create_backup_archive(current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
 	"""Create complete backup archive"""
 	result = export_service.create_backup_archive(db, current_user.id)
 
@@ -60,7 +64,7 @@ async def create_backup_archive(current_user: User = Depends(get_current_user), 
 
 
 @router.get("/migration")
-async def export_for_migration(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+async def export_for_migration(current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
 	"""Export data in migration-friendly format"""
 	result = export_service.export_for_migration(db, current_user.id)
 
@@ -71,7 +75,7 @@ async def export_for_migration(current_user: User = Depends(get_current_user), d
 
 
 @router.get("/offline-package")
-async def prepare_offline_package(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+async def prepare_offline_package(current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
 	"""Prepare comprehensive offline data package"""
 	result = export_service.prepare_offline_export(db, current_user.id)
 
@@ -85,7 +89,7 @@ async def prepare_offline_package(current_user: User = Depends(get_current_user)
 async def export_with_offline_support(
 	include_offline_data: bool = Query(True, description="Include offline functionality data"),
 	current_user: User = Depends(get_current_user),
-	db: Session = Depends(get_db),
+	db: AsyncSession = Depends(get_db),
 ):
 	"""Export data with offline functionality support"""
 	result = export_service.export_with_offline_support(db, current_user.id, include_offline_data)

@@ -8,7 +8,8 @@ import logging
 from typing import Any, Dict, List, Optional
 
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select
 
 from app.core.database import get_db
 from app.core.dependencies import get_current_user
@@ -16,6 +17,9 @@ from app.models.user import User
 from app.services import job_ingestion as job_ingestion_tasks
 
 logger = logging.getLogger(__name__)
+# NOTE: This file has been converted to use AsyncSession.
+# Database queries need to be converted to async: await db.execute(select(...)) instead of db.query(...)
+
 router = APIRouter()
 
 
@@ -24,7 +28,7 @@ async def trigger_job_ingestion(
 	background_tasks: BackgroundTasks,
 	max_jobs: int = 50,
 	current_user: User = Depends(get_current_user),
-	db: Session = Depends(get_db),
+	db: AsyncSession = Depends(get_db),
 ) -> Dict[str, Any]:
 	"""Queue ingestion for the current user via Celery."""
 	try:
@@ -49,7 +53,7 @@ async def trigger_job_ingestion(
 async def immediate_job_ingestion(
 	max_jobs: int = 25,
 	current_user: User = Depends(get_current_user),
-	db: Session = Depends(get_db),
+	db: AsyncSession = Depends(get_db),
 ) -> Dict[str, Any]:
 	"""Run ingestion synchronously for the current user."""
 	try:
@@ -63,7 +67,7 @@ async def immediate_job_ingestion(
 @router.get("/stats", response_model=Dict[str, Any])
 async def get_ingestion_stats(
 	current_user: User = Depends(get_current_user),
-	db: Session = Depends(get_db),
+	db: AsyncSession = Depends(get_db),
 ) -> Dict[str, Any]:
 	"""Return ingestion statistics for the current user."""
 	try:
@@ -79,7 +83,7 @@ async def test_job_ingestion(
 	keywords: str = "python, developer",
 	location: str = "remote",
 	current_user: User = Depends(get_current_user),
-	db: Session = Depends(get_db),
+	db: AsyncSession = Depends(get_db),
 ) -> Dict[str, Any]:
 	"""Perform a dry-run across external sources with the provided query."""
 	try:
@@ -96,7 +100,7 @@ async def trigger_ingestion_for_all_users(
 	max_jobs_per_user: int = 50,
 	user_ids: Optional[List[int]] = None,
 	current_user: User = Depends(get_current_user),
-	db: Session = Depends(get_db),
+	db: AsyncSession = Depends(get_db),
 ) -> Dict[str, Any]:
 	"""Queue ingestion for multiple users (admin helper)."""
 	# TODO: enforce admin permission check once RBAC is in place.
@@ -121,7 +125,7 @@ async def trigger_ingestion_for_all_users(
 @router.get("/test-all-sources", response_model=Dict[str, Any])
 async def test_all_sources(
 	current_user: User = Depends(get_current_user),
-	db: Session = Depends(get_db),
+	db: AsyncSession = Depends(get_db),
 ) -> Dict[str, Any]:
 	"""Verify external sources respond with data."""
 	try:

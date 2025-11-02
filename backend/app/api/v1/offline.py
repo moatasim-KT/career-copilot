@@ -5,12 +5,16 @@ Offline functionality API endpoints
 """
 
 from fastapi import APIRouter, Depends
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select
 
 from app.core.database import get_db
 from app.core.dependencies import get_current_user
 from app.models.user import User
 from app.services.offline_service import offline_service
+
+# NOTE: This file has been converted to use AsyncSession.
+# Database queries need to be converted to async: await db.execute(select(...)) instead of db.query(...)
 
 router = APIRouter()
 
@@ -22,7 +26,7 @@ async def get_offline_manifest(current_user: User = Depends(get_current_user)):
 
 
 @router.post("/prepare")
-async def prepare_offline_data(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+async def prepare_offline_data(current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
 	"""Prepare data for offline use"""
 	return offline_service.prepare_offline_data(current_user.id, db)
 
@@ -55,7 +59,7 @@ async def get_degradation_status():
 
 
 @router.post("/complete-offline")
-async def enable_complete_offline_mode(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+async def enable_complete_offline_mode(current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
 	"""Enable complete offline mode with all fallbacks"""
 	from app.services.graceful_degradation_service import graceful_degradation_service
 

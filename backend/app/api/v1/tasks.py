@@ -3,7 +3,8 @@ Task monitoring and management API endpoints
 """
 
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select
 from typing import List, Dict, Any, Optional
 from pydantic import BaseModel
 
@@ -14,6 +15,9 @@ from app.services.task_queue_manager import task_queue_manager
 from app.core.logging import get_logger
 
 logger = get_logger(__name__)
+
+# NOTE: This file has been converted to use AsyncSession.
+# Database queries need to be converted to async: await db.execute(select(...)) instead of db.query(...)
 
 router = APIRouter(prefix="/api/v1/tasks", tags=["tasks"])
 
@@ -72,7 +76,7 @@ async def get_task_status(task_id: str, current_user: User = Depends(get_current
 
 
 @router.get("/user/{user_id}", response_model=List[TaskStatusResponse])
-async def get_user_tasks(user_id: int, limit: int = 20, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+async def get_user_tasks(user_id: int, limit: int = 20, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
 	"""Get recent tasks for a specific user"""
 	# Check permission
 	if user_id != current_user.id:
@@ -100,7 +104,7 @@ async def get_my_tasks(limit: int = 20, current_user: User = Depends(get_current
 
 
 @router.post("/submit", response_model=TaskSubmissionResponse)
-async def submit_task(request: TaskSubmissionRequest, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+async def submit_task(request: TaskSubmissionRequest, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
 	"""Submit a new background task"""
 	try:
 		task_type = request.task_type

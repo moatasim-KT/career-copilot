@@ -2,23 +2,29 @@
 Dashboard API endpoints for real-time updates and polling fallback.
 """
 
-from fastapi import APIRouter, Depends, HTTPException, status, Query
-from sqlalchemy.orm import Session
 from datetime import datetime
 
+from fastapi import APIRouter, Depends, HTTPException, Query, status
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from ...core.database import get_db
-from ...core.auth import get_current_user, User
+from ...core.dependencies import get_current_user
+from ...core.logging import get_logger
+from ...models.user import User
 from ...services.dashboard_service import get_dashboard_service
 from ...services.websocket_service import websocket_service
-from ...core.logging import get_logger
 
 logger = get_logger(__name__)
+
+# NOTE: This file has been converted to use AsyncSession.
+# Database queries need to be converted to async: await db.execute(select(...)) instead of db.query(...)
 
 router = APIRouter()
 
 
-@router.get("/dashboard")
-async def get_dashboard_data(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+@router.get("/api/v1/dashboard")
+async def get_dashboard_data(current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
 	"""
 	Get complete dashboard data for the current user.
 
@@ -38,8 +44,8 @@ async def get_dashboard_data(current_user: User = Depends(get_current_user), db:
 		raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to get dashboard data")
 
 
-@router.get("/dashboard/analytics")
-async def get_dashboard_analytics(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+@router.get("/api/v1/dashboard/analytics")
+async def get_dashboard_analytics(current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
 	"""
 	Get analytics data for the dashboard.
 
@@ -50,7 +56,7 @@ async def get_dashboard_analytics(current_user: User = Depends(get_current_user)
 		from ...services.job_analytics_service import JobAnalyticsService
 
 		analytics_service = JobAnalyticsService(db)
-		analytics_data = analytics_service.get_summary_metrics(current_user)
+		analytics_data = await analytics_service.get_summary_metrics(current_user)
 
 		return {"success": True, "data": analytics_data, "last_updated": datetime.now().isoformat()}
 	except Exception as e:
@@ -58,9 +64,9 @@ async def get_dashboard_analytics(current_user: User = Depends(get_current_user)
 		raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to get analytics data")
 
 
-@router.get("/dashboard/recommendations")
+@router.get("/api/v1/dashboard/recommendations")
 async def get_dashboard_recommendations(
-	limit: int = Query(5, ge=1, le=20), current_user: User = Depends(get_current_user), db: Session = Depends(get_db)
+	limit: int = Query(5, ge=1, le=20), current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)
 ):
 	"""
 	Get job recommendations for the dashboard.
@@ -102,7 +108,7 @@ async def get_dashboard_recommendations(
 
 
 @router.get("/dashboard/recent-activity")
-async def get_recent_activity(limit: int = Query(10, ge=1, le=50), current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+async def get_recent_activity(limit: int = Query(10, ge=1, le=50), current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
 	"""
 	Get recent application activity for the dashboard.
 
@@ -116,14 +122,16 @@ async def get_recent_activity(limit: int = Query(10, ge=1, le=50), current_user:
 		from ...models.application import Application
 		from ...models.job import Job
 
-		recent_applications = (
-			db.query(Application).filter(Application.user_id == current_user.id).order_by(Application.updated_at.desc()).limit(limit).all()
+		result = await db.execute(
+			select(Application).where(Application.user_id == current_user.id).order_by(Application.updated_at.desc()).limit(limit)
 		)
+		recent_applications = result.scalars().all()
 
 		recent_activity = []
 		for app in recent_applications:
 			# Get job info
-			job = db.query(Job).filter(Job.id == app.job_id).first()
+			result = await db.execute(select(Job).where(Job.id == app.job_id))
+			job = result.scalar_one_or_none()
 
 			recent_activity.append(
 				{
@@ -145,7 +153,7 @@ async def get_recent_activity(limit: int = Query(10, ge=1, le=50), current_user:
 
 
 @router.post("/dashboard/refresh")
-async def refresh_dashboard(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+async def refresh_dashboard(current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
 	"""
 	Manually refresh dashboard data and broadcast update via WebSocket.
 

@@ -14,9 +14,9 @@ from datetime import datetime, timezone
 from typing import Dict, Optional, Any
 
 from fastapi import APIRouter, Depends, HTTPException, Query
-from sqlalchemy import text
+from sqlalchemy import select, text
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
 from pydantic import BaseModel
 
 from ...core.database import get_db
@@ -24,6 +24,9 @@ from ...core.auth import get_current_user
 from ...core.logging import get_logger
 
 logger = get_logger(__name__)
+# NOTE: This file has been converted to use AsyncSession.
+# Database queries need to be converted to async: await db.execute(select(...)) instead of db.query(...)
+
 router = APIRouter(prefix="/database-performance", tags=["Database Performance"])
 
 
@@ -202,7 +205,7 @@ async def optimize_query(query: str, current_user=Depends(get_current_user)):
 
 
 @router.post("/optimize/indexes", response_model=OptimizationResponse)
-async def create_performance_indexes(current_user=Depends(get_current_user), db: Session = Depends(get_db)):
+async def create_performance_indexes(current_user=Depends(get_current_user), db: AsyncSession = Depends(get_db)):
 	"""Create performance indexes for enhanced features (admin only)"""
 	# Check admin access
 	if not getattr(current_user, "is_superuser", False) and not getattr(current_user, "is_admin", False):
@@ -230,7 +233,7 @@ async def create_performance_indexes(current_user=Depends(get_current_user), db:
 
 
 @router.post("/optimize/queries", response_model=OptimizationResponse)
-async def optimize_queries(current_user=Depends(get_current_user), db: Session = Depends(get_db)):
+async def optimize_queries(current_user=Depends(get_current_user), db: AsyncSession = Depends(get_db)):
 	"""Optimize database queries (admin only)"""
 	# Check admin access
 	if not getattr(current_user, "is_superuser", False) and not getattr(current_user, "is_admin", False):
@@ -256,7 +259,7 @@ async def optimize_queries(current_user=Depends(get_current_user), db: Session =
 
 
 @router.get("/analyze/performance", response_model=OptimizationResponse)
-async def analyze_query_performance(current_user=Depends(get_current_user), db: Session = Depends(get_db)):
+async def analyze_query_performance(current_user=Depends(get_current_user), db: AsyncSession = Depends(get_db)):
 	"""Analyze query performance (admin only)"""
 	# Check admin access
 	if not getattr(current_user, "is_superuser", False) and not getattr(current_user, "is_admin", False):
@@ -308,7 +311,7 @@ async def analyze_connection_pooling(current_user=Depends(get_current_user)):
 
 
 @router.post("/cleanup")
-async def cleanup_old_data(days_old: int = 90, current_user=Depends(get_current_user), db: Session = Depends(get_db)):
+async def cleanup_old_data(days_old: int = 90, current_user=Depends(get_current_user), db: AsyncSession = Depends(get_db)):
 	"""Clean up old data to improve performance (admin only)"""
 	# Check admin access
 	if not getattr(current_user, "is_superuser", False) and not getattr(current_user, "is_admin", False):
@@ -339,7 +342,7 @@ async def cleanup_old_data(days_old: int = 90, current_user=Depends(get_current_
 
 
 @router.get("/stats", response_model=DatabaseStatsResponse)
-async def get_database_stats(current_user=Depends(get_current_user), db: Session = Depends(get_db)):
+async def get_database_stats(current_user=Depends(get_current_user), db: AsyncSession = Depends(get_db)):
 	"""Get database statistics and health metrics (admin only)"""
 	# Check admin access
 	if not getattr(current_user, "is_superuser", False) and not getattr(current_user, "is_admin", False):
@@ -365,7 +368,7 @@ async def get_database_stats(current_user=Depends(get_current_user), db: Session
 
 
 @router.post("/optimize/all", response_model=OptimizationResponse)
-async def optimize_all(current_user=Depends(get_current_user), db: Session = Depends(get_db)):
+async def optimize_all(current_user=Depends(get_current_user), db: AsyncSession = Depends(get_db)):
 	"""Run all database optimizations (admin only)"""
 	# Check admin access
 	if not getattr(current_user, "is_superuser", False) and not getattr(current_user, "is_admin", False):

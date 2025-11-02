@@ -1,7 +1,8 @@
 """API endpoints for interview practice"""
 
 from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select
 from typing import List
 from typing import List
 
@@ -19,6 +20,9 @@ from app.services.interview_practice_service import InterviewPracticeService
 from app.services.llm_service import LLMService
 from app.services.job_service import JobService
 
+# NOTE: This file has been converted to use AsyncSession.
+# Database queries need to be converted to async: await db.execute(select(...)) instead of db.query(...)
+
 router = APIRouter(
 	prefix="/api/v1/interview",
 	tags=["interview"],
@@ -26,7 +30,7 @@ router = APIRouter(
 )
 
 
-def get_interview_practice_service(db: Session = Depends(get_db)) -> InterviewPracticeService:
+def get_interview_practice_service(db: AsyncSession = Depends(get_db)) -> InterviewPracticeService:
 	ai_service_manager = LLMService()
 	job_service = JobService(db)
 	return InterviewPracticeService(db=db, ai_service_manager=ai_service_manager, job_service=job_service)
@@ -35,7 +39,7 @@ def get_interview_practice_service(db: Session = Depends(get_db)) -> InterviewPr
 @router.post("/sessions", response_model=InterviewSessionResponse)
 async def create_interview_session(
 	session_create: InterviewSessionCreate,
-	db: Session = Depends(get_db),
+	db: AsyncSession = Depends(get_db),
 	current_user: User = Depends(get_current_user),
 	interview_practice_service: InterviewPracticeService = Depends(get_interview_practice_service),
 ):
@@ -46,7 +50,7 @@ async def create_interview_session(
 @router.get("/sessions/{session_id}", response_model=InterviewSessionResponse)
 async def get_interview_session(
 	session_id: int,
-	db: Session = Depends(get_db),
+	db: AsyncSession = Depends(get_db),
 	current_user: User = Depends(get_current_user),
 	interview_practice_service: InterviewPracticeService = Depends(get_interview_practice_service),
 ):
@@ -61,7 +65,7 @@ async def get_interview_session(
 async def update_interview_session(
 	session_id: int,
 	session_update: InterviewSessionUpdate,
-	db: Session = Depends(get_db),
+	db: AsyncSession = Depends(get_db),
 	current_user: User = Depends(get_current_user),
 	interview_practice_service: InterviewPracticeService = Depends(get_interview_practice_service),
 ):
@@ -76,7 +80,7 @@ async def update_interview_session(
 async def add_question_to_session(
 	session_id: int,
 	question_create: InterviewQuestionCreate,
-	db: Session = Depends(get_db),
+	db: AsyncSession = Depends(get_db),
 	current_user: User = Depends(get_current_user),
 	interview_practice_service: InterviewPracticeService = Depends(get_interview_practice_service),
 ):
@@ -91,7 +95,7 @@ async def add_question_to_session(
 async def update_question(
 	question_id: int,
 	question_update: InterviewQuestionUpdate,
-	db: Session = Depends(get_db),
+	db: AsyncSession = Depends(get_db),
 	current_user: User = Depends(get_current_user),
 	interview_practice_service: InterviewPracticeService = Depends(get_interview_practice_service),
 ):
@@ -108,7 +112,7 @@ async def update_question(
 @router.post("/sessions/{session_id}/generate-question", response_model=InterviewQuestionResponse)
 async def generate_ai_question(
 	session_id: int,
-	db: Session = Depends(get_db),
+	db: AsyncSession = Depends(get_db),
 	current_user: User = Depends(get_current_user),
 	interview_practice_service: InterviewPracticeService = Depends(get_interview_practice_service),
 ):
@@ -122,7 +126,7 @@ async def generate_ai_question(
 @router.post("/questions/{question_id}/evaluate-answer", response_model=InterviewQuestionResponse)
 async def evaluate_answer(
 	question_id: int,
-	db: Session = Depends(get_db),
+	db: AsyncSession = Depends(get_db),
 	current_user: User = Depends(get_current_user),
 	interview_practice_service: InterviewPracticeService = Depends(get_interview_practice_service),
 ):
@@ -138,7 +142,7 @@ async def evaluate_answer(
 
 @router.get("/sessions/history", response_model=List[InterviewSessionResponse])
 async def get_session_history(
-	db: Session = Depends(get_db),
+	db: AsyncSession = Depends(get_db),
 	current_user: User = Depends(get_current_user),
 	interview_practice_service: InterviewPracticeService = Depends(get_interview_practice_service),
 ):
@@ -148,7 +152,7 @@ async def get_session_history(
 
 @router.get("/sessions/analytics", response_model=dict)
 async def get_interview_analytics(
-	db: Session = Depends(get_db),
+	db: AsyncSession = Depends(get_db),
 	current_user: User = Depends(get_current_user),
 	interview_practice_service: InterviewPracticeService = Depends(get_interview_practice_service),
 ):

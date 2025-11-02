@@ -1,7 +1,8 @@
 """Job source management endpoints"""
 
 from fastapi import APIRouter, Depends, HTTPException, Query
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select
 from ...core.database import get_db
 from ...core.dependencies import get_current_user
 from ...models.user import User
@@ -13,11 +14,14 @@ from ...schemas.user_job_preferences import (
 	AvailableSourcesResponse,
 )
 
+# NOTE: This file has been converted to use AsyncSession.
+# Database queries need to be converted to async: await db.execute(select(...)) instead of db.query(...)
+
 router = APIRouter(tags=["job-sources"])
 
 
 @router.get("/api/v1/job-sources", response_model=AvailableSourcesResponse)
-async def get_available_job_sources(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+async def get_available_job_sources(current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
 	"""
 	Get all available job sources with their metadata and user preferences.
 
@@ -79,7 +83,7 @@ async def get_available_job_sources(current_user: User = Depends(get_current_use
 
 @router.post("/api/v1/job-sources/preferences", response_model=UserJobPreferencesResponse)
 async def create_job_source_preferences(
-	preferences: UserJobPreferencesCreate, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)
+	preferences: UserJobPreferencesCreate, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)
 ):
 	"""
 	Create job source preferences for the current user.
@@ -127,7 +131,7 @@ async def create_job_source_preferences(
 
 @router.put("/api/v1/job-sources/preferences", response_model=UserJobPreferencesResponse)
 async def update_job_source_preferences(
-	preferences: UserJobPreferencesUpdate, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)
+	preferences: UserJobPreferencesUpdate, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)
 ):
 	"""
 	Update job source preferences for the current user.
@@ -162,7 +166,7 @@ async def update_job_source_preferences(
 
 
 @router.get("/api/v1/job-sources/preferences", response_model=UserJobPreferencesResponse)
-async def get_job_source_preferences(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+async def get_job_source_preferences(current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
 	"""
 	Get current user's job source preferences.
 
@@ -203,7 +207,7 @@ async def get_job_source_analytics(
 	timeframe_days: int = Query(30, ge=1, le=365, description="Number of days to analyze"),
 	include_trends: bool = Query(True, description="Include trend analysis"),
 	current_user: User = Depends(get_current_user),
-	db: Session = Depends(get_db),
+	db: AsyncSession = Depends(get_db),
 ):
 	"""
 	Get comprehensive analytics for job sources.
@@ -243,7 +247,7 @@ async def get_job_source_analytics(
 async def get_source_recommendations(
 	limit: int = Query(5, ge=1, le=10, description="Maximum number of recommendations"),
 	current_user: User = Depends(get_current_user),
-	db: Session = Depends(get_db),
+	db: AsyncSession = Depends(get_db),
 ):
 	"""
 	Get personalized job source recommendations.
@@ -273,7 +277,7 @@ async def get_source_recommendations(
 
 @router.get("/api/v1/job-sources/{source}/quality")
 async def get_source_quality_metrics(
-	source: str, timeframe_days: int = Query(30, ge=1, le=365), current_user: User = Depends(get_current_user), db: Session = Depends(get_db)
+	source: str, timeframe_days: int = Query(30, ge=1, le=365), current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)
 ):
 	"""
 	Get detailed quality metrics for a specific job source.
@@ -314,7 +318,7 @@ async def update_source_priority(
 	source: str,
 	priority: float = Query(..., ge=0, le=10, description="Priority score (0-10)"),
 	current_user: User = Depends(get_current_user),
-	db: Session = Depends(get_db),
+	db: AsyncSession = Depends(get_db),
 ):
 	"""
 	Update priority for a specific job source.

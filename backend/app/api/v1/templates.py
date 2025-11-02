@@ -4,7 +4,8 @@ Template API endpoints for Career Co-Pilot system
 
 from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, Query
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select
 
 from app.core.dependencies import get_db, get_current_user
 from app.models.user import User
@@ -23,11 +24,14 @@ from app.schemas.template import (
 	TEMPLATE_CATEGORIES,
 )
 
+# NOTE: This file has been converted to use AsyncSession.
+# Database queries need to be converted to async: await db.execute(select(...)) instead of db.query(...)
+
 router = APIRouter()
 
 
 @router.post("/", response_model=DocumentTemplate)
-async def create_template(template_data: DocumentTemplateCreate, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+async def create_template(template_data: DocumentTemplateCreate, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
 	"""Create a new document template"""
 	service = TemplateService(db)
 	return service.create_template(current_user.id, template_data)
@@ -43,7 +47,7 @@ async def get_templates(
 	page: int = Query(1, ge=1, description="Page number"),
 	per_page: int = Query(20, ge=1, le=100, description="Items per page"),
 	current_user: User = Depends(get_current_user),
-	db: Session = Depends(get_db),
+	db: AsyncSession = Depends(get_db),
 ):
 	"""Get templates with optional filtering"""
 	service = TemplateService(db)
@@ -70,7 +74,7 @@ async def get_template_categories():
 
 
 @router.get("/{template_id}", response_model=DocumentTemplate)
-async def get_template(template_id: int, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+async def get_template(template_id: int, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
 	"""Get a specific template"""
 	service = TemplateService(db)
 	template = service.get_template(template_id, current_user.id)
@@ -83,7 +87,7 @@ async def get_template(template_id: int, current_user: User = Depends(get_curren
 
 @router.put("/{template_id}", response_model=DocumentTemplate)
 async def update_template(
-	template_id: int, update_data: DocumentTemplateUpdate, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)
+	template_id: int, update_data: DocumentTemplateUpdate, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)
 ):
 	"""Update a template (only owner can update)"""
 	service = TemplateService(db)
@@ -96,7 +100,7 @@ async def update_template(
 
 
 @router.delete("/{template_id}")
-async def delete_template(template_id: int, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+async def delete_template(template_id: int, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
 	"""Delete a template (only owner can delete)"""
 	service = TemplateService(db)
 	success = service.delete_template(template_id, current_user.id)
@@ -109,7 +113,7 @@ async def delete_template(template_id: int, current_user: User = Depends(get_cur
 
 @router.post("/{template_id}/generate", response_model=GeneratedDocument)
 async def generate_document(
-	template_id: int, generation_request: TemplateGenerationRequest, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)
+	template_id: int, generation_request: TemplateGenerationRequest, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)
 ):
 	"""Generate a document from a template"""
 	# Override template_id from URL
@@ -120,14 +124,14 @@ async def generate_document(
 
 
 @router.get("/{template_id}/analyze", response_model=TemplateAnalysis)
-async def analyze_template(template_id: int, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+async def analyze_template(template_id: int, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
 	"""Analyze template for ATS compatibility and optimization"""
 	service = TemplateService(db)
 	return service.analyze_template(template_id, current_user.id)
 
 
 @router.get("/{template_id}/stats", response_model=TemplateUsageStats)
-async def get_template_stats(template_id: int, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+async def get_template_stats(template_id: int, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
 	"""Get usage statistics for a template"""
 	service = TemplateService(db)
 	return service.get_template_usage_stats(template_id, current_user.id)
@@ -139,7 +143,7 @@ async def get_template_generated_documents(
 	page: int = Query(1, ge=1, description="Page number"),
 	per_page: int = Query(20, ge=1, le=100, description="Items per page"),
 	current_user: User = Depends(get_current_user),
-	db: Session = Depends(get_db),
+	db: AsyncSession = Depends(get_db),
 ):
 	"""Get documents generated from this template"""
 	service = TemplateService(db)
@@ -162,7 +166,7 @@ async def get_generated_documents(
 	page: int = Query(1, ge=1, description="Page number"),
 	per_page: int = Query(20, ge=1, le=100, description="Items per page"),
 	current_user: User = Depends(get_current_user),
-	db: Session = Depends(get_db),
+	db: AsyncSession = Depends(get_db),
 ):
 	"""Get user's generated documents"""
 	service = TemplateService(db)
@@ -172,7 +176,7 @@ async def get_generated_documents(
 
 
 @router.get("/generated/{document_id}", response_model=GeneratedDocument)
-async def get_generated_document(document_id: int, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+async def get_generated_document(document_id: int, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
 	"""Get a specific generated document"""
 	service = TemplateService(db)
 	document = service.get_generated_document(document_id, current_user.id)
@@ -184,7 +188,7 @@ async def get_generated_document(document_id: int, current_user: User = Depends(
 
 
 @router.post("/initialize-system-templates")
-async def initialize_system_templates(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+async def initialize_system_templates(current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
 	"""Initialize default system templates (admin only)"""
 	# In a real implementation, you'd check for admin privileges
 	# For now, any authenticated user can initialize system templates
