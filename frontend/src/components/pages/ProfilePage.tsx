@@ -119,6 +119,24 @@ export default function ProfilePage() {
               className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
             />
           </div>
+          <div className="flex items-center space-x-3 p-4 bg-gray-50 rounded-lg border border-gray-200">
+            <input
+              type="checkbox"
+              name="prefer_remote_jobs"
+              id="prefer_remote_jobs"
+              checked={profile.prefer_remote_jobs || false}
+              onChange={(e) => setProfile(prev => ({ ...prev, prefer_remote_jobs: e.target.checked }))}
+              className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
+            />
+            <div>
+              <label htmlFor="prefer_remote_jobs" className="block text-sm font-medium text-gray-900 cursor-pointer">
+                Prefer Remote Jobs
+              </label>
+              <p className="text-xs text-gray-500 mt-1">
+                When enabled, job scraping will include remote positions. When disabled, only in-person jobs from your preferred locations will be shown.
+              </p>
+            </div>
+          </div>
           <button type="submit" className="px-4 py-2 bg-blue-500 text-white rounded-md">Save Profile</button>
           {successMessage && <p className="text-green-500 text-sm mt-2">{successMessage}</p>}
         </form>

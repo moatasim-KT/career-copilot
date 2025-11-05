@@ -1,46 +1,48 @@
 from ..core.database import Base
-from .user import User
-from .job import Job
-from .application import Application
 from .analytics import Analytics
-from .resume_upload import ResumeUpload
+from .application import Application
 from .content_generation import ContentGeneration
 from .content_version import ContentVersion
-from .user_job_preferences import UserJobPreferences
 from .feedback import (
-	JobRecommendationFeedback,
 	Feedback,
-	FeedbackVote,
-	OnboardingProgress,
-	HelpArticle,
-	HelpArticleVote,
-	FeedbackType,
 	FeedbackPriority,
 	FeedbackStatus,
+	FeedbackType,
+	FeedbackVote,
+	HelpArticle,
+	HelpArticleVote,
+	JobRecommendationFeedback,
+	OnboardingProgress,
 )
-from .interview import InterviewSession, InterviewQuestion, InterviewStatus, InterviewType
+
+# Temporarily disabled due to SQLAlchemy registry issues
+# from .interview import InterviewQuestion, InterviewSession, InterviewStatus, InterviewType
+from .job import Job
+from .resume_upload import ResumeUpload
+from .user import User
+from .user_job_preferences import UserJobPreferences
 
 __all__ = [
-	"Base",
-	"User",
-	"Job",
-	"Application",
 	"Analytics",
-	"ResumeUpload",
+	"Application",
+	"Base",
 	"ContentGeneration",
 	"ContentVersion",
-	"UserJobPreferences",
-	"JobRecommendationFeedback",
 	"Feedback",
-	"FeedbackVote",
-	"OnboardingProgress",
-	"HelpArticle",
-	"HelpArticleVote",
-	"FeedbackType",
 	"FeedbackPriority",
 	"FeedbackStatus",
-	"InterviewSession",
-	"InterviewQuestion",
-	"InterviewStatus",
-	"InterviewType",
+	"FeedbackType",
+	"FeedbackVote",
+	"HelpArticle",
+	"HelpArticleVote",
+	# "InterviewQuestion",
+	# "InterviewSession",
+	# "InterviewStatus",
+	# "InterviewType",
+	"Job",
+	"JobRecommendationFeedback",
+	"OnboardingProgress",
+	"ResumeUpload",
+	"User",
+	"UserJobPreferences",
 ]

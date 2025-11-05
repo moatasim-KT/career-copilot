@@ -7,7 +7,7 @@ from __future__ import annotations
 from datetime import datetime
 from typing import Any
 
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel, ConfigDict, Field, validator
 
 
 class TemplateSection(BaseModel):
@@ -99,8 +99,8 @@ class DocumentTemplate(DocumentTemplateBase):
 	created_at: datetime
 	updated_at: datetime
 
-	class Config:
-		from_attributes = True
+	# Pydantic v2 configuration
+	model_config = ConfigDict(from_attributes=True)
 
 
 class GenerationData(BaseModel):
@@ -147,8 +147,8 @@ class GeneratedDocument(GeneratedDocumentBase):
 	created_at: datetime
 	updated_at: datetime
 
-	class Config:
-		from_attributes = True
+	# Pydantic v2 configuration
+	model_config = ConfigDict(from_attributes=True)
 
 
 class GeneratedDocumentWithTemplate(GeneratedDocument):
@@ -156,8 +156,8 @@ class GeneratedDocumentWithTemplate(GeneratedDocument):
 
 	template: DocumentTemplate
 
-	class Config:
-		from_attributes = True
+	# Pydantic v2 configuration
+	model_config = ConfigDict(from_attributes=True)
 
 
 class TemplateGenerationRequest(BaseModel):

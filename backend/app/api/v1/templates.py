@@ -3,26 +3,26 @@ Template API endpoints for Career Co-Pilot system
 """
 
 from typing import List, Optional
-from fastapi import APIRouter, Depends, HTTPException, Query
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
 
-from app.core.dependencies import get_db, get_current_user
+from app.core.dependencies import get_current_user, get_db
 from app.models.user import User
-from app.services.template_service import TemplateService
 from app.schemas.template import (
+	TEMPLATE_CATEGORIES,
+	TEMPLATE_TYPES,
 	DocumentTemplate,
 	DocumentTemplateCreate,
 	DocumentTemplateUpdate,
 	GeneratedDocument,
+	TemplateAnalysis,
 	TemplateGenerationRequest,
 	TemplateListResponse,
 	TemplateSearchFilters,
-	TemplateAnalysis,
 	TemplateUsageStats,
-	TEMPLATE_TYPES,
-	TEMPLATE_CATEGORIES,
 )
+from app.services.template_service import TemplateService
+from fastapi import APIRouter, Depends, HTTPException, Query
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 
 # NOTE: This file has been converted to use AsyncSession.
 # Database queries need to be converted to async: await db.execute(select(...)) instead of db.query(...)
@@ -113,7 +113,10 @@ async def delete_template(template_id: int, current_user: User = Depends(get_cur
 
 @router.post("/{template_id}/generate", response_model=GeneratedDocument)
 async def generate_document(
-	template_id: int, generation_request: TemplateGenerationRequest, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)
+	template_id: int,
+	generation_request: TemplateGenerationRequest,
+	current_user: User = Depends(get_current_user),
+	db: AsyncSession = Depends(get_db),
 ):
 	"""Generate a document from a template"""
 	# Override template_id from URL
@@ -153,7 +156,7 @@ async def get_template_generated_documents(
 	if not template:
 		raise HTTPException(status_code=404, detail="Template not found")
 
-	documents, total = service.get_user_generated_documents(current_user.id, template_id=template_id, page=page, per_page=per_page)
+	documents, _total = service.get_user_generated_documents(current_user.id, template_id=template_id, page=page, per_page=per_page)
 
 	return documents
 
@@ -170,7 +173,7 @@ async def get_generated_documents(
 ):
 	"""Get user's generated documents"""
 	service = TemplateService(db)
-	documents, total = service.get_user_generated_documents(current_user.id, template_id=template_id, job_id=job_id, page=page, per_page=per_page)
+	documents, _total = service.get_user_generated_documents(current_user.id, template_id=template_id, job_id=job_id, page=page, per_page=per_page)
 
 	return documents
 
@@ -196,4 +199,5 @@ async def initialize_system_templates(current_user: User = Depends(get_current_u
 	service = TemplateService(db)
 	service.create_system_templates()
 
+	return {"message": "System templates initialized successfully"}
 	return {"message": "System templates initialized successfully"}

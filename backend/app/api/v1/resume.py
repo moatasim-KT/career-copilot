@@ -4,8 +4,7 @@ import logging
 import os
 import uuid
 
-from fastapi import (APIRouter, BackgroundTasks, Depends, File, HTTPException,
-                     Response, UploadFile)
+from fastapi import APIRouter, BackgroundTasks, Depends, File, HTTPException, Response, UploadFile
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -15,19 +14,25 @@ from ...models.content_generation import ContentGeneration
 from ...models.job import Job
 from ...models.resume_upload import ResumeUpload
 from ...models.user import User
-from ...schemas.resume import (ContentGenerationRequest,
-                               ContentGenerationResponse, ContentResponse,
-                               ContentUpdateRequest,
-                               JobDescriptionParseRequest,
-                               JobDescriptionParseResponse,
-                               ParsedJobDescription, ProfileUpdateSuggestions,
-                               ResumeParsingRequest, ResumeParsingStatus,
-                               ResumeUploadResponse)
+from ...schemas.resume import (
+	ContentGenerationRequest,
+	ContentGenerationResponse,
+	ContentResponse,
+	ContentUpdateRequest,
+	JobDescriptionParseRequest,
+	JobDescriptionParseResponse,
+	ParsedJobDescription,
+	ProfileUpdateSuggestions,
+	ResumeParsingRequest,
+	ResumeParsingStatus,
+	ResumeUploadResponse,
+)
 from ...services.content_generator_service import ContentGeneratorService
 from ...services.content_quality_service import ContentQualityService
-from ...services.job_description_parser_service import \
-    JobDescriptionParserService
-from ...services.profile_service import ProfileService
+
+# from ...services.job_description_parser_service import \
+#     JobDescriptionParserService
+# from ...services.profile_service import ProfileService
 from ...services.resume_parser_service import ResumeParserService
 
 # NOTE: This file has been converted to use AsyncSession.
@@ -38,10 +43,10 @@ logger = logging.getLogger(__name__)
 
 # Initialize services
 resume_parser = ResumeParserService()
-job_description_parser = JobDescriptionParserService()
+# job_description_parser = JobDescriptionParserService()
 content_generator = ContentGeneratorService()
 content_quality = ContentQualityService()
-profile_service = ProfileService()
+# profile_service = ProfileService()
 
 # Upload directory configuration
 UPLOAD_DIR = "backend/uploads/resumes"
@@ -50,7 +55,10 @@ os.makedirs(UPLOAD_DIR, exist_ok=True)
 
 @router.post("/upload", response_model=ResumeUploadResponse)
 async def upload_resume(
-	background_tasks: BackgroundTasks, file: UploadFile = File(...), current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)
+	background_tasks: BackgroundTasks,
+	file: UploadFile = File(...),
+	current_user: User = Depends(get_current_user),
+	db: AsyncSession = Depends(get_db),
 ):
 	"""
 	Upload a resume file for parsing
@@ -84,7 +92,7 @@ async def upload_resume(
 			f.write(content)
 
 		# Validate the saved file
-		is_valid, error_msg = resume_parser.validate_file(file_path)
+		is_valid, error_msg = resume_parser.validate_resume_file(file_path)
 		if not is_valid:
 			# Clean up the file
 			os.remove(file_path)
@@ -249,41 +257,40 @@ async def parse_resume_background(upload_id: int, file_path: str, filename: str,
 	"""
 	Background task to parse resume file
 	"""
-	db = next(get_db())
-	try:
-		# Update status to processing
-		result = await db.execute(select(ResumeUpload).where(ResumeUpload.id == upload_id))
+	from ...core.database import AsyncSessionLocal
 
-		resume_upload = result.scalar_one_or_none()
-		if resume_upload:
-			resume_upload.parsing_status = "processing"
-			await db.commit()
+	async with AsyncSessionLocal() as db:
+		try:
+			# Update status to processing
+			result = await db.execute(select(ResumeUpload).where(ResumeUpload.id == upload_id))
 
-		# Parse the resume
-		parsed_data = await resume_parser.parse_resume(file_path, filename, user_id)
+			resume_upload = result.scalar_one_or_none()
+			if resume_upload:
+				resume_upload.parsing_status = "processing"
+				await db.commit()
 
-		# Update the database record with results
-		if resume_upload:
-			resume_upload.parsing_status = "completed"
-			resume_upload.parsed_data = parsed_data
-			resume_upload.extracted_skills = parsed_data.get("skills", [])
-			resume_upload.extracted_experience = parsed_data.get("experience_level")
-			resume_upload.extracted_contact_info = parsed_data.get("contact_info", {})
-			await db.commit()
+			# Parse the resume
+			parsed_data = resume_parser.parse_resume_sync(file_path, filename, user_id)
 
-		logger.info(f"Resume parsing completed for upload {upload_id}")
+			# Update the database record with results
+			if resume_upload:
+				resume_upload.parsing_status = "completed"
+				resume_upload.parsed_data = parsed_data
+				resume_upload.extracted_skills = parsed_data.get("skills", [])
+				resume_upload.extracted_experience = parsed_data.get("experience_level")
+				resume_upload.extracted_contact_info = parsed_data.get("contact_info", {})
+				await db.commit()
 
-	except Exception as e:
-		logger.error(f"Error in background resume parsing: {e!s}")
+			logger.info(f"Resume parsing completed for upload {upload_id}")
 
-		# Update status to failed
-		if resume_upload:
-			resume_upload.parsing_status = "failed"
-			resume_upload.parsing_error = str(e)
-			await db.commit()
+		except Exception as e:
+			logger.error(f"Error in background resume parsing: {e!s}")
 
-	finally:
-		db.close()
+			# Update status to failed
+			if resume_upload:
+				resume_upload.parsing_status = "failed"
+				resume_upload.parsing_error = str(e)
+				await db.commit()
 
 
 @router.post("/parse-job-description", response_model=JobDescriptionParseResponse)
@@ -608,7 +615,6 @@ async def get_template_suggestions(content_id: int, current_user: User = Depends
 			raise HTTPException(status_code=400, detail="Content must be associated with a job for suggestions")
 
 		result = await db.execute(select(Job).where(Job.id == content.job_id))
-
 
 		job = result.scalar_one_or_none()
 		if not job:

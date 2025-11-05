@@ -1,7 +1,17 @@
 'use client';
 
-import InterviewPractice from '@/components/features/InterviewPractice';
+import dynamic from 'next/dynamic';
+
 import Card from '@/components/ui/Card';
+
+// Lazy load the InterviewPractice component
+const InterviewPractice = dynamic(() => import('@/components/features/InterviewPractice'), {
+  loading: () => (
+    <div className="flex items-center justify-center p-8">
+      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+    </div>
+  ),
+});
 
 export default function InterviewPracticePage() {
   return (

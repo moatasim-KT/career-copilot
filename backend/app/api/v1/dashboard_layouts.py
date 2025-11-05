@@ -1,14 +1,16 @@
+import uuid
 from typing import List
-from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import func, select, and_
 
 from app.core.database import get_db
 from app.core.dependencies import get_current_user
-from app.models.user import User
 from app.models.dashboard_layout import DashboardLayout
-from app.schemas.dashboard_layout import DashboardLayoutCreate, DashboardLayoutUpdate, DashboardLayoutResponse
-import uuid
+from app.models.user import User
+from app.schemas.dashboard_layout import (DashboardLayoutCreate,
+                                          DashboardLayoutResponse,
+                                          DashboardLayoutUpdate)
+from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy import and_, func, select
+from sqlalchemy.ext.asyncio import AsyncSession
 
 # NOTE: This file has been converted to use AsyncSession.
 # Database queries need to be converted to async: await db.execute(select(...)) instead of db.query(...)
@@ -42,12 +44,8 @@ async def create_dashboard_layout(layout_data: DashboardLayoutCreate, current_us
 		items = result.scalars().all()
 
 		for item in items:
-
-		    for key, value in 
-			{"is_default": False}
-		.items():
-
-		        setattr(item, key, value)
+			for key, value in {"is_default": False}.items():
+				setattr(item, key, value)
 
 	# Create new dashboard layout
 	layout = DashboardLayout(
@@ -88,12 +86,8 @@ async def update_dashboard_layout(
 		items = result.scalars().all()
 
 		for item in items:
-
-		    for key, value in 
-			{"is_default": False}
-		.items():
-
-		        setattr(item, key, value)
+			for key, value in {"is_default": False}.items():
+				setattr(item, key, value)
 
 	# Update fields
 	update_data = layout_data.dict(exclude_unset=True)
@@ -129,12 +123,8 @@ async def set_default_dashboard_layout(layout_id: str, current_user: User = Depe
 	items = result.scalars().all()
 
 	for item in items:
-
-	    for key, value in 
-		{"is_default": False}
-	.items():
-
-	        setattr(item, key, value)
+		for key, value in {"is_default": False}.items():
+			setattr(item, key, value)
 
 	# Set this as default
 	layout.is_default = True

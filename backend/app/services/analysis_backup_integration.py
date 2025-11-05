@@ -150,7 +150,8 @@ class AnalysisBackupIntegration:
 				logger.error(f"Scheduled backup task failed for analysis {analysis_id}: {e}")
 
 		# Create task but don't await it (fire-and-forget)
-		asyncio.create_task(_backup_task())
+		self._bg_tasks = getattr(self, "_bg_tasks", [])
+		self._bg_tasks.append(asyncio.create_task(_backup_task()))
 		logger.info(f"Scheduled backup task for analysis {analysis_id}")
 
 	async def restore_analysis_by_id(self, analysis_id: str, user_id: str) -> Optional[Dict[str, Any]]:
@@ -247,7 +248,7 @@ class AnalysisBackupIntegration:
 	async def _log_backup_event(self, analysis_id: str, user_id: str, backup_result: Any, event_type: str):
 		"""Log backup events for audit trail"""
 		try:
-			from ..core.audit import audit_logger, AuditEventType, AuditSeverity
+			from ..core.audit import AuditEventType, AuditSeverity, audit_logger
 
 			event_data = {
 				"analysis_id": analysis_id,

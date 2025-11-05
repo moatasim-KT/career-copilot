@@ -7,9 +7,8 @@ from __future__ import annotations
 from datetime import datetime
 from typing import Any, Literal
 
-from pydantic import BaseModel, Field, validator
-
-from app.models.feedback import FeedbackType, FeedbackPriority, FeedbackStatus
+from app.models.feedback import FeedbackPriority, FeedbackStatus, FeedbackType
+from pydantic import BaseModel, ConfigDict, Field, validator
 
 
 class FeedbackCreate(BaseModel):
@@ -81,8 +80,8 @@ class FeedbackResponse(BaseModel):
 	vote_count: int = 0
 	user_vote: int | None = None
 
-	class Config:
-		from_attributes = True
+	# Pydantic v2 configuration
+	model_config = ConfigDict(from_attributes=True)
 
 
 class OnboardingProgressUpdate(BaseModel):
@@ -115,8 +114,8 @@ class OnboardingProgressResponse(BaseModel):
 	updated_at: datetime
 	completed_at: datetime | None
 
-	class Config:
-		from_attributes = True
+	# Pydantic v2 configuration
+	model_config = ConfigDict(from_attributes=True)
 
 
 class HelpArticleCreate(BaseModel):
@@ -179,8 +178,8 @@ class HelpArticleResponse(BaseModel):
 	published_at: datetime | None
 	user_vote: bool | None = None
 
-	class Config:
-		from_attributes = True
+	# Pydantic v2 configuration
+	model_config = ConfigDict(from_attributes=True)
 
 
 class HelpArticleSummary(BaseModel):
@@ -198,8 +197,8 @@ class HelpArticleSummary(BaseModel):
 	created_at: datetime
 	updated_at: datetime
 
-	class Config:
-		from_attributes = True
+	# Pydantic v2 configuration
+	model_config = ConfigDict(from_attributes=True)
 
 
 class TutorialStep(BaseModel):

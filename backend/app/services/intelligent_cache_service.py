@@ -11,18 +11,18 @@ Consolidates intelligent caching, cache invalidation, and cache monitoring:
 """
 
 import asyncio
-import time
 import fnmatch
-from datetime import datetime, timedelta, timezone
-from typing import Any, Dict, List, Optional, Callable, Tuple, Set
-from dataclasses import dataclass
-from enum import Enum
 import pickle
+import time
 import zlib
+from dataclasses import dataclass
+from datetime import datetime, timedelta, timezone
+from enum import Enum
+from typing import Any, Callable, Dict, List, Optional, Set, Tuple
 
-from .cache_service import get_cache_service
 from ..core.config import get_settings
 from ..core.logging import get_logger
+from .cache_service import get_cache_service
 
 logger = get_logger(__name__)
 settings = get_settings()
@@ -254,10 +254,11 @@ class IntelligentCacheService:
 			self._initialize_default_invalidation_rules()
 
 			# Start background tasks
-			asyncio.create_task(self._cache_maintenance_loop())
-			asyncio.create_task(self._access_pattern_analysis_loop())
-			asyncio.create_task(self._cache_warming_loop())
-			asyncio.create_task(self._monitoring_loop())
+			self._bg_tasks = getattr(self, "_bg_tasks", [])
+			self._bg_tasks.append(asyncio.create_task(self._cache_maintenance_loop()))
+			self._bg_tasks.append(asyncio.create_task(self._access_pattern_analysis_loop()))
+			self._bg_tasks.append(asyncio.create_task(self._cache_warming_loop()))
+			self._bg_tasks.append(asyncio.create_task(self._monitoring_loop()))
 
 			logger.info("Intelligent cache service initialized with invalidation and monitoring")
 		except Exception as e:
@@ -733,7 +734,8 @@ class IntelligentCacheService:
 			await self._process_immediate_invalidation(event, rule)
 
 		# Schedule the invalidation
-		asyncio.create_task(delayed_invalidation())
+		self._bg_tasks = getattr(self, "_bg_tasks", [])
+		self._bg_tasks.append(asyncio.create_task(delayed_invalidation()))
 		logger.info(f"Scheduled delayed invalidation for rule {rule.rule_id} in {rule.delay_seconds} seconds")
 
 	async def _process_cascade_invalidation(self, event: InvalidationEvent, rule: InvalidationRule):

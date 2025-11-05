@@ -1,22 +1,23 @@
 """Interview Practice Service"""
 
-from sqlalchemy.orm import Session
 import json
 from typing import List
-from app.models.interview import InterviewSession, InterviewQuestion, InterviewType
-from app.schemas.interview import (
-	InterviewSessionCreate,
-	InterviewSessionUpdate,
-	InterviewSessionResponse,
-	InterviewQuestionCreate,
-	InterviewQuestionUpdate,
-	InterviewQuestionResponse,
-)
-from app.services.llm_service import LLMService
-from app.services.job_service import JobService
-from app.services.llm_service import ModelType
-from .cache_service import cache_service
+
 from app.core.logging import get_logger
+from app.models import InterviewQuestion, InterviewSession, InterviewType
+from app.schemas.interview import (
+	InterviewQuestionCreate,
+	InterviewQuestionResponse,
+	InterviewQuestionUpdate,
+	InterviewSessionCreate,
+	InterviewSessionResponse,
+	InterviewSessionUpdate,
+)
+from app.services.job_service import JobService
+from app.services.llm_service import LLMService, ModelType
+from sqlalchemy.orm import Session
+
+from .cache_service import cache_service
 
 logger = get_logger(__name__)
 
@@ -228,5 +229,7 @@ class InterviewPracticeService:
 				feedback = "Could not parse AI response."
 				score = None
 
+		question_update = InterviewQuestionUpdate(feedback=feedback, score=score)
+		return await self.update_question(question_id, question_update)
 		question_update = InterviewQuestionUpdate(feedback=feedback, score=score)
 		return await self.update_question(question_id, question_update)

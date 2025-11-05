@@ -4,9 +4,9 @@ from __future__ import annotations
 
 from datetime import datetime
 
+# Import enums directly from model file (not through models/__init__.py)
+from app.models.interview import InterviewStatus, InterviewType
 from pydantic import BaseModel
-
-from app.models.interview import InterviewType, InterviewStatus
 
 
 class InterviewQuestionBase(BaseModel):

@@ -3,14 +3,15 @@ External Services API endpoints
 Provides endpoints for managing and validating external service integrations.
 """
 
-from typing import Dict, Any, Optional
-from fastapi import APIRouter, HTTPException, Depends, BackgroundTasks
+from typing import Any, Dict, Optional
+
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
 from pydantic import BaseModel
 
+from ...core.auth import get_current_user_optional
 from ...core.logging import get_logger
 from ...services.external_service_manager import get_external_service_manager
 from ...services.external_service_validator import get_external_service_validator
-from ...core.auth import get_current_user_optional
 
 logger = get_logger(__name__)
 
@@ -71,7 +72,7 @@ async def get_services_health(current_user: Optional[Dict] = Depends(get_current
 		return {
 			"services": services_health,
 			"summary": stats,
-			"timestamp": health_data[list(health_data.keys())[0]].last_check.isoformat() if health_data else None,
+			"timestamp": health_data[next(iter(health_data.keys()))].last_check.isoformat() if health_data else None,
 		}
 
 	except Exception as e:
@@ -361,7 +362,7 @@ async def _test_docusign() -> Dict[str, Any]:
 async def _test_slack() -> Dict[str, Any]:
 	"""Test Slack service"""
 	try:
-		from ...services.slack_service import SlackService, SlackMessage
+		from ...services.slack_service import SlackMessage, SlackService
 
 		service = SlackService()
 
@@ -455,4 +456,5 @@ async def _test_vector_store() -> Dict[str, Any]:
 		}
 
 	except Exception as e:
+		return {"status": "error", "message": f"Vector Store test failed: {e!s}", "timestamp": "2024-01-01T00:00:00Z"}
 		return {"status": "error", "message": f"Vector Store test failed: {e!s}", "timestamp": "2024-01-01T00:00:00Z"}

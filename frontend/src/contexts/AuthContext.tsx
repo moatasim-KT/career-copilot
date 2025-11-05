@@ -1,95 +1,39 @@
-'use client';
 
-import { useRouter } from 'next/navigation';
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-
-import { apiClient, UserProfile } from '@/lib/api';
+import { createContext, useContext, useEffect } from 'react';
+import { useLocalStorage } from '../hooks/useLocalStorage';
+import { getToken } from '../lib/auth/cookies';
+import { getUser, User } from '../lib/auth/rbac';
 
 interface AuthContextType {
-    user: UserProfile | null;
-    token: string | null;
-    isAuthenticated: boolean;
-    isLoading: boolean;
-    login: (token: string, userData: UserProfile) => void;
-    logout: () => void;
-    updateUser: (userData: Partial<UserProfile>) => void;
+  isAuthenticated: boolean;
+  user: User | null;
+  isLoading: boolean;
 }
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+const AuthContext = createContext<AuthContextType>({ isAuthenticated: false, user: null, isLoading: true });
 
-export function AuthProvider({ children }: { children: ReactNode }) {
-    const [user, setUser] = useState<UserProfile | null>(null);
-    const [token, setToken] = useState<string | null>(null);
-    const [isLoading, setIsLoading] = useState(true);
-    const router = useRouter();
+export const AuthProvider: React.FC = ({ children }) => {
+  const [isAuthenticated, setIsAuthenticated] = useLocalStorage('isAuthenticated', false);
+  const [user, setUser] = useLocalStorage<User | null>('user', null);
+  const [isLoading, setIsLoading] = useLocalStorage('isLoading', true);
 
-    // Initialize auth state from localStorage on mount
-    useEffect(() => {
-        const storedToken = localStorage.getItem('auth_token');
-        const storedUser = localStorage.getItem('user');
-
-        if (storedToken && storedUser) {
-            try {
-                const userData = JSON.parse(storedUser);
-                setToken(storedToken);
-                setUser(userData);
-                apiClient.setToken(storedToken);
-            } catch (error) {
-                console.error('Error parsing stored user data:', error);
-                localStorage.removeItem('auth_token');
-                localStorage.removeItem('user');
-            }
-        }
-        setIsLoading(false);
-    }, []);
-
-    const login = (newToken: string, userData: UserProfile) => {
-        setToken(newToken);
-        setUser(userData);
-        localStorage.setItem('auth_token', newToken);
-        localStorage.setItem('user', JSON.stringify(userData));
-        apiClient.setToken(newToken);
-        router.push('/dashboard');
-    };
-
-    const logout = () => {
-        setToken(null);
-        setUser(null);
-        localStorage.removeItem('auth_token');
-        localStorage.removeItem('user');
-        apiClient.clearToken();
-        router.push('/login');
-    };
-
-    const updateUser = (userData: Partial<UserProfile>) => {
-        if (user) {
-            const updatedUser = { ...user, ...userData };
-            setUser(updatedUser);
-            localStorage.setItem('user', JSON.stringify(updatedUser));
-        }
-    };
-
-    return (
-        <AuthContext.Provider
-            value={{
-                user,
-                token,
-                isAuthenticated: !!token && !!user,
-                isLoading,
-                login,
-                logout,
-                updateUser,
-            }}
-        >
-            {children}
-        </AuthContext.Provider>
-    );
-}
-
-export function useAuth() {
-    const context = useContext(AuthContext);
-    if (context === undefined) {
-        throw new Error('useAuth must be used within an AuthProvider');
+  useEffect(() => {
+    const token = getToken();
+    if (token) {
+      setIsAuthenticated(true);
+      setUser(getUser());
+    } else {
+      setIsAuthenticated(false);
+      setUser(null);
     }
-    return context;
-}
+    setIsLoading(false);
+  }, []);
+
+  return (
+    <AuthContext.Provider value={{ isAuthenticated, user, isLoading }}>
+      {children}
+    </AuthContext.Provider>
+  );
+};
+
+export const useAuth = () => useContext(AuthContext);

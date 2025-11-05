@@ -1,7 +1,9 @@
-import pytest
+import re
 from unittest.mock import AsyncMock, patch
-from app.services.scraping.adzuna_scraper import AdzunaScraper
+
+import pytest
 from app.schemas.job import JobCreate
+from app.services.scraping.adzuna_scraper import AdzunaScraper
 
 
 # Mock settings for testing
@@ -102,5 +104,7 @@ async def test_adzuna_scraper_initialization_without_keys():
 		mock_settings_obj.adzuna_app_id = None
 		mock_settings_obj.adzuna_app_key = None
 		mock_settings_obj.adzuna_country = "us"
-		with pytest.raises(ValueError, match="Adzuna API keys are required."):
+		with pytest.raises(ValueError, match=re.escape("Adzuna API keys are required.")):
+			AdzunaScraper()
+		with pytest.raises(ValueError, match=re.escape("Adzuna API keys are required.")):
 			AdzunaScraper()

@@ -6,7 +6,8 @@ from __future__ import annotations
 
 from datetime import datetime
 from typing import Any
-from pydantic import BaseModel, Field
+
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class DocumentBase(BaseModel):
@@ -43,8 +44,8 @@ class DocumentVersion(BaseModel):
 	created_at: datetime
 	is_current_version: bool
 
-	class Config:
-		from_attributes = True
+	# Pydantic v2 configuration
+	model_config = ConfigDict(from_attributes=True)
 
 
 class DocumentAnalysis(BaseModel):
@@ -82,8 +83,8 @@ class Document(DocumentBase):
 	created_at: datetime
 	updated_at: datetime
 
-	class Config:
-		from_attributes = True
+	# Pydantic v2 configuration
+	model_config = ConfigDict(from_attributes=True)
 
 
 class DocumentWithVersions(Document):
@@ -91,8 +92,8 @@ class DocumentWithVersions(Document):
 
 	versions: list[DocumentVersion] = Field(default_factory=list)
 
-	class Config:
-		from_attributes = True
+	# Pydantic v2 configuration
+	model_config = ConfigDict(from_attributes=True)
 
 
 class DocumentUploadResponse(BaseModel):
@@ -164,8 +165,8 @@ class DocumentHistoryEntry(BaseModel):
 	created_at: datetime
 	version_metadata: dict[str, Any] = Field(default_factory=dict)
 
-	class Config:
-		from_attributes = True
+	# Pydantic v2 configuration
+	model_config = ConfigDict(from_attributes=True)
 
 
 class DocumentVersionComparison(BaseModel):
@@ -193,8 +194,8 @@ class DocumentVersionMigrationStatus(BaseModel):
 	completed_at: datetime | None = None
 	created_at: datetime
 
-	class Config:
-		from_attributes = True
+	# Pydantic v2 configuration
+	model_config = ConfigDict(from_attributes=True)
 
 
 class CreateVersionRequest(BaseModel):
@@ -246,4 +247,5 @@ SUPPORTED_MIME_TYPES = [
 	"image/jpeg",
 	"image/png",
 	"image/gif",
+]
 ]

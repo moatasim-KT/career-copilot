@@ -5,16 +5,16 @@ Provides comprehensive monitoring, analytics, and cost tracking for GROQ API usa
 
 import asyncio
 import json
-from dataclasses import dataclass, field, asdict
-from datetime import datetime, timedelta
-from typing import Any, Dict, List, Optional
-from enum import Enum
 import statistics
+from dataclasses import asdict, dataclass, field
+from datetime import datetime, timedelta
+from enum import Enum
+from typing import Any, Dict, List, Optional
 
-from .groq_service import GROQService, GROQModel, GROQTaskType
 from ..core.logging import get_logger
-from .cache_service import get_cache_service
 from ..monitoring.metrics_collector import get_metrics_collector
+from .cache_service import get_cache_service
+from .groq_service import GROQModel, GROQService, GROQTaskType
 
 logger = get_logger(__name__)
 cache_service = get_cache_service()
@@ -247,7 +247,8 @@ class GROQMonitor:
 		)
 
 		# Check for immediate alerts
-		asyncio.create_task(self._check_immediate_alerts(metric))
+		self._bg_tasks = getattr(self, "_bg_tasks", [])
+		self._bg_tasks.append(asyncio.create_task(self._check_immediate_alerts(metric)))
 
 	def _update_cost_breakdown(self, metric: PerformanceMetric):
 		"""Update cost breakdown data."""

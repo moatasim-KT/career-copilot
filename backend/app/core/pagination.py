@@ -3,7 +3,7 @@ Pagination utilities for API responses.
 """
 
 from math import ceil
-from typing import Any, Dict, Generic, List, Optional, TypeVar
+from typing import Any, ClassVar, Dict, Generic, List, Optional, TypeVar
 
 from pydantic import BaseModel, Field
 
@@ -31,7 +31,7 @@ class PaginatedResponse(BaseModel, Generic[T]):
 	pagination: Dict[str, Any] = Field(description="Pagination metadata")
 
 	class Config:
-		json_encoders = {
+		json_encoders: ClassVar[dict[type, Any]] = {
 			# Add any custom encoders here
 		}
 

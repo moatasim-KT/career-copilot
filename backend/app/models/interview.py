@@ -1,19 +1,12 @@
 """Interview models"""
 
-from sqlalchemy import (
-	Column,
-	Integer,
-	String,
-	Text,
-	DateTime,
-	ForeignKey,
-	Float,
-	Enum,
-)
-from sqlalchemy.orm import relationship
-from datetime import datetime
-from app.core.database import Base
 import enum
+from datetime import datetime
+from typing import Any, ClassVar
+
+from app.core.database import Base
+from sqlalchemy import Column, DateTime, Enum, Float, ForeignKey, Integer, String, Text
+from sqlalchemy.orm import relationship
 
 
 class InterviewType(enum.Enum):
@@ -31,7 +24,8 @@ class InterviewStatus(enum.Enum):
 
 class InterviewSession(Base):
 	__tablename__ = "interview_sessions"
-	__table_args__ = {"extend_existing": True}
+	__table_args__: ClassVar[dict[str, Any]] = {"extend_existing": True}
+	__mapper_args__: ClassVar[dict[str, Any]] = {"eager_defaults": True, "confirm_deleted_rows": False}
 
 	id = Column(Integer, primary_key=True, index=True)
 	user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
@@ -52,7 +46,8 @@ class InterviewSession(Base):
 
 class InterviewQuestion(Base):
 	__tablename__ = "interview_questions"
-	__table_args__ = {"extend_existing": True}
+	__table_args__: ClassVar[dict[str, Any]] = {"extend_existing": True}
+	__mapper_args__: ClassVar[dict[str, Any]] = {"eager_defaults": True, "confirm_deleted_rows": False}
 
 	id = Column(Integer, primary_key=True, index=True)
 	session_id = Column(Integer, ForeignKey("interview_sessions.id"), nullable=False, index=True)
@@ -64,4 +59,5 @@ class InterviewQuestion(Base):
 	created_at = Column(DateTime, default=datetime.utcnow, index=True)
 	updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
+	session = relationship("InterviewSession", back_populates="questions")
 	session = relationship("InterviewSession", back_populates="questions")

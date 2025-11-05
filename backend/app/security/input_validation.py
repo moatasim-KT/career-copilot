@@ -4,8 +4,8 @@ Prevents SQL injection, XSS, path traversal, and other injection attacks
 """
 
 import re
-from typing import Any, Optional
 from pathlib import Path
+from typing import Any, ClassVar, Optional
 from urllib.parse import urlparse
 
 from fastapi import HTTPException, status
@@ -15,13 +15,13 @@ class InputValidator:
 	"""Comprehensive input validation and sanitization"""
 
 	# Dangerous patterns
-	SQL_INJECTION_PATTERNS = [
+	SQL_INJECTION_PATTERNS: ClassVar[list[str]] = [
 		r"(\b(SELECT|INSERT|UPDATE|DELETE|DROP|CREATE|ALTER|EXEC|EXECUTE)\b)",
 		r"(--|;|\/\*|\*\/|xp_|sp_)",
 		r"(\bOR\b.*=.*|1=1|'=')",
 	]
 
-	XSS_PATTERNS = [
+	XSS_PATTERNS: ClassVar[list[str]] = [
 		r"<script[^>]*>.*?</script>",
 		r"javascript:",
 		r"on\w+\s*=",
@@ -30,14 +30,14 @@ class InputValidator:
 		r"<embed",
 	]
 
-	PATH_TRAVERSAL_PATTERNS = [
+	PATH_TRAVERSAL_PATTERNS: ClassVar[list[str]] = [
 		r"\.\./",
 		r"\.\.",
 		r"%2e%2e",
 		r"\.\.\\",
 	]
 
-	COMMAND_INJECTION_PATTERNS = [
+	COMMAND_INJECTION_PATTERNS: ClassVar[list[str]] = [
 		r"[;&|`$]",
 		r"\$\(",
 		r">\s*/",

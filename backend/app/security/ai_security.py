@@ -3,14 +3,14 @@ AI security module for preventing prompt injection, validating outputs, and moni
 """
 
 import re
-from typing import List, Dict, Any, Optional, Set
 from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
+from typing import Any, ClassVar, Dict, List, Optional, Set
 
-from ..core.logging import get_logger
-from ..core.config import get_settings
-from ..monitoring.metrics_collector import get_metrics_collector
 from ..core.caching import get_cache_manager
+from ..core.config import get_settings
+from ..core.logging import get_logger
+from ..monitoring.metrics_collector import get_metrics_collector
 
 logger = get_logger(__name__)
 settings = get_settings()
@@ -43,7 +43,7 @@ class AISecurityManager:
 	"""
 
 	# Common prompt injection patterns
-	INJECTION_PATTERNS = [
+	INJECTION_PATTERNS: ClassVar[List[str]] = [
 		r"ignore previous instructions",
 		r"disregard (all|previous|above).*instructions",
 		r"forget (all|previous|above).*instructions",
@@ -61,7 +61,7 @@ class AISecurityManager:
 	]
 
 	# Patterns for sensitive data
-	SENSITIVE_DATA_PATTERNS = [
+	SENSITIVE_DATA_PATTERNS: ClassVar[List[str]] = [
 		r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b",  # Email
 		r"\b\d{3}[-.]?\d{3}[-.]?\d{4}\b",  # Phone numbers
 		r"\b\d{3}[-]?\d{2}[-]?\d{4}\b",  # SSN

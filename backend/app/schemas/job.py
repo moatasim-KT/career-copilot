@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 from datetime import datetime
 from typing import Any
 
@@ -25,6 +26,26 @@ class JobCreate(BaseModel):
 	documents_required: list[str] | None = None
 	source: str | None = Field(default="manual", description="Source of the job posting")
 	currency: str | None = None
+
+	@field_validator("requirements", mode="before")
+	@classmethod
+	def validate_requirements(cls, v):
+		"""Convert dict requirements to JSON string"""
+		if v is None:
+			return None
+		if isinstance(v, dict):
+			return json.dumps(v)
+		return str(v)
+
+	@field_validator("remote_option", mode="before")
+	@classmethod
+	def validate_remote_option(cls, v):
+		"""Convert boolean remote_option to string"""
+		if v is None:
+			return None
+		if isinstance(v, bool):
+			return "yes" if v else "no"
+		return str(v)
 
 	@field_validator("tech_stack")
 	@classmethod

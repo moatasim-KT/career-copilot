@@ -208,7 +208,7 @@ def rate_limit(requests: int = 5, window: int = 60, key_prefix: str = "rate_limi
 
 			# Check rate limit
 			limiter = RateLimiter(requests=requests, window=window, key_prefix=key_prefix)
-			is_allowed, remaining, retry_after = limiter.check_rate_limit(request)
+			is_allowed, _remaining, retry_after = limiter.check_rate_limit(request)
 
 			if not is_allowed:
 				logger.warning(f"Rate limit exceeded for {request.client.host if request.client else 'unknown'} on {request.url.path}")

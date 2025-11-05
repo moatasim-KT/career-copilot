@@ -3,8 +3,8 @@
 from typing import Dict, List
 
 from fastapi import APIRouter, Depends, Query
-from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from ...core.database import get_db
 from ...core.dependencies import get_current_user
@@ -35,7 +35,7 @@ async def get_recommendations(
 
 	# Generate fresh recommendations using the consolidated service
 	job_recommendation_service = JobRecommendationService(db=db)
-	recommendations = job_recommendation_service.get_personalized_recommendations(
+	recommendations = await job_recommendation_service.get_personalized_recommendations(
 		db=db, user_id=current_user.id, limit=limit, min_score=0.0, include_applied=False
 	)
 	formatted_recommendations = [
@@ -51,10 +51,10 @@ async def get_recommendations(
 			"tech_stack": rec["job"].tech_stack or [],
 			"responsibilities": rec["job"].responsibilities,
 			"source": rec["job"].source,
-			"match_score": rec["score"],
-			"url": rec["job"].link,
-			"algorithm_variant": rec.get("algorithm_variant"),
-			"weights_used": rec.get("weights_used") if use_adaptive else None,
+			"match_score": rec["match_score"],
+			"url": rec["job"].application_url or rec["job"].source_url,  # Fixed: use application_url or source_url instead of link
+			"algorithm_variant": rec.get("algorithm"),
+			"weights_used": rec.get("match_reasons") if use_adaptive else None,
 		}
 		for rec in recommendations
 	]
@@ -63,8 +63,7 @@ async def get_recommendations(
 	cache_service.set(
 		key=cache_key,
 		value=formatted_recommendations,
-		ttl_seconds=3600,  # 1 hour
-		user_id=current_user.id,
+		ttl=3600,  # 1 hour
 	)
 
 	return formatted_recommendations

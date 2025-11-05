@@ -36,7 +36,7 @@ const navigationItems = [
   { href: '/profile', label: 'Profile', icon: User },
 ];
 
-// eslint-disable-next-line max-lines-per-function
+ 
 export default function Navigation({ user, onLogout }: NavigationProps) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const pathname = usePathname();

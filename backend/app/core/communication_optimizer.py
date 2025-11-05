@@ -6,10 +6,10 @@ Optimizes communication between services for better performance and reliability.
 import asyncio
 import logging
 import time
+from collections import defaultdict
+from dataclasses import dataclass
 from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional, Tuple
-from dataclasses import dataclass
-from collections import defaultdict
 
 logger = logging.getLogger(__name__)
 
@@ -54,6 +54,7 @@ class CommunicationOptimizer:
 		self.cache_ttl = {}
 		self.request_queues = defaultdict(asyncio.Queue)
 		self.rate_limiters = defaultdict(dict)
+		self._bg_tasks: list[asyncio.Task] = []
 
 		# Configuration
 		self.max_retries = 3
@@ -87,9 +88,9 @@ class CommunicationOptimizer:
 			await self._create_connection_pool(service)
 
 		# Start background tasks
-		asyncio.create_task(self._cleanup_expired_cache())
-		asyncio.create_task(self._reset_circuit_breakers())
-		asyncio.create_task(self._reset_rate_limiters())
+		self._bg_tasks.append(asyncio.create_task(self._cleanup_expired_cache()))
+		self._bg_tasks.append(asyncio.create_task(self._reset_circuit_breakers()))
+		self._bg_tasks.append(asyncio.create_task(self._reset_rate_limiters()))
 
 		logger.info("Communication optimizer initialized")
 

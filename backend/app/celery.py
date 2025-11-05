@@ -2,10 +2,9 @@
 Celery configuration for background tasks
 """
 
+from app.core.config import get_settings
 from celery import Celery
 from celery.schedules import crontab
-
-from app.core.config import get_settings
 
 settings = get_settings()
 
@@ -15,13 +14,10 @@ celery_app = Celery(
 	broker=settings.celery_broker_url,
 	backend=settings.celery_result_backend,
 	include=[
-		"app.services.job_ingestion",
-		"app.services.recommendations",
-		"app.services.notifications",
+		"app.tasks.job_ingestion_tasks",
+		"app.tasks.recommendation_tasks",
 		"app.tasks.notification_tasks",
 		"app.tasks.analytics_tasks",
-		"app.tasks.recommendation_tasks",
-		"app.tasks.job_ingestion_tasks",
 		"app.tasks.monitoring",
 		"app.tasks.email_tasks",
 		"app.tasks.cache_tasks",

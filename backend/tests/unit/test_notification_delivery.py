@@ -1,18 +1,13 @@
-from datetime import timedelta
-
 """
-from datetime from datetime import timedelta
-import timedelta
 Unit tests for notification delivery verification.
 Tests email and in-app notification delivery confirmation.
 """
 
-from datetime import datetime
+from datetime import datetime, timedelta
 from unittest.mock import AsyncMock, patch
 
 import pytest
-
-from ...app.services.notification_manager import NotificationManager
+from app.services.notification_manager import NotificationManager
 
 
 @pytest.fixture

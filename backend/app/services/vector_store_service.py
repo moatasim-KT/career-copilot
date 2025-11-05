@@ -16,7 +16,7 @@ import json
 import time
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
-from typing import Any, Tuple
+from typing import Any, ClassVar, Tuple
 from uuid import UUID
 
 from chromadb.api.models.Collection import Collection
@@ -42,7 +42,7 @@ class PrecedentClause(BaseModel):
 	created_at: datetime
 
 	class Config:
-		json_encoders = {datetime: lambda v: v.isoformat(), UUID: lambda v: str(v)}
+		json_encoders: ClassVar[dict[type, Any]] = {datetime: lambda v: v.isoformat(), UUID: lambda v: str(v)}
 
 
 class EmbeddingMetadata(BaseModel):
@@ -70,7 +70,7 @@ class EmbeddingMetadata(BaseModel):
 	processing_time_ms: float | None = None
 
 	class Config:
-		json_encoders = {datetime: lambda v: v.isoformat(), UUID: lambda v: str(v)}
+		json_encoders: ClassVar[dict[type, Any]] = {datetime: lambda v: v.isoformat(), UUID: lambda v: str(v)}
 
 
 class ContractEmbedding(BaseModel):
@@ -83,7 +83,7 @@ class ContractEmbedding(BaseModel):
 	metadata: EmbeddingMetadata
 
 	class Config:
-		json_encoders = {datetime: lambda v: v.isoformat(), UUID: lambda v: str(v)}
+		json_encoders: ClassVar[dict[type, Any]] = {datetime: lambda v: v.isoformat(), UUID: lambda v: str(v)}
 
 
 class SimilaritySearchQuery(BaseModel):
@@ -110,7 +110,7 @@ class SimilaritySearchResult(BaseModel):
 	metadata: EmbeddingMetadata
 
 	class Config:
-		json_encoders = {datetime: lambda v: v.isoformat(), UUID: lambda v: str(v)}
+		json_encoders: ClassVar[dict[type, Any]] = {datetime: lambda v: v.isoformat(), UUID: lambda v: str(v)}
 
 
 class BatchEmbeddingRequest(BaseModel):
@@ -122,7 +122,7 @@ class BatchEmbeddingRequest(BaseModel):
 	batch_size: int = Field(default=10, ge=1, le=50)
 
 	class Config:
-		json_encoders = {datetime: lambda v: v.isoformat(), UUID: lambda v: str(v)}
+		json_encoders: ClassVar[dict[type, Any]] = {datetime: lambda v: v.isoformat(), UUID: lambda v: str(v)}
 
 
 class BatchEmbeddingResult(BaseModel):
@@ -136,7 +136,7 @@ class BatchEmbeddingResult(BaseModel):
 	errors: list[dict[str, Any]] = Field(default_factory=list)
 
 	class Config:
-		json_encoders = {datetime: lambda v: v.isoformat(), UUID: lambda v: str(v)}
+		json_encoders: ClassVar[dict[type, Any]] = {datetime: lambda v: v.isoformat(), UUID: lambda v: str(v)}
 
 
 @dataclass

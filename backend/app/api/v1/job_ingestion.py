@@ -2,19 +2,18 @@
 
 from __future__ import annotations
 
-from ...services.job_ingestion_service import JobIngestionService
-
 import logging
 from typing import Any, Dict, List, Optional
-
-from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
 
 from app.core.database import get_db
 from app.core.dependencies import get_current_user
 from app.models.user import User
-from app.services import job_ingestion as job_ingestion_tasks
+from app.tasks import job_ingestion_tasks
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from ...services.job_ingestion_service import JobIngestionService
 
 logger = logging.getLogger(__name__)
 # NOTE: This file has been converted to use AsyncSession.

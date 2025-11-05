@@ -44,14 +44,14 @@ EnhancedEmailTemplateService = EmailTemplateManager
 EmailTemplateService = EmailTemplateManager
 
 __all__ = [
-    "EmailTemplateManager",
-    "EnhancedEmailTemplateService",
-    "EmailTemplateService",
-    "TemplateType",
-    "TemplateStatus",
-    "TemplateCategory",
-    "TemplateFormat",
-    "NotificationPriority",
     "BatchingStrategy",
     "EmailTemplate",
+    "EmailTemplateManager",
+    "EmailTemplateService",
+    "EnhancedEmailTemplateService",
+    "NotificationPriority",
+    "TemplateCategory",
+    "TemplateFormat",
+    "TemplateStatus",
+    "TemplateType",
 ]

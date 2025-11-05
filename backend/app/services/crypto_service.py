@@ -159,7 +159,7 @@ class CryptoService:
 		encrypted_profile = profile_data.copy()
 
 		for field in sensitive_fields:
-			if field in encrypted_profile and encrypted_profile[field]:
+			if encrypted_profile.get(field):
 				encrypted_profile[field] = self.encrypt_text(str(encrypted_profile[field]))
 
 		return json.dumps(encrypted_profile)
@@ -174,7 +174,7 @@ class CryptoService:
 			sensitive_fields = ["email", "phone", "address", "ssn", "personal_notes"]
 
 			for field in sensitive_fields:
-				if field in profile_data and profile_data[field]:
+				if profile_data.get(field):
 					try:
 						profile_data[field] = self.decrypt_text(profile_data[field])
 					except ValueError:
@@ -191,7 +191,7 @@ class CryptoService:
 			# Try to decode as base64 - encrypted data should be base64 encoded
 			base64.b64decode(data)
 			# If it decodes successfully and looks like encrypted data, it probably is
-			return len(data) > 50 and data.isalnum() or "+" in data or "/" in data or "=" in data
+			return (len(data) > 50 and data.isalnum()) or "+" in data or "/" in data or "=" in data
 		except Exception:
 			return False
 

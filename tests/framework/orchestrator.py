@@ -502,7 +502,7 @@ class TestOrchestrator:
                 "test_suite_execution",
                 TestStatus.ERROR,
                 0.0,
-                f"Suite execution error: {str(e)}",
+                f"Suite execution error: {e!s}",
                 phase=self.phase_manager.current_phase
             )
         finally:
@@ -566,7 +566,7 @@ class TestOrchestrator:
                 f"selective_tests_{'-'.join(categories)}",
                 TestStatus.ERROR,
                 0.0,
-                f"Selective test error: {str(e)}",
+                f"Selective test error: {e!s}",
                 phase=self.phase_manager.current_phase
             )
         finally:
@@ -762,7 +762,7 @@ class TestOrchestrator:
                 test_name=test_name,
                 status=TestStatus.ERROR,
                 duration=execution_time,
-                message=f"Test error: {str(e)}",
+                message=f"Test error: {e!s}",
                 error_traceback=str(e),
                 phase=test_config["phase"]
             )
@@ -1051,7 +1051,7 @@ class TestOrchestrator:
                     test_name=suite.name,
                     status=TestStatus.ERROR,
                     duration=duration,
-                    message=f"Test error: {str(e)}",
+                    message=f"Test error: {e!s}",
                     error_traceback=str(e),
                     phase=suite.phase
                 )

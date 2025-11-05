@@ -5,7 +5,7 @@ from __future__ import annotations
 from datetime import datetime
 from typing import Any
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 
 class ResumeUploadResponse(BaseModel):
@@ -18,8 +18,8 @@ class ResumeUploadResponse(BaseModel):
 	parsing_status: str
 	created_at: datetime
 
-	class Config:
-		from_attributes = True
+	# Pydantic v2 configuration
+	model_config = ConfigDict(from_attributes=True)
 
 
 class ParsedResumeData(BaseModel):
@@ -47,8 +47,8 @@ class ResumeParsingStatus(BaseModel):
 	created_at: datetime
 	updated_at: datetime
 
-	class Config:
-		from_attributes = True
+	# Pydantic v2 configuration
+	model_config = ConfigDict(from_attributes=True)
 
 
 class ProfileUpdateSuggestions(BaseModel):
@@ -72,11 +72,12 @@ class JobDescriptionParseRequest(BaseModel):
 	job_url: str | None = None
 	description_text: str | None = None
 
-	class Config:
-		# Ensure at least one field is provided
-		@classmethod
-		def __init_subclass__(cls, **kwargs):
-			super().__init_subclass__(**kwargs)
+	# Ensure at least one of job_url or description_text is provided
+	@model_validator(mode="after")
+	def _validate_at_least_one(self) -> "JobDescriptionParseRequest":
+		if not (self.job_url or self.description_text):
+			raise ValueError("Either job_url or description_text must be provided")
+		return self
 
 
 class ParsedJobDescription(BaseModel):
@@ -121,8 +122,8 @@ class ContentGenerationResponse(BaseModel):
 	template_used: str | None = None
 	created_at: datetime
 
-	class Config:
-		from_attributes = True
+	# Pydantic v2 configuration
+	model_config = ConfigDict(from_attributes=True)
 
 
 class ContentUpdateRequest(BaseModel):
@@ -148,8 +149,8 @@ class ContentResponse(BaseModel):
 	created_at: datetime
 	updated_at: datetime
 
-	class Config:
-		from_attributes = True
+	# Pydantic v2 configuration
+	model_config = ConfigDict(from_attributes=True)
 
 
 class ContentQualityAnalysis(BaseModel):
@@ -177,8 +178,8 @@ class ContentVersionResponse(BaseModel):
 	created_at: datetime
 	created_by: str
 
-	class Config:
-		from_attributes = True
+	# Pydantic v2 configuration
+	model_config = ConfigDict(from_attributes=True)
 
 
 class TemplateSuggestions(BaseModel):

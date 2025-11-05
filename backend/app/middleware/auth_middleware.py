@@ -503,7 +503,7 @@ class ConsolidatedAuthMiddleware(BaseHTTPMiddleware):
 		if auth_result.get("auth_method") == "api_key":
 			if "rate_limit_remaining" in auth_result:
 				response.headers["X-RateLimit-Remaining"] = str(auth_result["rate_limit_remaining"])
-			if "rate_limit_reset" in auth_result and auth_result["rate_limit_reset"]:
+			if auth_result.get("rate_limit_reset"):
 				response.headers["X-RateLimit-Reset"] = auth_result["rate_limit_reset"].isoformat()
 
 		# Add session timeout info for JWT sessions

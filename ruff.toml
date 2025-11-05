@@ -1,79 +1,93 @@
-line-length = 88
-target-version = "py311"
-extend-exclude = [
-	"migrations",
-	".venv",
-	"__pycache__",
-	"*.egg-info",
-	"logs",
-	"data",
-		"tests/**",
-		"scripts/**",
-			"backend/tests/**",
-			"examples/**",
-				"backend/scripts/**",
-				"backend/temp_app.py",
-					"backend/app/workers/**",
-					"backend/maintenance/**",
-						"backend/app/utils/type_hints_enhancer.py",
-							"backend/app/utils/security.py",
-							"backend/app/utils/sanitization.py",
-								"backend/app/utils/logging.py",
-								"backend/app/utils/redis_client.py",
-								"backend/app/utils/**",
-								"backend/app/tests/**",
-								"backend/app/tasks/**",
-								"backend/app/services/**",
-								"backend/app/security/**",
-								"backend/app/monitoring/**",
-								"backend/app/models/**",
-								"backend/app/middleware/**",
-								"backend/app/core/**",
-								"backend/app/dependencies.py",
-								"backend/app/main.py",
-								"backend/app/config/**",
-								"backend/app/api/**",
-								"backend/app/cli.py",
-								"backend/app/schemas/**",
-								"backend/app/repositories/**",
-								"backend/alembic/**",
-	"tests/unit/test_job_scraping_service.py",
-	"tests/unit/test_job_recommendation_service.py"
+# ruff.toml - Workspace configuration for Career Copilot
+
+# Specify the maximum line length. The default of 88 is compatible with Black.
+line-length = 150
+
+# Set the target Python version for Ruff to apply rules and fixes.
+# This ensures that code transformations are safe for your target environment.
+# Examples: "py38", "py39", "py310", "py311", "py312"
+target-version = "py312"
+
+# Define the source code directory
+src = ["backend", "scripts", "tests"]
+
+# Define directories and files to be excluded from linting and formatting.
+# Ruff has sensible defaults, but you can add project-specific exclusions.
+# Default exclusions include common virtual environment and build artifact directories.
+exclude = [
+    ".bzr",
+    ".direnv",
+    ".eggs",
+    ".git",
+    ".hg",
+    ".mypy_cache",
+    ".nox",
+    ".pants.d",
+    ".ruff_cache",
+    ".svn",
+    ".tox",
+    ".venv",
+    "__pypackages__",
+    "_build",
+    "buck-out",
+    "build",
+    "dist",
+    "node_modules",
+    "venv",
+    "frontend",
+    "data",
+    "logs",
+    "deployment",
+    "monitoring",
+    "secrets",
+    "docs",
+    "backend/.coveragerc",
 ]
 
+
+# ===================================================================
+# Linter (`ruff lint` or `ruff check`) settings
+# ===================================================================
 [lint]
-select = ["E", "W", "F", "I", "B", "C4", "UP", "S"]
-ignore = ["E501", "D100", "D104", "D107", "S101", "D101", "D102", "D103","W191"]
-fixable = ["ALL"]
 
-[lint.per-file-ignores]
-"__init__.py" = ["F401", "D104"]
-"tests/*" = [
-	"S101",
-	"S106",
-	"S113",
-	"D100",
-	"D103",
-	"W293",
-	"I001",
-	"W191",
-	"W291",
-	"F401",
-	"F841",
-	"UP006",
-	"UP035"
-]
-"migrations/*" = ["D100", "D103"]
-"scripts/*" = ["T20"]
-"validate_phase2.py" = ["F401", "F841", "I001", "W293"]
-"tests/unit/test_recommendation_engine.py" = ["F821"]
+# Select a broad set of useful rules to enforce.
+# For a full list, see: https://docs.astral.sh/ruff/rules/
+select = ["RUF"]
 
-[lint.mccabe]
-max-complexity = 14
+# Ignore specific rules that may be too noisy or conflict with formatter preferences.
+ignore = ["E501", "B905"]
 
+# Allow unused variables that begin with an underscore.
+# This is a common convention for intentionally unused variables.
+dummy-variable-rgx = "^(_+|(_[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
+
+
+# ===================================================================
+# Formatter (`ruff format`) settings
+# ===================================================================
+[format]
+
+# Use double quotes for strings where possible.
+quote-style = "double"
+
+# Use spaces for indentation.
+indent-style = "tab"
+
+# Respect magic trailing commas. When enabled (the default), a trailing
+# comma on a collection or function call will force it to be formatted
+# with one item per line.
+skip-magic-trailing-comma = false
+
+# Automatically detect and preserve the line ending style (LF vs. CRLF).
+line-ending = "auto"
+
+
+# ===================================================================
+# Tool-specific configurations
+# ===================================================================
+
+# -- isort (Import Sorting) --
 [lint.isort]
-known-first-party = ["app", "career_copilot"]
-combine-as-imports = true
-
-[lint.pydocstyle]
-convention = "google"
+# Define your project's own modules as "first-party". This helps isort
+# correctly categorize imports into standard library, third-party, and local.
+known-first-party = ["app", "backend", "scripts", "tests"]

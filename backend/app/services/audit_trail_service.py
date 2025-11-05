@@ -5,7 +5,7 @@ Provides comprehensive audit logging and compliance tracking.
 
 from datetime import datetime, timedelta, timezone
 from enum import Enum
-from typing import Any, Dict, List, Optional
+from typing import Any, ClassVar, Dict, List, Optional
 from uuid import uuid4
 
 from fastapi import Request
@@ -147,7 +147,7 @@ class AuditEventModel(BaseModel):
 	duration_ms: Optional[float] = None
 
 	class Config:
-		json_encoders = {datetime: lambda v: v.isoformat()}
+		json_encoders: ClassVar[dict[type, Any]] = {datetime: lambda v: v.isoformat()}
 
 
 class ComplianceReport(BaseModel):

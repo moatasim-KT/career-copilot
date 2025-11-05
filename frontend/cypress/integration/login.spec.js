@@ -1,4 +1,8 @@
 describe('Login Flow', () => {
+  it('should login successfully', () => {
+    cy.visit('http://localhost:3000/login');
+
+    cy.get('input[name="username"]').type('testuser');
     cy.get('input[name="password"]').type('testpassword');
     cy.get('button[type="submit"]').click();
 

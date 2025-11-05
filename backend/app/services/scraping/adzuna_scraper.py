@@ -1,5 +1,5 @@
 import logging
-from typing import Any, Dict, List, Optional
+from typing import Any, ClassVar, Dict, List, Optional
 from urllib.parse import urlencode
 
 from app.core.config import get_settings
@@ -13,9 +13,9 @@ settings = get_settings()
 
 class AdzunaScraper(BaseScraper):
 	"""Scraper for Adzuna API"""
-	
+
 	# Mapping of country names to Adzuna country codes
-	COUNTRY_CODES = {
+	COUNTRY_CODES: ClassVar[dict[str, str]] = {
 		"germany": "de",
 		"deutschland": "de",
 		"france": "fr",
@@ -63,36 +63,51 @@ class AdzunaScraper(BaseScraper):
 		if not self.app_id or not self.app_key:
 			logger.error("Adzuna API keys (ADZUNA_APP_ID, ADZUNA_APP_KEY) are not set.")
 			raise ValueError("Adzuna API keys are required.")
-	
+
 	def _detect_country(self, location: str) -> str:
 		"""Detect country code from location string."""
 		location_lower = location.lower()
-		
+
 		# Check for country names in the location string
 		for country_name, country_code in self.COUNTRY_CODES.items():
 			if country_name in location_lower:
 				return country_code
-		
+
 		# Default to configured country
 		return self.default_country
 
 	def _build_search_url(self, keywords: str, location: str, page: int = 1) -> str:
-		"""Build the search URL with query parameters."""
+		"""Build the search URL with query parameters - optimized for EU visa sponsorship jobs."""
 		# Detect country from location
 		country = self._detect_country(location)
-		
+
 		# Base URL structure: https://api.adzuna.com/v1/api/jobs/{country}/search/{page}
 		url = f"{self.base_url}/jobs/{country}/search/{page}"
-		
+
+		# Enhanced keywords for international/visa sponsorship jobs
+		enhanced_keywords = keywords
+		visa_keywords = ["visa sponsorship", "relocation", "international", "expat"]
+
+		# Check if user is looking for visa sponsorship (don't add if already specified)
+		is_visa_search = any(kw in keywords.lower() for kw in visa_keywords)
+
 		# Build query parameters
 		params = {
 			"app_id": self.app_id,
 			"app_key": self.app_key,
-			"what": keywords,
+			"what": enhanced_keywords,
 			"where": location,
-			"results_per_page": 25
+			"results_per_page": 50,  # Increased from 25 to get more results
+			"sort_by": "date",  # Get freshest jobs first
+			"max_days_old": 30,  # Only jobs posted in last 30 days
 		}
-		
+
+		# Add category filter for tech jobs if relevant keywords detected
+		tech_keywords = ["engineer", "developer", "data", "software", "ml", "ai", "devops", "cloud"]
+		if any(kw in keywords.lower() for kw in tech_keywords):
+			# IT Jobs category code for better filtering
+			params["category"] = "it-jobs"
+
 		query_string = urlencode(params)
 		return f"{url}?{query_string}"
 
@@ -115,7 +130,7 @@ class AdzunaScraper(BaseScraper):
 					logger.error(f"Failed to parse JSON from Adzuna response: {e}")
 					logger.error(f"Response text: {response.text[:500]}")
 					break
-					
+
 				total_results = data.get("count", 0)
 				if total_results > 0:
 					# Adzuna API returns max 50 results per page

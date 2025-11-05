@@ -26,9 +26,10 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 import yaml
-from app.core.logging import get_logger
 from pydantic import SecretStr, field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+from app.core.logging import get_logger
 
 logger = get_logger(__name__)
 
@@ -102,11 +103,11 @@ class UnifiedSettings(BaseSettings):
 	indeed_api_key: Optional[str] = None
 	glassdoor_partner_id: Optional[str] = None
 	glassdoor_api_key: Optional[str] = None
-	
+
 	# The Muse API
 	themuse_api_key: Optional[str] = None
 	themuse_base_url: str = "https://www.themuse.com/api/public"
-	
+
 	# RapidAPI JSEarch
 	rapidapi_jsearch_key: Optional[str] = None
 
@@ -200,7 +201,11 @@ class UnifiedSettings(BaseSettings):
 	# ==================== Monitoring & Observability ====================
 	enable_metrics: bool = True
 	metrics_port: int = 9090
+	prometheus_port: int = 9090
 	enable_tracing: bool = False
+	enable_opentelemetry: bool = False
+	otlp_endpoint: str = "http://localhost:4317"
+	service_name: str = "career-copilot-api"
 	jaeger_endpoint: Optional[str] = None
 
 	@field_validator("cors_origins", mode="before")

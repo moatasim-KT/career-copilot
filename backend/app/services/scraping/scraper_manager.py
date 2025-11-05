@@ -10,9 +10,14 @@ from typing import Dict, List, Optional
 from app.schemas.job import JobCreate
 
 from .adzuna_scraper import AdzunaScraper
+from .arbeitnow_scraper import ArbeitnowScraper
 from .base_scraper import BaseScraper, RateLimiter
+from .berlinstartupjobs_scraper import BerlinStartupJobsScraper
+from .eures_scraper import EuresScraper
+from .firecrawl_scraper import FirecrawlScraper
 from .indeed_scraper import IndeedScraper
 from .rapidapi_jsearch_scraper import RapidAPIJSearchScraper
+from .relocateme_scraper import RelocateMeScraper
 from .themuse_scraper import TheMuseScraper
 
 logger = logging.getLogger(__name__)
@@ -29,6 +34,13 @@ class ScrapingConfig:
 	enable_adzuna: bool = True
 	enable_themuse: bool = True
 	enable_rapidapi_jsearch: bool = True
+	# EU Visa-Sponsorship focused scrapers
+	enable_arbeitnow: bool = True
+	enable_berlinstartupjobs: bool = True
+	enable_relocateme: bool = True
+	enable_eures: bool = True
+	# Advanced scraping with Firecrawl
+	enable_firecrawl: bool = True
 	rate_limit_min_delay: float = 1.0
 	rate_limit_max_delay: float = 3.0
 	deduplication_enabled: bool = True
@@ -67,7 +79,44 @@ class ScraperManager:
 			try:
 				scrapers["rapidapi_jsearch"] = RapidAPIJSearchScraper(rate_limiter=rate_limiter)
 			except ValueError as e:
-				logger.warning(f"RapidAPI JSEarch scraper not initialized: {e}")
+				logger.warning(f"RapidAPI JSearch scraper not initialized: {e}")
+		
+		# EU Visa-Sponsorship focused scrapers
+		if self.config.enable_arbeitnow:
+			try:
+				scrapers["arbeitnow"] = ArbeitnowScraper(rate_limiter=rate_limiter)
+				logger.info("✅ Arbeitnow scraper initialized (Germany visa sponsorship)")
+			except ValueError as e:
+				logger.warning(f"Arbeitnow scraper not initialized: {e}")
+		
+		if self.config.enable_berlinstartupjobs:
+			try:
+				scrapers["berlinstartupjobs"] = BerlinStartupJobsScraper(rate_limiter=rate_limiter)
+				logger.info("✅ Berlin Startup Jobs scraper initialized (Berlin visa sponsorship)")
+			except ValueError as e:
+				logger.warning(f"Berlin Startup Jobs scraper not initialized: {e}")
+		
+		if self.config.enable_relocateme:
+			try:
+				scrapers["relocateme"] = RelocateMeScraper(rate_limiter=rate_limiter)
+				logger.info("✅ Relocate.me scraper initialized (EU relocation support)")
+			except ValueError as e:
+				logger.warning(f"Relocate.me scraper not initialized: {e}")
+		
+		if self.config.enable_eures:
+			try:
+				scrapers["eures"] = EuresScraper(rate_limiter=rate_limiter)
+				logger.info("✅ EURES scraper initialized (Official EU job portal)")
+			except ValueError as e:
+				logger.warning(f"EURES scraper not initialized: {e}")
+		
+		# Advanced scraping with Firecrawl (company career pages)
+		if self.config.enable_firecrawl:
+			try:
+				scrapers["firecrawl"] = FirecrawlScraper(rate_limiter=rate_limiter)
+				logger.info("✅ Firecrawl scraper initialized (Company career pages: Google, Anthropic, DeepMind, etc.)")
+			except ValueError as e:
+				logger.warning(f"Firecrawl scraper not initialized: {e}")
 
 		logger.info(f"Initialized {len(scrapers)} scrapers: {list(scrapers.keys())}")
 		return scrapers

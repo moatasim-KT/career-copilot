@@ -2,16 +2,17 @@
 API endpoints for data compression and encryption management
 """
 
-from typing import Dict, Any
-from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks
-from sqlalchemy.ext.asyncio import AsyncSession
+from typing import Any, Dict
 
-from app.core.dependencies import get_db, get_current_user
-from app.models.user import User
-from app.services.data_migration_service import DataMigrationService
-from app.services.crypto_service import crypto_service
-from app.services.compression_service import compression_service
 from app.core.config import settings
+from app.core.dependencies import get_current_user, get_db
+from app.models.user import User
+from app.services.compression_service import compression_service
+from app.services.crypto_service import crypto_service
+from app.services.data_migration_service import DataMigrationService
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import Session
 
 # NOTE: This file has been converted to use AsyncSession.
 # Database queries need to be converted to async: await db.execute(select(...)) instead of db.query(...)
@@ -200,7 +201,7 @@ async def test_compression(
 			}
 
 		# Test automatic best compression selection
-		best_compressed, best_type, best_stats = compression_service.find_best_compression(test_bytes)
+		_best_compressed, best_type, best_stats = compression_service.find_best_compression(test_bytes)
 
 		return {"status": "success", "algorithm_comparison": results, "best_compression": {"algorithm": best_type.value, "stats": best_stats}}
 
@@ -316,4 +317,5 @@ def _get_most_compressible_file_types(db: Session) -> list:
     """)
 	).fetchall()
 
+	return [{"mime_type": row[0], "average_compression_ratio": round(row[1], 4), "file_count": row[2]} for row in results]
 	return [{"mime_type": row[0], "average_compression_ratio": round(row[1], 4), "file_count": row[2]} for row in results]

@@ -628,7 +628,7 @@ class DatabaseOptimizer:
 
 	# Path validation complete - safe to write file
 	# deepcode ignore PT: Path is validated above via is_relative_to() check
-	with open(output_path, "w") as f:  # noqa: S603
+	with open(output_path, "w") as f:
 		json.dump(report, f, indent=2, default=str)
 
 	logger.info(f"Database optimization report saved to: {output_path}")

@@ -6,15 +6,16 @@ Monitors memory, CPU usage, and implements request throttling and streaming proc
 import asyncio
 import gc
 import logging
-import psutil
 import threading
 import time
 import tracemalloc
 from collections import deque
 from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
-from typing import Any, Dict, AsyncGenerator
 from enum import Enum
+from typing import Any, AsyncGenerator, Dict
+
+import psutil
 
 from .config import settings
 
@@ -176,7 +177,7 @@ class ResourceManager:
 		# Memory leak detection
 		memory_leaks = 0
 		if self.leak_detection_enabled:
-			current, peak = tracemalloc.get_traced_memory()
+			current, _peak = tracemalloc.get_traced_memory()
 			memory_leaks = self._check_memory_leaks(current)
 
 		return ResourceMetrics(
@@ -426,4 +427,5 @@ resource_manager = ResourceManager()
 
 async def get_resource_manager() -> ResourceManager:
 	"""Get the global resource manager instance."""
+	return resource_manager
 	return resource_manager

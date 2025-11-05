@@ -1,85 +1,21 @@
-# Python
-__pycache__/
-*.py[cod]
-*$py.class
-*.so
-.Python
-*.egg-info/
-dist/
-build/
-*.egg
+# Add to .gitignore if not already present
+.env
+deployment/nginx/ssl/*.pem
+deployment/nginx/.htpasswd
+*.log
 
-# Virtual environments
-venv/
-env/
-ENV/
-.venv
-
-# IDE
-.vscode/
-.idea/
-*.swp
-*.swo
-*~
-
-# Testing
-.pytest_cache/
-.coverage
-htmlcov/
-.tox/
-
-# Data and logs
+# Exclude large directories to speed up Docker builds
+.git
+.github
+node_modules
+.next
 data/
 logs/
-*.log
-*.db
-*.sqlite3
-
-# Secrets
-.env
-.env.local
-secrets/
-*.key
-*.pem
-
-# Documentation
-docs/
-*.md
-!README.md
-
-# Git
-.git/
-.gitignore
-.gitattributes
-
-# Docker
-Dockerfile*
-docker-compose*.yml
-.dockerignore
-
-# CI/CD
-.github/
-.gitlab-ci.yml
-
-# Backups
-backups/
-*.backup
-*.bak
-
-# Temporary files
-tmp/
-temp/
-*.tmp
-cache/
-
-# OS
+uploads/
+reports/
+.pytest_cache
+.mypy_cache
+.ruff_cache
+__pycache__
+*.pyc
 .DS_Store
-Thumbs.db
-
-# Monitoring
-monitoring/
-grafana/
-prometheus/
-
-# Sample files
-sample_contracts/

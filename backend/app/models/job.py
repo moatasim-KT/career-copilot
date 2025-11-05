@@ -1,8 +1,10 @@
 """Job model"""
 
-from sqlalchemy import Column, Integer, String, Text, DateTime, ForeignKey, JSON
-from sqlalchemy.orm import relationship
 from datetime import datetime
+
+from sqlalchemy import JSON, Column, DateTime, ForeignKey, Integer, String, Text
+from sqlalchemy.orm import relationship
+
 from ..core.database import Base
 
 
@@ -34,7 +36,12 @@ class Job(Base):
 	updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 	currency = Column(String)
 
+	# Deduplication fingerprint (MD5 hash of normalized title+company+location)
+	job_fingerprint = Column(String(32), nullable=True, index=True)
+
 	user = relationship("User", back_populates="jobs")
 	applications = relationship("Application", back_populates="job", cascade="all, delete-orphan")
+	content_generations = relationship("ContentGeneration", back_populates="job", cascade="all, delete-orphan")
+	recommendation_feedback = relationship("JobRecommendationFeedback", back_populates="job", cascade="all, delete-orphan")
 	content_generations = relationship("ContentGeneration", back_populates="job", cascade="all, delete-orphan")
 	recommendation_feedback = relationship("JobRecommendationFeedback", back_populates="job", cascade="all, delete-orphan")

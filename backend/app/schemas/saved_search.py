@@ -3,7 +3,7 @@ from __future__ import annotations
 from datetime import datetime
 from typing import Any
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class SavedSearchBase(BaseModel):
@@ -29,5 +29,5 @@ class SavedSearchResponse(SavedSearchBase):
 	updated_at: datetime
 	last_used: datetime
 
-	class Config:
-		from_attributes = True
+	# Pydantic v2 configuration
+	model_config = ConfigDict(from_attributes=True)

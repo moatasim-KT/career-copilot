@@ -23,6 +23,13 @@ class NotificationService:
         self.email_service = EmailService()
         logger.info("Notification service initialized")
     
+    import time
+
+# ... (rest of the imports)
+
+class NotificationService:
+    # ... (rest of the class)
+
     async def send_notification(
         self,
         user_id: int,
@@ -49,6 +56,9 @@ class NotificationService:
         try:
             logger.info(f"Sending {notification_type} notification to user {user_id}: {title}")
             
+            # Simulate sending notification
+            await asyncio.sleep(0.1)
+
             # Store notification in database if db session available
             if self.db:
                 from app.models.user import User
@@ -57,17 +67,19 @@ class NotificationService:
                     # TODO: Store notification in notifications table when created
                     logger.debug(f"Notification stored for user {user.email}")
             
-            # Here you could integrate with:
-            # - WebSocket for real-time notifications
-            # - Firebase Cloud Messaging for push notifications
-            # - Service workers for browser notifications
-            
             return True
             
         except Exception as e:
             logger.error(f"Failed to send notification to user {user_id}: {e}")
             return False
     
+    import time
+
+# ... (rest of the imports)
+
+class NotificationService:
+    # ... (rest of the class)
+
     async def send_email(
         self,
         to_email: str,
@@ -92,14 +104,17 @@ class NotificationService:
         try:
             logger.info(f"Sending email to {to_email}: {subject}")
             
+            # Simulate sending email
+            await asyncio.sleep(0.5)
+
             if html:
-                success = self.email_service.send_html_email(
+                success = await self.email_service.send_html_email(
                     to_email=to_email,
                     subject=subject,
                     html_content=body
                 )
             else:
-                success = self.email_service.send_email(
+                success = await self.email_service.send_email(
                     to_email=to_email,
                     subject=subject,
                     body=body

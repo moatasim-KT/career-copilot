@@ -1,47 +1,42 @@
-'use client';
 
-import { InputHTMLAttributes, forwardRef } from 'react';
-
+import React from 'react';
 import { cn } from '@/lib/utils';
 
-interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
+export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
+  /** Optional label for the input field */
   label?: string;
+  /** Optional error message to display */
   error?: string;
-  helperText?: string;
+  /** Visual variant of the input field */
+  variant?: 'default' | 'ghost';
 }
 
-const Input = forwardRef<HTMLInputElement, InputProps>(
-  ({ className, label, error, helperText, ...props }, ref) => {
+const Input = React.forwardRef<HTMLInputElement, InputProps>(
+  ({ label, error, className, variant = 'default', type = 'text', ...props }, ref) => {
+    const baseStyles = 'flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50';
+    const variantStyles = {
+      default: 'border-gray-300 focus:border-blue-500 focus:ring-blue-500',
+      ghost: 'border-transparent focus:border-transparent focus:ring-transparent',
+    };
+
     return (
-      <div className="space-y-1">
+      <div className="grid w-full items-center gap-1.5">
         {label && (
-          <label className="block text-sm font-medium text-gray-700">
+          <label htmlFor={props.id || props.name} className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
             {label}
           </label>
         )}
         <input
-          className={cn(
-            'block w-full rounded-md border border-gray-300 px-3 py-2 text-sm',
-            'placeholder:text-gray-400',
-            'focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500',
-            'disabled:cursor-not-allowed disabled:bg-gray-50 disabled:text-gray-500',
-            error && 'border-red-300 focus:border-red-500 focus:ring-red-500',
-            className,
-          )}
+          type={type}
+          className={cn(baseStyles, variantStyles[variant], className, error && 'border-red-500')}
           ref={ref}
           {...props}
         />
-        {error && (
-          <p className="text-sm text-red-600">{error}</p>
-        )}
-        {helperText && !error && (
-          <p className="text-sm text-gray-500">{helperText}</p>
-        )}
+        {error && <p className="text-sm text-red-500">{error}</p>}
       </div>
     );
-  },
+  }
 );
-
 Input.displayName = 'Input';
 
 export default Input;

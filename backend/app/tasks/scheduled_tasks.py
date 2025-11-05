@@ -21,8 +21,7 @@ from ..core.logging import get_logger
 from ..models.application import Application
 from ..models.user import User
 from ..services.analytics_service import AnalyticsService
-from ..services.job_recommendation_service import \
-    get_job_recommendation_service
+from ..services.job_recommendation_service import get_job_recommendation_service
 from ..services.job_scraping_service import JobScrapingService
 from ..services.notification_service import NotificationService
 from ..services.recommendation_engine import RecommendationEngine
@@ -73,7 +72,22 @@ celery_app.conf.beat_schedule = {
 
 def run_async(task):
 	"""Helper function to run async tasks in sync context"""
-	asyncio.run(task)
+	import asyncio
+
+	try:
+		# Try to get the current event loop
+		loop = asyncio.get_event_loop()
+		if loop.is_running():
+			# If loop is running, schedule the task as a coroutine
+			# Store task reference to prevent garbage collection
+			_task = asyncio.create_task(task)
+			return _task
+		else:
+			# If no loop is running, run the task
+			return loop.run_until_complete(task)
+	except RuntimeError:
+		# No event loop exists, create a new one
+		return asyncio.run(task)
 
 
 def run_morning_briefing():
@@ -199,8 +213,20 @@ async def scrape_jobs():
 				# Process real-time job matching for new jobs
 				try:
 					matching_service = get_job_recommendation_service(db)
-					newly_added_jobs = scraping_service.job_manager.get_latest_jobs_for_user(user.id, limit=jobs_saved)
-					await matching_service.check_job_matches_for_user(user, newly_added_jobs)
+					# Get the latest jobs added for this user
+					from datetime import timedelta
+
+					cutoff_time = datetime.now() - timedelta(minutes=5)
+					newly_added_jobs = (
+						db.query(Job)
+						.filter(Job.user_id == user.id, Job.created_at >= cutoff_time)
+						.order_by(Job.created_at.desc())
+						.limit(jobs_saved)
+						.all()
+					)
+
+					if newly_added_jobs:
+						await matching_service.check_job_matches_for_user(user, newly_added_jobs)
 				except Exception as e:
 					logger.error(f"Error processing job matching for user {user.username}: {e}")
 
@@ -446,15 +472,15 @@ def start_scheduler():
 	try:
 		logger.info("Starting APScheduler...")
 
-		# Register ingest_jobs task - runs every 6 hours
+		# Register ingest_jobs task - runs every hour
 		scheduler.add_job(
 			func=run_scrape_jobs,
-			trigger=CronTrigger(hour="*/6", minute=0, timezone=utc),
+			trigger=CronTrigger(hour="*", minute=0, timezone=utc),
 			id="ingest_jobs",
-			name="6-Hourly Job Ingestion",
+			name="Hourly Job Ingestion",
 			replace_existing=True,
 		)
-		logger.info("Registered task: ingest_jobs (cron: 0 */6 * * *)")
+		logger.info("Registered task: ingest_jobs (cron: 0 * * * *)")
 
 		# Register send_morning_briefing task - runs at 8:00 AM daily
 		scheduler.add_job(

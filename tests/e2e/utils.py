@@ -221,7 +221,7 @@ class ConfigValidator:
                 result["valid"] = False
                 
         except Exception as e:
-            result["errors"].append(f"Error validating env file: {str(e)}")
+            result["errors"].append(f"Error validating env file: {e!s}")
             result["valid"] = False
         
         return result
@@ -259,10 +259,10 @@ class ConfigValidator:
                 result["parsed_data"] = parsed_data
                 
         except json.JSONDecodeError as e:
-            result["errors"].append(f"Invalid JSON format: {str(e)}")
+            result["errors"].append(f"Invalid JSON format: {e!s}")
             result["valid"] = False
         except Exception as e:
-            result["errors"].append(f"Error reading JSON file: {str(e)}")
+            result["errors"].append(f"Error reading JSON file: {e!s}")
             result["valid"] = False
         
         return result
@@ -304,10 +304,10 @@ class ConfigValidator:
                     result["warnings"].append("YAML file is empty or contains only null values")
                 
         except yaml.YAMLError as e:
-            result["errors"].append(f"Invalid YAML syntax: {str(e)}")
+            result["errors"].append(f"Invalid YAML syntax: {e!s}")
             result["valid"] = False
         except Exception as e:
-            result["errors"].append(f"Error reading YAML file: {str(e)}")
+            result["errors"].append(f"Error reading YAML file: {e!s}")
             result["valid"] = False
         
         return result

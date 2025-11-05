@@ -12,15 +12,15 @@ from abc import ABC, abstractmethod
 from datetime import datetime, timedelta, timezone
 from enum import Enum
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple, Any
+from typing import Any, ClassVar, Dict, List, Optional, Tuple
 from uuid import uuid4
 
 from pydantic import BaseModel, Field
 
+from ..core.audit import AuditEventType, audit_logger
 from ..core.config import get_settings
 from ..core.exceptions import StorageError, ValidationError
 from ..core.logging import get_logger
-from ..core.audit import AuditEventType, audit_logger
 
 logger = get_logger(__name__)
 
@@ -50,7 +50,7 @@ class FileVersion(BaseModel):
 	is_current: bool = Field(default=True, description="Whether this is the current version")
 
 	class Config:
-		json_encoders = {datetime: lambda v: v.isoformat()}
+		json_encoders: ClassVar[dict[type, Any]] = {datetime: lambda v: v.isoformat()}
 
 
 class FileRecord(BaseModel):
@@ -71,7 +71,7 @@ class FileRecord(BaseModel):
 	deleted_at: Optional[datetime] = Field(default=None, description="Deletion timestamp")
 
 	class Config:
-		json_encoders = {datetime: lambda v: v.isoformat()}
+		json_encoders: ClassVar[dict[type, Any]] = {datetime: lambda v: v.isoformat()}
 
 
 class StorageStats(BaseModel):

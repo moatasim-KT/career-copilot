@@ -81,8 +81,7 @@ async def create_job(job_data: JobCreate, current_user: User = Depends(get_curre
 	# Trigger real-time job matching for scraped jobs
 	if job.source == "scraped":
 		try:
-			from ...services.job_recommendation_service import \
-			    get_job_recommendation_service
+			from ...services.job_recommendation_service import get_job_recommendation_service
 
 			matching_service = get_job_recommendation_service(db)
 			await matching_service.check_job_matches_for_user(current_user, [job])
@@ -284,7 +283,11 @@ async def trigger_job_scraping(search_params: dict, current_user: User = Depends
 	"""
 	Manually trigger job scraping from multiple sources.
 
-	- **search_params**: Dictionary of search parameters (e.g., {"what": "software engineer", "where": "remote"})
+	- **search_params**: Dictionary with:
+		- skills: List of skills/keywords to search for
+		- locations: List of preferred locations
+		- remote: Boolean to include remote jobs (default: user's preference)
+		- max_jobs: Maximum number of jobs to scrape (default: 100)
 
 	Returns scraped jobs that were added to the user's job list.
 	"""
@@ -293,17 +296,27 @@ async def trigger_job_scraping(search_params: dict, current_user: User = Depends
 
 		scraper = JobScrapingService(db)
 
-		new_jobs = await scraper.scrape_jobs(current_user.id, search_params)
+		# Build user preferences from search params and user settings
+		user_preferences = {
+			"skills": search_params.get("skills", current_user.skills or []),
+			"locations": search_params.get("locations", current_user.preferred_locations or []),
+			"remote": search_params.get("remote", getattr(current_user, "prefer_remote_jobs", False)),
+			"max_jobs": search_params.get("max_jobs", 100),
+		}
+
+		# Use the manual scraping method
+		jobs = await scraper.scrape_jobs(user_preferences)
 
 		# Invalidate cache
 		cache_service.invalidate_user_cache(current_user.id)
 
 		return {
-			"message": f"Successfully scraped {len(new_jobs)} new jobs",
-			"jobs_added": len(new_jobs),
-			"keywords": search_params.get("what"),
-			"location": search_params.get("where"),
-			"sources_used": "adzuna",  # For now, only Adzuna is integrated
+			"message": f"Successfully scraped {len(jobs)} jobs",
+			"jobs_found": len(jobs),
+			"keywords": user_preferences["skills"],
+			"locations": user_preferences["locations"],
+			"remote_included": user_preferences["remote"],
+			"sources_used": ["ScraperManager", "Adzuna", "Arbeitnow", "The Muse", "RapidAPI", "RemoteOK"],
 		}
 	except Exception as e:
 		db.rollback()
@@ -336,7 +349,9 @@ async def get_available_sources(current_user: User = Depends(get_current_user), 
 
 
 @router.get("/api/v1/jobs/sources/performance")
-async def get_source_performance_summary(timeframe_days: int = 30, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
+async def get_source_performance_summary(
+	timeframe_days: int = 30, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)
+):
 	"""
 	Get comprehensive performance summary for all job sources.
 

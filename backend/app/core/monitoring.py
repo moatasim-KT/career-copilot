@@ -8,10 +8,8 @@ import asyncio
 import functools
 import json
 import os
-import psutil
-import structlog
-import time
 import threading
+import time
 import traceback
 import uuid
 from collections import defaultdict, deque
@@ -21,6 +19,8 @@ from enum import Enum
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional
 
+import psutil
+import structlog
 
 from .logging import get_logger
 
@@ -167,8 +167,8 @@ class EnhancedAlertManager:
 		self.gcp_monitoring = None
 		if os.getenv("ENVIRONMENT") == "production":
 			try:
-				from ...gcp.enhanced_monitoring import monitoring
 				from ...gcp.enhanced_error_tracking import error_tracker
+				from ...gcp.enhanced_monitoring import monitoring
 
 				self.gcp_monitoring = monitoring
 				self.gcp_error_tracker = error_tracker
@@ -280,8 +280,8 @@ class EnhancedMetricsCollector:
 		self.gcp_monitoring = None
 		if os.getenv("ENVIRONMENT") == "production":
 			try:
-				from ...gcp.enhanced_monitoring import monitoring
 				from ...gcp.enhanced_error_tracking import performance_monitor
+				from ...gcp.enhanced_monitoring import monitoring
 
 				self.gcp_monitoring = monitoring
 				self.gcp_performance_monitor = performance_monitor
@@ -817,7 +817,7 @@ class ComprehensiveMonitoringSystem:
 		logger.info("Starting comprehensive monitoring system")
 
 		# Start monitoring task
-		asyncio.create_task(self._monitoring_loop())
+		self._monitoring_task = asyncio.create_task(self._monitoring_loop())
 
 		logger.info("Comprehensive monitoring system started")
 
@@ -1502,35 +1502,35 @@ async def monitoring_background_task():
 
 # Export all the functions that other modules expect
 __all__ = [
-	"monitor_performance",
-	"record_metric",
-	"record_health_check",
-	"record_audit_event",
-	"get_metrics_summary",
-	"get_health_status",
-	"get_system_metrics",
-	"get_application_metrics",
-	"get_business_metrics",
-	"get_prometheus_metrics",
-	"get_prometheus_summary",
-	"log_audit_event",
-	"is_langsmith_enabled",
-	"get_langsmith_health",
-	"get_production_monitor",
-	"get_comprehensive_monitoring",
-	"initialize_monitoring",
-	"monitoring_background_task",
-	"monitoring_system",
-	"metrics_collector",
-	"alert_manager",
-	"production_monitor",
+	"Alert",
+	"AlertRule",
 	"AlertSeverity",
 	"MetricType",
 	"MonitoringLevel",
-	"AlertRule",
-	"Alert",
-	"SystemAlert",
 	"PerformanceMetrics",
+	"SystemAlert",
+	"alert_manager",
+	"get_application_metrics",
+	"get_business_metrics",
+	"get_comprehensive_monitoring",
+	"get_health_status",
+	"get_langsmith_health",
+	"get_metrics_summary",
+	"get_production_monitor",
+	"get_prometheus_metrics",
+	"get_prometheus_summary",
+	"get_system_metrics",
+	"initialize_monitoring",
+	"is_langsmith_enabled",
+	"log_audit_event",
+	"metrics_collector",
+	"monitor_performance",
+	"monitoring_background_task",
+	"monitoring_system",
+	"production_monitor",
+	"record_audit_event",
+	"record_health_check",
+	"record_metric",
 ]
 
 # =============================================================================
@@ -1542,7 +1542,7 @@ from collections import defaultdict, deque
 
 class PerformanceMetricsCollector:
 	"""Collects and analyzes performance metrics for AI services."""
-	
+
 	def __init__(self, max_metrics_per_window: int = 10000):
 		"""Initialize performance metrics collector."""
 		self.max_metrics_per_window = max_metrics_per_window
@@ -1552,7 +1552,7 @@ class PerformanceMetricsCollector:
 
 class PerformanceOptimizer:
 	"""Optimizes system performance based on metrics."""
-	
+
 	def __init__(self):
 		"""Initialize performance optimizer."""
 		logger.info("Performance optimizer initialized")

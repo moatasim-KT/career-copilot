@@ -3,14 +3,14 @@ Reporting and Insights API endpoints
 """
 
 from datetime import datetime, timezone
-from fastapi import APIRouter, Depends, HTTPException, Query
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
 
 from app.core.database import get_db
 from app.core.dependencies import get_current_user
 from app.models.user import User
 from app.services.analytics_service import AnalyticsService
+from fastapi import APIRouter, Depends, HTTPException, Query
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 
 # NOTE: This file has been converted to use AsyncSession.
 # Database queries need to be converted to async: await db.execute(select(...)) instead of db.query(...)
@@ -25,8 +25,8 @@ async def get_weekly_progress_report(
 	week_offset: int = Query(0, description="Week offset (0 = current week, -1 = last week, etc.)"),
 ):
 	"""Get comprehensive weekly progress report"""
-analytics_service = AnalyticsService(db)
-
+	analytics_service = AnalyticsService(db)
+	return analytics_service.get_metrics(current_user.id, "last_7_days")
 
 @router.get("/monthly-progress")
 async def get_monthly_progress_report(
@@ -35,35 +35,36 @@ async def get_monthly_progress_report(
 	month_offset: int = Query(0, description="Month offset (0 = current month, -1 = last month, etc.)"),
 ):
 	"""Get comprehensive monthly progress report"""
+	analytics_service = AnalyticsService(db)
 	return analytics_service.get_metrics(current_user.id, "last_30_days")
-
-
+	return analytics_service.get_metrics(current_user.id, "last_30_days")
 @router.get("/salary-trends-comprehensive")
 async def get_comprehensive_salary_trends(
 	current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db), days: int = Query(180, description="Analysis period in days")
 ):
 	"""Get comprehensive salary trend analysis with career insights"""
+	analytics_service = AnalyticsService(db)
 	return analytics_service.get_metrics(current_user.id, f"{days}d")
-
 @router.get("/career-insights")
 async def get_career_insights_report(current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
 	"""Get comprehensive career insights and progression analysis"""
+	analytics_service = AnalyticsService(db)
 	return analytics_service.get_metrics(current_user.id, "career_insights")
-
 @router.get("/recommendation-effectiveness")
 async def get_recommendation_effectiveness(
 	current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db), days: int = Query(90, description="Analysis period in days")
 ):
 	"""Track and analyze recommendation system effectiveness"""
+	analytics_service = AnalyticsService(db)
 	return analytics_service.get_metrics(current_user.id, "recommendation_effectiveness")
-
 @router.get("/progress-summary")
 async def get_progress_summary(current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
 	"""Get high-level progress summary for dashboard"""
 	try:
+		analytics_service = AnalyticsService(db)
 		# Get current week and month reports
-	        weekly_report = analytics_service.get_metrics(current_user.id, "last_7_days")
-		monthly_report = analytics_service.get_metrics(current_user.id, "last_30_days")
+		weekly_report = await analytics_service.get_metrics(current_user.id, "last_7_days")
+		monthly_report = await analytics_service.get_metrics(current_user.id, "last_30_days")
 
 		# Extract key metrics
 		summary = {
@@ -105,13 +106,14 @@ async def get_progress_summary(current_user: User = Depends(get_current_user), d
 		return summary
 
 	except Exception as e:
-		raise HTTPException(status_code=500, detail=f"Failed to generate progress summary: {str(e)}")
-
+		raise HTTPException(status_code=500, detail=f"Failed to generate progress summary: {e!s}")
 
 @router.get("/career-trajectory")
 async def get_career_trajectory_analysis(current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
 	"""Get focused career trajectory analysis"""
-		career_insights = analytics_service.get_metrics(current_user.id, "career_insights")
+	try:
+		analytics_service = AnalyticsService(db)
+		career_insights = await analytics_service.get_metrics(current_user.id, "career_insights")
 
 		if "error" in career_insights:
 			return career_insights
@@ -130,16 +132,16 @@ async def get_career_trajectory_analysis(current_user: User = Depends(get_curren
 		return trajectory_analysis
 
 	except Exception as e:
-		raise HTTPException(status_code=500, detail=f"Failed to generate career trajectory analysis: {str(e)}")
-
-
+		raise HTTPException(status_code=500, detail=f"Failed to generate career trajectory analysis: {e!s}")
 @router.get("/salary-insights")
 async def get_salary_insights(
 	current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db), days: int = Query(180, description="Analysis period in days")
 ):
 	"""Get focused salary insights and negotiation guidance"""
 	try:
-		        salary_analysis = analytics_service.get_metrics(current_user.id, f"{days}d")
+		analytics_service = AnalyticsService(db)
+		salary_analysis = await analytics_service.get_metrics(current_user.id, f"{days}d")
+		
 		if "error" in salary_analysis:
 			return salary_analysis
 
@@ -159,16 +161,16 @@ async def get_salary_insights(
 		return salary_insights
 
 	except Exception as e:
-		raise HTTPException(status_code=500, detail=f"Failed to generate salary insights: {str(e)}")
-
-
+		raise HTTPException(status_code=500, detail=f"Failed to generate salary insights: {e!s}")
 @router.get("/recommendation-performance")
 async def get_recommendation_performance_summary(
 	current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db), days: int = Query(90, description="Analysis period in days")
 ):
 	"""Get recommendation system performance summary"""
 	try:
-		        effectiveness_analysis = analytics_service.get_metrics(current_user.id, "recommendation_effectiveness")
+		analytics_service = AnalyticsService(db)
+		effectiveness_analysis = await analytics_service.get_metrics(current_user.id, "recommendation_effectiveness")
+		
 		if "error" in effectiveness_analysis:
 			return effectiveness_analysis
 
@@ -187,41 +189,39 @@ async def get_recommendation_performance_summary(
 		return performance_summary
 
 	except Exception as e:
-		raise HTTPException(status_code=500, detail=f"Failed to generate recommendation performance summary: {str(e)}")
-
+		raise HTTPException(status_code=500, detail=f"Failed to generate recommendation performance summary: {e!s}")
 
 @router.get("/comprehensive-report")
-async def get_comprehensive_insights_report(
-	current_user: User = Depends(get_current_user),
-	db: AsyncSession = Depends(get_db),
-	period: str = Query("monthly", description="Report period: 'weekly' or 'monthly'"),
+@router.get("/comprehensive-report")
+async def get_comprehensive_report(
+	current_user: User = Depends(get_current_user), 
+	db: AsyncSession = Depends(get_db), 
+	period: str = Query("monthly", description="Report period (weekly or monthly)")
 ):
-	"""Get comprehensive insights report combining all analysis types"""
+	"""Get comprehensive analysis report combining all insights"""
 	try:
-		if period not in ["weekly", "monthly"]:
-			raise HTTPException(status_code=400, detail="Period must be 'weekly' or 'monthly'")
-
 		# Get all reports
-		        if period == "weekly":
-		            progress_report = analytics_service.get_metrics(current_user.id, "last_7_days")
-		        else:
-		            progress_report = analytics_service.get_metrics(current_user.id, "last_30_days")
+		analytics_service = AnalyticsService(db)
+		if period == "weekly":
+			progress_report = await analytics_service.get_metrics(current_user.id, "last_7_days")
+		else:
+			progress_report = await analytics_service.get_metrics(current_user.id, "last_30_days")
 		
-		        salary_analysis = analytics_service.get_metrics(current_user.id, "180d")
-		        career_insights = analytics_service.get_metrics(current_user.id, "career_insights")
-		        recommendation_effectiveness = analytics_service.get_metrics(current_user.id, "recommendation_effectiveness")
-		# Combine into comprehensive report
+		salary_analysis = await analytics_service.get_metrics(current_user.id, "180d")
+		career_insights = await analytics_service.get_metrics(current_user.id, "career_insights")
+		recommendation_effectiveness = await analytics_service.get_metrics(current_user.id, "recommendation_effectiveness")
+		
+		# Create comprehensive report structure
 		comprehensive_report = {
-			"report_type": f"comprehensive_{period}_insights",
 			"generated_at": datetime.now(timezone.utc).isoformat(),
 			"user_id": current_user.id,
-			"progress_analysis": progress_report,
+			"period": period,
+			"progress_report": progress_report,
 			"salary_analysis": salary_analysis,
 			"career_insights": career_insights,
 			"recommendation_effectiveness": recommendation_effectiveness,
 			"executive_summary": {"key_achievements": [], "primary_concerns": [], "top_recommendations": [], "overall_assessment": "unknown"},
 		}
-
 		# Generate executive summary
 		executive_summary = comprehensive_report["executive_summary"]
 
@@ -258,7 +258,7 @@ async def get_comprehensive_insights_report(
 		return comprehensive_report
 
 	except Exception as e:
-		raise HTTPException(status_code=500, detail=f"Failed to generate comprehensive report: {str(e)}")
+		raise HTTPException(status_code=500, detail=f"Failed to generate comprehensive report: {e!s}")
 
 
 @router.get("/historical-reports/{report_type}")
@@ -298,4 +298,4 @@ async def get_historical_reports(
 		return {"report_type": report_type, "total_reports": len(reports), "reports": reports}
 
 	except Exception as e:
-		raise HTTPException(status_code=500, detail=f"Failed to retrieve historical reports: {str(e)}")
+		raise HTTPException(status_code=500, detail=f"Failed to retrieve historical reports: {e!s}")

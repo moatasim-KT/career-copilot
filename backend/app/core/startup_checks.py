@@ -7,10 +7,10 @@ components are properly configured and initialized before the application starts
 
 import os
 from pathlib import Path
-from typing import Dict, Any, Tuple
+from typing import Any, Dict, Tuple
 
-from .logging import get_logger
 from .environment_config import get_environment_config_manager, setup_environment
+from .logging import get_logger
 
 logger = get_logger(__name__)
 
@@ -513,7 +513,7 @@ async def startup_check_and_init() -> bool:
 		logger.info("✅ Configuration validation passed")
 
 		# Check file system permissions
-		fs_ok, fs_details = await validator.check_file_system()
+		fs_ok, _fs_details = await validator.check_file_system()
 		if not fs_ok:
 			logger.error("❌ File system validation failed")
 			return False
@@ -569,9 +569,9 @@ async def startup_check_and_init() -> bool:
 		# Phase 4: External integrations (optional)
 		logger.info("📋 Phase 4: External integrations validation")
 
-		ext_ok, ext_details = await validator.check_external_services()
+		ext_ok, _ext_details = await validator.check_external_services()
 		if not ext_ok:
-			logger.info("ℹ️  Some external services not configured - optional features will be disabled")
+			logger.info("Info: Some external services not configured - optional features will be disabled")
 		else:
 			logger.info("✅ External services validation passed")
 

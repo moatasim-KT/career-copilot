@@ -1,32 +1,30 @@
 # 🚀 Career Copilot
 
-[![Build Status](https://img.shields.io/badge/build-passing-brightgreen.svg)](https://github.com/actions)
-[![Python Version](https://img.shields.io/badge/python-3.11%2B-blue.svg)](https://www.python.org/downloads/)
-[![FastAPI](https://img.shields.io/badge/FastAPI-0.109%2B-009688.svg)](https://fastapi.tiangolo.com/)
-[![Next.js](https://img.shields.io/badge/Next.js-14.0-black.svg)](https://nextjs.org/)
-[![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
+![Python](https://img.shields.io/badge/python-3.11+-blue.svg)
+![FastAPI](https://img.shields.io/badge/FastAPI-0.109+-green.svg)
+![Next.js](https://img.shields.io/badge/Next.js-14.0-black.svg)
+![License](https://img.shields.io/badge/license-MIT-blue.svg)
+![Status](https://img.shields.io/badge/status-active-success.svg)
 
-> **AI-Powered Job Application Tracking and Career Management System**
-
-Career Copilot is an intelligent, enterprise-grade career management platform designed to help job seekers streamline their job search, track applications, prepare for interviews, and receive personalized career guidance through AI-powered insights.
+**An AI-powered career management platform specializing in EU job discovery with visa sponsorship support for AI/Data Science professionals.**
 
 ---
 
 ## 📋 Table of Contents
 
-- [Project Overview](#-project-overview)
-- [Architecture & Design](#️-architecture--design)
-- [Components & Modules](#-components--modules)
-- [Prerequisites](#-prerequisites)
-- [Installation & Setup](#-installation--setup)
-- [External APIs & Services](#-external-apis--services)
-- [Configuration](#️-configuration)
-- [Usage & Functionality](#-usage--functionality)
-- [API Documentation](#-api-documentation)
-- [Development Guidelines](#-development-guidelines)
-- [Troubleshooting](#-troubleshooting)
-- [Production Deployment](#-production-deployment)
-- [Additional Resources](#-additional-resources)
+1. [Project Overview](#-project-overview)
+2. [Architecture & Design](#-architecture--design)
+3. [Key Components](#-key-components)
+4. [Prerequisites](#-prerequisites)
+5. [Installation](#-installation)
+6. [External APIs](#-external-apis)
+7. [Configuration](#-configuration)
+8. [Usage](#-usage)
+9. [API Documentation](#-api-documentation)
+10. [Development](#-development)
+11. [Troubleshooting](#-troubleshooting)
+12. [Production Deployment](#-production-deployment)
+13. [Resources](#-resources)
 
 ---
 
@@ -34,157 +32,207 @@ Career Copilot is an intelligent, enterprise-grade career management platform de
 
 ### What is Career Copilot?
 
-Career Copilot is a comprehensive career management platform that transforms the job search experience. It combines a modern web stack (FastAPI and Next.js) with powerful AI capabilities to provide intelligent job discovery, application tracking, and career development tools. It helps users manage their career journey with features like personalized job recommendations, tailored resume and cover letter generation, interview practice, and insightful analytics—all in one place.
+Career Copilot is a comprehensive career management system that helps AI/Data Science professionals discover jobs in the EU with visa sponsorship, track applications, generate AI-powered resumes and cover letters, and gain insights through advanced analytics.
 
 ### Key Features
 
-#### Core Functionality
-- **📊 Application Tracking**: Manage the entire job application lifecycle with a Kanban-style board (Interested, Applied, Interview, Offer, etc.).
-- **🎯 Smart Job Recommendations**: AI-powered job matching based on user skills, experience, and preferences.
-- **📝 AI Content Generation**: Automatically generate resumes and cover letters tailored to specific job postings.
-- **🎤 Interview Practice**: Interactive, AI-driven mock interviews with real-time feedback.
-- **📈 Analytics Dashboard**: Visualize application progress, success rates, and market trends.
-- **🔍 Job Search & Scraping**: Discover jobs from multiple sources like LinkedIn, Indeed, and Adzuna.
-- **🔔 Smart Notifications**: Receive customizable email alerts for deadlines, follow-ups, and new job matches.
+- **🔍 Intelligent Job Discovery**: 9 specialized scrapers collecting jobs every 6 hours
+- **🌍 EU-Focused**: 70-80% of jobs from 27 EU countries with visa sponsorship
+- **🤖 AI-Powered Content**: Generate tailored resumes and cover letters using OpenAI, Groq, Anthropic, or Google Gemini
+- **📊 Advanced Analytics**: Track applications, analyze trends, and get personalized insights
+- **🔔 Smart Notifications**: Daily briefings and application reminders via email/SMS
+- **🔐 Secure Authentication**: JWT-based auth with OAuth 2.0 (Google, LinkedIn)
+- **⚡ High Performance**: Async Python, Redis caching, PostgreSQL database
+- **📱 Modern UI**: Next.js 14 with React 18, TailwindCSS, and real-time updates
 
-#### Advanced Features
-- **🤖 Multi-LLM Support**: Integrates with OpenAI (GPT-4), Groq (Llama 3), Anthropic (Claude), and Google (Gemini).
-- **💾 Vector Storage**: Utilizes ChromaDB for semantic search and advanced job matching.
-- **🔐 Enterprise Security**: Features OAuth2, JWT authentication, and Role-Based Access Control (RBAC).
-- **📤 Export & Backup**: Automated database backups and data export capabilities.
-- **⚡ Background Task Processing**: Uses Celery for asynchronous jobs like web scraping and sending emails.
+### Current Status
 
-### Target Audience
+✅ **Backend**: Running on `http://localhost:8002`  
+✅ **Database**: PostgreSQL connected  
+✅ **Cache**: Redis running  
+✅ **Scheduler**: APScheduler active (every 6 hours: 00:00, 06:00, 12:00, 18:00 UTC)  
+⚠️ **Celery**: Not running (optional for distributed tasks)  
+❌ **Frontend**: Not running (start with `npm run dev` in `frontend/`)
 
-- **Job Seekers**: Professionals actively looking for new career opportunities.
-- **Career Changers**: Individuals transitioning into new fields, especially data science, ML, or AI.
-- **Recent Graduates**: Entry to mid-level candidates navigating the tech job market.
-- **European Job Market**: Optimized for positions in Germany, the Netherlands, France, the UK, and other EU countries.
+### Tech Stack
 
-### Technology Highlights
+**Backend:**
+- FastAPI 0.109+ (Python 3.11+)
+- SQLAlchemy 2.0+ with AsyncPG
+- PostgreSQL 14+
+- Redis 7+ (caching)
+- APScheduler (job scheduling)
 
-- **Modern Stack**: FastAPI + Next.js + PostgreSQL
-- **AI Integration**: OpenAI GPT-4, Groq (Llama 3), Google Gemini
-- **Real-time Updates**: WebSocket support for live notifications
-- **Scalable Architecture**: Async operations, background tasks with Celery
-- **Secure**: OAuth 2.0, JWT authentication, encrypted API keys
-- **Production-Ready**: Docker support, monitoring with Prometheus/Grafana
+**Frontend:**
+- Next.js 14.0
+- React 18.2
+- TypeScript
+- TailwindCSS
+- Recharts (analytics)
+
+**AI Services:**
+- OpenAI GPT-4
+- Groq (Llama 3)
+- Anthropic Claude
+- Google Gemini
+
+**Job Scraping:**
+- 9 scrapers: Adzuna, RapidAPI JSearch, The Muse, Indeed, Arbeitnow, Berlin Startup Jobs, Relocate.me, EURES, Firecrawl
+- Firecrawl v2 API (AI-powered extraction from 10 EU companies)
+- 3-layer deduplication system
 
 ---
 
 ## 🏗️ Architecture & Design
 
-### High-Level Architecture
+### System Architecture
 
-Career Copilot follows a modern, decoupled architecture with a clear separation of concerns between the frontend and backend.
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                         Frontend (Next.js)                       │
+│  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────┐       │
+│  │Dashboard │  │Analytics │  │ AI Tools │  │  Jobs    │       │
+│  └────┬─────┘  └────┬─────┘  └────┬─────┘  └────┬─────┘       │
+└───────┼─────────────┼─────────────┼─────────────┼──────────────┘
+        │             │             │             │
+        └─────────────┴─────────────┴─────────────┘
+                      │ REST API (HTTPS)
+┌─────────────────────▼─────────────────────────────────────────┐
+│                    Backend (FastAPI)                           │
+│  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────┐      │
+│  │   Auth   │  │   Jobs   │  │   AI     │  │Analytics │      │
+│  │  Service │  │  Service │  │  Service │  │  Service │      │
+│  └────┬─────┘  └────┬─────┘  └────┬─────┘  └────┬─────┘      │
+│       │             │             │             │              │
+│  ┌────▼─────────────▼─────────────▼─────────────▼────┐        │
+│  │           Database Layer (SQLAlchemy 2.0)         │        │
+│  └────┬──────────────────────────────────────────────┘        │
+└───────┼────────────────────────────────────────────────────────┘
+        │
+┌───────▼──────────┐  ┌──────────────┐  ┌───────────────────┐
+│   PostgreSQL     │  │    Redis     │  │   APScheduler     │
+│   (Database)     │  │   (Cache)    │  │  (Job Scheduler)  │
+└──────────────────┘  └──────────────┘  └───────────────────┘
+        │                                        │
+┌───────▼────────────────────────────────────────▼──────────────┐
+│                  External Services                             │
+│  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────┐     │
+│  │  Adzuna  │  │ RapidAPI │  │Firecrawl │  │  OpenAI  │     │
+│  │   API    │  │  JSearch │  │   API    │  │   API    │     │
+│  └──────────┘  └──────────┘  └──────────┘  └──────────┘     │
+└────────────────────────────────────────────────────────────────┘
+```
 
--   **Frontend**: A Next.js (React) single-page application that provides a rich, interactive user interface.
--   **Backend**: A FastAPI (Python) application that serves a RESTful API for all business logic, data processing, and AI integrations.
--   **Database**: A PostgreSQL database for primary data storage.
--   **Cache**: Redis for caching frequently accessed data and managing sessions.
--   **Task Queue**: Celery with a Redis broker for handling long-running, asynchronous tasks.
--   **Vector Store**: ChromaDB for storing embeddings and performing semantic searches.
+### Job Scraping Pipeline
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                     Frontend (Next.js)                      │
-│  - React Components - TypeScript - TailwindCSS - Recharts  │
-└────────────────────┬────────────────────────────────────────┘
-                     │ REST API / WebSocket
-┌────────────────────▼────────────────────────────────────────┐
-│                  API Layer (FastAPI)                        │
-│  - Endpoints - Validation - Authentication - Rate Limiting  │
-└────────────────────┬────────────────────────────────────────┘
-                     │
-┌────────────────────▼────────────────────────────────────────┐
-│                   Service Layer                             │
-│  - Business Logic - AI Services - External Integrations     │
-│  - Job Service - Analytics - Email - Content Generation     │
-└─────┬──────────────┬──────────────┬────────────────────┬────┘
-      │              │              │                    │
-┌─────▼────┐  ┌─────▼─────┐  ┌────▼─────┐  ┌──────────▼─────┐
-│PostgreSQL│  │   Redis   │  │ ChromaDB │  │  External APIs │
-│ (Primary)│  │  (Cache)  │  │ (Vector) │  │ OpenAI, Groq   │
-└──────────┘  └───────────┘  └──────────┘  │ LinkedIn, etc. │
-                                            └────────────────┘
-┌─────────────────────────────────────────────────────────────┐
-│              Background Workers (Celery)                    │
-│  - Job Scraping - Email Sending - Report Generation         │
-└─────────────────────────────────────────────────────────────┘
-```
-
-### Design Patterns
-
--   **Repository Pattern**: Abstracting the data access layer with SQLAlchemy repositories to decouple business logic from data storage.
--   **Service Layer Pattern**: Encapsulating business logic within dedicated service classes for better organization and reusability.
--   **Dependency Injection**: Leveraging FastAPI's built-in dependency injection system to manage dependencies and improve testability.
--   **Factory Pattern**: Dynamically instantiating LLM services based on configuration, allowing for flexible AI model selection.
-
-### Directory Structure
-
-```
-career-copilot/
-├── backend/                    # Python FastAPI backend
-│   ├── app/
-│   │   ├── api/                # API endpoints (v1 versioning)
-│   │   ├── core/               # Core functionality (config, db, logging)
-│   │   ├── models/             # SQLAlchemy ORM models
-│   │   ├── schemas/            # Pydantic data validation schemas
-│   │   ├── services/           # Business logic services
-│   │   ├── repositories/       # Data access layer
-│   │   ├── tasks/              # Celery background tasks
-│   │   └── main.py             # FastAPI app entry point
-│   ├── alembic/                # Database migrations
-│   └── tests/                  # Backend tests
-├── frontend/                   # Next.js React frontend
-│   ├── src/
-│   │   ├── app/                # Next.js 14 app directory
-│   │   ├── components/         # Reusable React components
-│   │   ├── lib/                # Utility functions and helpers
-│   │   └── hooks/              # Custom React hooks
-│   └── public/                 # Static assets
-├── deployment/                 # Deployment configurations (Docker, Nginx)
-├── monitoring/                 # Monitoring configs (Prometheus, Grafana)
-├── scripts/                    # Automation and utility scripts
-├── .env.example                # Environment variable template
-└── pyproject.toml              # Python project configuration and dependencies
+│                  APScheduler (Every 6 Hours)                 │
+│                  Trigger: 00:00, 06:00, 12:00, 18:00 UTC     │
+└──────────────────────────┬──────────────────────────────────┘
+                           │
+┌──────────────────────────▼──────────────────────────────────┐
+│                    Scraper Manager                           │
+│  Coordinates 9 scrapers in parallel                         │
+└──────┬───────┬────────┬────────┬────────┬───────┬──────────┘
+       │       │        │        │        │       │
+┌──────▼─┐ ┌──▼───┐ ┌──▼───┐ ┌──▼───┐ ┌──▼──┐ ┌─▼──────┐
+│Adzuna │ │RapidAPI│TheMuse││Indeed│ │Arbeit│ │Firecrawl│ ...
+│(13 EU)│ │(19 EU) │(Global)││(API) │ │now  │ │(10 Cos)│
+└───┬───┘ └───┬────┘ └──┬───┘ └──┬───┘ └──┬──┘ └───┬────┘
+    │         │          │        │        │        │
+    └─────────┴──────────┴────────┴────────┴────────┘
+                         │
+            ┌────────────▼────────────┐
+            │  3-Layer Deduplication  │
+            │  1. Normalization       │
+            │  2. DB Filtering (30d)  │
+            │  3. Fuzzy Match (85%)   │
+            └────────────┬────────────┘
+                         │
+            ┌────────────▼────────────┐
+            │  Job Enrichment         │
+            │  - Extract skills       │
+            │  - Detect visa support  │
+            │  - Parse salary         │
+            │  - Geocode location     │
+            └────────────┬────────────┘
+                         │
+            ┌────────────▼────────────┐
+            │   PostgreSQL Storage    │
+            │   ~200 jobs/run         │
+            │   70-80% EU coverage    │
+            │   50-60% visa support   │
+            └─────────────────────────┘
 ```
 
 ---
 
-## 🛠️ Components & Modules
+## 🧩 Key Components
 
-### Technology Stack
+### 1. Job Discovery & Tracking
 
-| Category      | Technology                                       |
-|---------------|--------------------------------------------------|
-| **Backend**   | FastAPI, SQLAlchemy, Pydantic, Celery            |
-| **Frontend**  | Next.js, React, TypeScript, TailwindCSS          |
-| **Database**  | PostgreSQL (Production), SQLite (Development)    |
-| **AI/ML**     | OpenAI, Groq, ChromaDB, Sentence Transformers    |
-| **DevOps**    | Docker, Nginx, Prometheus, Grafana               |
-| **Testing**   | Pytest, Jest, React Testing Library              |
+**Purpose**: Find and track relevant job opportunities
 
-### Backend Components
+**Features**:
+- 9 specialized scrapers (4 EU-focused + 1 AI-powered)
+- Automatic scraping every 6 hours
+- Advanced filtering (location, salary, skills, visa)
+- Bookmark favorite jobs
+- Smart recommendations
 
-| Component         | Responsibility                                                                    |
-|-------------------|-----------------------------------------------------------------------------------|
-| **API (FastAPI)** | Handles all incoming HTTP requests, performs data validation, and manages routing.    |
-| **Services**      | Contains the core business logic for features like job management and AI processing. |
-| **Repositories**  | Abstracts database interactions, providing a clean API for data access.           |
-| **Models**        | Defines the SQLAlchemy ORM models, representing the database schema.              |
-| **Schemas**       | Defines the Pydantic models for data validation and serialization.                |
-| **Celery Tasks**  | Manages asynchronous background jobs such as web scraping and email notifications.  |
+**Key Endpoints**:
+- `GET /api/v1/jobs` - Search jobs with filters
+- `GET /api/v1/jobs/{id}` - Get job details
+- `POST /api/v1/jobs/{id}/bookmark` - Bookmark job
+- `GET /api/v1/jobs/recommendations` - Get personalized jobs
 
-### Frontend Components
+### 2. Application Tracking
 
-| Component          | Responsibility                                                                   |
-|--------------------|----------------------------------------------------------------------------------|
-| **App Router**     | Handles routing and layouts for the Next.js application.                         |
-| **Components**     | Contains reusable UI elements like buttons, cards, and modals.                   |
-| **Hooks**          | Implements custom React hooks for managing state and side effects.               |
-| **Lib**            | Provides utility functions, API clients, and type definitions.                   |
-| **State Mgmt**     | Manages global application state using React Context or a dedicated library.       |
+**Purpose**: Manage job applications through the entire lifecycle
+
+**Features**:
+- Track application status (applied, interview, offer, rejected)
+- Upload resumes and cover letters
+- Add notes and reminders
+- Application timeline view
+
+**Key Endpoints**:
+- `POST /api/v1/applications` - Create application
+- `GET /api/v1/applications` - List applications
+- `PUT /api/v1/applications/{id}` - Update application
+
+### 3. Analytics & Insights
+
+**Purpose**: Gain insights from application data
+
+**Features**:
+- Application success rate
+- Response time analysis
+- Top companies and skills
+- Salary trends
+- Location distribution
+
+**Key Endpoints**:
+- `GET /api/v1/analytics/summary` - Overall stats
+- `GET /api/v1/analytics/trends` - Time-series data
+- `GET /api/v1/analytics/skills` - Skills demand
+
+### 4. AI Resume & Cover Letter Generation
+
+**Purpose**: Create tailored application documents using AI
+
+**Features**:
+- Multiple AI providers (OpenAI, Groq, Anthropic, Gemini)
+- Job-specific customization
+- PDF export
+- Version history
+- Template library
+
+**Key Endpoints**:
+- `POST /api/v1/ai/resume/generate` - Generate resume
+- `POST /api/v1/ai/cover-letter/generate` - Generate cover letter
+- `POST /api/v1/ai/resumes/{id}/export` - Export as PDF
 
 ---
 
@@ -192,253 +240,1130 @@ career-copilot/
 
 ### Required Software
 
-| Software   | Minimum Version | Purpose              |
-|------------|-----------------|----------------------|
-| Python     | 3.11+           | Backend runtime      |
-| Node.js    | 18.x+           | Frontend runtime     |
-| npm        | 9.x+            | Package management   |
-| PostgreSQL | 13+             | Production database  |
-| Redis      | 6.x+            | Caching & task queue |
-| Git        | 2.x+            | Version control      |
+- **Python**: 3.11 or 3.12
+- **Node.js**: 18.x or 20.x
+- **PostgreSQL**: 14+ (database)
+- **Redis**: 7+ (caching)
+- **Git**: Latest version
 
-### Operating System Requirements
+### System Requirements
 
--   **macOS**: 10.15+ (Catalina or later)
--   **Linux**: Ubuntu 20.04+, Debian 11+, or equivalent
--   **Windows**: Windows 10/11 with WSL2 (recommended)
-
-### Required Accounts & API Keys
-
-To use all features, you will need accounts and API keys for the following services (see the [External APIs & Services](#-external-apis--services) section for more details):
-
--   **Essential**: An API key from either **OpenAI** or **Groq** for core AI functionality.
--   **Optional**: Keys for Anthropic, Google Gemini, LinkedIn, Adzuna, and SendGrid to enable enhanced features.
+- **RAM**: Minimum 4GB, recommended 8GB+
+- **Disk**: 2GB free space
+- **OS**: macOS, Linux, or Windows (WSL2)
 
 ---
 
-## 🚀 Installation & Setup
+## 🚀 Installation
 
 ### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/your-username/career-copilot.git
+git clone https://github.com/yourusername/career-copilot.git
 cd career-copilot
 ```
 
-### 2. Set Up the Backend
+### 2. Backend Setup
+
+#### 2.1 Create Python Virtual Environment
 
 ```bash
-# Create and activate a Python virtual environment
-python3 -m venv venv
+cd backend
+python3.11 -m venv venv
 source venv/bin/activate  # On Windows: venv\Scripts\activate
-
-# Install backend dependencies
-pip install -e ".[dev,ai,all]"
-
-# Install pre-commit hooks for code quality
-pre-commit install
 ```
 
-### 3. Set Up the Frontend
+#### 2.2 Install Python Dependencies
 
 ```bash
-# Navigate to the frontend directory
-cd frontend
-
-# Install frontend dependencies
-npm install
-
-# Return to the root directory
-cd ..
+pip install --upgrade pip
+pip install -e .  # Installs from pyproject.toml
 ```
 
-### 4. Configure the Environment
+#### 2.3 Setup PostgreSQL Database
+
+**Option A: Use existing PostgreSQL installation**
 
 ```bash
-# Copy the example environment file
+# Create database
+createdb career_copilot
+
+# Or using psql
+psql -U postgres
+CREATE DATABASE career_copilot;
+\q
+```
+
+**Option B: Use Docker**
+
+```bash
+docker run -d \
+  --name career-copilot-db \
+  -e POSTGRES_DB=career_copilot \
+  -e POSTGRES_USER=postgres \
+  -e POSTGRES_PASSWORD=your_password \
+  -p 5432:5432 \
+  postgres:14
+```
+
+#### 2.4 Setup Redis
+
+**Option A: Use existing Redis installation**
+
+```bash
+redis-server  # Start Redis on default port 6379
+```
+
+**Option B: Use Docker**
+
+```bash
+docker run -d \
+  --name career-copilot-redis \
+  -p 6379:6379 \
+  redis:7-alpine
+```
+
+#### 2.5 Configure Environment Variables
+
+```bash
+# Copy example file
 cp .env.example .env
 
-# Generate a secure JWT secret key
-python -c "import secrets; print(secrets.token_urlsafe(32))"
-
-# Open the .env file and add the generated key to JWT_SECRET_KEY
-# Also, add your API keys for OpenAI, Groq, or other services.
+# Edit .env with your actual values
+nano .env  # or use your preferred editor
 ```
 
-### 5. Set Up the Database
-
-For development, you can use the default SQLite database. To set it up, run the following commands:
+**Minimum required variables**:
 
 ```bash
-# Create the data directory
-mkdir -p data
+# Database
+DATABASE_URL=postgresql+asyncpg://postgres:password@localhost:5432/career_copilot
 
-# Apply database migrations
-cd backend
-alembic upgrade head
-cd ..
+# Security
+JWT_SECRET_KEY=<generate-random-secret>
+ENCRYPTION_KEY=<generate-random-secret>
+
+# AI Services (at least one)
+OPENAI_API_KEY=sk-...
+# OR
+GROQ_API_KEY=gsk_...
+
+# Job Scraping (at least Adzuna)
+ADZUNA_APP_ID=your_id
+ADZUNA_APP_KEY=your_key
 ```
 
-For production, it is recommended to use PostgreSQL. See the [Production Deployment](#-production-deployment) section for more details.
+#### 2.6 Run Database Migrations
+
+```bash
+alembic upgrade head
+```
+
+#### 2.7 Create Test User
+
+```bash
+python create_test_user.py
+# Creates user: test@example.com / password123
+```
+
+#### 2.8 Start Backend Server
+
+```bash
+uvicorn app.main:app --reload --host 0.0.0.0 --port 8002
+```
+
+**Verify backend**: Visit `http://localhost:8002/docs` for Swagger UI
+
+### 3. Frontend Setup
+
+#### 3.1 Install Node Dependencies
+
+```bash
+cd ../frontend
+npm install
+```
+
+#### 3.2 Configure Environment
+
+```bash
+# Copy example file
+cp .env.local.example .env.local
+
+# Edit .env.local
+nano .env.local
+```
+
+**Required variables**:
+
+```bash
+NEXT_PUBLIC_API_URL=http://localhost:8002
+NEXT_PUBLIC_API_VERSION=v1
+```
+
+#### 3.3 Start Frontend Server
+
+```bash
+npm run dev
+```
+
+**Verify frontend**: Visit `http://localhost:3000`
+
+### 4. Verify Installation
+
+```bash
+# Check backend health
+curl http://localhost:8002/health
+
+# Test authentication
+curl -X POST http://localhost:8002/api/v1/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email": "test@example.com", "password": "password123"}'
+```
 
 ---
 
-## 🔌 External APIs & Services
+## 🔑 External APIs
 
-This project integrates with several external APIs for its core functionality. You will need to obtain API keys for these services and add them to your `.env` file.
+### Job Scraping APIs
 
-### LLM Providers
+#### 1. Adzuna (Required)
 
-#### 1. OpenAI (GPT-4, GPT-3.5)
--   **Purpose**: High-quality text generation, analysis, and reasoning.
--   **Get API Key**: Visit the [OpenAI Platform](https://platform.openai.com/api-keys) to create an API key.
--   **Configuration**:
-    ```bash
-    OPENAI_API_KEY=sk-...your-key-here...
-    ```
+**Coverage**: 13 EU countries  
+**Cost**: Free tier available  
+**Sign up**: https://developer.adzuna.com/signup
 
-#### 2. Groq (Llama 3.1, Mixtral)
--   **Purpose**: Fast and cost-effective alternative to OpenAI.
--   **Get API Key**: Visit the [Groq Console](https://console.groq.com/keys) to create an API key.
--   **Configuration**:
-    ```bash
-    GROQ_API_KEY=gsk_...your-key-here...
-    ```
+```bash
+ADZUNA_APP_ID=your_app_id
+ADZUNA_APP_KEY=your_app_key
+```
 
-### Job Boards
+#### 2. RapidAPI JSearch (Recommended)
 
-#### 3. Adzuna API
--   **Purpose**: Job search aggregation.
--   **Get Credentials**: Sign up at the [Adzuna Developer Portal](https://developer.adzuna.com/).
--   **Configuration**:
-    ```bash
-    ADZUNA_APP_ID=your_app_id
-    ADZUNA_APP_KEY=your_api_key
-    ```
+**Coverage**: 19 EU countries  
+**Cost**: Free tier (100 requests/month)  
+**Sign up**: https://rapidapi.com/letscrape-6bRBa3QguO5/api/jsearch
 
-### Email Services
+```bash
+RAPIDAPI_KEY=your_rapidapi_key
+```
 
-#### 4. SendGrid
--   **Purpose**: Transactional email delivery for notifications.
--   **Get API Key**: Create a free account at [SendGrid](https://sendgrid.com/) and generate an API key.
--   **Configuration**:
-    ```bash
-    SENDGRID_API_KEY=SG....your-key-here...
-    ```
+#### 3. Firecrawl (AI-Powered) (Recommended)
 
-### OAuth Providers
+**Coverage**: 10 EU companies with international hiring  
+**Cost**: Free tier available  
+**Sign up**: https://www.firecrawl.dev/
 
-#### 5. Google OAuth
--   **Purpose**: Social login and Google account integration.
--   **Setup**: Create an OAuth 2.0 Client ID in the [Google Cloud Console](https://console.cloud.google.com/).
--   **Configuration**:
-    ```bash
-    GOOGLE_CLIENT_ID=your_client_id.apps.googleusercontent.com
-    GOOGLE_CLIENT_SECRET=your_client_secret
-    ```
+```bash
+FIRECRAWL_API_KEY=fc-...
+```
+
+**Targeted companies**: Spotify, Adyen, Booking.com, Klarna, DeepMind, Revolut, Monzo, Bolt, N26, Zalando
+
+### AI Services (Choose at least one)
+
+#### 1. OpenAI (Recommended)
+
+**Models**: GPT-4, GPT-3.5-turbo  
+**Cost**: Pay-per-use  
+**Sign up**: https://platform.openai.com/signup
+
+```bash
+OPENAI_API_KEY=sk-proj-...
+```
+
+#### 2. Groq (Fast & Free)
+
+**Models**: Llama 3, Mixtral  
+**Cost**: Free tier (high limits)  
+**Sign up**: https://console.groq.com/
+
+```bash
+GROQ_API_KEY=gsk_...
+```
 
 ---
 
 ## ⚙️ Configuration
 
-Career Copilot is configured using environment variables. Copy the `.env.example` file to `.env` and customize it to your needs.
+### Environment Variables
 
-### Core Application Settings
--   `ENVIRONMENT`: The application environment (`development`, `production`, or `testing`).
--   `DEBUG`: Enable or disable debug mode.
--   `API_HOST`: The host for the backend API.
--   `API_PORT`: The port for the backend API.
+#### Core Settings
 
-### Database Configuration
--   `DATABASE_URL`: The connection string for your database (e.g., `sqlite:///./data/career_copilot.db` or `postgresql://user:password@host:port/dbname`).
+```bash
+# Application
+ENVIRONMENT=development
+API_HOST=0.0.0.0
+API_PORT=8002
+DEBUG=True
 
-### Authentication & Security
--   `JWT_SECRET_KEY`: A secret key for signing JWT tokens (must be at least 32 characters).
--   `JWT_ALGORITHM`: The algorithm to use for JWT signing (default: `HS256`).
--   `JWT_EXPIRATION_HOURS`: The number of hours a JWT token is valid.
+# Database
+DATABASE_URL=postgresql+asyncpg://user:pass@localhost:5432/career_copilot
 
-### AI/LLM Configuration
--   `OPENAI_API_KEY`: Your API key for OpenAI services.
--   `GROQ_API_KEY`: Your API key for Groq services.
--   `CHROMA_PERSIST_DIRECTORY`: The directory to store ChromaDB data.
+# Security
+JWT_SECRET_KEY=<random-secret-key>
+JWT_ALGORITHM=HS256
+JWT_EXPIRATION_HOURS=24
+ENCRYPTION_KEY=<random-encryption-key>
 
-### Email & Notifications
--   `SMTP_ENABLED`: Enable or disable email notifications.
--   `SENDGRID_API_KEY`: Your API key for SendGrid (if using).
+# Redis
+REDIS_HOST=localhost
+REDIS_PORT=6379
+
+# CORS
+CORS_ORIGINS=http://localhost:3000
+```
+
+#### Job Scraping
+
+```bash
+# Adzuna (13 EU countries)
+ADZUNA_APP_ID=your_id
+ADZUNA_APP_KEY=your_key
+
+# RapidAPI JSearch (19 EU countries)
+RAPIDAPI_KEY=your_key
+
+# Firecrawl (AI-powered, 10 EU companies)
+FIRECRAWL_API_KEY=fc-...
+
+# Scraper Flags
+SCRAPING_ENABLE_ADZUNA=True
+SCRAPING_ENABLE_RAPIDAPI=True
+SCRAPING_ENABLE_THEMUSE=True
+SCRAPING_ENABLE_ARBEITNOW=True
+SCRAPING_ENABLE_BERLINSTARTUPJOBS=True
+SCRAPING_ENABLE_RELOCATEME=True
+SCRAPING_ENABLE_EURES=True
+SCRAPING_ENABLE_FIRECRAWL=True
+```
+
+#### AI Services
+
+```bash
+# OpenAI
+OPENAI_API_KEY=sk-proj-...
+
+# Groq
+GROQ_API_KEY=gsk_...
+
+# Gemini (Optional)
+GEMINI_API_KEY=AI...
+
+# Anthropic (Optional)
+ANTHROPIC_API_KEY=sk-ant-...
+```
+
+### Scheduler Configuration
+
+**File**: `backend/app/tasks/scheduled_tasks.py`
+
+```python
+# Job scraping (every 6 hours)
+@scheduler.scheduled_job(
+    trigger=CronTrigger(hour="*/6", minute=0, timezone=utc),
+    id="ingest_jobs"
+)
+```
+
+**To modify schedule**: Edit `hour="*/6"` to desired interval
 
 ---
 
-## 📖 Usage & Functionality
+## 📖 Usage
 
 ### Starting the Application
 
-To run the application in development mode, you can use the provided `Makefile` for convenience.
-
 ```bash
-# Start both the backend and frontend servers
-make run-dev
+# Terminal 1: Backend
+cd backend
+source venv/bin/activate
+uvicorn app.main:app --reload --host 0.0.0.0 --port 8002
+
+# Terminal 2: Frontend
+cd frontend
+npm run dev
+
+# Terminal 3: Redis (if not running as service)
+redis-server
 ```
 
-Alternatively, you can run them separately:
+### User Workflows
 
+#### 1. Register and Login
+
+**Via Frontend**:
+1. Visit `http://localhost:3000`
+2. Click "Register" and create account
+3. Login with email/password
+
+**Via API**:
 ```bash
-# Terminal 1: Start the backend server
-make run-backend
+# Register
+curl -X POST http://localhost:8002/api/v1/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "user@example.com",
+    "password": "SecurePass123",
+    "full_name": "John Doe"
+  }'
 
-# Terminal 2: Start the frontend server
-make run-frontend
+# Login
+curl -X POST http://localhost:8002/api/v1/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "user@example.com",
+    "password": "SecurePass123"
+  }'
 ```
 
-Once running, the application will be available at the following URLs:
+#### 2. Search for Jobs
 
--   **Frontend UI**: `http://localhost:3000`
--   **Backend API Docs**: `http://localhost:8002/docs`
+**Via API**:
+```bash
+# Search jobs in Germany with visa support
+curl "http://localhost:8002/api/v1/jobs?location=Germany&visa_support=true" \
+  -H "Authorization: Bearer YOUR_TOKEN"
 
-### Running Tests
+# Filter by skills
+curl "http://localhost:8002/api/v1/jobs?skills=Python,Machine%20Learning" \
+  -H "Authorization: Bearer YOUR_TOKEN"
+```
 
-To run the entire test suite, use the following command:
+#### 3. Generate AI Resume
+
+**Via API**:
+```bash
+curl -X POST http://localhost:8002/api/v1/ai/resume/generate \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "job_id": 123,
+    "provider": "groq",
+    "model": "llama-3.1-70b-versatile",
+    "base_resume": "My name is John...",
+    "target_role": "Senior Data Scientist"
+  }'
+```
+
+### Manual Job Scraping
 
 ```bash
-make test
+# Via API
+curl -X POST http://localhost:8002/api/v1/jobs/scrape \
+  -H "Authorization: Bearer YOUR_TOKEN"
+
+# Test scrapers
+cd backend
+python test_eu_scrapers.py
+python test_firecrawl_simple.py
+```
+
+### Monitoring Logs
+
+```bash
+cd backend
+
+# Realtime logs
+tail -f logs/app.log
+
+# Filter for errors
+tail -f logs/app.log | grep ERROR
+
+# View scraping activity
+tail -f logs/app.log | grep -i "scraping\|job"
 ```
 
 ---
 
-## 🐛 Troubleshooting
+## 📚 API Documentation
 
-### `ModuleNotFoundError`
--   **Problem**: You see an error like `ModuleNotFoundError: No module named 'app'`.
--   **Solution**: Make sure you have activated your Python virtual environment (`source venv/bin/activate`) and have installed the project in editable mode (`pip install -e .`).
+### Interactive API Docs
 
-### Database Connection Error
--   **Problem**: The application fails to connect to the database.
--   **Solution**: Ensure that your `DATABASE_URL` in the `.env` file is correct and that the database server is running. If using the default SQLite setup, make sure you have run `alembic upgrade head`.
+- **Swagger UI**: http://localhost:8002/docs
+- **ReDoc**: http://localhost:8002/redoc
 
-### Frontend Can't Connect to Backend
--   **Problem**: The frontend shows a "Network Error" or CORS-related errors.
--   **Solution**: Verify that the backend server is running and that the `CORS_ORIGINS` variable in your `.env` file includes the frontend URL (`http://localhost:3000`).
+### Authentication
+
+All protected endpoints require JWT token:
+
+```bash
+Authorization: Bearer <your_token>
+```
+
+### Core Endpoints
+
+#### Authentication (`/api/v1/auth`)
+
+| Method | Endpoint | Description | Auth |
+|--------|----------|-------------|------|
+| POST | `/register` | Create new user | No |
+| POST | `/login` | Login | No |
+| GET | `/me` | Get current user | Yes |
+| PUT | `/me` | Update profile | Yes |
+
+#### Jobs (`/api/v1/jobs`)
+
+| Method | Endpoint | Description | Auth |
+|--------|----------|-------------|------|
+| GET | `/` | Search jobs | Yes |
+| GET | `/{id}` | Get job details | Yes |
+| POST | `/{id}/bookmark` | Bookmark job | Yes |
+| GET | `/recommendations` | Get recommendations | Yes |
+| POST | `/scrape` | Trigger scraping | Yes |
+
+#### Applications (`/api/v1/applications`)
+
+| Method | Endpoint | Description | Auth |
+|--------|----------|-------------|------|
+| POST | `/` | Create application | Yes |
+| GET | `/` | List applications | Yes |
+| PUT | `/{id}` | Update application | Yes |
+| DELETE | `/{id}` | Delete application | Yes |
+
+#### AI Tools (`/api/v1/ai`)
+
+| Method | Endpoint | Description | Auth |
+|--------|----------|-------------|------|
+| POST | `/resume/generate` | Generate resume | Yes |
+| POST | `/cover-letter/generate` | Generate cover letter | Yes |
+| GET | `/resumes` | List resumes | Yes |
+| POST | `/resumes/{id}/export` | Export as PDF | Yes |
+
+#### Analytics (`/api/v1/analytics`)
+
+| Method | Endpoint | Description | Auth |
+|--------|----------|-------------|------|
+| GET | `/summary` | Overall statistics | Yes |
+| GET | `/trends` | Time-series data | Yes |
+| GET | `/skills` | Skills demand | Yes |
+| GET | `/salary` | Salary trends | Yes |
 
 ---
 
-## 🚀 Production Deployment
+## 🛠️ Development
 
-### Pre-Deployment Checklist
+### Project Structure
 
--   [ ] Set `ENVIRONMENT=production` and `DEBUG=false` in your environment variables.
--   [ ] Use a robust database like PostgreSQL instead of SQLite.
--   [ ] Generate a new, strong `JWT_SECRET_KEY`.
--   [ ] Configure `CORS_ORIGINS` to only allow your production frontend domain.
--   [ ] Set up a reverse proxy like Nginx to handle HTTPS and serve static files.
+```
+career-copilot/
+├── backend/
+│   ├── app/
+│   │   ├── api/v1/           # API endpoints
+│   │   ├── core/             # Config, database, security
+│   │   ├── models/           # Database models
+│   │   ├── services/         # Business logic
+│   │   │   ├── scraping/     # 9 job scrapers
+│   │   │   ├── ai/           # AI services
+│   │   │   └── analytics/    # Analytics
+│   │   ├── tasks/            # Scheduled tasks
+│   │   └── main.py           # FastAPI app
+│   ├── alembic/              # Database migrations
+│   └── tests/                # Unit tests
+├── frontend/
+│   ├── src/
+│   │   ├── app/              # Next.js pages
+│   │   ├── components/       # React components
+│   │   ├── contexts/         # React contexts
+│   │   └── lib/              # Utilities
+│   └── public/               # Static assets
+└── README.md
+```
 
-### Deployment Options
+### Code Style
 
--   **Render**: The project includes a `render.yaml` file for easy deployment on Render.
--   **Docker Compose**: Use the provided `docker-compose.yml` file in the `deployment/docker` directory to deploy the application with Docker.
--   **Kubernetes**: For large-scale deployments, you can use the Kubernetes manifests in the `deployment/k8s` directory.
+**Python**: Ruff + Black  
+**TypeScript**: ESLint + Prettier
+
+```bash
+# Format Python
+cd backend
+ruff format .
+
+# Lint Python
+ruff check . --fix
+
+# Lint TypeScript
+cd frontend
+npm run lint
+```
+
+### Testing
+
+```bash
+# Backend tests
+cd backend
+pytest
+
+# Frontend tests
+cd frontend
+npm test
+```
+
+### Database Migrations
+
+```bash
+# Create migration
+cd backend
+alembic revision --autogenerate -m "Description"
+
+# Apply migration
+alembic upgrade head
+
+# Rollback
+alembic downgrade -1
+```
 
 ---
 
-## Additional Resources
+## 🔧 Troubleshooting
 
--   **License**: This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
--   **Contributing**: We welcome contributions! Please see the `CONTRIBUTING.md` file for more information.
+### Common Issues
+
+#### 1. Database Connection Failed
+
+**Error**: `could not connect to server`
+
+**Solution**:
+```bash
+# Check if PostgreSQL is running
+pg_isready
+
+# Start PostgreSQL (macOS)
+brew services start postgresql@14
+
+# Verify DATABASE_URL in .env
+```
+
+#### 2. Redis Connection Error
+
+**Error**: `Error connecting to Redis`
+
+**Solution**:
+```bash
+# Check if Redis is running
+redis-cli ping  # Should return PONG
+
+# Start Redis (macOS)
+brew services start redis
+```
+
+#### 3. Frontend API Calls Fail (401)
+
+**Solution**:
+- Re-login to get fresh token
+- Check `NEXT_PUBLIC_API_URL` in frontend `.env.local`
+
+#### 4. Job Scraping Returns No Results
+
+**Solution**:
+```bash
+# Check if scrapers are enabled
+grep "SCRAPING_ENABLE" backend/.env
+
+# Verify API keys
+grep "_API_KEY" backend/.env
+
+# Test individual scraper
+cd backend
+python test_eu_scrapers.py
+```
+
+---
+
+## 🚢 Production Deployment
+
+### Deployment Checklist
+
+- [ ] Set `ENVIRONMENT=production`
+- [ ] Set `DEBUG=False`
+- [ ] Use strong `JWT_SECRET_KEY`
+- [ ] Use HTTPS
+- [ ] Set secure `CORS_ORIGINS`
+- [ ] Enable rate limiting
+- [ ] Configure backups
+- [ ] Set up monitoring
+
+### Docker Deployment
+
+```bash
+# Build images
+docker build -t career-copilot-backend:latest -f deployment/docker/Dockerfile.backend .
+docker build -t career-copilot-frontend:latest -f deployment/docker/Dockerfile.frontend .
+
+# Run with Docker Compose
+docker-compose -f deployment/docker/docker-compose.yml up -d
+```
+
+---
+
+## 🏭 Production Services
+
+Career Copilot includes **3,240 lines of production-grade services** with enterprise features including error handling, logging, monitoring, caching, rate limiting, retry logic, and analytics tracking.
+
+### Notification Manager (595 lines)
+
+**Location**: `backend/app/services/notification_manager.py`
+
+Multi-channel notification delivery system with intelligent routing and delivery tracking.
+
+**Features:**
+- **Multi-Channel Delivery**: Email, in-app, push notifications, SMS
+- **Retry Logic**: Exponential backoff (5s → 15s → 60s)
+- **Rate Limiting**: Sliding window (10 requests/60s per user)
+- **Queue Management**: Batch processing for performance
+- **User Preferences**: Enforces user notification preferences
+- **Delivery Analytics**: Success rates, channel breakdown, queue status
+
+**API Usage:**
+```python
+from app.services.notification_manager import NotificationManager
+
+# Initialize
+manager = NotificationManager(db=session)
+
+# Send notification with retry
+result = await manager.send_with_retry(
+    user_id=1,
+    notification_type="job_match",
+    channel="email",
+    subject="New Job Match!",
+    content="We found a perfect match for your profile..."
+)
+
+# Queue for batch processing
+manager.queue_notification(
+    user_id=1,
+    notification_type="deadline_reminder",
+    data={"deadline": "2025-11-10"}
+)
+
+# Get delivery statistics
+stats = manager.get_delivery_stats()
+# Returns: {
+#   "total_sent": 150,
+#   "successful": 145,
+#   "failed": 5,
+#   "by_channel": {"email": 100, "in_app": 50}
+# }
+
+# Health check
+health = await manager.health_check()
+```
+
+**Configuration:**
+- `SMTP_ENABLED`: Enable email notifications
+- `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASSWORD`: SMTP settings
+- `FIREBASE_PROJECT_ID`, `FIREBASE_PRIVATE_KEY`: Push notifications
+- `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`: SMS notifications
+
+### Adaptive Recommendation Engine (593 lines)
+
+**Location**: `backend/app/services/adaptive_recommendation_engine.py`
+
+Advanced job recommendation system with A/B testing and explainable AI.
+
+**Features:**
+- **Multi-Factor Scoring**: 7 weighted factors (skill 40%, location 20%, experience 15%, etc.)
+- **A/B Testing**: Framework for algorithm optimization
+- **Caching**: 15-minute TTL for performance
+- **Explainable AI**: Detailed match explanations with skill gap analysis
+- **Diversity Boosting**: Prevents same-company domination (max 3 per company)
+- **Configurable Weights**: Dynamic weight adjustment based on user feedback
+
+**Scoring Factors:**
+- Skill matching (40%)
+- Location matching (20%)
+- Experience matching (15%)
+- Salary matching (10%)
+- Company culture (5%)
+- Growth potential (5%)
+- Recency (5%)
+
+**API Usage:**
+```python
+from app.services.adaptive_recommendation_engine import AdaptiveRecommendationEngine
+
+# Initialize
+engine = AdaptiveRecommendationEngine(db=session)
+
+# Get personalized recommendations
+recommendations = await engine.get_recommendations_adaptive(
+    user_id=1,
+    limit=10,
+    min_score=30.0
+)
+# Returns: [
+#   {
+#     "job": <Job object>,
+#     "match_score": 85.5,
+#     "explanation": {
+#       "matching_skills": ["Python", "Machine Learning"],
+#       "missing_skills": ["Kubernetes"],
+#       "location_match": "Remote OK",
+#       "score_breakdown": {...}
+#     }
+#   },
+#   ...
+# ]
+
+# Start A/B test
+engine.start_ab_test(
+    test_name="skill_weight_optimization",
+    variant_a={"skill_match": 50, "location_match": 15},
+    variant_b={"skill_match": 30, "location_match": 30},
+    traffic_split=0.5
+)
+
+# Get test results
+results = engine.get_ab_test_results(test_name="skill_weight_optimization")
+```
+
+### Analytics Suite (1,588 lines total)
+
+Comprehensive analytics system for tracking user behavior, application funnels, and market trends.
+
+#### Analytics Collection Service (319 lines)
+
+**Location**: `backend/app/services/analytics_collection_service.py`
+
+Event tracking with fault tolerance and performance optimization.
+
+**Features:**
+- **Event Queue**: 10,000 event capacity with batch processing
+- **Circuit Breaker**: 5-failure threshold for fault tolerance
+- **Rate Limiting**: 100 events/60s per user
+- **Batch Processing**: 100 events per batch, 30s flush interval
+- **Data Sanitization**: Removes sensitive data (passwords, tokens, etc.)
+
+**API Usage:**
+```python
+from app.services.analytics_collection_service import AnalyticsCollectionService
+
+service = AnalyticsCollectionService(db=session)
+
+# Track single event
+success = service.collect_event(
+    user_id=1,
+    event_type="job_view",
+    event_data={"job_id": 123, "source": "search"},
+    session_id="abc-123"
+)
+
+# Track batch
+events = [
+    {"user_id": 1, "event_type": "page_view", "event_data": {"path": "/jobs"}},
+    {"user_id": 1, "event_type": "job_save", "event_data": {"job_id": 456}}
+]
+service.collect_batch(events)
+
+# Get statistics
+stats = service.get_stats()
+# Returns: {
+#   "queue_size": 50,
+#   "queue_capacity": 10000,
+#   "circuit_breaker": {"open": False, "failures": 0}
+# }
+```
+
+#### Analytics Processing Service (316 lines)
+
+**Location**: `backend/app/services/analytics_processing_service.py`
+
+User behavior analysis, funnel tracking, and segmentation.
+
+**Features:**
+- **User Analytics**: Jobs viewed, applications, interviews, conversion rates
+- **Funnel Analysis**: 4-stage funnel (viewed → applied → interviews → offers)
+- **Engagement Scoring**: 0-100 scale based on activity
+- **User Segmentation**: Auto-categorization (highly_active, moderately_active, low_activity, inactive)
+
+**API Usage:**
+```python
+from app.services.analytics_processing_service import AnalyticsProcessingService
+
+service = AnalyticsProcessingService(db=session)
+
+# Get user analytics
+analytics = service.get_user_analytics(user_id=1)
+# Returns: {
+#   "jobs_viewed": 150,
+#   "applications_submitted": 25,
+#   "interviews_scheduled": 5,
+#   "offers_received": 1,
+#   "conversion_rate": 4.0
+# }
+
+# Get conversion funnel
+funnel = service.process_user_funnel(user_id=1)
+# Returns: {
+#   "viewed": {"count": 150, "conversion": 100.0},
+#   "applied": {"count": 25, "conversion": 16.7},
+#   "interviewed": {"count": 5, "conversion": 3.3},
+#   "offered": {"count": 1, "conversion": 0.7}
+# }
+
+# Calculate engagement score
+score = service.calculate_engagement_score(user_id=1)
+# Returns: 75.5 (0-100 scale)
+```
+
+#### Analytics Query Service (252 lines)
+
+**Location**: `backend/app/services/analytics_query_service.py`
+
+Flexible metric retrieval with time-series support and caching.
+
+**API Usage:**
+```python
+from app.services.analytics_query_service import AnalyticsQueryService
+
+service = AnalyticsQueryService(db=session)
+
+# Get metrics
+metrics = service.get_metrics(
+    user_id=1,
+    metric_types=["jobs_saved", "applications_submitted"],
+    timeframe="week"
+)
+
+# Get time-series data
+time_series = service.get_time_series(
+    user_id=1,
+    metric_type="applications_submitted",
+    granularity="day"
+)
+# Returns: [
+#   {"date": "2025-11-01", "count": 3},
+#   {"date": "2025-11-02", "count": 5},
+#   ...
+# ]
+```
+
+#### Analytics Reporting Service (299 lines)
+
+**Location**: `backend/app/services/analytics_reporting_service.py`
+
+Market trends, user insights, and comprehensive reporting.
+
+**API Usage:**
+```python
+from app.services.analytics_reporting_service import AnalyticsReportingService
+
+service = AnalyticsReportingService(db=session)
+
+# Analyze market trends
+trends = service.analyze_market_trends(user_id=1, days=30)
+# Returns: {
+#   "market_overview": {"total_jobs_posted": 500},
+#   "top_companies": [{"company": "Google", "job_count": 50}],
+#   "skill_demand": {"top_skills": [{"skill": "Python", "demand": 250}]}
+# }
+
+# Generate user insights
+insights = service.generate_user_insights(user_id=1, days=30)
+# Returns: {
+#   "metrics": {"applications": 25, "interviews": 5},
+#   "insights": [
+#     {"type": "success", "message": "Great interview rate!"},
+#     {"type": "action", "message": "Consider applying to 5-10 jobs/week"}
+#   ]
+# }
+```
+
+#### Analytics Service Facade (402 lines)
+
+**Location**: `backend/app/services/analytics_service_facade.py`
+
+Unified interface over all analytics services for simplified usage.
+
+**API Usage:**
+```python
+from app.services.analytics_service_facade import AnalyticsServiceFacade
+
+facade = AnalyticsServiceFacade(db=session)
+
+# Track events (simplified)
+await facade.track_page_view(user_id=1, path="/dashboard")
+await facade.track_job_search(user_id=1, query="Python Developer", filters={"location": "Berlin"})
+await facade.track_job_view(user_id=1, job_id=123, source="search")
+await facade.track_application_submitted(user_id=1, job_id=123, application_id=456)
+
+# Get complete dashboard data
+dashboard = facade.get_dashboard_data(user_id=1)
+# Returns: {
+#   "analytics": {...},
+#   "engagement_score": 75.5,
+#   "funnel": {...},
+#   "metrics": {...},
+#   "insights": [...]
+# }
+
+# Health check all services
+health = await facade.health_check()
+```
+
+### LinkedIn Scraper (464 lines)
+
+**Location**: `backend/app/services/linkedin_scraper.py`
+
+Production-grade LinkedIn job scraper with anti-detection and rate limiting.
+
+**Features:**
+- **Session Management**: Cookie persistence across requests
+- **Rate Limiting**: Configurable requests per window with automatic backoff
+- **Anti-Detection**: User agent rotation, random delays (2-5s)
+- **Proxy Support**: IP rotation for distributed scraping
+- **Error Recovery**: Exponential backoff retry logic
+- **Job Extraction**: Comprehensive job data parsing
+
+**API Usage:**
+```python
+from app.services.linkedin_scraper import LinkedInScraper
+
+# Initialize with configuration
+scraper = LinkedInScraper(
+    cookies_file="cookies.json",
+    proxy="http://proxy:8080",
+    rate_limit_requests=10,
+    rate_limit_window=60,
+    min_delay=2.0,
+    max_delay=5.0
+)
+
+# Search jobs
+jobs = await scraper.search_jobs(
+    keywords="Python Developer",
+    location="Berlin, Germany",
+    experience_level="mid-senior",
+    job_type="full-time",
+    max_pages=5
+)
+# Returns: [
+#   {
+#     "job_id": "123456",
+#     "title": "Senior Python Developer",
+#     "company": "Google",
+#     "location": "Berlin, Germany",
+#     "url": "https://linkedin.com/jobs/view/123456",
+#     "posted_date": "2025-11-01"
+#   },
+#   ...
+# ]
+
+# Get detailed job info
+details = await scraper.get_job_details(job_url="https://linkedin.com/jobs/view/123456")
+# Returns: {
+#   "description": "We are looking for...",
+#   "criteria": {"experience_level": "Mid-Senior level", "job_type": "Full-time"}
+# }
+
+# Get scraper statistics
+stats = scraper.get_stats()
+# Returns: {
+#   "requests_made": 150,
+#   "jobs_scraped": 125,
+#   "errors": 3,
+#   "rate_limit_hits": 2
+# }
+```
+
+**Configuration:**
+- `min_delay`, `max_delay`: Random delay range (anti-detection)
+- `rate_limit_requests`, `rate_limit_window`: Rate limiting settings
+- `cookies_file`: Cookie persistence path
+- `proxy`: Proxy URL for IP rotation
+
+### Service Health Checks
+
+All production services implement health check endpoints:
+
+```python
+# Check individual service
+health = await notification_manager.health_check()
+health = await recommendation_engine.health_check()
+health = await analytics_facade.health_check()
+health = await linkedin_scraper.health_check()
+
+# Health response format
+{
+    "status": "healthy" | "degraded" | "unhealthy",
+    "services": {...},  # Sub-service status
+    "stats": {...}      # Service-specific statistics
+}
+```
+
+### Enterprise Patterns Implemented
+
+1. **Circuit Breaker Pattern** (Analytics Collection)
+   - Prevents cascading failures
+   - Auto-opens after threshold failures (5 failures)
+   - Manual reset capability
+
+2. **Event Queue with Batching** (Notifications, Analytics)
+   - Reduces database load
+   - Improves performance
+   - Configurable batch sizes (100 events) and intervals (30s)
+
+3. **Rate Limiting with Sliding Windows**
+   - Per-user/per-identifier limits
+   - Prevents abuse
+   - Configurable thresholds
+
+4. **Retry with Exponential Backoff** (Notifications, Scraper)
+   - Improves reliability
+   - 3 retry attempts with 5s, 15s, 60s delays
+   - Prevents overwhelming external services
+
+5. **Caching with TTL** (Recommendations, Analytics)
+   - Reduces computation (15min for recommendations, 5min for analytics)
+   - Improves response times
+   - Automatic cache invalidation
+
+6. **A/B Testing Framework** (Recommendations)
+   - Data-driven optimization
+   - Statistical analysis
+   - Deterministic user assignment (MD5-based)
+
+7. **Facade Pattern** (Analytics)
+   - Simplified API for common operations
+   - Unified interface over multiple services
+   - Backward compatibility
+
+### Service Statistics
+
+- **Total Production Code**: 3,240 lines
+- **Services**: 8 major services
+- **Average Lines per Service**: 405
+- **Code Quality**: 0 lint errors (Ruff verified)
+- **Test Coverage**: Comprehensive smoke tests passing
+- **Architecture**: Async/await, dependency injection, type hints throughout
+
+---
+
+## 📚 Resources
+
+### Documentation
+
+- **FastAPI**: https://fastapi.tiangolo.com/
+- **Next.js**: https://nextjs.org/docs
+- **SQLAlchemy**: https://docs.sqlalchemy.org/
+- **PostgreSQL**: https://www.postgresql.org/docs/
+- **Redis**: https://redis.io/docs/
+
+### API Documentation
+
+- **Adzuna**: https://developer.adzuna.com/docs
+- **Firecrawl**: https://docs.firecrawl.dev/
+- **OpenAI**: https://platform.openai.com/docs
+- **Groq**: https://console.groq.com/docs
+
+### License
+
+This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) file for details.
+
+---
+
+**Built with ❤️ for AI/Data Science professionals seeking opportunities in the EU**
+
+**Last Updated**: November 2, 2025  
+**Version**: 1.0.0

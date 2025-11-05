@@ -6,16 +6,17 @@ Celery tasks for email notifications and briefings with adaptive timing
 """
 
 import logging
-from ..models.application import Application
-from typing import Dict, List, Any
 from datetime import datetime, timedelta
-from celery import current_app as celery_app
+from typing import Any, Dict, List
 
-from ..services.email_service import email_service
-from ..services.briefing_service import briefing_service
-from ..models.user import User
-from ..core.database import get_db
+from celery import current_app as celery_app
 from sqlalchemy.orm import Session
+
+from ..core.database import get_db
+from ..models.application import Application
+from ..models.user import User
+from ..services.briefing_service import briefing_service
+from ..services.email_service import email_service
 
 logger = logging.getLogger(__name__)
 
@@ -608,4 +609,5 @@ def _generate_milestone_encouragement(milestone_type: str, milestone_data: Dict[
 		"goal_achieved": "Setting and achieving goals is a superpower. You're proving you can make things happen!",
 	}
 
+	return encouragement_map.get(milestone_type, "Every step forward in your career journey matters. Keep up the great work!")
 	return encouragement_map.get(milestone_type, "Every step forward in your career journey matters. Keep up the great work!")

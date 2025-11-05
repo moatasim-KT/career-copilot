@@ -385,12 +385,16 @@ class ChromaDBClient:
 		"""Initialize the embedding function."""
 		try:
 			if self.settings.openai_api_key:
-				self.embedding_function = embedding_functions.OpenAIEmbeddingFunction(
-					api_key=self.settings.openai_api_key.get_secret_value(), model_name="text-embedding-ada-002"
+				# Support both SecretStr and plain str API key types
+				api_key_value = (
+					self.settings.openai_api_key.get_secret_value()
+					if hasattr(self.settings.openai_api_key, "get_secret_value")
+					else self.settings.openai_api_key
 				)
+				self.embedding_function = embedding_functions.OpenAIEmbeddingFunction(api_key=api_key_value, model_name="text-embedding-ada-002")
 				logger.info("Initialized OpenAI embedding function")
 			else:
-				logger.warning("OpenAI API key not available, using default embedding function")
+				logger.warning("OpenAI API key missing; using default embedding function")
 				self.embedding_function = embedding_functions.DefaultEmbeddingFunction()
 		except Exception as e:
 			logger.error(f"Failed to initialize embedding function: {e}")

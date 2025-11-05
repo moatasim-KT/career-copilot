@@ -1,15 +1,18 @@
 """Content Generator Service for creating personalized cover letters and resume modifications"""
 
-import logging
 import json
-from typing import Dict, List, Optional, Any
-from sqlalchemy.orm import Session
+import logging
+from typing import Any, Dict, List, Optional
 
-from ..services.llm_service import get_llm_service
+from langchain_core.prompts import PromptTemplate
+from sqlalchemy.orm import Session
+from textblob import TextBlob
+
 from ..models.content_generation import ContentGeneration
 from ..models.content_version import ContentVersion
 from ..models.job import Job
 from ..models.user import User
+from ..services.llm_service import get_llm_service
 from .cache_service import cache_service
 
 logger = logging.getLogger(__name__)
@@ -505,94 +508,72 @@ class ContentGeneratorService:
 
 		return prompt
 
-	def _generate_template_cover_letter(self, user: User, job: Job, tone: str) -> str:
-		"""Generate a basic cover letter using templates"""
-
+	def _create_cover_letter_template_prompt(self, user: User, job: Job, tone: str) -> str:
+		"""Create a prompt for cover letter generation using langchain"""
 		template = self.cover_letter_templates.get(tone, self.cover_letter_templates["professional"])
 
-		# Basic template substitution
-		opening = template["opening"].format(job_title=job.title, company=job.company)
+		prompt_template = PromptTemplate(
+			input_variables=["job_title", "company", "user_name", "user_skills", "experience_level", "job_tech_stack"],
+			template=f"{template['opening']}\n\nI am writing to express my interest in the {{job_title}} position at {{company}}. With my background in {{user_skills}} and {{experience_level}} experience, I am confident I can contribute effectively to your team. I am particularly drawn to this opportunity because of {{company}}'s reputation and the chance to work with {{job_tech_stack}}.\n\n{template['closing']}",
+		)
 
-		# Simple middle paragraph
-		middle = f"With my background in {', '.join(user.skills[:3]) if user.skills else 'technology'} and {user.experience_level or 'relevant'} experience, I am confident I can contribute effectively to your team. I am particularly drawn to this opportunity because of {job.company}'s reputation and the chance to work with {', '.join(job.tech_stack[:2]) if job.tech_stack else 'cutting-edge technologies'}."
+		return prompt_template.format(
+			job_title=job.title,
+			company=job.company,
+			user_name=user.username,
+			user_skills=", ".join(user.skills) if user.skills else "various technical skills",
+			experience_level=user.experience_level or "relevant",
+			job_tech_stack=", ".join(job.tech_stack) if job.tech_stack else "cutting-edge technologies",
+		)
 
-		closing = template["closing"].format(company=job.company, user_name=user.username)
+	def _generate_template_cover_letter(self, user: User, job: Job, tone: str) -> str:
+		"""Generate a basic cover letter using templates"""
+		return self._create_cover_letter_template_prompt(user, job, tone)
 
-		return f"{opening}\n\n{middle}\n\n{closing}"
+	def _create_resume_tailoring_template_prompt(self, user: User, job: Job) -> str:
+		"""Create a prompt for resume tailoring suggestions using langchain"""
+		prompt_template = PromptTemplate(
+			input_variables=["job_title", "company", "user_skills", "job_tech_stack"],
+			template="Provide specific, actionable suggestions to tailor a resume for the {job_title} position at {company}.\n\nMatching Skills: {user_skills}\nRequired Skills: {job_tech_stack}\n\nSuggestions:",
+		)
+
+		return prompt_template.format(
+			job_title=job.title,
+			company=job.company,
+			user_skills=", ".join(user.skills) if user.skills else "various technical skills",
+			job_tech_stack=", ".join(job.tech_stack) if job.tech_stack else "the required technologies",
+		)
 
 	def _generate_basic_tailoring_suggestions(self, user: User, job: Job) -> str:
 		"""Generate basic resume tailoring suggestions"""
+		prompt = self._create_resume_tailoring_template_prompt(user, job)
+		return self.llm_manager.generate_response(prompt)
 
-		suggestions = []
+	def _create_email_template_prompt(self, user: User, job: Job, template_type: str) -> str:
+		"""Create a prompt for email template generation using langchain"""
+		template_instructions = {
+			"follow_up": "Write a polite follow-up email to check on application status",
+			"thank_you": "Write a thank you email after an interview",
+			"inquiry": "Write an inquiry email about the position before applying",
+		}
 
-		# Skills suggestions
-		if job.tech_stack:
-			user_skills_set = set(user.skills) if user.skills else set()
-			job_skills_set = set(job.tech_stack)
-			missing_skills = job_skills_set - user_skills_set
-
-			if missing_skills:
-				suggestions.append(
-					f"Skills Section: Consider adding these relevant skills if you have experience with them: {', '.join(list(missing_skills)[:5])}"
-				)
-
-			matching_skills = job_skills_set & user_skills_set
-			if matching_skills:
-				suggestions.append(f"Skills Section: Emphasize these matching skills: {', '.join(list(matching_skills)[:5])}")
-
-		# Experience suggestions
-		suggestions.append(
-			f"Experience Section: Highlight projects and achievements that demonstrate your ability to work with {job.tech_stack[0] if job.tech_stack else 'the required technologies'}"
+		prompt_template = PromptTemplate(
+			input_variables=["job_title", "company", "user_name", "template_type", "purpose"],
+			template="Write a professional email template for the following scenario:\n\nEmail Type: {template_type}\nPurpose: {purpose}\n\nJob Details:\n- Position: {job_title}\n- Company: {company}\n\nCandidate: {user_name}\n\nPlease write the complete email including subject line:",
 		)
 
-		# Summary suggestions
-		suggestions.append(f"Summary Section: Mention your interest in {job.title} roles and experience with {job.company}'s industry")
-
-		return "\n".join([f"{i + 1}. {suggestion}" for i, suggestion in enumerate(suggestions)])
+		return prompt_template.format(
+			job_title=job.title,
+			company=job.company,
+			user_name=user.username,
+			template_type=template_type,
+			purpose=template_instructions.get(template_type, "Professional communication"),
+		)
 
 	def _generate_basic_email_template(self, user: User, job: Job, template_type: str) -> str:
 		"""Generate basic email templates"""
-
-		templates = {
-			"follow_up": f"""Subject: Following up on {job.title} Application
-
-Dear Hiring Manager,
-
-I hope this email finds you well. I wanted to follow up on my application for the {job.title} position at {job.company} that I submitted recently.
-
-I remain very interested in this opportunity and would welcome the chance to discuss how my skills and experience align with your team's needs.
-
-Thank you for your time and consideration.
-
-Best regards,
-{user.username}""",
-			"thank_you": f"""Subject: Thank you for the {job.title} interview
-
-Dear Hiring Manager,
-
-Thank you for taking the time to interview me for the {job.title} position at {job.company}. I enjoyed our conversation and learning more about the role and your team.
-
-I am very excited about the opportunity to contribute to {job.company} and look forward to hearing about the next steps.
-
-Thank you again for your consideration.
-
-Best regards,
-{user.username}""",
-			"inquiry": f"""Subject: Inquiry about {job.title} Position
-
-Dear Hiring Manager,
-
-I hope this email finds you well. I am writing to express my interest in the {job.title} position at {job.company}.
-
-I would appreciate the opportunity to learn more about this role and discuss how my background might be a good fit for your team.
-
-Thank you for your time and consideration.
-
-Best regards,
-{user.username}""",
-		}
-
-		return templates.get(template_type, templates["inquiry"])
+		prompt = self._create_email_template_prompt(user, job, template_type)
+		return self.llm_manager.generate_response(prompt)
 
 	async def improve_content(self, original_content: str, feedback: str, content_type: str = "cover_letter") -> str:
 		"""
@@ -861,24 +842,11 @@ Best regards,
 	def _analyze_tone_changes(self, original: str, modified: str) -> Dict[str, bool]:
 		"""Analyze tone changes between original and modified content"""
 
-		formal_indicators = ["Dear", "Sincerely", "respectfully", "formally"]
-		casual_indicators = ["Hi", "Hey", "Thanks", "Cheers"]
-		enthusiastic_indicators = ["excited", "thrilled", "passionate", "!"]
-
-		original_lower = original.lower()
-		modified_lower = modified.lower()
+		original_blob = TextBlob(original)
+		modified_blob = TextBlob(modified)
 
 		return {
-			"became_more_formal": (
-				sum(1 for word in formal_indicators if word.lower() in modified_lower)
-				> sum(1 for word in formal_indicators if word.lower() in original_lower)
-			),
-			"became_more_casual": (
-				sum(1 for word in casual_indicators if word.lower() in modified_lower)
-				> sum(1 for word in casual_indicators if word.lower() in original_lower)
-			),
-			"became_more_enthusiastic": (
-				sum(1 for word in enthusiastic_indicators if word.lower() in modified_lower)
-				> sum(1 for word in enthusiastic_indicators if word.lower() in original_lower)
-			),
+			"became_more_formal": modified_blob.sentiment.polarity > original_blob.sentiment.polarity,
+			"became_more_casual": modified_blob.sentiment.polarity < original_blob.sentiment.polarity,
+			"became_more_enthusiastic": modified_blob.sentiment.subjectivity > original_blob.sentiment.subjectivity,
 		}

@@ -2,12 +2,12 @@
 Celery tasks for cache management and optimization
 """
 
-from datetime import datetime, timedelta, timezone
-from typing import List
 import logging
+from datetime import datetime, timedelta, timezone
+from typing import Any
 
 from app.celery import celery_app
-from app.core.cache import cache_service, job_recommendation_cache, analytics_cache
+from app.core.cache import analytics_cache, cache_service, job_recommendation_cache
 from app.core.database import get_db
 from app.models.user import User
 
@@ -132,7 +132,7 @@ def invalidate_stale_recommendations(self):
 
 
 @celery_app.task(bind=True, max_retries=3)
-def warm_up_cache(self, user_ids: List[int] = None):
+def warm_up_cache(self, user_ids: list[int] | None = None):
 	"""Pre-populate cache with frequently accessed data"""
 	try:
 		if not cache_service.is_connected():
@@ -150,8 +150,8 @@ def warm_up_cache(self, user_ids: List[int] = None):
 				user_ids = [user_id for (user_id,) in active_users]
 
 			# Import services here to avoid circular imports
-			from app.services.profile_service import ProfileService
 			from app.services.job_recommendation_service import get_job_recommendation_service
+			from app.services.profile_service import ProfileService
 			from app.services.skill_analysis_service import skill_analysis_service
 
 			for user_id in user_ids:

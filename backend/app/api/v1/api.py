@@ -2,42 +2,35 @@
 Main API router for v1 endpoints
 """
 
-from fastapi import APIRouter
-
 from app.api.v1 import (
-	auth,
-	jobs,
-	documents,
-	applications,
-	profile,
-	job_ingestion,
-	notifications,
 	analytics,
-	document_templates,
-	templates,
-	recommendations,
-	enhanced_recommendations,
-	skill_gap_analysis,
-	skill_gap,
-	health,
-	tasks,
-	skill_matching,
-	email,
-	briefings,
-	goals,
-	cache,
-	export,
-	offline,
-	document_suggestions,
-	data_security,
-	document_versions,
-	feedback,
-	saved_searches,
-	dashboard_layouts,
+	applications,
+	auth,
 	backup,
+	briefings,
+	cache,
+	dashboard_layouts,
+	data_security,
+	email,
+	enhanced_recommendations,
+	export,
+	feedback,
+	goals,
+	health,
+	jobs,
+	notifications,
 	oauth,
+	offline,
+	profile,
+	recommendations,
 	resume,
+	saved_searches,
+	skill_gap,
+	skill_gap_analysis,
+	skill_matching,
+	tasks,
 )
+from fastapi import APIRouter
 
 api_router = APIRouter()
 
@@ -50,29 +43,17 @@ api_router.include_router(oauth.router, tags=["oauth"])
 # Include job management routes
 api_router.include_router(jobs.router, prefix="/jobs", tags=["jobs"])
 
-# Include document management routes
-api_router.include_router(documents.router, prefix="/documents", tags=["documents"])
-
 # Include application management routes
 api_router.include_router(applications.router, prefix="/applications", tags=["applications"])
 
 # Include profile management routes
 api_router.include_router(profile.router, prefix="/profile", tags=["profile"])
 
-# Include job ingestion routes
-api_router.include_router(job_ingestion.router, prefix="/job-ingestion", tags=["job-ingestion"])
-
 # Include notification routes
 api_router.include_router(notifications.router, prefix="/notifications", tags=["notifications"])
 
 # Include analytics routes
 api_router.include_router(analytics.router, prefix="/analytics", tags=["analytics"])
-
-# Include document template routes (legacy)
-api_router.include_router(document_templates.router, prefix="/document-templates", tags=["document-templates"])
-
-# Include new template system routes
-api_router.include_router(templates.router, prefix="/templates", tags=["templates"])
 
 # Include recommendation routes
 api_router.include_router(recommendations.router, prefix="/recommendations", tags=["recommendations"])
@@ -113,14 +94,8 @@ api_router.include_router(export.router, prefix="/export", tags=["export"])
 # Include offline routes
 api_router.include_router(offline.router, prefix="/offline", tags=["offline"])
 
-# Include document suggestion routes
-api_router.include_router(document_suggestions.router, prefix="/document-suggestions", tags=["document-suggestions"])
-
 # Include data security routes
 api_router.include_router(data_security.router, prefix="/data-security", tags=["data-security"])
-
-# Include document versioning routes
-api_router.include_router(document_versions.router, prefix="/document-versions", tags=["document-versions"])
 
 # Include feedback and onboarding routes
 api_router.include_router(feedback.router, prefix="/feedback", tags=["feedback", "onboarding", "help"])

@@ -3,21 +3,15 @@ Enhanced contract upload API with chunked upload support and real-time progress 
 """
 
 import asyncio
-from typing import Dict, Optional, Any
+from typing import Any, Dict, Optional
 
-from fastapi import APIRouter, File, UploadFile, HTTPException, BackgroundTasks, WebSocket, WebSocketDisconnect
+from fastapi import APIRouter, BackgroundTasks, File, HTTPException, UploadFile, WebSocket, WebSocketDisconnect
 from pydantic import BaseModel
 
-from ...core.logging import get_logger
-from ...models.upload_models import (
-	UploadRequest,
-	UploadResponse,
-	ChunkUploadResponse,
-	UploadProgress,
-	UploadStatus,
-)
-from ...services.upload_service import upload_service
 from ...api.websockets import manager as websocket_manager
+from ...core.logging import get_logger
+from ...models.upload_models import ChunkUploadResponse, UploadProgress, UploadRequest, UploadResponse, UploadStatus
+from ...services.upload_service import upload_service
 
 logger = get_logger(__name__)
 router = APIRouter()
@@ -76,7 +70,7 @@ async def initiate_upload(request: InitiateUploadRequest, background_tasks: Back
 		)
 
 		# Create upload session
-		session, validation_result = await upload_service.create_upload_session(upload_request)
+		session, _validation_result = await upload_service.create_upload_session(upload_request)
 
 		# Schedule cleanup task
 		background_tasks.add_task(schedule_session_cleanup, session.session_id)
@@ -424,6 +418,9 @@ async def schedule_session_cleanup(session_id: str):
 
 
 # Background task to periodically clean up expired sessions
+_cleanup_task: asyncio.Task | None = None
+
+
 @router.on_event("startup")
 async def start_cleanup_task():
 	"""Start background cleanup task."""
@@ -437,4 +434,5 @@ async def start_cleanup_task():
 				logger.error(f"Error in cleanup loop: {e}")
 				await asyncio.sleep(300)  # Wait 5 minutes on error
 
-	asyncio.create_task(cleanup_loop())
+	global _cleanup_task
+	_cleanup_task = asyncio.create_task(cleanup_loop())

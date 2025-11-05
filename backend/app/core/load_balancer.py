@@ -5,15 +5,16 @@ Provides intelligent request distribution and automatic scaling based on system 
 
 import asyncio
 import logging
+import threading
 import time
 import uuid
+from collections import deque
+from dataclasses import dataclass
 from datetime import datetime, timezone
 from enum import Enum
-from typing import Any, Dict, Optional, Callable
-from dataclasses import dataclass
-from collections import deque
+from typing import Any, Callable, Dict, Optional
+
 import psutil
-import threading
 
 from .config import settings
 
@@ -84,6 +85,8 @@ class LoadBalancer:
 			"current_load": 0.0,
 			"scaling_events": 0,
 		}
+		self._bg_tasks: list[asyncio.Task] = []
+		self._request_tasks: deque = deque(maxlen=10000)
 
 	async def start(self):
 		"""Start the load balancer and health monitoring."""
@@ -94,9 +97,9 @@ class LoadBalancer:
 		await self._create_initial_workers()
 
 		# Start background tasks
-		asyncio.create_task(self._health_monitor())
-		asyncio.create_task(self._scaling_monitor())
-		asyncio.create_task(self._request_processor())
+		self._bg_tasks.append(asyncio.create_task(self._health_monitor()))
+		self._bg_tasks.append(asyncio.create_task(self._scaling_monitor()))
+		self._bg_tasks.append(asyncio.create_task(self._request_processor()))
 
 		logger.info("Load balancer started successfully")
 
@@ -318,7 +321,8 @@ class LoadBalancer:
 		best_worker.status = WorkerStatus.BUSY
 
 		# Process request asynchronously
-		asyncio.create_task(self._process_request(request, best_worker))
+		task = asyncio.create_task(self._process_request(request, best_worker))
+		self._request_tasks.append(task)
 
 	def _select_best_worker(self, request: Request) -> Optional[Worker]:
 		"""Select the best worker for a request based on load balancing strategy."""
@@ -421,4 +425,5 @@ load_balancer = LoadBalancer()
 
 async def get_load_balancer() -> LoadBalancer:
 	"""Get the global load balancer instance."""
+	return load_balancer
 	return load_balancer

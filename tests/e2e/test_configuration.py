@@ -294,7 +294,7 @@ class ConfigurationE2ETest(ConfigurationTestBase):
                 config_type="env",
                 file_path=file_path,
                 valid=False,
-                errors=[f"Error reading file: {str(e)}"],
+                errors=[f"Error reading file: {e!s}"],
                 warnings=[],
                 missing_variables=[]
             )
@@ -346,7 +346,7 @@ class ConfigurationE2ETest(ConfigurationTestBase):
                 config_type="yaml",
                 file_path=file_path,
                 valid=False,
-                errors=[f"Error parsing YAML: {str(e)}"],
+                errors=[f"Error parsing YAML: {e!s}"],
                 warnings=[],
                 missing_variables=[]
             )
@@ -399,7 +399,7 @@ class ConfigurationE2ETest(ConfigurationTestBase):
                 config_type="json",
                 file_path=file_path,
                 valid=False,
-                errors=[f"Error parsing JSON: {str(e)}"],
+                errors=[f"Error parsing JSON: {e!s}"],
                 warnings=[],
                 missing_variables=[]
             )

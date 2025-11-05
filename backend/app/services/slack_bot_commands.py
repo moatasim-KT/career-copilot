@@ -4,11 +4,10 @@ Provides slash commands and interactive workflows for job application tracking.
 """
 
 import asyncio
-from datetime import datetime
-from typing import Any, Dict, List
 from dataclasses import dataclass
+from datetime import datetime
 from enum import Enum
-
+from typing import Any, Dict, List
 
 from ..core.logging import get_logger
 from .slack_service import EnhancedSlackService, SlackMessage
@@ -211,7 +210,8 @@ class SlackBotCommands:
 		}
 
 		# Start background analysis (mock for now)
-		asyncio.create_task(self._simulate_contract_analysis(analysis_id, contract_input, user_id, channel_id, options))
+		self._bg_tasks = getattr(self, "_bg_tasks", [])
+		self._bg_tasks.append(asyncio.create_task(self._simulate_contract_analysis(analysis_id, contract_input, user_id, channel_id, options)))
 
 		return response
 

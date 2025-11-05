@@ -2,20 +2,21 @@
 Test script for feedback analysis and model improvement functionality
 """
 
-import sys
 import os
+import sys
 
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
-from sqlalchemy.orm import Session
-from app.core.database import get_db, init_db
-from app.services.feedback_analysis_service import FeedbackAnalysisService
-from app.services.adaptive_recommendation_engine import AdaptiveRecommendationEngine
-from app.services.feedback_impact_service import FeedbackImpactService
-from app.models.user import User
-from app.models.job import Job
-from app.models.feedback import JobRecommendationFeedback
 from datetime import datetime, timedelta
+
+from app.core.database import get_db, init_db
+from app.models.feedback import JobRecommendationFeedback
+from app.models.job import Job
+from app.models.user import User
+from app.services.adaptive_recommendation_engine import AdaptiveRecommendationEngine
+from app.services.feedback_analysis_service import FeedbackAnalysisService
+from app.services.feedback_impact_service import FeedbackImpactService
+from sqlalchemy.orm import Session
 
 
 def create_test_data(db: Session):
@@ -218,7 +219,7 @@ def main():
 
 	try:
 		# Create test data
-		test_user, jobs, feedback_items = create_test_data(db)
+		test_user, _jobs, _feedback_items = create_test_data(db)
 
 		# Test feedback analysis
 		patterns, suggestions = test_feedback_analysis(db)
@@ -227,7 +228,7 @@ def main():
 		recommendations = test_adaptive_engine(db, test_user)
 
 		# Test feedback impact
-		report, roi = test_feedback_impact(db)
+		_report, _roi = test_feedback_impact(db)
 
 		print("\n" + "=" * 60)
 		print("🎉 All tests completed successfully!")
@@ -257,5 +258,7 @@ def main():
 		db.close()
 
 
+if __name__ == "__main__":
+	main()
 if __name__ == "__main__":
 	main()

@@ -35,9 +35,9 @@ export default function WebSocketTest() {
       logger.log('WebSocket Test: Disconnected');
       addMessage('connection', { status: 'disconnected' });
     },
-    onError: error => {
+    onError: (error: unknown) => {
       logger.log('WebSocket Test: Error', error);
-      addMessage('error', { error: error.toString() });
+      addMessage('error', { error: String(error) });
     },
     onMessage: message => {
       logger.log('WebSocket Test: Message received', message);

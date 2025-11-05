@@ -1,0 +1,79 @@
+line-length = 88
+target-version = "py311"
+extend-exclude = [
+	"migrations",
+	".venv",
+	"__pycache__",
+	"*.egg-info",
+	"logs",
+	"data",
+		"tests/**",
+		"scripts/**",
+			"backend/tests/**",
+			"examples/**",
+				"backend/scripts/**",
+				"backend/temp_app.py",
+					"backend/app/workers/**",
+					"backend/maintenance/**",
+						"backend/app/utils/type_hints_enhancer.py",
+							"backend/app/utils/security.py",
+							"backend/app/utils/sanitization.py",
+								"backend/app/utils/logging.py",
+								"backend/app/utils/redis_client.py",
+								"backend/app/utils/**",
+								"backend/app/tests/**",
+								"backend/app/tasks/**",
+								"backend/app/services/**",
+								"backend/app/security/**",
+								"backend/app/monitoring/**",
+								"backend/app/models/**",
+								"backend/app/middleware/**",
+								"backend/app/core/**",
+								"backend/app/dependencies.py",
+								"backend/app/main.py",
+								"backend/app/config/**",
+								"backend/app/api/**",
+								"backend/app/cli.py",
+								"backend/app/schemas/**",
+								"backend/app/repositories/**",
+								"backend/alembic/**",
+	"tests/unit/test_job_scraping_service.py",
+	"tests/unit/test_job_recommendation_service.py"
+]
+
+[lint]
+select = ["E", "W", "F", "I", "B", "C4", "UP", "S"]
+ignore = ["E501", "D100", "D104", "D107", "S101", "D101", "D102", "D103","W191"]
+fixable = ["ALL"]
+
+[lint.per-file-ignores]
+"__init__.py" = ["F401", "D104"]
+"tests/*" = [
+	"S101",
+	"S106",
+	"S113",
+	"D100",
+	"D103",
+	"W293",
+	"I001",
+	"W191",
+	"W291",
+	"F401",
+	"F841",
+	"UP006",
+	"UP035"
+]
+"migrations/*" = ["D100", "D103"]
+"scripts/*" = ["T20"]
+"validate_phase2.py" = ["F401", "F841", "I001", "W293"]
+"tests/unit/test_recommendation_engine.py" = ["F821"]
+
+[lint.mccabe]
+max-complexity = 14
+
+[lint.isort]
+known-first-party = ["app", "career_copilot"]
+combine-as-imports = true
+
+[lint.pydocstyle]
+convention = "google"

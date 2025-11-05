@@ -6,14 +6,14 @@ Comprehensive PDF digital signature functionality as DocuSign alternative
 with certificate management, signature validation, and advanced features.
 """
 
+import base64
+import hashlib
 import io
 import os
-import hashlib
-import base64
+import uuid
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
-import uuid
 
 try:
 	from cryptography import x509
@@ -29,12 +29,11 @@ try:
 except ImportError:
 	PYPDF2_AVAILABLE = False
 
+from pydantic import BaseModel, Field
 from reportlab.lib.colors import blue
 from reportlab.lib.pagesizes import letter
 from reportlab.lib.utils import ImageReader
 from reportlab.pdfgen import canvas
-
-from pydantic import BaseModel, Field
 
 from ..core.config import get_settings
 from ..core.logging import get_logger
@@ -256,12 +255,12 @@ class LocalPDFSigningService:
 
 			# Security: Validate document path to prevent path traversal (CWE-22)
 			doc_path = Path(signing_request.document_path).resolve()
-			
+
 			# Ensure the path is within allowed directories
 			allowed_dirs = [self.signatures_dir.resolve(), self.temp_dir.resolve(), Path.cwd().resolve()]
 			if not any(doc_path.is_relative_to(allowed_dir) for allowed_dir in allowed_dirs):
 				return SigningResult(success=False, errors=["Access denied: Document path outside allowed directories"])
-			
+
 			# Check if document exists
 			if not doc_path.exists():
 				return SigningResult(success=False, errors=[f"Document not found: {signing_request.document_path}"])
@@ -473,7 +472,7 @@ class LocalPDFSigningService:
 		try:
 			buffer = io.BytesIO()
 			c = canvas.Canvas(buffer, pagesize=letter)
-			width, height = letter
+			_, height = letter
 
 			# Add header
 			c.setFont("Helvetica-Bold", 16)
@@ -544,7 +543,7 @@ class LocalPDFSigningService:
 		try:
 			buffer = io.BytesIO()
 			c = canvas.Canvas(buffer, pagesize=letter)
-			width, height = letter
+			_, height = letter
 
 			# Add title
 			c.setFont("Helvetica-Bold", 16)
@@ -608,7 +607,7 @@ class LocalPDFSigningService:
 		try:
 			buffer = io.BytesIO()
 			c = canvas.Canvas(buffer, pagesize=letter)
-			width, height = letter
+			_, height = letter
 
 			# Add header
 			c.setFont("Helvetica-Bold", 18)
@@ -854,7 +853,7 @@ class LocalPDFSigningService:
 		try:
 			buffer = io.BytesIO()
 			c = canvas.Canvas(buffer, pagesize=letter)
-			width, height = letter
+			_, height = letter
 
 			# Add signature information
 			c.setFont("Helvetica-Bold", 12)

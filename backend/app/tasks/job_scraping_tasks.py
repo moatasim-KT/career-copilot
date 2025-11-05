@@ -1,18 +1,17 @@
 """ """
 
-from datetime import datetime, timezone, timedelta
-
-from typing import Dict, Any, List
-import traceback
 import asyncio
+import traceback
+from datetime import datetime, timedelta, timezone
+from typing import Any, Dict, List
 
 from app.core.celery_app import celery_app
 from app.core.database import get_db
 from app.core.logging import get_logger
-from app.models.user import User
 from app.models.job import Job
-from app.services.job_scraper_service import JobScraperService
+from app.models.user import User
 from app.services.cache_service import get_cache_service
+from app.services.job_scraping_service import JobScrapingService
 
 logger = get_logger(__name__)
 
@@ -46,7 +45,7 @@ def scrape_jobs_for_user_async(self, user_id: int) -> Dict[str, Any]:
 			return {"status": "skipped", "reason": "User profile incomplete (missing skills or locations)"}
 
 		# Initialize job scraper
-		job_scraper = JobScraperService()
+		job_scraper = JobScrapingService()
 
 		# Update progress
 		self.update_state(state="PROGRESS", meta={"current": 30, "total": 100, "status": "Scraping jobs from external sources..."})
@@ -359,8 +358,9 @@ def update_job_market_data() -> Dict[str, Any]:
 	db = next(get_db())
 
 	try:
-		from sqlalchemy import func
 		from collections import Counter
+
+		from sqlalchemy import func
 
 		# Analyze job market trends
 		market_data = {}

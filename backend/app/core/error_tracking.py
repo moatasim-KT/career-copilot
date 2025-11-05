@@ -6,15 +6,15 @@ Tracks, analyzes, and reports on application errors with integration to monitori
 from __future__ import annotations
 
 import asyncio
-import time
+import hashlib
 import threading
+import time
+import traceback
 from collections import defaultdict, deque
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta, timezone
 from enum import Enum
-import hashlib
 from typing import Any, Callable
-import traceback
 
 from .exceptions import ContractAnalysisError, ErrorCategory, ErrorSeverity
 from .logging import get_logger, track_log_metrics
@@ -76,6 +76,7 @@ class ErrorTrackingSystem:
 		self.pattern_detectors: list[Callable] = []
 		self.running = False
 		self._lock = threading.Lock()
+		self._bg_tasks: list[asyncio.Task] = []
 
 		# Configuration
 		self.max_tracked_errors = 1000
@@ -113,7 +114,7 @@ class ErrorTrackingSystem:
 		logger.info("Starting error tracking system")
 
 		# Start pattern analysis task
-		asyncio.create_task(self._pattern_analysis_loop())
+		self._bg_tasks.append(asyncio.create_task(self._pattern_analysis_loop()))
 
 		logger.info("Error tracking system started")
 
@@ -200,7 +201,8 @@ class ErrorTrackingSystem:
 			track_log_metrics("ERROR")
 
 			# Trigger error handlers
-			asyncio.create_task(self._trigger_error_handlers(tracked_error, error_record))
+			task = asyncio.create_task(self._trigger_error_handlers(tracked_error, error_record))
+			self._bg_tasks.append(task)
 
 			# Log the error
 			logger.error(
@@ -520,7 +522,8 @@ def get_error_tracking_system() -> ErrorTrackingSystem:
 
 
 def track_error(
-			error: Exception, component: str, context: dict[str, Any] | None = None, user_id: str | None = None, request_id: str | None = None) -> str:
+	error: Exception, component: str, context: dict[str, Any] | None = None, user_id: str | None = None, request_id: str | None = None
+) -> str:
 	"""Convenience function to track an error."""
 	error_tracking = get_error_tracking_system()
 	return error_tracking.track_error(error, component, context, user_id, request_id)

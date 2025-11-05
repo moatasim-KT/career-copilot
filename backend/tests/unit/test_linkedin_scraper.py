@@ -1,7 +1,9 @@
-import pytest
-from unittest.mock import patch, MagicMock
 import os
+import re
 import sys
+from unittest.mock import MagicMock, patch
+
+import pytest
 
 # Mock problematic imports before LinkedInScraper is imported
 # This prevents SQLAlchemy model re-registration issues during test collection
@@ -29,7 +31,7 @@ def scraper_with_mock_api():
 
 @pytest.mark.asyncio
 async def test_initialize_browser(scraper_with_mock_api):
-	scraper, mock_api_client = scraper_with_mock_api
+	scraper, _mock_api_client = scraper_with_mock_api
 	scraper.browser_initialized = False
 	await scraper._initialize_browser()
 	assert scraper.browser_initialized == True
@@ -56,7 +58,7 @@ async def test_login_failure_no_element(scraper_with_mock_api):
 	mock_api_client.puppeteer_evaluate.return_value = {"output": False}
 
 	scraper.browser_initialized = False
-	with pytest.raises(Exception, match="Login failed after multiple retries."):
+	with pytest.raises(Exception, match=re.escape("Login failed after multiple retries.")):
 		await scraper._login()
 	assert scraper.browser_initialized == False
 
@@ -67,7 +69,7 @@ async def test_login_failure_exception(scraper_with_mock_api):
 	mock_api_client.puppeteer_navigate.side_effect = Exception("Network error")
 
 	scraper.browser_initialized = False
-	with pytest.raises(Exception, match="Login failed after multiple retries."):
+	with pytest.raises(Exception, match=re.escape("Login failed after multiple retries.")):
 		await scraper._login()
 	assert scraper.browser_initialized == False
 
@@ -113,4 +115,5 @@ async def test_scrape_job_description_with_show_more(scraper_with_mock_api):
 
 	description = await scraper.scrape_job_description("http://linkedin.com/job/123")
 	assert description == "Full Description with more"
+	mock_api_client.puppeteer_click.assert_called_with(selector="button.show-more-less-button")
 	mock_api_client.puppeteer_click.assert_called_with(selector="button.show-more-less-button")

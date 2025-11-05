@@ -140,7 +140,3 @@ async function handleJsErrorReport(req: NextRequest) {
     );
   }
 }
-
-// Export the routes
-export const GET_health = GET;
-export const POST_health = POST;

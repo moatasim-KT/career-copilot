@@ -87,9 +87,16 @@ class HealthMonitoringService:
 		if logging_service:
 			try:
 				logging_health = logging_service.perform_comprehensive_health_check()
+				# Map logging status values to standard health status
+				logging_status = logging_health.get("overall_status", "unknown")
+				if logging_status == "critical":
+					logging_health["overall_status"] = "unhealthy"
+				elif logging_status == "warning":
+					logging_health["overall_status"] = "degraded"
+
 				result["components"]["logging"] = logging_health
-				if logging_health.get("overall_status") in {"warning", "critical"}:
-					result["status"] = "degraded" if logging_health["overall_status"] == "warning" else "unhealthy"
+				if logging_health.get("overall_status") in {"degraded", "unhealthy"}:
+					result["status"] = logging_health["overall_status"]
 			except Exception as e:
 				logger.error(f"Logging health check failed: {e}")
 				result["components"]["logging_error"] = {"error": str(e)}
@@ -100,13 +107,22 @@ class HealthMonitoringService:
 		if chroma_monitor:
 			try:
 				chroma_summary = await chroma_monitor.get_health_summary()
-				result["components"]["chroma"] = chroma_summary
+				# Map ChromaDB status values to standard health status
+				# ChromaDB uses: healthy, warning, critical, unknown
+				# Standard uses: healthy, degraded, unhealthy
+				chroma_status = chroma_summary.get("status", "unknown")
+				if chroma_status == "critical":
+					chroma_summary["status"] = "unhealthy"  # Map critical → unhealthy
+				elif chroma_status == "warning":
+					chroma_summary["status"] = "degraded"  # Map warning → degraded
+
+				result["components"]["chromadb"] = chroma_summary
 				status = chroma_summary.get("status", "unknown")
-				if status in {"warning", "critical", "unhealthy"}:
-					result["status"] = "degraded" if status == "warning" else "unhealthy"
+				if status in {"degraded", "unhealthy"}:
+					result["status"] = status
 			except Exception as e:
-				logger.error(f"Chroma health check failed: {e}")
-				result["components"]["chroma_error"] = {"error": str(e)}
+				logger.error(f"ChromaDB health check failed: {e}")
+				result["components"]["chromadb_error"] = {"error": str(e)}
 				result["status"] = "unhealthy"
 
 		# Database health (async)

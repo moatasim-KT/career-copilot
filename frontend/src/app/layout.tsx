@@ -1,9 +1,12 @@
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
+import { Toaster } from 'sonner';
 
 import './globals.css';
-import Layout from '@/components/layout/Layout';
+
+import AuthErrorBoundary from '@/components/auth/AuthErrorBoundary';
 import { AuthProvider } from '@/contexts/AuthContext';
+import Layout from '@/components/layout/Layout';
 
 const inter = Inter({
   variable: '--font-inter',
@@ -25,9 +28,12 @@ export default function RootLayout({
       <body
         className={`${inter.variable} font-sans antialiased bg-gray-50 min-h-screen`}
       >
-        <AuthProvider>
-          <Layout>{children}</Layout>
-        </AuthProvider>
+        <AuthErrorBoundary>
+          <AuthProvider>
+            <Layout>{children}</Layout>
+          </AuthProvider>
+        </AuthErrorBoundary>
+        <Toaster position="top-right" richColors closeButton />
       </body>
     </html>
   );

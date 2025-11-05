@@ -5,9 +5,11 @@ WebSocket endpoints for real-time progress updates and task management.
 """
 
 import asyncio
-from typing import Dict, Set, Optional, Any
 from datetime import datetime, timezone
+from typing import Any, Dict, Set
+
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
+
 from ..core.logging import get_logger
 
 
@@ -28,11 +30,11 @@ router = APIRouter()
 # Connection manager for WebSocket connections
 class ConnectionManager:
 	def __init__(self):
-		self.active_connections: Dict[str, Set[WebSocket]] = {}
-		self.task_connections: Dict[str, Set[WebSocket]] = {}
-		self.connection_metadata: Dict[WebSocket, Dict[str, Any]] = {}
+		self.active_connections: dict[str, set[WebSocket]] = {}
+		self.task_connections: dict[str, set[WebSocket]] = {}
+		self.connection_metadata: dict[WebSocket, dict[str, Any]] = {}
 		self.heartbeat_interval = 30  # seconds
-		self._heartbeat_task: Optional[asyncio.Task] = None
+		self._heartbeat_task: asyncio.Task | None = None
 		self._start_heartbeat()
 
 	def _start_heartbeat(self):
@@ -66,7 +68,7 @@ class ConnectionManager:
 			except Exception as e:
 				logger.error(f"Heartbeat error: {e}")
 
-	async def _send_to_connections(self, connections: Set[WebSocket], message: dict):
+	async def _send_to_connections(self, connections: set[WebSocket], message: dict):
 		"""Send message to a set of connections, removing disconnected ones."""
 		disconnected = set()
 		for connection in connections.copy():
@@ -81,7 +83,7 @@ class ConnectionManager:
 			if connection in self.connection_metadata:
 				del self.connection_metadata[connection]
 
-	async def connect(self, websocket: WebSocket, connection_type: str, identifier: str = None, metadata: Dict[str, Any] = None):
+	async def connect(self, websocket: WebSocket, connection_type: str, identifier: str | None = None, metadata: dict[str, Any] | None = None):
 		await websocket.accept()
 
 		# Store connection metadata
@@ -113,7 +115,7 @@ class ConnectionManager:
 			}
 		)
 
-	def disconnect(self, websocket: WebSocket, connection_type: str, identifier: str = None):
+	def disconnect(self, websocket: WebSocket, connection_type: str, identifier: str | None = None):
 		if connection_type == "task" and identifier:
 			if identifier in self.task_connections:
 				self.task_connections[identifier].discard(websocket)
@@ -143,7 +145,7 @@ class ConnectionManager:
 			message["timestamp"] = datetime.now(timezone.utc).isoformat()
 			await self._send_to_connections(self.active_connections[connection_type], message)
 
-	def get_connection_stats(self) -> Dict[str, Any]:
+	def get_connection_stats(self) -> dict[str, Any]:
 		"""Get statistics about current connections."""
 		total_task_connections = sum(len(connections) for connections in self.task_connections.values())
 		total_type_connections = sum(len(connections) for connections in self.active_connections.values())
@@ -234,7 +236,7 @@ async def websocket_progress_endpoint(websocket: WebSocket, task_id: str):
 	except Exception as e:
 		logger.error(f"WebSocket error for task {task_id}: {e}")
 		try:
-			await websocket.send_json({"type": "error", "message": f"Connection error: {str(e)}"})
+			await websocket.send_json({"type": "error", "message": f"Connection error: {e!s}"})
 		except:
 			pass
 	finally:
@@ -478,5 +480,7 @@ async def broadcast_dashboard_update_enhanced(update_data: dict):
 
 
 # Alias for backward compatibility
+broadcast_progress_update = broadcast_progress_update_enhanced
+broadcast_dashboard_update = broadcast_dashboard_update_enhanced
 broadcast_progress_update = broadcast_progress_update_enhanced
 broadcast_dashboard_update = broadcast_dashboard_update_enhanced

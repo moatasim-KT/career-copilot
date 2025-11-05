@@ -1,10 +1,17 @@
+ 
+ 
+ 
+ 
+ 
+ 
+/* eslint-disable @typescript-eslint/no-unused-vars */
 'use client';
 
-import { 
-  Plus, 
-  Search, 
-  MapPin, 
-  Building, 
+import {
+  Plus,
+  Search,
+  MapPin,
+  Building,
   ExternalLink,
   Edit,
   Trash2,
@@ -19,6 +26,7 @@ import {
   SortDesc,
   Star,
   StarOff,
+  RefreshCw,
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 
@@ -29,6 +37,8 @@ import Modal, { ModalFooter } from '@/components/ui/Modal';
 import Select from '@/components/ui/Select';
 import Textarea from '@/components/ui/Textarea';
 import { apiClient, type Job } from '@/lib/api';
+import { JobListView } from './JobListView';
+import { JobTableView } from './JobTableView';
 
 const JOB_TYPES = [
   { value: 'full-time', label: 'Full-time' },
@@ -75,6 +85,8 @@ export default function JobsPage() {
   const [typeFilter, setTypeFilter] = useState('all');
   const [sortBy, setSortBy] = useState('created_at_desc');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isScraping, setIsScraping] = useState(false);
+  const [currentView, setCurrentView] = useState('list'); // 'list' or 'table'
 
   const [formData, setFormData] = useState({
     company: '',
@@ -112,21 +124,52 @@ export default function JobsPage() {
     }
   };
 
+  const triggerJobScraping = async () => {
+    setIsScraping(true);
+    setError('');
+    try {
+      const response = await fetch('/api/v1/jobs/scrape', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({}), // Use user's default preferences
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to scrape jobs');
+      }
+
+      const data = await response.json();
+
+      // Show success message
+      alert(`✅ Found ${data.jobs_found} jobs! Reloading...`);
+
+      // Reload jobs to show new results
+      await loadJobs();
+    } catch (err) {
+      setError('Failed to scrape jobs. Please try again.');
+      console.error('Job scraping error:', err);
+    } finally {
+      setIsScraping(false);
+    }
+  };
+
   const validateForm = () => {
     const errors: Record<string, string> = {};
-    
+
     if (!formData.company.trim()) {
       errors.company = 'Company is required';
     }
-    
+
     if (!formData.title.trim()) {
       errors.title = 'Job title is required';
     }
-    
+
     if (formData.url && !isValidUrl(formData.url)) {
       errors.url = 'Please enter a valid URL';
     }
-    
+
     setFormErrors(errors);
     return Object.keys(errors).length === 0;
   };
@@ -142,7 +185,7 @@ export default function JobsPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!validateForm()) {
       return;
     }
@@ -254,17 +297,17 @@ export default function JobsPage() {
 
   const filteredAndSortedJobs = jobs
     .filter(job => {
-      const matchesSearch = 
+      const matchesSearch =
         job.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
         job.company.toLowerCase().includes(searchTerm.toLowerCase()) ||
         (job.location && job.location.toLowerCase().includes(searchTerm.toLowerCase())) ||
-        (job.tech_stack && job.tech_stack.some(tech => 
+        (job.tech_stack && job.tech_stack.some(tech =>
           tech.toLowerCase().includes(searchTerm.toLowerCase()),
         ));
-      
+
       const matchesSource = sourceFilter === 'all' || job.source === sourceFilter;
-      const matchesType = typeFilter === 'all' || job.job_type === typeFilter;
-      
+      const matchesType = typeFilter === 'all' || (job.job_type && job.job_type === typeFilter);
+
       return matchesSearch && matchesSource && matchesType;
     })
     .sort((a, b) => {
@@ -315,10 +358,21 @@ export default function JobsPage() {
             Manage your job opportunities and track applications
           </p>
         </div>
-        <Button onClick={openAddModal} className="flex items-center space-x-2">
-          <Plus className="h-4 w-4" />
-          <span>Add Job</span>
-        </Button>
+        <div className="flex gap-2">
+          <Button
+            onClick={triggerJobScraping}
+            disabled={isScraping}
+            variant="outline"
+            className="flex items-center space-x-2"
+          >
+            <RefreshCw className={`h-4 w-4 ${isScraping ? 'animate-spin' : ''}`} />
+            <span>{isScraping ? 'Finding Jobs...' : 'Find Jobs'}</span>
+          </Button>
+          <Button onClick={openAddModal} className="flex items-center space-x-2">
+            <Plus className="h-4 w-4" />
+            <span>Add Job</span>
+          </Button>
+        </div>
       </div>
 
       {error && (
@@ -346,7 +400,7 @@ export default function JobsPage() {
                 />
               </div>
             </div>
-            
+
             <Select
               value={sourceFilter}
               onChange={(e) => setSourceFilter(e.target.value)}
@@ -355,7 +409,7 @@ export default function JobsPage() {
                 ...JOB_SOURCES,
               ]}
             />
-            
+
             <Select
               value={typeFilter}
               onChange={(e) => setTypeFilter(e.target.value)}
@@ -365,18 +419,48 @@ export default function JobsPage() {
               ]}
             />
           </div>
-          
+
           <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-200">
             <div className="text-sm text-gray-600">
               Showing {filteredAndSortedJobs.length} of {jobs.length} jobs
             </div>
-            
-            <Select
-              value={sortBy}
-              onChange={(e) => setSortBy(e.target.value)}
-              options={SORT_OPTIONS}
-              className="w-48"
-            />
+
+            <div className="flex items-center space-x-2">
+              <Select
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value)}
+                options={SORT_OPTIONS}
+                className="w-48"
+              />
+              <div className="flex rounded-md shadow-sm">
+                <button
+                  type="button"
+                  onClick={() => setCurrentView('list')}
+                  className={`
+                    px-3 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium
+                    ${currentView === 'list' ? 'text-blue-600 bg-blue-50' : 'text-gray-700 hover:bg-gray-50'}
+                  `}
+                  title="List View"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M3 5a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 9a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 13a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clipRule="evenodd" />
+                  </svg>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setCurrentView('table')}
+                  className={`
+                    px-3 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium
+                    ${currentView === 'table' ? 'text-blue-600 bg-blue-50' : 'text-gray-700 hover:bg-gray-50'}
+                  `}
+                  title="Table View"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M5 4a1 1 0 00-1 1v4a1 1 0 001 1h10a1 1 0 001-1V5a1 1 0 00-1-1H5zm0 6a1 1 0 00-1 1v4a1 1 0 001 1h10a1 1 0 001-1v-4a1 1 0 00-1-1H5z" clipRule="evenodd" />
+                  </svg>
+                </button>
+              </div>
+            </div>
           </div>
         </CardContent>
       </Card>
@@ -530,154 +614,10 @@ export default function JobsPage() {
             </Card>
           ))}
         </div>
-      ) : filteredAndSortedJobs.length > 0 ? (
-        <div className="space-y-4">
-          {filteredAndSortedJobs.map((job) => (
-            <Card key={job.id} hover className="transition-all duration-200" data-testid="job-card">
-              <CardContent className="p-6">
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center space-x-3 mb-2">
-                      <h3 className="text-lg font-semibold text-gray-900">
-                        {job.title}
-                      </h3>
-                      <span className={`px-2 py-1 text-xs font-medium rounded-full ${getSourceBadgeColor(job.source)}`}>
-                        {job.source.toUpperCase()}
-                      </span>
-                      {job.match_score && (
-                        <span className={`text-sm font-medium ${getMatchScoreColor(job.match_score)}`}>
-                          {job.match_score.toFixed(0)}% Match
-                        </span>
-                      )}
-                    </div>
-                    
-                    <div className="flex flex-wrap items-center gap-4 text-sm text-gray-600 mb-3">
-                      <div className="flex items-center space-x-1">
-                        <Building className="h-4 w-4" />
-                        <span>{job.company}</span>
-                      </div>
-                      {job.location && (
-                        <div className="flex items-center space-x-1">
-                          <MapPin className="h-4 w-4" />
-                          <span>{job.location}</span>
-                        </div>
-                      )}
-                      <div className="flex items-center space-x-1">
-                        <Briefcase className="h-4 w-4" />
-                        <span className="capitalize">{job.job_type.replace('-', ' ')}</span>
-                      </div>
-                      {job.remote && (
-                        <span className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full">
-                          Remote
-                        </span>
-                      )}
-                      {job.salary_range && (
-                        <div className="flex items-center space-x-1">
-                          <DollarSign className="h-4 w-4" />
-                          <span>{job.salary_range}</span>
-                        </div>
-                      )}
-                    </div>
-
-                    {job.tech_stack && job.tech_stack.length > 0 && (
-                      <div className="mb-3">
-                        <div className="flex flex-wrap gap-1">
-                          {job.tech_stack.slice(0, 8).map((tech) => (
-                            <span
-                              key={tech}
-                              className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full"
-                            >
-                              {tech}
-                            </span>
-                          ))}
-                          {job.tech_stack.length > 8 && (
-                            <span className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded-full">
-                              +{job.tech_stack.length - 8} more
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                    )}
-
-                    {job.responsibilities && (
-                      <p className="text-sm text-gray-600 mb-3 line-clamp-2">
-                        {job.responsibilities}
-                      </p>
-                    )}
-                  </div>
-
-                  <div className="flex items-center space-x-2 ml-4">
-                    {job.url && (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => window.open(job.url, '_blank')}
-                        title="View Job Posting"
-                      >
-                        <ExternalLink className="h-4 w-4" />
-                      </Button>
-                    )}
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => startEdit(job)}
-                      title="Edit Job"
-                    >
-                      <Edit className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleDelete(job.id)}
-                      title="Delete Job"
-                      className="text-red-600 hover:text-red-700"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>
-
-                <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-200">
-                  <div className="flex items-center space-x-2 text-sm text-gray-500">
-                    <Clock className="h-4 w-4" />
-                    <span>
-                      Added {job.created_at ? new Date(job.created_at).toLocaleDateString() : 'Recently'}
-                    </span>
-                  </div>
-                  <Button
-                    onClick={() => handleApply(job)}
-                    size="sm"
-                  >
-                    Apply
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+      ) : currentView === 'list' ? (
+        <JobListView jobs={filteredAndSortedJobs} onJobClick={(jobId) => console.log('View job:', jobId)} />
       ) : (
-        <Card>
-          <CardContent className="text-center py-12">
-            <Briefcase className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">
-              {searchTerm || sourceFilter !== 'all' || typeFilter !== 'all' 
-                ? 'No jobs found' 
-                : 'No jobs added yet'
-              }
-            </h3>
-            <p className="text-gray-600 mb-4">
-              {searchTerm || sourceFilter !== 'all' || typeFilter !== 'all'
-                ? 'Try adjusting your search terms or filters'
-                : 'Start by adding your first job opportunity to track your applications'
-              }
-            </p>
-            {!searchTerm && sourceFilter === 'all' && typeFilter === 'all' && (
-              <Button onClick={openAddModal}>
-                Add Your First Job
-              </Button>
-            )}
-          </CardContent>
-        </Card>
+        <JobTableView jobs={filteredAndSortedJobs} onJobClick={(jobId) => console.log('View job:', jobId)} />
       )}
     </div>
   );

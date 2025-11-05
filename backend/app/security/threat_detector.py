@@ -5,7 +5,7 @@ Advanced threat detection system for identifying security risks.
 import re
 from dataclasses import dataclass
 from enum import Enum
-from typing import Dict, List, Tuple
+from typing import ClassVar, Dict, List, Tuple
 
 from ..core.logging import get_logger
 
@@ -50,7 +50,7 @@ class ThreatDetector:
 	"""Advanced threat detection system."""
 
 	# Injection attack patterns
-	INJECTION_PATTERNS = {
+	INJECTION_PATTERNS: ClassVar[dict[str, ThreatLevel]] = {
 		# SQL Injection
 		r"(?i)(union\s+select|drop\s+table|insert\s+into|delete\s+from|update\s+set)": ThreatLevel.HIGH,
 		r"(?i)(\'\s*or\s*\'\s*=\s*\'|\'\s*or\s*1\s*=\s*1|admin\'\s*--|\'\s*;\s*drop)": ThreatLevel.CRITICAL,
@@ -65,7 +65,7 @@ class ThreatDetector:
 	}
 
 	# Malware indicators
-	MALWARE_INDICATORS = {
+	MALWARE_INDICATORS: ClassVar[dict[str, ThreatLevel]] = {
 		# Suspicious API calls
 		r"(?i)(CreateRemoteThread|WriteProcessMemory|VirtualAllocEx|SetWindowsHookEx)": ThreatLevel.HIGH,
 		r"(?i)(RegSetValueEx|RegCreateKeyEx|RegOpenKeyEx|CreateService)": ThreatLevel.MEDIUM,
@@ -79,7 +79,7 @@ class ThreatDetector:
 	}
 
 	# Phishing indicators
-	PHISHING_PATTERNS = {
+	PHISHING_PATTERNS: ClassVar[dict[str, ThreatLevel]] = {
 		# Suspicious URLs
 		r"(?i)(bit\.ly|tinyurl|t\.co|goo\.gl|ow\.ly|short\.link)": ThreatLevel.MEDIUM,
 		r"(?i)(click\s+here|urgent\s+action|verify\s+account|suspended\s+account)": ThreatLevel.MEDIUM,
@@ -90,7 +90,7 @@ class ThreatDetector:
 	}
 
 	# Social engineering patterns
-	SOCIAL_ENGINEERING_PATTERNS = {
+	SOCIAL_ENGINEERING_PATTERNS: ClassVar[dict[str, ThreatLevel]] = {
 		r"(?i)(urgent.*action\s+required|account.*will\s+be\s+closed|immediate.*attention)": ThreatLevel.MEDIUM,
 		r"(?i)(ceo.*request|executive.*order|confidential.*document|sensitive.*information)": ThreatLevel.HIGH,
 		r"(?i)(wire\s+transfer|bank\s+details|routing\s+number|account\s+number)": ThreatLevel.HIGH,
@@ -98,21 +98,21 @@ class ThreatDetector:
 	}
 
 	# Data exfiltration patterns
-	DATA_EXFILTRATION_PATTERNS = {
+	DATA_EXFILTRATION_PATTERNS: ClassVar[dict[str, ThreatLevel]] = {
 		r"(?i)(ftp\s+upload|sftp\s+put|scp\s+-r|rsync\s+-av)": ThreatLevel.MEDIUM,
 		r"(?i)(curl.*-T|wget.*--post-file|nc.*-l.*>|base64.*decode)": ThreatLevel.HIGH,
 		r"(?i)(email.*attachment|smtp.*send|mail.*-a|sendmail.*<)": ThreatLevel.MEDIUM,
 	}
 
 	# Privilege escalation patterns
-	PRIVILEGE_ESCALATION_PATTERNS = {
+	PRIVILEGE_ESCALATION_PATTERNS: ClassVar[dict[str, ThreatLevel]] = {
 		r"(?i)(sudo\s+-s|su\s+-|chmod\s+777|chown\s+root)": ThreatLevel.HIGH,
 		r"(?i)(setuid|setgid|sticky\s+bit|suid\s+binary)": ThreatLevel.MEDIUM,
 		r"(?i)(runas.*administrator|net\s+user.*admin|net\s+localgroup.*admin)": ThreatLevel.HIGH,
 	}
 
 	# Suspicious file extensions and names
-	SUSPICIOUS_FILES = {
+	SUSPICIOUS_FILES: ClassVar[dict[str, ThreatLevel]] = {
 		r"(?i)\.(exe|bat|cmd|com|pif|scr|vbs|js|jar|app|deb|pkg|dmg|msi)$": ThreatLevel.HIGH,
 		r"(?i)\.(dll|so|dylib|sys|drv)$": ThreatLevel.MEDIUM,
 		r"(?i)(autorun|setup|install|update|patch|crack|keygen|serial)": ThreatLevel.MEDIUM,

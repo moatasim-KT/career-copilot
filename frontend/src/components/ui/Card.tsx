@@ -1,20 +1,22 @@
 'use client';
 
+import { motion } from 'framer-motion';
 import { ReactNode, memo } from 'react';
 
+import { cardHover } from '@/lib/animations';
 import { cn } from '@/lib/utils';
 
 interface CardProps {
-	children: ReactNode;
-	className?: string;
-	padding?: 'sm' | 'md' | 'lg';
-	hover?: boolean;
+  children: ReactNode;
+  className?: string;
+  padding?: 'sm' | 'md' | 'lg';
+  hover?: boolean;
 }
 
 const paddingClasses = {
-	sm: 'p-4',
-	md: 'p-6',
-	lg: 'p-8',
+  sm: 'p-4',
+  md: 'p-6',
+  lg: 'p-8',
 };
 
 const Card = memo(({
@@ -25,27 +27,27 @@ const Card = memo(({
   ...rest
 }: CardProps) => {
   return (
-    <div
+    <motion.div
       className={cn(
         'bg-white rounded-lg border border-gray-200 shadow-sm',
         paddingClasses[padding],
-        hover && 'hover:shadow-md transition-shadow duration-200',
         className,
       )}
+      whileHover={hover ? cardHover : undefined}
       {...rest}
     >      {children}
-		</div>
-	);
+    </motion.div>
+  );
 });
 
 export default Card;
 
-export function CardHeader({ 
-  children, 
-  className, 
-}: { 
-  children: ReactNode; 
-  className?: string; 
+export function CardHeader({
+  children,
+  className,
+}: {
+  children: ReactNode;
+  className?: string;
 }) {
   return (
     <div className={cn('mb-4', className)}>
@@ -54,12 +56,12 @@ export function CardHeader({
   );
 }
 
-export function CardTitle({ 
-  children, 
-  className, 
-}: { 
-  children: ReactNode; 
-  className?: string; 
+export function CardTitle({
+  children,
+  className,
+}: {
+  children: ReactNode;
+  className?: string;
 }) {
   return (
     <h3 className={cn('text-lg font-semibold text-gray-900', className)}>
@@ -68,12 +70,12 @@ export function CardTitle({
   );
 }
 
-export function CardContent({ 
-  children, 
-  className, 
-}: { 
-  children: ReactNode; 
-  className?: string; 
+export function CardContent({
+  children,
+  className,
+}: {
+  children: ReactNode;
+  className?: string;
 }) {
   return (
     <div className={cn(className)}>

@@ -12,11 +12,11 @@ from .exceptions import (DocumentProcessingError, InvalidFileTypeError,
                          ValidationError, WorkflowExecutionError)
 
 __all__ = [
-	"get_settings",
-	"DocumentProcessingError",
-	"InvalidFileTypeError",
-	"ResourceExhaustionError",
-	"SecurityError",
-	"ValidationError",
-	"WorkflowExecutionError",
+                         "DocumentProcessingError",
+                         "InvalidFileTypeError",
+                         "ResourceExhaustionError",
+                         "SecurityError",
+                         "ValidationError",
+                         "WorkflowExecutionError",
+                         "get_settings",
 ]

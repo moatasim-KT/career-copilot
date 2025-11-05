@@ -4,18 +4,17 @@ Celery task monitoring and error handling
 
 import logging
 from datetime import datetime, timedelta, timezone
-from typing import Dict, Any
-from celery.signals import task_prerun, task_postrun, task_failure, task_retry
-from sqlalchemy.orm import Session
+from typing import Any, Dict
 
 from app.celery import celery_app
-from app.core.database import get_db
 from app.core.config import get_settings
+from app.core.database import get_db
+from celery.signals import task_failure, task_postrun, task_prerun, task_retry
+from sqlalchemy.orm import Session
 
 settings = get_settings()
 from app.models.analytics import Analytics
 from app.services.notification_service import NotificationService
-
 
 logger = logging.getLogger(__name__)
 
@@ -146,7 +145,7 @@ def task_retry_handler(sender=None, task_id=None, reason=None, einfo=None, **kwd
 
 def is_critical_task(task_name: str) -> bool:
 	"""Determine if a task is critical and requires immediate attention"""
-	critical_tasks = ["app.services.job_ingestion.ingest_jobs", "send_morning_briefings", "generate_skill_gap_analysis"]
+	critical_tasks = ["app.tasks.job_ingestion_tasks.ingest_jobs_enhanced", "send_morning_briefings", "generate_skill_gap_analysis"]
 	return task_name in critical_tasks
 
 
@@ -419,9 +418,9 @@ def automated_backup(include_files: bool = True, compress: bool = True) -> Dict[
 def log_rotation() -> Dict[str, Any]:
 	"""Rotate and compress old log files"""
 	try:
-		from pathlib import Path
 		import gzip
 		import shutil
+		from pathlib import Path
 
 		logs_dir = Path("logs")
 		if not logs_dir.exists():

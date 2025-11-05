@@ -12,4 +12,4 @@ def get_ai_manager() -> LLMService:
 
 
 # Re-export ModelType
-__all__ = ["get_ai_manager", "ModelType"]
+__all__ = ["ModelType", "get_ai_manager"]

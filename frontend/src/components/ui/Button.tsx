@@ -1,31 +1,59 @@
 'use client';
 
+import { motion } from 'framer-motion';
 import { ReactNode, ButtonHTMLAttributes, memo } from 'react';
 
+import { buttonHover, buttonTap } from '@/lib/animations';
 import { cn } from '@/lib/utils';
 
+/**
+ * Props for the Button component
+ */
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
-	children: ReactNode;
-	variant?: 'primary' | 'secondary' | 'outline' | 'ghost' | 'destructive';
-	size?: 'sm' | 'md' | 'lg';
-	loading?: boolean;
-	fullWidth?: boolean;
+  /** The content to render inside the button */
+  children: ReactNode;
+  /** Visual style variant of the button */
+  variant?: 'primary' | 'secondary' | 'outline' | 'ghost' | 'destructive';
+  /** Size of the button */
+  size?: 'sm' | 'md' | 'lg';
+  /** Shows a loading spinner and disables the button */
+  loading?: boolean;
+  /** Makes the button full width */
+  fullWidth?: boolean;
 }
 
 const variantClasses = {
-	primary: 'bg-blue-600 text-white hover:bg-blue-700 focus:ring-blue-500',
-	secondary: 'bg-gray-100 text-gray-900 hover:bg-gray-200 focus:ring-gray-500',
-	outline: 'border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 focus:ring-blue-500',
-	ghost: 'text-gray-600 hover:text-gray-900 hover:bg-gray-100 focus:ring-gray-500',
-	destructive: 'bg-red-600 text-white hover:bg-red-700 focus:ring-red-500',
+  primary: 'bg-blue-600 text-white hover:bg-blue-700 focus:ring-blue-500',
+  secondary: 'bg-gray-100 text-gray-900 hover:bg-gray-200 focus:ring-gray-500',
+  outline: 'border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 focus:ring-blue-500',
+  ghost: 'text-gray-600 hover:text-gray-900 hover:bg-gray-100 focus:ring-gray-500',
+  destructive: 'bg-red-600 text-white hover:bg-red-700 focus:ring-red-500',
 };
 
 const sizeClasses = {
-	sm: 'px-3 py-1.5 text-sm',
-	md: 'px-4 py-2 text-sm',
-	lg: 'px-6 py-3 text-base',
+  sm: 'px-3 py-1.5 text-sm',
+  md: 'px-4 py-2 text-sm',
+  lg: 'px-6 py-3 text-base',
 };
 
+/**
+ * Button component with multiple variants and sizes
+ * 
+ * @component
+ * @example
+ * ```tsx
+ * <Button variant="primary" size="md" onClick={handleClick}>
+ *   Click me
+ * </Button>
+ * ```
+ * 
+ * @example
+ * ```tsx
+ * <Button variant="destructive" loading>
+ *   Deleting...
+ * </Button>
+ * ```
+ */
 function Button({
   children,
   variant = 'primary',
@@ -34,10 +62,12 @@ function Button({
   fullWidth = false,
   className,
   disabled,
-  ...props
+  onClick,
+  type = 'button',
+  title,
 }: ButtonProps) {
   return (
-    <button
+    <motion.button
       className={cn(
         'inline-flex items-center justify-center rounded-md font-medium transition-colors',
         'focus:outline-none focus:ring-2 focus:ring-offset-2',
@@ -48,7 +78,11 @@ function Button({
         className,
       )}
       disabled={disabled || loading}
-      {...props}
+      onClick={onClick}
+      type={type}
+      title={title}
+      whileHover={!disabled && !loading ? buttonHover : undefined}
+      whileTap={!disabled && !loading ? buttonTap : undefined}
     >
       {loading && (
         <svg
@@ -72,9 +106,9 @@ function Button({
           />
         </svg>
       )}
-			{children}
-		</button>
-	);
+      {children}
+    </motion.button>
+  );
 }
 
 export default memo(Button);

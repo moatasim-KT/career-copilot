@@ -98,6 +98,13 @@ class Settings(BaseSettings):
 	medium_match_threshold: Optional[float] = 60.0
 	instant_alert_threshold: Optional[float] = 85.0
 
+	# Monitoring & Observability
+	enable_metrics: Optional[bool] = True
+	prometheus_port: Optional[int] = 9090
+	enable_opentelemetry: Optional[bool] = False
+	otlp_endpoint: Optional[str] = "http://localhost:4317"
+	service_name: Optional[str] = "career-copilot-api"
+
 	@model_validator(mode="after")
 	def _ensure_jwt_secret(self) -> "Settings":
 		secret = self.jwt_secret_key.get_secret_value() if self.jwt_secret_key else ""

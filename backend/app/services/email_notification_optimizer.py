@@ -76,11 +76,11 @@ EnhancedEmailNotificationOptimizer = EmailTemplateManager
 # Security features are now handled by the underlying email delivery services.
 
 __all__ = [
-    "EmailNotificationOptimizer",
-    "EnhancedEmailNotificationOptimizer",
-    "EmailTemplateManager",
-    "NotificationPriority",
-    "BatchingStrategy",
     "BatchConfiguration",
+    "BatchingStrategy",
     "EmailNotification",
+    "EmailNotificationOptimizer",
+    "EmailTemplateManager",
+    "EnhancedEmailNotificationOptimizer",
+    "NotificationPriority",
 ]

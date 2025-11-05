@@ -5,7 +5,7 @@ Input sanitization utilities to prevent injection attacks and ensure data safety
 import html
 import re
 import urllib.parse
-from typing import Any, Dict, Optional
+from typing import Any, ClassVar, Dict, Optional
 
 from ..core.logging import get_logger
 
@@ -16,7 +16,7 @@ class InputSanitizer:
 	"""Comprehensive input sanitization for security."""
 
 	# SQL injection patterns
-	SQL_INJECTION_PATTERNS = [
+	SQL_INJECTION_PATTERNS: ClassVar[list[str]] = [
 		r"(\b(SELECT|INSERT|UPDATE|DELETE|DROP|CREATE|ALTER|EXEC|EXECUTE)\b)",
 		r"(\b(UNION|OR|AND)\s+\d+\s*=\s*\d+)",
 		r"(--|#|/\*|\*/)",
@@ -25,7 +25,7 @@ class InputSanitizer:
 	]
 
 	# XSS patterns
-	XSS_PATTERNS = [
+	XSS_PATTERNS: ClassVar[list[str]] = [
 		r"<script[^>]*>.*?</script>",
 		r"javascript:",
 		r"vbscript:",
@@ -41,7 +41,7 @@ class InputSanitizer:
 	]
 
 	# Command injection patterns
-	COMMAND_INJECTION_PATTERNS = [
+	COMMAND_INJECTION_PATTERNS: ClassVar[list[str]] = [
 		r"[;&|`$(){}[\]\\]",
 		r"\b(rm|del|format|fdisk|mkfs)\b",
 		r"\b(cat|type|more|less)\b",
@@ -50,7 +50,7 @@ class InputSanitizer:
 	]
 
 	# Path traversal patterns
-	PATH_TRAVERSAL_PATTERNS = [
+	PATH_TRAVERSAL_PATTERNS: ClassVar[list[str]] = [
 		r"\.\.[\\/]",
 		r"[\\/]\.\.[\\/]",
 		r"\.\.\\",

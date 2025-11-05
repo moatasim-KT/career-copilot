@@ -1,17 +1,17 @@
 """Test script to verify profile endpoints"""
 
-import sys
 import os
+import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
+from app.core.database import Base, get_db
+from app.core.security import create_access_token, get_password_hash
+from app.main import create_app
+from app.models.user import User
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from app.main import create_app
-from app.core.database import Base, get_db
-from app.models.user import User
-from app.core.security import get_password_hash, create_access_token
 
 # Create test database
 SQLALCHEMY_DATABASE_URL = "sqlite:///./test_profile.db"
@@ -67,7 +67,7 @@ def test_get_profile():
 	"""Test GET /api/v1/profile endpoint"""
 	print("\n=== Testing GET /api/v1/profile ===")
 
-	token, user_id = setup_test_user()
+	token, _user_id = setup_test_user()
 	headers = {"Authorization": f"Bearer {token}"}
 
 	response = client.get("/api/v1/profile", headers=headers)
@@ -118,7 +118,7 @@ def test_update_profile():
 	"""Test PUT /api/v1/profile endpoint"""
 	print("\n=== Testing PUT /api/v1/profile ===")
 
-	token, user_id = setup_test_user()
+	token, _user_id = setup_test_user()
 	headers = {"Authorization": f"Bearer {token}"}
 
 	# Update profile
@@ -160,7 +160,7 @@ def test_update_profile_partial():
 	"""Test PUT /api/v1/profile with partial update"""
 	print("\n=== Testing PUT /api/v1/profile (Partial Update) ===")
 
-	token, user_id = setup_test_user()
+	token, _user_id = setup_test_user()
 	headers = {"Authorization": f"Bearer {token}"}
 
 	# Get current profile
@@ -193,7 +193,7 @@ def test_update_profile_invalid_experience():
 	"""Test PUT /api/v1/profile with invalid experience level"""
 	print("\n=== Testing PUT /api/v1/profile (Invalid Experience Level) ===")
 
-	token, user_id = setup_test_user()
+	token, _user_id = setup_test_user()
 	headers = {"Authorization": f"Bearer {token}"}
 
 	# Try to update with invalid experience level
@@ -274,4 +274,5 @@ def main():
 
 
 if __name__ == "__main__":
+	sys.exit(main())
 	sys.exit(main())

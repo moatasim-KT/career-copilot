@@ -79,4 +79,4 @@ class OllamaServicePlugin(BaseLLMServicePlugin):
 
 
 # Export the plugin classes
-__all__ = ["OpenAIServicePlugin", "GroqServicePlugin", "OllamaServicePlugin"]
+__all__ = ["GroqServicePlugin", "OllamaServicePlugin", "OpenAIServicePlugin"]

@@ -9,7 +9,7 @@ from ..core.logging import get_logger
 logger = get_logger(__name__)
 
 # Re-export ModelType for backward compatibility
-__all__ = ["ModelType", "get_ai_service_manager", "AIServiceManager"]
+__all__ = ["AIServiceManager", "ModelType", "get_ai_service_manager"]
 
 # Alias for backward compatibility
 AIServiceManager = LLMService

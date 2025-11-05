@@ -1,18 +1,40 @@
 import logging
-from typing import Any, Dict, List, Optional
+from typing import Any, ClassVar, Dict, List, Optional
 from urllib.parse import quote, urlencode
 
 from app.core.config import get_settings
 from app.schemas.job import JobCreate
 
 from .base_scraper import BaseScraper
+from .job_roles import JobRoles
 
 logger = logging.getLogger(__name__)
 settings = get_settings()
 
 
 class RapidAPIJSearchScraper(BaseScraper):
-	"""Scraper for RapidAPI JSEarch - aggregates Indeed, LinkedIn, Glassdoor, etc."""
+	"""
+	Scraper for RapidAPI JSearch - aggregates Indeed, LinkedIn, Glassdoor, etc.
+
+	Searches for tech roles across EU countries with visa sponsorship focus.
+	Default search roles:
+	- Data Science: Data Scientist, ML Engineer, Data Analyst, Data Engineer
+	- Software Engineering: Backend, Frontend, Full-stack, Mobile
+	- AI/ML: ML Engineer, AI Researcher, MLOps
+	- DevOps: DevOps Engineer, Cloud Engineer, SRE
+	- Product: Product Manager, Product Designer
+	"""
+
+	# Default roles to search for if none specified
+	DEFAULT_ROLES: ClassVar[List[str]] = [
+		"data_scientist",
+		"ml_engineer",
+		"data_analyst",
+		"data_engineer",
+		"backend_engineer",
+		"fullstack_engineer",
+		"devops_engineer",
+	]
 
 	def __init__(self, rate_limiter=None):
 		super().__init__(rate_limiter)
@@ -21,58 +43,125 @@ class RapidAPIJSearchScraper(BaseScraper):
 		self.name = "rapidapi_jsearch"
 
 		if not self.api_key:
-			logger.error("RapidAPI JSEarch API key (RAPIDAPI_JSEARCH_KEY) is not set.")
-			raise ValueError("RapidAPI JSEarch API key is required.")
+			logger.error("RapidAPI JSearch API key (RAPIDAPI_JSEARCH_KEY) is not set.")
+			raise ValueError("RapidAPI JSearch API key is required.")
 
 	def _build_search_url(self, keywords: str, location: str, page: int = 1) -> str:
-		"""Build search URL for RapidAPI JSEarch"""
-		# Build query like "developer jobs in chicago" or "data scientist jobs in germany"
-		query = f"{keywords} jobs in {location}" if location else f"{keywords} jobs"
-		
-		# Map location to country code for better results
-		country_map = {
+		"""Build search URL for RapidAPI JSEarch - Optimized for EU job search"""
+
+		# EU countries known for hiring international talent with visa sponsorship
+		# Priority: Countries with best tech job markets and visa sponsorship programs
+		eu_country_map = {
+			# Western Europe - High tech hubs
 			"germany": "de",
-			"netherlands": "nl", 
-			"france": "fr",
+			"deutschland": "de",
+			"berlin": "de",
+			"munich": "de",
+			"münchen": "de",
+			"frankfurt": "de",
+			"hamburg": "de",
+			"netherlands": "nl",
+			"amsterdam": "nl",
+			"rotterdam": "nl",
+			"utrecht": "nl",
 			"united kingdom": "gb",
-			"spain": "es",
-			"italy": "it",
-			"poland": "pl",
-			"belgium": "be",
-			"austria": "at",
+			"uk": "gb",
+			"london": "gb",
+			"manchester": "gb",
+			"edinburgh": "gb",
+			"france": "fr",
+			"paris": "fr",
+			"lyon": "fr",
+			"switzerland": "ch",
+			"zurich": "ch",
+			"geneva": "ch",
+			# Nordic countries - Strong tech ecosystems
 			"sweden": "se",
+			"stockholm": "se",
+			"gothenburg": "se",
+			"malmö": "se",
 			"denmark": "dk",
+			"copenhagen": "dk",
 			"norway": "no",
+			"oslo": "no",
 			"finland": "fi",
-			"ireland": "ie",
+			"helsinki": "fi",
+			# Southern Europe - Growing tech scenes
+			"spain": "es",
+			"madrid": "es",
+			"barcelona": "es",
 			"portugal": "pt",
+			"lisbon": "pt",
+			"lisboa": "pt",
+			"porto": "pt",
+			"italy": "it",
+			"milan": "it",
+			"milano": "it",
+			"rome": "it",
+			"roma": "it",
+			# Eastern Europe - Emerging tech hubs
+			"ireland": "ie",
+			"dublin": "ie",
+			"poland": "pl",
+			"warsaw": "pl",
+			"warszawa": "pl",
+			"krakow": "pl",
+			"kraków": "pl",
 			"czech republic": "cz",
+			"czechia": "cz",
+			"prague": "cz",
+			"praha": "cz",
+			"austria": "at",
+			"vienna": "at",
+			"wien": "at",
+			"belgium": "be",
+			"brussels": "be",
+			"bruxelles": "be",
 			"greece": "gr",
+			"athens": "gr",
 			"hungary": "hu",
+			"budapest": "hu",
 			"romania": "ro",
+			"bucharest": "ro",
+			"bucurești": "ro",
 		}
-		
-		# Try to detect country code from location
+
+		# Companies known for visa sponsorship in EU
+		visa_sponsor_keywords = ["visa sponsorship", "relocation", "international", "expat", "work permit", "blue card", "skilled migrant"]
+
+		# Detect country code from location
 		country_code = None
-		if location:
-			location_lower = location.lower()
-			for country_name, code in country_map.items():
-				if country_name in location_lower:
-					country_code = code
-					break
-		
-		# If no country detected, default to "us" (API requirement)
+		location_lower = location.lower() if location else ""
+
+		for geo_name, code in eu_country_map.items():
+			if geo_name in location_lower:
+				country_code = code
+				break
+
+		# If EU location not detected, try generic "europe" or default to Germany (biggest tech market)
 		if not country_code:
-			country_code = "us"
-		
+			if any(term in location_lower for term in ["europe", "eu", "european"]):
+				country_code = "de"  # Default to Germany for EU searches
+			else:
+				country_code = "de"  # Changed default from "us" to "de" for EU focus
+
+		# Optimize query format for better EU results
+		# Format: "job title in city/country" works better than "job title jobs in location"
+		if location:
+			# Try city-specific search first (better results)
+			query = f"{keywords} in {location}"
+		else:
+			query = f"{keywords} Europe"
+
 		params = {
 			"query": query,
 			"page": str(page),
 			"num_pages": "1",
 			"country": country_code,
-			"date_posted": "all",
+			"date_posted": "month",  # Changed from "all" to get fresher listings
+			"employment_types": "FULLTIME",  # Focus on full-time positions
 		}
-		
+
 		# Build query string with proper URL encoding
 		query_string = urlencode(params)
 		return f"{self.base_url}?{query_string}"
@@ -80,20 +169,22 @@ class RapidAPIJSearchScraper(BaseScraper):
 	def _get_headers(self) -> Dict[str, str]:
 		"""Override headers to include RapidAPI key"""
 		base_headers = super()._get_headers()
-		base_headers.update({
-			"X-RapidAPI-Key": self.api_key,
-			"X-RapidAPI-Host": "jsearch.p.rapidapi.com",
-		})
+		base_headers.update(
+			{
+				"X-RapidAPI-Key": self.api_key,
+				"X-RapidAPI-Host": "jsearch.p.rapidapi.com",
+			}
+		)
 		return base_headers
 
 	async def search_jobs(self, keywords: str, location: str = "", max_results: int = 50) -> List[JobCreate]:
 		"""Search for jobs using RapidAPI JSEarch"""
 		jobs: List[JobCreate] = []
 		page = 1
-		
+
 		# JSEarch typically returns 10 jobs per page
 		max_pages = min(5, (max_results + 9) // 10)
-		
+
 		while len(jobs) < max_results and page <= max_pages:
 			url = self._build_search_url(keywords, location, page)
 			response = await self._make_request(url)
@@ -101,11 +192,11 @@ class RapidAPIJSearchScraper(BaseScraper):
 			if response and response.status_code == 200:
 				data = response.json()
 				results = data.get("data", [])
-				
+
 				if not results:
 					logger.info(f"No more jobs found on RapidAPI JSEarch for keywords: {keywords}, location: {location}")
 					break
-				
+
 				for job_data in results:
 					parsed_job = self._parse_job_listing(job_data)
 					if parsed_job:
@@ -114,7 +205,7 @@ class RapidAPIJSearchScraper(BaseScraper):
 							jobs.append(job_create_obj)
 							if len(jobs) >= max_results:
 								break
-				
+
 				page += 1
 			else:
 				logger.error(f"Failed to fetch jobs from RapidAPI JSEarch. Response: {response.text if response else 'No response'}")
@@ -130,27 +221,27 @@ class RapidAPIJSearchScraper(BaseScraper):
 			salary_min = job_data.get("job_min_salary")
 			salary_max = job_data.get("job_max_salary")
 			salary_currency = job_data.get("job_salary_currency", "USD")
-			
+
 			salary_string = ""
 			if salary_min and salary_max:
 				salary_string = f"{salary_currency} {salary_min:,.0f}-{salary_max:,.0f}"
 			elif salary_min:
 				salary_string = f"{salary_currency} {salary_min:,.0f}+"
-			
+
 			# Determine if remote
 			is_remote = job_data.get("job_is_remote", False)
-			
+
 			# Extract employment type
 			employment_type = job_data.get("job_employment_type", "")
-			
+
 			# Extract required skills (if available)
 			required_skills = job_data.get("job_required_skills", [])
-			
+
 			# Get highlights (benefits, qualifications, responsibilities)
 			highlights = job_data.get("job_highlights", {})
 			responsibilities = " ".join(highlights.get("Responsibilities", []))
 			qualifications = " ".join(highlights.get("Qualifications", []))
-			
+
 			# Build location string safely
 			location_parts = []
 			if job_data.get("job_city"):
@@ -159,9 +250,9 @@ class RapidAPIJSearchScraper(BaseScraper):
 				location_parts.append(job_data.get("job_state"))
 			if job_data.get("job_country"):
 				location_parts.append(job_data.get("job_country"))
-			
+
 			location = ", ".join(location_parts) if location_parts else "Remote"
-			
+
 			return {
 				"title": job_data.get("job_title"),
 				"company": job_data.get("employer_name", ""),

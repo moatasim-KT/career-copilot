@@ -31,7 +31,8 @@ class HealthAutomationService:
 		logger.info("Starting health automation service")
 
 		# Start background task
-		asyncio.create_task(self._automation_loop())
+		self._bg_tasks = getattr(self, "_bg_tasks", [])
+		self._bg_tasks.append(asyncio.create_task(self._automation_loop()))
 
 	async def stop(self):
 		"""Stop the health automation service."""

@@ -146,58 +146,6 @@ export function HealthMonitor() {
           </ul>
         </div>
       )}
-
-      <style jsx>{`
-        .health-monitor {
-          padding: 1rem;
-          border: 1px solid #ddd;
-          border-radius: 4px;
-          margin: 1rem 0;
-        }
-
-        .health-status {
-          padding: 1rem;
-          border-radius: 4px;
-          margin-bottom: 1rem;
-        }
-
-        .health-status-healthy {
-          background-color: #d4edda;
-          border: 1px solid #c3e6cb;
-        }
-
-        .health-status-degraded {
-          background-color: #fff3cd;
-          border: 1px solid #ffeeba;
-        }
-
-        .health-status-unhealthy {
-          background-color: #f8d7da;
-          border: 1px solid #f5c6cb;
-        }
-
-        .health-error,
-        .js-errors {
-          background-color: #f8d7da;
-          border: 1px solid #f5c6cb;
-          padding: 1rem;
-          border-radius: 4px;
-          margin-top: 1rem;
-        }
-
-        .health-details {
-          margin-top: 1rem;
-          padding: 1rem;
-          background-color: #f8f9fa;
-          border-radius: 4px;
-          overflow-x: auto;
-        }
-
-        pre {
-          margin: 0;
-          white-space: pre-wrap;
-        }
-      `}</style>
     </div>
   );
 }

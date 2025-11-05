@@ -1,23 +1,23 @@
 'use client';
 
-import { 
-  TrendingUp, 
-  Users, 
-  Briefcase, 
-  Calendar, 
+import {
+  TrendingUp,
+  Users,
+  Briefcase,
+  Calendar,
   Award,
   Target,
   Activity,
   BarChart3,
 } from 'lucide-react';
 import { useState, useEffect, useCallback } from 'react';
-import { 
-  BarChart, 
-  Bar, 
-  XAxis, 
-  YAxis, 
-  CartesianGrid, 
-  Tooltip, 
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
   ResponsiveContainer,
   PieChart,
   Pie,
@@ -28,7 +28,7 @@ import {
   ComposedChart,
 } from 'recharts';
 
-import { useAnalyticsUpdates } from '@/hooks/useWebSocket';
+import { useWebSocket } from '@/hooks/useWebSocket';
 import { apiClient , AnalyticsSummary } from '@/lib/api';
 import { logger } from '@/lib/logger';
 
@@ -78,8 +78,7 @@ export default function AnalyticsPage() {
   const [timeframe, setTimeframe] = useState(90);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
 
-  // Handle real-time analytics updates
-  const handleAnalyticsUpdate = useCallback((data: any) => {
+  const handleUpdate = useCallback((data: any) => {
     logger.log('Analytics page received update:', data);
     if (data.analytics) {
       setAnalytics(data.analytics);
@@ -91,8 +90,7 @@ export default function AnalyticsPage() {
     setLoading(false);
   }, []);
 
-  // Set up WebSocket listener for analytics updates
-  useAnalyticsUpdates(handleAnalyticsUpdate);
+  useWebSocket('ws://localhost:8080/api/ws', () => {}, () => {}, handleUpdate);
 
   const loadAnalyticsData = async () => {
     setLoading(true);

@@ -9,11 +9,11 @@ import asyncio
 import hashlib
 import json
 import time
-from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional
-from dataclasses import dataclass, field
-from enum import Enum
 import uuid
+from dataclasses import dataclass, field
+from datetime import datetime, timezone
+from enum import Enum
+from typing import Any, Dict, List, Optional
 
 from .caching import get_cache_manager
 from .config import settings
@@ -431,7 +431,7 @@ class AgentCacheManager:
 			entries_to_evict = len(agent_entries) - config.max_cache_size
 
 			for i in range(entries_to_evict):
-				key, entry = agent_entries[i]
+				key, _entry = agent_entries[i]
 				del self.cache_entries[key]
 				await self._remove_from_persistent_cache(key)
 				self.cache_stats["evictions"] += 1

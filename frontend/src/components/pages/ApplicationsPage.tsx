@@ -26,9 +26,10 @@ import Input from '@/components/ui/Input';
 import Modal, { ModalFooter } from '@/components/ui/Modal';
 import Select from '@/components/ui/Select';
 import Textarea from '@/components/ui/Textarea';
-import { useApplicationStatusUpdates } from '@/hooks/useWebSocket';
+import { useWebSocket } from '@/hooks/useWebSocket';
 import { apiClient, type Application } from '@/lib/api';
 import { logger } from '@/lib/logger';
+import { handleApplicationStatusUpdate } from '@/lib/websocket/applications';
 
 const STATUS_OPTIONS = [
   { value: 'interested', label: 'Interested' },
@@ -61,14 +62,13 @@ export default function ApplicationsPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
 
-  // Handle real-time application status updates
   const handleApplicationUpdate = useCallback((data: any) => {
     logger.log('Application update received:', data);
-    if (data.application) {
+    if (data.applicationId) {
       setApplications(prev => 
         prev.map(app => 
-          app.id === data.application.id 
-            ? { ...app, ...data.application }
+          app.id === data.applicationId 
+            ? { ...app, status: data.status }
             : app,
         ),
       );
@@ -76,8 +76,11 @@ export default function ApplicationsPage() {
     }
   }, []);
 
-  // Set up WebSocket listener for application updates
-  useApplicationStatusUpdates(handleApplicationUpdate);
+  useWebSocket('ws://localhost:8080/api/ws', (data) => {
+    if (data.type === 'application-status-update') {
+      handleApplicationStatusUpdate(data.payload, handleApplicationUpdate);
+    }
+  });
 
   const [formData, setFormData] = useState({
     job_id: 0,

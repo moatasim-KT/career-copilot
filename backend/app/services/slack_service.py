@@ -5,19 +5,19 @@ Provides robust Slack integration with notifications, interactive components, an
 
 import asyncio
 import json
-from datetime import datetime, timedelta
-from typing import Any, Dict, List, Optional
 from dataclasses import dataclass, field
+from datetime import datetime, timedelta
 from enum import Enum
+from typing import Any, Dict, List, Optional
 
-from pydantic import BaseModel, Field, validator
 import httpx
-from slack_sdk.web.async_client import AsyncWebClient
+from pydantic import BaseModel, Field, validator
 from slack_sdk.errors import SlackApiError
 from slack_sdk.signature import SignatureVerifier
+from slack_sdk.web.async_client import AsyncWebClient
 
-from ..core.logging import get_logger
 from ..core.exceptions import EmailServiceError, ErrorCategory, ErrorSeverity
+from ..core.logging import get_logger
 
 logger = get_logger(__name__)
 
@@ -816,7 +816,7 @@ class EnhancedSlackService:
 	async def _handle_analyze_contract(self, payload: Dict[str, Any]) -> Dict[str, Any]:
 		"""Handle analyze contract button click"""
 		action_value = payload.get("actions", [{}])[0].get("value", "")
-		contract_name, file_id = action_value.split("|", 1) if "|" in action_value else (action_value, "")
+		_contract_name, _file_id = action_value.split("|", 1) if "|" in action_value else (action_value, "")
 		user_id = payload.get("user", {}).get("id")
 
 		# Send immediate response
@@ -836,14 +836,17 @@ class EnhancedSlackService:
 		)
 
 		# Start background analysis (mock for now)
-		asyncio.create_task(self._simulate_contract_analysis_from_button(contract_name, file_id, user_id, payload["channel"]["id"]))
+		self._bg_tasks = getattr(self, "_bg_tasks", [])
+		self._bg_tasks.append(
+			asyncio.create_task(self._simulate_contract_analysis_from_button(contract_name, file_id, user_id, payload["channel"]["id"]))
+		)
 
 		return {"status": "success", "action": "analyze_contract"}
 
 	async def _handle_generate_report(self, payload: Dict[str, Any]) -> Dict[str, Any]:
 		"""Handle generate report button click"""
 		action_value = payload.get("actions", [{}])[0].get("value", "")
-		contract_name, file_id = action_value.split("|", 1) if "|" in action_value else (action_value, "")
+		_contract_name, _file_id = action_value.split("|", 1) if "|" in action_value else (action_value, "")
 		user_id = payload.get("user", {}).get("id")
 
 		await self.client.chat_postEphemeral(
@@ -866,7 +869,7 @@ class EnhancedSlackService:
 	async def _handle_risk_assessment(self, payload: Dict[str, Any]) -> Dict[str, Any]:
 		"""Handle risk assessment button click"""
 		action_value = payload.get("actions", [{}])[0].get("value", "")
-		contract_name, file_id = action_value.split("|", 1) if "|" in action_value else (action_value, "")
+		_contract_name, _file_id = action_value.split("|", 1) if "|" in action_value else (action_value, "")
 		user_id = payload.get("user", {}).get("id")
 
 		await self.client.chat_postEphemeral(
@@ -889,7 +892,7 @@ class EnhancedSlackService:
 	async def _handle_approve_contract(self, payload: Dict[str, Any]) -> Dict[str, Any]:
 		"""Handle approve contract button click"""
 		action_value = payload.get("actions", [{}])[0].get("value", "")
-		contract_name, file_id = action_value.split("|", 1) if "|" in action_value else (action_value, "")
+		_contract_name, _file_id = action_value.split("|", 1) if "|" in action_value else (action_value, "")
 		user_id = payload.get("user", {}).get("id")
 
 		# Update original message to show approval
@@ -929,7 +932,7 @@ class EnhancedSlackService:
 	async def _handle_reject_contract(self, payload: Dict[str, Any]) -> Dict[str, Any]:
 		"""Handle reject contract button click"""
 		action_value = payload.get("actions", [{}])[0].get("value", "")
-		contract_name, file_id = action_value.split("|", 1) if "|" in action_value else (action_value, "")
+		_contract_name, _file_id = action_value.split("|", 1) if "|" in action_value else (action_value, "")
 		user_id = payload.get("user", {}).get("id")
 
 		# Update original message to show rejection
@@ -1011,7 +1014,7 @@ class EnhancedSlackService:
 	async def _handle_workflow_approve(self, payload: Dict[str, Any]) -> Dict[str, Any]:
 		"""Handle workflow approval"""
 		action_value = payload.get("actions", [{}])[0].get("value", "")
-		workflow_id, contract_name = action_value.split("|", 1) if "|" in action_value else (action_value, "")
+		workflow_id, _contract_name = action_value.split("|", 1) if "|" in action_value else (action_value, "")
 		user_id = payload.get("user", {}).get("id")
 
 		# Get workflow state
@@ -1030,7 +1033,9 @@ class EnhancedSlackService:
 
 		# Check if already approved by this user
 		if user_id in workflow["approved_by"]:
-			await self.client.chat_postEphemeral(channel=payload["channel"]["id"], user=user_id, text="ℹ️ You have already approved this contract.")
+			await self.client.chat_postEphemeral(
+				channel=payload["channel"]["id"], user=user_id, text="Info: You have already approved this contract."
+			)
 			return {"status": "success", "message": "Already approved"}
 
 		# Add approval
@@ -1051,7 +1056,7 @@ class EnhancedSlackService:
 	async def _handle_workflow_reject(self, payload: Dict[str, Any]) -> Dict[str, Any]:
 		"""Handle workflow rejection"""
 		action_value = payload.get("actions", [{}])[0].get("value", "")
-		workflow_id, contract_name = action_value.split("|", 1) if "|" in action_value else (action_value, "")
+		workflow_id, _contract_name = action_value.split("|", 1) if "|" in action_value else (action_value, "")
 		user_id = payload.get("user", {}).get("id")
 
 		# Get workflow state

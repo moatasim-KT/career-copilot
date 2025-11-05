@@ -10,9 +10,12 @@ from app.core.config import get_settings
 from app.core.database import get_db
 from app.core.exceptions import AuthenticationError, AuthorizationError
 from app.core.logging import get_correlation_id, get_logger, setup_logging
-from app.middleware.auth_middleware import AuthMiddleware
+
+# Authentication middleware disabled for local development
+# from app.middleware.auth_middleware import AuthMiddleware
 from app.middleware.error_handling import add_error_handlers
 from app.middleware.logging_middleware import LoggingMiddleware
+from app.services.resume_parser_service import ResumeParserService
 from fastapi import Depends, FastAPI, HTTPException, Request, WebSocket, status
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
@@ -27,38 +30,43 @@ from contextlib import asynccontextmanager
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    logger.info("🚀 Career Copilot API starting...")
-    logger.info(f"🌐 Running on {get_settings().api_host}:{get_settings().api_port}")
+	logger.info("🚀 Career Copilot API starting...")
+	logger.info(f"🌐 Running on {get_settings().api_host}:{get_settings().api_port}")
 
-    # Initialize database
-    from .core.database import init_db
-    init_db()
-    logger.info("✅ Database initialized")
+	# Initialize database
+	from .core.database import init_db
 
-    # Initialize cache service
-    from .services.cache_service import cache_service
-    if cache_service.enabled:
-        logger.info("✅ Redis cache service initialized")
-    else:
-        logger.warning("⚠️ Redis cache service disabled")
+	init_db()
+	logger.info("✅ Database initialized")
 
-    # Start scheduler
-    if get_settings().enable_scheduler:
-        from .tasks.scheduled_tasks import start_scheduler
-        start_scheduler()
-        logger.info("✅ Scheduler started")
+	# Initialize cache service
+	from .services.cache_service import cache_service
 
-    # Initialize Celery (workers should be started separately)
-    logger.info("✅ Celery application configured")
-    
-    yield
-    
-    logger.info("🛑 Career Copilot API shutting down...")
-    # Shutdown scheduler
-    if get_settings().enable_scheduler:
-        from .tasks.scheduled_tasks import shutdown_scheduler
-        shutdown_scheduler()
-        logger.info("✅ Scheduler shut down")
+	if cache_service.enabled:
+		logger.info("✅ Redis cache service initialized")
+	else:
+		logger.warning("⚠️ Redis cache service disabled")
+
+	# Start scheduler
+	if get_settings().enable_scheduler:
+		from .tasks.scheduled_tasks import start_scheduler
+
+		start_scheduler()
+		logger.info("✅ Scheduler started")
+
+	# Initialize Celery (workers should be started separately)
+	logger.info("✅ Celery application configured")
+
+	yield
+
+	logger.info("🛑 Career Copilot API shutting down...")
+	# Shutdown scheduler
+	if get_settings().enable_scheduler:
+		from .tasks.scheduled_tasks import shutdown_scheduler
+
+		shutdown_scheduler()
+		logger.info("✅ Scheduler shut down")
+
 
 def create_app() -> FastAPI:
 	"""Create and configure the FastAPI application."""
@@ -76,10 +84,13 @@ def create_app() -> FastAPI:
 	logger.info(f"Scheduler Enabled: {settings.enable_scheduler}")
 	logger.info(f"Job Scraping Enabled: {settings.enable_job_scraping}")
 	logger.info(f"CORS Origins: {settings.cors_origins}")
+	logger.info(f"ResumeParserService Version: {ResumeParserService.__version__}")
 	logger.info("-----------------------------")
 
 	# Create FastAPI application
-	app = FastAPI(title="Career Copilot API", description="AI-powered job application tracking and career management system", version="1.0.0", lifespan=lifespan)
+	app = FastAPI(
+		title="Career Copilot API", description="AI-powered job application tracking and career management system", version="1.0.0", lifespan=lifespan
+	)
 
 	# CORS configuration
 	if isinstance(settings.cors_origins, str):
@@ -90,19 +101,33 @@ def create_app() -> FastAPI:
 		CORSMiddleware,
 		allow_origins=cors_origins,
 		allow_credentials=True,
-		allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-		allow_headers=["Authorization", "Content-Type"],
+		allow_methods=["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+		allow_headers=["Authorization", "Content-Type", "Accept", "Origin", "X-Requested-With"],
+		expose_headers=["Content-Type", "Authorization"],
+		max_age=600,  # Cache preflight for 10 minutes
 	)
 
 	# Essential middleware
 	add_error_handlers(app)
 	app.add_middleware(LoggingMiddleware)
-	app.add_middleware(AuthMiddleware)
+	# app.add_middleware(AuthMiddleware)  # Disabled for local development
 
 	# Security headers
 	from app.middleware.security_headers import SecurityHeadersMiddleware
 
 	app.add_middleware(SecurityHeadersMiddleware)
+
+	# Metrics middleware (Prometheus)
+	from app.middleware.metrics_middleware import MetricsMiddleware
+
+	app.add_middleware(MetricsMiddleware)
+	logger.info("✅ Prometheus metrics middleware enabled")
+
+	# OpenTelemetry tracing (optional)
+	if settings.enable_opentelemetry:
+		from app.core.telemetry import configure_opentelemetry
+
+		configure_opentelemetry(app)
 
 	# Exception handlers for structured error responses
 
@@ -205,11 +230,28 @@ def create_app() -> FastAPI:
 			await websocket.close(code=status.WS_1008_POLICY_VIOLATION, reason="Authentication failed")
 
 	# Include routers
-	from .api.v1 import (advanced_user_analytics, analytics, applications, auth,
-	                     dashboard, database_performance, feedback_analysis, groq,
-	                     health, job_recommendation_feedback, job_sources, jobs,
-	                     linkedin_jobs, market_analysis, profile, recommendations,
-	                     scheduled_reports, skill_gap_analysis, tasks)
+	from .api.v1 import (
+		advanced_user_analytics,
+		analytics,
+		applications,
+		auth,
+		dashboard,
+		database_performance,
+		feedback_analysis,
+		groq,
+		health,
+		job_recommendation_feedback,
+		job_sources,
+		jobs,
+		linkedin_jobs,
+		market_analysis,
+		profile,
+		recommendations,
+		resume,
+		scheduled_reports,
+		skill_gap_analysis,
+		tasks,
+	)
 
 	app.include_router(health.router)
 	app.include_router(auth.router)
@@ -221,6 +263,7 @@ def create_app() -> FastAPI:
 	app.include_router(recommendations.router)
 	app.include_router(skill_gap_analysis.router)
 	app.include_router(applications.router)
+	app.include_router(resume.router, prefix="/api/v1/resume", tags=["resume", "parsing"])
 	app.include_router(job_recommendation_feedback.router, prefix="/api/v1", tags=["job-recommendation-feedback"])
 	app.include_router(feedback_analysis.router, prefix="/api/v1", tags=["feedback-analysis"])
 	app.include_router(market_analysis.router)
@@ -232,11 +275,14 @@ def create_app() -> FastAPI:
 	app.include_router(linkedin_jobs.router)
 	app.include_router(groq.router, prefix="/api/v1")
 
-	from .api.v1 import interview
+	# Metrics endpoint for Prometheus scraping
+	from .api.v1 import metrics as metrics_api
 
-	app.include_router(interview.router)
+	app.include_router(metrics_api.router)
 
-
+	# Temporarily disabled due to SQLAlchemy model registry issues
+	# from .api.v1 import interview
+	# app.include_router(interview.router)
 
 	return app
 

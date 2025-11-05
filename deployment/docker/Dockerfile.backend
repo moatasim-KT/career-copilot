@@ -1,0 +1,81 @@
+# Multi-stage Dockerfile for Career Copilot Backend
+# Supports both development and production builds
+
+# Base stage - common dependencies
+FROM python:3.11-slim AS base
+
+# Set environment variables
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PIP_NO_CACHE_DIR=1 \
+    PIP_DISABLE_PIP_VERSION_CHECK=1
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    curl \
+    build-essential \
+    libpq-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+# Set working directory
+WORKDIR /app
+
+# Copy backend code first (needed for pyproject.toml to work)
+COPY backend /app/backend
+COPY config /app/config
+
+# Copy dependency files
+COPY pyproject.toml ./
+
+# Install Python dependencies globally with all extras
+RUN pip install --upgrade pip && \
+    pip install -e ".[all,cloud,monitoring]"
+
+# Create non-root user
+RUN useradd -m -u 1000 appuser && \
+    chown -R appuser:appuser /app
+
+# Development stage
+FROM base AS development
+
+# Install development dependencies
+RUN pip install pytest pytest-cov pytest-asyncio black ruff mypy
+
+# Copy application code
+COPY --chown=appuser:appuser backend /app/backend
+COPY --chown=appuser:appuser config /app/config
+
+# Switch to non-root user
+USER appuser
+
+# Expose port
+EXPOSE 8002
+
+# Default command (can be overridden)
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8002", "--reload"]
+
+# Production stage
+FROM base AS production
+
+# Copy only necessary files
+COPY --chown=appuser:appuser backend /app/backend
+COPY --chown=appuser:appuser config /app/config
+
+# Switch to non-root user
+USER appuser
+
+# Expose port
+EXPOSE 8002
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
+    CMD curl -f http://localhost:8002/health || exit 1
+
+# Run with gunicorn for production
+CMD ["gunicorn", "app.main:app", \
+     "--workers", "4", \
+     "--worker-class", "uvicorn.workers.UvicornWorker", \
+     "--bind", "0.0.0.0:8002", \
+     "--access-logfile", "-", \
+     "--error-logfile", "-", \
+     "--log-level", "info"]

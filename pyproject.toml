@@ -7,12 +7,10 @@ name = "career-copilot"
 version = "1.0.0"
 description = "AI-Powered Job Application Tracking and Career Management System"
 readme = "README.md"
-license = {file = "LICENSE"}
-authors = [
-    {name = "Career Copilot Team", email = "team@career-copilot.com"}
-]
+license = { file = "LICENSE" }
+authors = [{ name = "Moatasim Farooque", email = "moatasimfarooque@gmail.com" }]
 maintainers = [
-    {name = "Career Copilot Team", email = "team@career-copilot.com"}
+    { name = "Moatasim Farooque", email = "moatasimfarooque@gmail.com" },
 ]
 classifiers = [
     "Development Status :: 4 - Beta",
@@ -35,7 +33,7 @@ dependencies = [
     "sqlalchemy>=2.0.25",
     "alembic>=1.13.1",
     "psycopg2-binary>=2.9.9", # For PostgreSQL
-    "aiosqlite>=0.19.0",     # For SQLite async
+    "aiosqlite>=0.19.0",      # For SQLite async
     "asyncpg>=0.29.0",        # For PostgreSQL async
 
     # Validation and Settings
@@ -60,9 +58,17 @@ dependencies = [
     "python-dateutil>=2.8.2",
     "jinja2>=3.1.2",
     "aiofiles>=23.2.1",
+    "aiohttp>=3.9.0",         # For HTTP client in health checks/scrapers
     "diskcache>=5.6.3",
     "firebase-admin>=6.4.0",
     "apscheduler>=3.10.4",
+    "greenlet>=3.0.3",        # Required by SQLAlchemy asyncio (Python 3.12 support)
+    "beautifulsoup4>=4.12.0", # For HTML parsing in scraping services
+    "feedparser>=6.0.0",      # For RSS/Atom feed parsing in scraping
+    "fake-useragent>=1.4.0",  # For rotating user agents in scrapers
+    "openpyxl>=3.1.2",        # For Excel generation
+    "PyPDF2>=3.0.1",
+
 ]
 requires-python = ">=3.11"
 
@@ -86,14 +92,10 @@ ai = [
     "langchain-anthropic>=0.1.0",
     "chromadb>=0.4.18",
     "sentence-transformers>=2.2.2",
-    "pymupdf>=1.23.8", # For PDF processing in AI pipelines
+    "pymupdf>=1.23.8",              # For PDF processing in AI pipelines
     "tenacity>=8.2.3",
 ]
-streamlit = [
-    "streamlit>=1.31.0",
-    "pandas>=2.1.4",
-    "plotly>=5.18.0",
-]
+streamlit = ["streamlit>=1.31.0", "pandas>=2.1.4", "plotly>=5.18.0"]
 cloud = [
     "google-cloud-storage>=2.10.0",
     "google-cloud-firestore>=2.13.1",
@@ -151,10 +153,12 @@ Repository = "https://github.com/yourusername/career-copilot"
 [project.scripts]
 career-copilot = "backend.app.cli:main"
 
+[tool.poetry]
+package-mode = false
+
 [tool.setuptools.packages.find]
 where = ["backend"]
 include = ["app*"]
-
 
 
 [tool.pytest.ini_options]
@@ -170,13 +174,95 @@ markers = [
     "performance: Performance tests",
     "security: Security tests",
 ]
-norecursedirs = [".git", ".tox", "dist", "build", "*.egg", "venv", "__pycache__", "tests/performance"]
-filterwarnings = [
-    "error",
-    "ignore::PendingDeprecationWarning",
+norecursedirs = [
+    ".git",
+    ".tox",
+    "dist",
+    "build",
+    "*.egg",
+    "venv",
+    "__pycache__",
+    "tests/performance",
 ]
+filterwarnings = ["error", "ignore::PendingDeprecationWarning"]
 log_cli = true
 log_cli_level = "INFO"
 log_cli_format = "% (asctime)s [%(levelname)8s] %(name)s: %(message)s"
 log_cli_date_format = "%Y-%m-%d %H:%M:%S"
 
+
+# ===================================================================
+# Ruff - Python Linter and Formatter
+# Main configuration is in ruff.toml at workspace root
+# ===================================================================
+[tool.ruff]
+# Reference workspace configuration
+# Full settings in: ruff.toml
+line-length = 150
+target-version = "py312"
+
+# Define source directories
+src = ["backend", "scripts", "tests"]
+
+# Extend the default exclude list
+extend-exclude = [
+    "frontend",
+    "data",
+    "logs",
+    "deployment",
+    "monitoring",
+    "secrets",
+    "docs",
+]
+
+[tool.ruff.lint]
+# Select rules - full list in ruff.toml
+select = ["RUF"]
+ignore = ["E501", "B905"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["app", "backend", "scripts", "tests"]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "tab"
+
+
+# ===================================================================
+# Coverage.py configuration (migrated from backend/.coveragerc)
+# ===================================================================
+[tool.coverage.run]
+source = ["backend/app"]
+omit = [
+    "*/tests/*",
+    "*/test_*",
+    "*/__pycache__/*",
+    "*/migrations/*",
+    "*/venv/*",
+    "*/env/*",
+    "backend/app/main.py",
+    "backend/app/dependencies.py",
+    "*/conftest.py",
+    "*/fixtures.py",
+]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "if self.debug:",
+    "if settings.DEBUG",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if 0:",
+    "if __name__ == .__main__.:",
+    "class .*\\bProtocol\\):",
+    "@(abc\\.)?abstractmethod",
+]
+
+[tool.coverage.html]
+directory = "htmlcov"
+title = "Contract Analyzer Unit Test Coverage"
+
+[tool.coverage.xml]
+output = "coverage.xml"

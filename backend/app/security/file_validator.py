@@ -3,11 +3,12 @@ Comprehensive file validation system with magic number detection and security ch
 """
 
 import hashlib
-import magic
 from dataclasses import dataclass
 from enum import Enum
 from pathlib import Path
-from typing import Dict, List
+from typing import ClassVar, Dict, List
+
+import magic
 
 from ..core.logging import get_logger
 
@@ -51,34 +52,34 @@ class FileSecurityValidator:
 	"""Comprehensive file security validator with magic number detection."""
 
 	# Allowed MIME types with their corresponding file extensions
-	ALLOWED_MIME_TYPES = {
+	ALLOWED_MIME_TYPES: ClassVar[Dict[str, "FileType"]] = {
 		"application/pdf": FileType.PDF,
 		"application/vnd.openxmlformats-officedocument.wordprocessingml.document": FileType.DOCX,
 		"text/plain": FileType.TXT,
 	}
 
 	# File extensions to MIME type mapping
-	EXTENSION_TO_MIME = {
+	EXTENSION_TO_MIME: ClassVar[Dict[str, str]] = {
 		".pdf": "application/pdf",
 		".docx": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
 		".txt": "text/plain",
 	}
 
 	# Magic number signatures for file type detection
-	MAGIC_SIGNATURES = {
+	MAGIC_SIGNATURES: ClassVar[Dict[bytes, "FileType"]] = {
 		b"%PDF-": FileType.PDF,
 		b"PK\x03\x04": FileType.DOCX,  # ZIP-based format
 	}
 
 	# Maximum file sizes (in bytes)
-	MAX_FILE_SIZES = {
+	MAX_FILE_SIZES: ClassVar[Dict["FileType", int]] = {
 		FileType.PDF: 50 * 1024 * 1024,  # 50MB
 		FileType.DOCX: 25 * 1024 * 1024,  # 25MB
 		FileType.TXT: 10 * 1024 * 1024,  # 10MB
 	}
 
 	# Suspicious patterns to detect
-	SUSPICIOUS_PATTERNS = [
+	SUSPICIOUS_PATTERNS: ClassVar[List[bytes]] = [
 		b"<script",
 		b"javascript:",
 		b"vbscript:",
@@ -95,7 +96,7 @@ class FileSecurityValidator:
 	]
 
 	# Dangerous file extensions that should never be allowed
-	DANGEROUS_EXTENSIONS = {
+	DANGEROUS_EXTENSIONS: ClassVar[set[str]] = {
 		".exe",
 		".bat",
 		".cmd",
@@ -508,4 +509,5 @@ class FileSecurityValidator:
 		except UnicodeDecodeError:
 			metadata["encoding"] = "unknown"
 
+		return metadata
 		return metadata

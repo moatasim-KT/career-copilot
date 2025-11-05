@@ -19,8 +19,7 @@ def verify_imports():
 
 	try:
 		# Core service
-		from app.services.vector_store_service import (
-		)
+		from app.services.vector_store_service import VectorStoreService
 
 		print("✅ VectorStoreService imports successful")
 
@@ -48,11 +47,7 @@ def verify_models():
 	print("=" * 70)
 
 	try:
-		from app.services.vector_store_service import (
-			EmbeddingMetadata,
-			SimilaritySearchQuery,
-			BatchEmbeddingRequest,
-		)
+		from app.services.vector_store_service import BatchEmbeddingRequest, EmbeddingMetadata, SimilaritySearchQuery
 
 		# Test model instantiation
 		metadata = EmbeddingMetadata(contract_id="test", filename="test.pdf", file_hash="hash123", chunk_index=0, chunk_size=100, total_chunks=1)
