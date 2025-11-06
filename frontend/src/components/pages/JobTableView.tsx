@@ -1,12 +1,15 @@
 import React from 'react';
+
 import { Job } from '@/lib/api';
 
 interface JobTableViewProps {
   jobs: Job[];
   onJobClick: (jobId: number) => void;
+  selectedJobIds: number[];
+  onSelectJob: (jobId: number) => void;
 }
 
-export function JobTableView({ jobs, onJobClick }: JobTableViewProps) {
+export function JobTableView({ jobs, onJobClick, selectedJobIds, onSelectJob }: JobTableViewProps) {
   if (jobs.length === 0) {
     return (
       <div className="text-center py-8 text-gray-500">
@@ -20,6 +23,20 @@ export function JobTableView({ jobs, onJobClick }: JobTableViewProps) {
       <table className="min-w-full divide-y divide-gray-200">
         <thead className="bg-gray-50">
           <tr>
+            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <input
+                type="checkbox"
+                className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                onChange={() => {
+                  if (selectedJobIds.length === jobs.length) {
+                    onSelectJob(0); // Deselect all
+                  } else {
+                    jobs.forEach(job => onSelectJob(job.id)); // Select all
+                  }
+                }}
+                checked={selectedJobIds.length === jobs.length && jobs.length > 0}
+              />
+            </th>
             <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
               Title
             </th>
@@ -42,8 +59,16 @@ export function JobTableView({ jobs, onJobClick }: JobTableViewProps) {
         </thead>
         <tbody className="bg-white divide-y divide-gray-200">
           {jobs.map((job) => (
-            <tr key={job.id} className="hover:bg-gray-50 cursor-pointer" onClick={() => onJobClick(job.id)}>
+            <tr key={job.id} className="hover:bg-gray-50">
               <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                <input
+                  type="checkbox"
+                  className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                  checked={selectedJobIds.includes(job.id)}
+                  onChange={() => onSelectJob(job.id)}
+                />
+              </td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 cursor-pointer" onClick={() => onJobClick(job.id)}>
                 {job.title}
               </td>
               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">

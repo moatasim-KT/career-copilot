@@ -1,5 +1,6 @@
 
 import React from 'react';
+
 import { cn } from '@/lib/utils';
 
 export interface TextareaProps extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {
@@ -34,7 +35,7 @@ const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
         {error && <p className="text-sm text-red-500">{error}</p>}
       </div>
     );
-  }
+  },
 );
 Textarea.displayName = 'Textarea';
 

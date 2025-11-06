@@ -13,9 +13,11 @@ export interface Job {
 export interface JobCardProps {
   job: Job;
   variant?: 'default' | 'compact' | 'featured';
+  isSelected?: boolean;
+  onSelect?: () => void;
 }
 
-export default function JobCard({ job, variant = 'default' }: JobCardProps) {
+export default function JobCard({ job, variant = 'default', isSelected = false, onSelect }: JobCardProps) {
   if (variant === 'compact') {
     return (
       <div className="bg-white rounded-lg shadow-sm p-4 flex items-center justify-between">
@@ -54,7 +56,15 @@ export default function JobCard({ job, variant = 'default' }: JobCardProps) {
   }
 
   return (
-    <div className="bg-white rounded-lg shadow-sm p-6">
+    <div className={`bg-white rounded-lg shadow-sm p-6 relative ${isSelected ? 'ring-2 ring-blue-500' : ''}`}>
+      {onSelect && (
+        <input
+          type="checkbox"
+          className="absolute top-3 right-3 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+          checked={isSelected}
+          onChange={onSelect}
+        />
+      )}
       <h3 className="text-xl font-semibold text-gray-900">{job.title}</h3>
       <p className="text-md text-gray-700 mt-1">{job.company}</p>
       <div className="flex items-center text-sm text-gray-600 mt-4">

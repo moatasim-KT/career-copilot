@@ -77,6 +77,7 @@ export default function EnhancedDashboard() {
     }, [loadDashboardData]);
 
     const [currentPreset, setCurrentPreset] = useState('default');
+    const [layout, setLayout] = useState<any[]>([]);
 
     const presets = {
         default: [

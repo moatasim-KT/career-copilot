@@ -1,7 +1,6 @@
 
 'use client';
 
-import withAuth from '@/components/auth/withAuth';
 import FileUpload from '@/components/ui/FileUpload';
 import { logger } from '@/lib/logger';
 
@@ -19,4 +18,4 @@ function ResumePage() {
   );
 }
 
-export default withAuth(ResumePage);
+export default ResumePage;

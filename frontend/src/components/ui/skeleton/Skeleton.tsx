@@ -13,7 +13,7 @@ export function Skeleton({ className, ...props }: SkeletonProps) {
         <div
             className={cn(
                 'animate-pulse rounded-md bg-gray-200',
-                className
+                className,
             )}
             {...props}
         />

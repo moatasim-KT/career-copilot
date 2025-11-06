@@ -4,8 +4,8 @@
 
 'use client';
 
-import React, { useState, useRef, useCallback, ChangeEvent, DragEvent } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import React, { useState, useRef, useCallback, ChangeEvent, DragEvent } from 'react';
 
 // ============================================================================
 // Types
@@ -58,7 +58,7 @@ export function FileUpload({
         const k = 1024;
         const sizes = ['Bytes', 'KB', 'MB', 'GB'];
         const i = Math.floor(Math.log(bytes) / Math.log(k));
-        return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
+        return `${Math.round(bytes / Math.pow(k, i) * 100) / 100} ${sizes[i]}`;
     };
 
     // Validate file
@@ -153,8 +153,8 @@ export function FileUpload({
                     prev.map(f =>
                         uploadedFiles.find(uf => uf.id === f.id)
                             ? { ...f, status: 'success' as const }
-                            : f
-                    )
+                            : f,
+                    ),
                 );
             } catch (err) {
                 // Mark as error
@@ -162,8 +162,8 @@ export function FileUpload({
                     prev.map(f =>
                         uploadedFiles.find(uf => uf.id === f.id)
                             ? { ...f, status: 'error' as const, error: err instanceof Error ? err.message : 'Upload failed' }
-                            : f
-                    )
+                            : f,
+                    ),
                 );
             }
         }

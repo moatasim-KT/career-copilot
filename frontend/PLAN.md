@@ -87,3 +87,71 @@ This phase includes advanced features that will be planned in more detail after 
 *   **Advanced Analytics and Visualizations**
 *   **Customizable Dashboard**
 *   **Fully Optimized Mobile Views**
+
+---
+
+## Phase 3: Data Management & State (High Priority)
+
+### 3.1 State Management
+
+#### 3.1.1 Global State with Zustand
+*   **Goal:** Centralize and manage global application state efficiently using Zustand.
+*   **Steps:**
+    1.  **Install Zustand:** Add Zustand to the project dependencies.
+    2.  **Create `userStore`:**
+        *   Define a Zustand store for user authentication and profile data (`src/stores/userStore.ts`).
+        *   Include state for `user` object (id, name, email, roles), `isAuthenticated`, `isLoading`, and `error`.
+        *   Implement actions for `login`, `logout`, `setUser`, and `clearUser`.
+    3.  **Create `jobsStore`:**
+        *   Define a Zustand store for job listings, including filtering, sorting, and pagination states (`src/stores/jobsStore.ts`).
+        *   Include state for `jobs` array, `filters`, `sortBy`, `pagination` (currentPage, totalPages), `isLoading`, and `error`.
+        *   Implement actions for `setJobs`, `addJob`, `updateJob`, `deleteJob`, `setFilters`, `setSortBy`, and `setPagination`.
+    4.  **Create `applicationsStore`:**
+        *   Define a Zustand store for job applications, including their status and related data (`src/stores/applicationsStore.ts`).
+        *   Include state for `applications` array, `isLoading`, and `error`.
+        *   Implement actions for `setApplications`, `addApplication`, `updateApplication`, and `deleteApplication`.
+    5.  **Create `notificationsStore`:**
+        *   Define a Zustand store for managing in-app notifications (`src/stores/notificationsStore.ts`).
+        *   Include state for `notifications` array (message, type, id), and actions to `addNotification`, `removeNotification`, and `clearNotifications`.
+    6.  **Create `uiStore`:**
+        *   Define a Zustand store for managing UI-specific states like modal visibility, drawer open/close, etc. (`src/stores/uiStore.ts`).
+        *   Include state for `isModalOpen`, `modalContent`, `isDrawerOpen`, etc., and corresponding toggle actions.
+
+#### 3.1.2 Local State Optimization
+*   **Goal:** Improve component rendering performance.
+*   **Steps:**
+    1.  **Audit Component Re-renders:** Use React DevTools profiler to identify components that re-render unnecessarily.
+    2.  **Implement `React.memo`:** Apply `React.memo` to functional components that receive the same props frequently and render the same output.
+    3.  **Use `useMemo`/`useCallback`:** Optimize expensive calculations and prevent unnecessary re-creation of functions passed as props using `useMemo` and `useCallback`.
+    4.  **Create Custom Hooks:** Develop custom hooks for common stateful logic to promote reusability and encapsulate complexity.
+
+#### 3.1.3 Server State Management with React Query
+*   **Goal:** Efficiently fetch, cache, and synchronize server data.
+*   **Steps:**
+    1.  **Install React Query:** Add `@tanstack/react-query` to the project dependencies.
+    2.  **Configure `QueryClientProvider`:** Set up `QueryClientProvider` at the root of the application.
+    3.  **Implement Data Fetching Hooks:**
+        *   Create custom hooks (e.g., `useUser`, `useJobs`, `useApplications`) using `useQuery` for fetching data.
+        *   Integrate with the existing API client for data fetching.
+    4.  **Implement Mutations:**
+        *   Use `useMutation` for creating, updating, and deleting data (e.g., `useAddJob`, `useUpdateApplication`).
+        *   Configure `onSuccess` callbacks for cache invalidation and optimistic updates.
+    5.  **Optimistic Updates:** Implement optimistic updates for key mutations to provide immediate UI feedback.
+    6.  **Cache Invalidation Strategies:** Define and implement strategies for invalidating and refetching queries after mutations or specific events.
+    7.  **Infinite Scroll/Pagination:** Implement `useInfiniteQuery` for lists that require infinite scrolling or advanced pagination.
+
+### 3.2 Data Persistence
+
+#### 3.2.1 Client-Side Storage
+*   **Goal:** Securely and efficiently persist data on the client-side.
+*   **Steps:**
+    1.  **Implement `localStorage` Wrapper:**
+        *   Create a utility (`src/lib/utils/localStorage.ts`) to wrap `localStorage` operations.
+        *   Include basic encryption/decryption for sensitive data (e.g., using a simple XOR cipher or a more robust library if needed, but start simple).
+        *   Add error handling for storage limits.
+    2.  **Implement `sessionStorage` Wrapper:**
+        *   Create a similar utility for `sessionStorage` for temporary data.
+    3.  **Offline-First Data Sync (Placeholder):**
+        *   For now, create a placeholder function/module (`src/lib/utils/offlineSync.ts`) that outlines the strategy for offline data synchronization (e.g., using a service worker and IndexedDB for queuing requests). Actual implementation will be a future task.
+    4.  **Storage Quota Management (Monitoring):**
+        *   Add basic logging or monitoring for `localStorage` and `sessionStorage` usage to prevent exceeding quotas.

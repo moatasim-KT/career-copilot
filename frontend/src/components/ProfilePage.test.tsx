@@ -1,7 +1,8 @@
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 
-import ProfilePage from '@/components/pages/ProfilePage';
 import { apiClient } from '@/lib/api';
+
+import ProfilePage from '@/components/pages/ProfilePage';
 import '@testing-library/jest-dom';
 
 // Mock the apiClient module

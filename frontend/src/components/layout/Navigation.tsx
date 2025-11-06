@@ -4,27 +4,14 @@ import {
   BarChart3,
   Briefcase,
   FileText,
-  User,
   Sparkles,
   TrendingUp,
   Menu,
   X,
-  LogOut,
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useState } from 'react';
-
-interface NavigationUser {
-  username: string;
-  id?: string;
-  email?: string;
-}
-
-interface NavigationProps {
-  user?: NavigationUser;
-  onLogout?: () => void;
-}
 
 const navigationItems = [
   { href: '/dashboard', label: 'Dashboard', icon: BarChart3 },
@@ -33,11 +20,10 @@ const navigationItems = [
   { href: '/recommendations', label: 'Recommendations', icon: Sparkles },
   { href: '/analytics', label: 'Analytics', icon: TrendingUp },
   { href: '/advanced-features', label: 'AI Tools', icon: Sparkles },
-  { href: '/profile', label: 'Profile', icon: User },
 ];
 
  
-export default function Navigation({ user, onLogout }: NavigationProps) {
+export default function Navigation() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const pathname = usePathname();
 
@@ -78,25 +64,6 @@ export default function Navigation({ user, onLogout }: NavigationProps) {
             })}
           </div>
 
-          {/* User Menu */}
-          <div className="hidden md:flex items-center space-x-4">
-            <div className="flex items-center space-x-2">
-              <User className="h-5 w-5 text-gray-400" />
-              <span className="text-sm text-gray-700">
-                {user?.username || 'User'}
-              </span>
-            </div>
-            {onLogout && (
-              <button
-                onClick={onLogout}
-                className="flex items-center space-x-1 px-3 py-2 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-md transition-colors"
-              >
-                <LogOut className="h-4 w-4" />
-                <span>Logout</span>
-              </button>
-            )}
-          </div>
-
           {/* Mobile menu button */}
           <div className="md:hidden">
             <button
@@ -135,26 +102,6 @@ export default function Navigation({ user, onLogout }: NavigationProps) {
                   </Link>
                 );
               })}
-
-              {/* Mobile user info and logout */}
-              <div className="pt-4 border-t border-gray-200 mt-4">
-                <div className="flex items-center space-x-3 px-3 py-3 text-base text-gray-700">
-                  <User className="h-5 w-5 text-gray-400 flex-shrink-0" />
-                  <span className="truncate">{user?.username || 'User'}</span>
-                </div>
-                {onLogout && (
-                  <button
-                    onClick={() => {
-                      onLogout();
-                      setIsMobileMenuOpen(false);
-                    }}
-                    className="flex items-center space-x-3 w-full px-3 py-3 text-base text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-md transition-colors"
-                  >
-                    <LogOut className="h-5 w-5 flex-shrink-0" />
-                    <span>Logout</span>
-                  </button>
-                )}
-              </div>
             </div>
           </div>
         )}

@@ -1,8 +1,10 @@
 
-import { useState, useEffect } from 'react';
-import { apiClient, type Application } from '@/lib/api';
-import ActivityTimelineItem from './ActivityTimelineItem';
 import { FileText, Calendar, Trophy, CheckCircle, XCircle, Clock } from 'lucide-react';
+import { useState, useEffect } from 'react';
+
+import { apiClient, type Application } from '@/lib/api';
+
+import ActivityTimelineItem from './ActivityTimelineItem';
 
 export default function ActivityTimeline() {
   const [activities, setActivities] = useState<Application[]>([]);

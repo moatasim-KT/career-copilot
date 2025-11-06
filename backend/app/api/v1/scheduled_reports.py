@@ -2,14 +2,14 @@
 Scheduled Analytics Reports API endpoints
 """
 
-from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
 from datetime import datetime
 
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from ...core.database import get_db
-from ...core.dependencies import get_current_user
-from ...models.user import User
+from ...core.single_user import MOATASIM_EMAIL, MOATASIM_USER_ID, get_single_user
 from ...services.scheduled_analytics_reports_service import scheduled_analytics_reports_service
 
 # NOTE: This file has been converted to use AsyncSession.
@@ -19,7 +19,7 @@ router = APIRouter(tags=["scheduled-reports"])
 
 
 @router.get("/api/v1/reports/weekly")
-async def generate_weekly_report(current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
+async def generate_weekly_report(db: AsyncSession = Depends(get_db)):
 	"""
 	Generate a comprehensive weekly analytics report.
 
@@ -33,7 +33,7 @@ async def generate_weekly_report(current_user: User = Depends(get_current_user),
 	Returns the complete report data in JSON format.
 	"""
 	try:
-		report = scheduled_analytics_reports_service.generate_weekly_report(db=db, user_id=current_user.id)
+		report = scheduled_analytics_reports_service.generate_weekly_report(db=db, user_id=MOATASIM_USER_ID)
 
 		if "error" in report:
 			raise HTTPException(status_code=404, detail=report["error"])
@@ -45,7 +45,7 @@ async def generate_weekly_report(current_user: User = Depends(get_current_user),
 
 
 @router.get("/api/v1/reports/monthly")
-async def generate_monthly_report(current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
+async def generate_monthly_report(db: AsyncSession = Depends(get_db)):
 	"""
 	Generate a comprehensive monthly analytics report.
 
@@ -61,7 +61,7 @@ async def generate_monthly_report(current_user: User = Depends(get_current_user)
 	Returns the complete report data in JSON format.
 	"""
 	try:
-		report = scheduled_analytics_reports_service.generate_monthly_report(db=db, user_id=current_user.id)
+		report = scheduled_analytics_reports_service.generate_monthly_report(db=db, user_id=MOATASIM_USER_ID)
 
 		if "error" in report:
 			raise HTTPException(status_code=404, detail=report["error"])
@@ -73,7 +73,7 @@ async def generate_monthly_report(current_user: User = Depends(get_current_user)
 
 
 @router.post("/api/v1/reports/email/weekly")
-async def email_weekly_report(background_tasks: BackgroundTasks, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
+async def email_weekly_report(background_tasks: BackgroundTasks, db: AsyncSession = Depends(get_db)):
 	"""
 	Generate and email weekly analytics report.
 
@@ -86,21 +86,18 @@ async def email_weekly_report(background_tasks: BackgroundTasks, current_user: U
 	Processing happens in the background to avoid timeout.
 	"""
 	try:
-		if not current_user.email:
-			raise HTTPException(status_code=400, detail="No email address configured for user")
-
 		# Generate report
-		report = scheduled_analytics_reports_service.generate_weekly_report(db=db, user_id=current_user.id)
+		report = scheduled_analytics_reports_service.generate_weekly_report(db=db, user_id=MOATASIM_USER_ID)
 
 		if "error" in report:
 			raise HTTPException(status_code=404, detail=report["error"])
 
 		# Send email in background
-		background_tasks.add_task(scheduled_analytics_reports_service.send_report_email, report, current_user.email)
+		background_tasks.add_task(scheduled_analytics_reports_service.send_report_email, report, MOATASIM_EMAIL)
 
 		return {
 			"message": "Weekly report is being generated and will be sent to your email",
-			"email": current_user.email,
+			"email": MOATASIM_EMAIL,
 			"report_type": "weekly",
 			"scheduled_at": datetime.now().isoformat(),
 		}
@@ -112,7 +109,7 @@ async def email_weekly_report(background_tasks: BackgroundTasks, current_user: U
 
 
 @router.post("/api/v1/reports/email/monthly")
-async def email_monthly_report(background_tasks: BackgroundTasks, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
+async def email_monthly_report(background_tasks: BackgroundTasks, db: AsyncSession = Depends(get_db)):
 	"""
 	Generate and email monthly analytics report.
 
@@ -126,21 +123,18 @@ async def email_monthly_report(background_tasks: BackgroundTasks, current_user: 
 	Processing happens in the background to avoid timeout.
 	"""
 	try:
-		if not current_user.email:
-			raise HTTPException(status_code=400, detail="No email address configured for user")
-
 		# Generate report
-		report = scheduled_analytics_reports_service.generate_monthly_report(db=db, user_id=current_user.id)
+		report = scheduled_analytics_reports_service.generate_monthly_report(db=db, user_id=MOATASIM_USER_ID)
 
 		if "error" in report:
 			raise HTTPException(status_code=404, detail=report["error"])
 
 		# Send email in background
-		background_tasks.add_task(scheduled_analytics_reports_service.send_report_email, report, current_user.email)
+		background_tasks.add_task(scheduled_analytics_reports_service.send_report_email, report, MOATASIM_EMAIL)
 
 		return {
 			"message": "Monthly report is being generated and will be sent to your email",
-			"email": current_user.email,
+			"email": MOATASIM_EMAIL,
 			"report_type": "monthly",
 			"scheduled_at": datetime.now().isoformat(),
 		}
@@ -155,9 +149,7 @@ async def email_monthly_report(background_tasks: BackgroundTasks, current_user: 
 
 
 @router.post("/api/v1/admin/reports/weekly/all")
-async def schedule_all_weekly_reports(
-	background_tasks: BackgroundTasks, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)
-):
+async def schedule_all_weekly_reports(background_tasks: BackgroundTasks, db: AsyncSession = Depends(get_db)):
 	"""
 	Schedule weekly reports for all users (Admin only).
 
@@ -167,9 +159,7 @@ async def schedule_all_weekly_reports(
 	Requires admin privileges.
 	"""
 	try:
-		# Check if user is admin (simplified check)
-		if not getattr(current_user, "is_admin", False):
-			raise HTTPException(status_code=403, detail="Admin privileges required")
+		# Single user system - no admin check needed
 
 		# Schedule bulk report generation in background
 		background_tasks.add_task(scheduled_analytics_reports_service.schedule_weekly_reports, db)
@@ -188,9 +178,7 @@ async def schedule_all_weekly_reports(
 
 
 @router.post("/api/v1/admin/reports/monthly/all")
-async def schedule_all_monthly_reports(
-	background_tasks: BackgroundTasks, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)
-):
+async def schedule_all_monthly_reports(background_tasks: BackgroundTasks, db: AsyncSession = Depends(get_db)):
 	"""
 	Schedule monthly reports for all users (Admin only).
 
@@ -200,9 +188,7 @@ async def schedule_all_monthly_reports(
 	Requires admin privileges.
 	"""
 	try:
-		# Check if user is admin (simplified check)
-		if not getattr(current_user, "is_admin", False):
-			raise HTTPException(status_code=403, detail="Admin privileges required")
+		# Single user system - no admin check needed
 
 		# Schedule bulk report generation in background
 		background_tasks.add_task(scheduled_analytics_reports_service.schedule_monthly_reports, db)
@@ -221,7 +207,7 @@ async def schedule_all_monthly_reports(
 
 
 @router.get("/api/v1/reports/preview/weekly")
-async def preview_weekly_report(current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
+async def preview_weekly_report(db: AsyncSession = Depends(get_db)):
 	"""
 	Preview weekly report content without generating full report.
 
@@ -236,7 +222,7 @@ async def preview_weekly_report(current_user: User = Depends(get_current_user), 
 		# Generate basic analytics for preview
 		from ...services.advanced_user_analytics_service import advanced_user_analytics_service
 
-		success_rates = advanced_user_analytics_service.calculate_detailed_success_rates(db, current_user.id, days=7)
+		success_rates = advanced_user_analytics_service.calculate_detailed_success_rates(db, MOATASIM_USER_ID, days=7)
 
 		if "error" in success_rates:
 			return {"preview_available": False, "message": "Insufficient data for preview - submit some applications first"}
@@ -264,7 +250,7 @@ async def preview_weekly_report(current_user: User = Depends(get_current_user), 
 
 
 @router.get("/api/v1/reports/preview/monthly")
-async def preview_monthly_report(current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
+async def preview_monthly_report(db: AsyncSession = Depends(get_db)):
 	"""
 	Preview monthly report content without generating full report.
 
@@ -279,7 +265,7 @@ async def preview_monthly_report(current_user: User = Depends(get_current_user),
 		# Generate basic analytics for preview
 		from ...services.advanced_user_analytics_service import advanced_user_analytics_service
 
-		success_rates = advanced_user_analytics_service.calculate_detailed_success_rates(db, current_user.id, days=30)
+		success_rates = advanced_user_analytics_service.calculate_detailed_success_rates(db, MOATASIM_USER_ID, days=30)
 
 		if "error" in success_rates:
 			return {"preview_available": False, "message": "Insufficient data for preview - submit some applications first"}

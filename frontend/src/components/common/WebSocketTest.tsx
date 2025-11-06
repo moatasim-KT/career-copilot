@@ -24,26 +24,26 @@ interface TestMessage {
 export default function WebSocketTest() {
   const [messages, setMessages] = useState<TestMessage[]>([]);
   const [testMessage, setTestMessage] = useState('');
+  const [wsUrl] = useState('ws://localhost:8002/ws');
 
-  const { connected, connecting, error, connect, disconnect } = useWebSocket({
-    autoConnect: false,
-    onConnect: () => {
-      logger.log('WebSocket Test: Connected');
-      addMessage('connection', { status: 'connected' });
+  const { ws, connectionStatus } = useWebSocket(
+    wsUrl,
+    (data) => {
+      logger.log('WebSocket Test: Dashboard update', data);
+      addMessage('dashboard-update', data);
     },
-    onDisconnect: () => {
-      logger.log('WebSocket Test: Disconnected');
-      addMessage('connection', { status: 'disconnected' });
+    (data) => {
+      logger.log('WebSocket Test: Application status update', data);
+      addMessage('application-status-update', data);
     },
-    onError: (error: unknown) => {
-      logger.log('WebSocket Test: Error', error);
-      addMessage('error', { error: String(error) });
+    (data) => {
+      logger.log('WebSocket Test: Analytics update', data);
+      addMessage('analytics-update', data);
     },
-    onMessage: message => {
-      logger.log('WebSocket Test: Message received', message);
-      addMessage(message.type, message);
-    },
-  });
+  );
+
+  const connected = connectionStatus === 'open';
+  const connecting = connectionStatus === 'connecting';
 
   const addMessage = (type: string, data: unknown) => {
     const newMessage: TestMessage = {
@@ -152,25 +152,11 @@ export default function WebSocketTest() {
             </div>
           </div>
 
-          {error && (
-            <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
-              <p className="text-sm text-red-800">Error: {error}</p>
-            </div>
-          )}
-
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
             <div className="space-y-2">
               <h3 className="text-sm font-medium text-gray-700">Connection Control</h3>
               <div className="flex space-x-2">
-                <Button onClick={connect} disabled={connected || connecting} size="sm">
-                  Connect
-                </Button>
-                <Button
-                  onClick={disconnect}
-                  disabled={!connected}
-                  variant="outline"
-                  size="sm"
-                >
+                <Button onClick={() => ws?.close()} disabled={!connected} variant="outline" size="sm">
                   Disconnect
                 </Button>
               </div>

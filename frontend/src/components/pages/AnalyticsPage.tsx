@@ -29,7 +29,7 @@ import {
 } from 'recharts';
 
 import { useWebSocket } from '@/hooks/useWebSocket';
-import { apiClient , AnalyticsSummary } from '@/lib/api';
+import { apiClient, AnalyticsSummary } from '@/lib/api';
 import { logger } from '@/lib/logger';
 
 import Card from '../ui/Card';
@@ -90,12 +90,12 @@ export default function AnalyticsPage() {
     setLoading(false);
   }, []);
 
-  useWebSocket('ws://localhost:8080/api/ws', () => {}, () => {}, handleUpdate);
+  useWebSocket('ws://localhost:8080/api/ws', () => { }, () => { }, handleUpdate);
 
   const loadAnalyticsData = async () => {
     setLoading(true);
     setError(null);
-    
+
     try {
       const [analyticsResponse, comprehensiveResponse] = await Promise.all([
         apiClient.getAnalyticsSummary(),
@@ -150,7 +150,7 @@ export default function AnalyticsPage() {
           <div className="text-center">
             <div className="text-red-500 mb-2">⚠️</div>
             <p className="text-gray-600">Error loading analytics: {error}</p>
-            <button 
+            <button
               className="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
             >
               Retry
@@ -292,8 +292,8 @@ export default function AnalyticsPage() {
           </div>
           <div className="mt-2">
             <div className="w-full bg-gray-200 rounded-full h-2">
-              <div 
-                className="bg-pink-500 h-2 rounded-full transition-all duration-300" 
+              <div
+                className="bg-pink-500 h-2 rounded-full transition-all duration-300"
                 style={{ width: `${Math.min(analytics.daily_goal_progress, 100)}%` }}
               ></div>
             </div>
@@ -323,11 +323,10 @@ export default function AnalyticsPage() {
               <button
                 key={days}
                 onClick={() => setTimeframe(days)}
-                className={`px-3 py-1 rounded text-sm ${
-                  timeframe === days
+                className={`px-3 py-1 rounded text-sm ${timeframe === days
                     ? 'bg-blue-500 text-white'
                     : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                }`}
+                  }`}
               >
                 {days}d
               </button>
@@ -345,11 +344,11 @@ export default function AnalyticsPage() {
             <ResponsiveContainer width="100%" height={300}>
               <PieChart>
                 <Pie
-                  data={statusBreakdownData}
+                  data={statusBreakdownData as any}
                   cx="50%"
                   cy="50%"
                   labelLine={false}
-                  label={({ status, count, percent }) => `${status}: ${count} (${(percent * 100).toFixed(0)}%)`}
+                  label={({ status, count, percent }: any) => `${status}: ${count} (${(percent * 100).toFixed(0)}%)`}
                   outerRadius={80}
                   fill="#8884d8"
                   dataKey="count"
@@ -393,18 +392,18 @@ export default function AnalyticsPage() {
               <ResponsiveContainer width="100%" height={300}>
                 <LineChart data={comprehensiveData.application_trends}>
                   <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis 
-                    dataKey="date" 
+                  <XAxis
+                    dataKey="date"
                     tickFormatter={(date) => new Date(date).toLocaleDateString()}
                   />
                   <YAxis />
-                  <Tooltip 
+                  <Tooltip
                     labelFormatter={(date) => new Date(date).toLocaleDateString()}
                   />
-                  <Line 
-                    type="monotone" 
-                    dataKey="applications" 
-                    stroke="#3B82F6" 
+                  <Line
+                    type="monotone"
+                    dataKey="applications"
+                    stroke="#3B82F6"
                     strokeWidth={2}
                     dot={{ fill: '#3B82F6', strokeWidth: 2, r: 4 }}
                   />
@@ -424,13 +423,13 @@ export default function AnalyticsPage() {
               <ResponsiveContainer width="100%" height={400}>
                 <ComposedChart data={comprehensiveData.weekly_performance.reverse()}>
                   <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis 
-                    dataKey="week_start" 
+                  <XAxis
+                    dataKey="week_start"
                     tickFormatter={(date) => new Date(date).toLocaleDateString()}
                   />
                   <YAxis yAxisId="left" />
                   <YAxis yAxisId="right" orientation="right" />
-                  <Tooltip 
+                  <Tooltip
                     labelFormatter={(date) => `Week of ${new Date(date).toLocaleDateString()}`}
                     formatter={(value, name) => [
                       typeof name === 'string' && name.includes('rate') ? `${(value as number).toFixed(1)}%` : value,
@@ -439,19 +438,19 @@ export default function AnalyticsPage() {
                   />
                   <Legend />
                   <Bar yAxisId="left" dataKey="applications" fill="#3B82F6" name="Applications" />
-                  <Line 
-                    yAxisId="right" 
-                    type="monotone" 
-                    dataKey="interview_rate" 
-                    stroke="#10B981" 
+                  <Line
+                    yAxisId="right"
+                    type="monotone"
+                    dataKey="interview_rate"
+                    stroke="#10B981"
                     strokeWidth={2}
                     name="Interview Rate (%)"
                   />
-                  <Line 
-                    yAxisId="right" 
-                    type="monotone" 
-                    dataKey="offer_rate" 
-                    stroke="#F59E0B" 
+                  <Line
+                    yAxisId="right"
+                    type="monotone"
+                    dataKey="offer_rate"
+                    stroke="#F59E0B"
                     strokeWidth={2}
                     name="Offer Rate (%)"
                   />
@@ -524,7 +523,7 @@ export default function AnalyticsPage() {
           <div className="bg-purple-50 p-4 rounded-lg">
             <p className="font-medium text-purple-900">Success Rate</p>
             <p className="text-purple-700">
-              {analytics.offers_received > 0 
+              {analytics.offers_received > 0
                 ? `${((analytics.offers_received / analytics.total_applications) * 100).toFixed(1)}% offer rate`
                 : 'No offers yet'
               }

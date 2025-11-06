@@ -2,6 +2,8 @@
 import { Popover as HeadlessPopover, Transition } from '@headlessui/react';
 import React, { Fragment } from 'react';
 
+import { cn } from '@/lib/utils';
+
 export function Popover({ children, open, onOpenChange }: { children: React.ReactNode; open: boolean; onOpenChange: (open: boolean) => void }) {
   return (
     <HeadlessPopover open={open} onChange={onOpenChange} as="div" className="relative">
@@ -30,8 +32,8 @@ export function PopoverContent({ children, className }: { children: React.ReactN
     >
       <HeadlessPopover.Panel
         className={cn(
-          "absolute z-50 mt-2 w-56 rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none",
-          className
+          'absolute z-50 mt-2 w-56 rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none',
+          className,
         )}
       >
         {children}

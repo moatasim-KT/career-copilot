@@ -2,6 +2,8 @@
 Main API router for v1 endpoints
 """
 
+from fastapi import APIRouter
+
 from app.api.v1 import (
 	analytics,
 	applications,
@@ -21,6 +23,7 @@ from app.api.v1 import (
 	notifications,
 	oauth,
 	offline,
+	personalization,
 	profile,
 	recommendations,
 	resume,
@@ -28,11 +31,18 @@ from app.api.v1 import (
 	skill_gap,
 	skill_gap_analysis,
 	skill_matching,
+	social,
 	tasks,
 )
-from fastapi import APIRouter
 
 api_router = APIRouter()
+
+# Include personalization and behavior tracking routes FIRST (before jobs router)
+# This prevents /jobs/available from conflicting with /jobs/{job_id}
+api_router.include_router(personalization.router, tags=["personalization"])
+
+# Include social features routes (mentors, connections, sharing)
+api_router.include_router(social.router, tags=["social"])
 
 # Include authentication routes
 api_router.include_router(auth.router, prefix="/auth", tags=["authentication"])

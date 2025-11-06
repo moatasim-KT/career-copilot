@@ -4,9 +4,9 @@ import { Toaster } from 'sonner';
 
 import './globals.css';
 
-import AuthErrorBoundary from '@/components/auth/AuthErrorBoundary';
-import { AuthProvider } from '@/contexts/AuthContext';
 import Layout from '@/components/layout/Layout';
+
+import Providers from './providers';
 
 const inter = Inter({
   variable: '--font-inter',
@@ -28,11 +28,9 @@ export default function RootLayout({
       <body
         className={`${inter.variable} font-sans antialiased bg-gray-50 min-h-screen`}
       >
-        <AuthErrorBoundary>
-          <AuthProvider>
-            <Layout>{children}</Layout>
-          </AuthProvider>
-        </AuthErrorBoundary>
+        <Providers>
+          <Layout>{children}</Layout>
+        </Providers>
         <Toaster position="top-right" richColors closeButton />
       </body>
     </html>

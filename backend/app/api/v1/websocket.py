@@ -2,16 +2,17 @@
 WebSocket API endpoints for real-time notifications.
 """
 
-from typing import Dict, Any, Optional
+from typing import Any, Dict, Optional
+
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel
-from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from ...core.database import get_db
-from ...core.auth import get_current_user, User
-from ...services.websocket_service import websocket_service
 from ...core.logging import get_logger
+from ...core.single_user import MOATASIM_USER_ID, get_single_user
+from ...services.websocket_service import websocket_service
 
 logger = get_logger(__name__)
 
@@ -52,7 +53,7 @@ class ApplicationStatusNotificationRequest(BaseModel):
 
 
 @router.get("/connections/stats")
-async def get_connection_stats(current_user: User = Depends(get_current_user)):
+async def get_connection_stats():
 	"""
 	Get WebSocket connection statistics.
 
@@ -68,7 +69,7 @@ async def get_connection_stats(current_user: User = Depends(get_current_user)):
 
 
 @router.get("/connections/status/{user_id}")
-async def get_user_connection_status(user_id: int, current_user: User = Depends(get_current_user)):
+async def get_user_connection_status(user_id: int):
 	"""
 	Check if a specific user is connected.
 
@@ -78,9 +79,7 @@ async def get_user_connection_status(user_id: int, current_user: User = Depends(
 	Returns:
 	    Connection status for the user
 	"""
-	# Users can only check their own status unless they're superuser
-	if current_user.id != user_id and not current_user.is_superuser:
-		raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized to check other users' connection status")
+	# Single user system - no permission check needed
 
 	try:
 		is_online = websocket_service.is_user_online(user_id)
@@ -93,7 +92,7 @@ async def get_user_connection_status(user_id: int, current_user: User = Depends(
 
 
 @router.post("/notifications/system")
-async def send_system_notification(request: NotificationRequest, current_user: User = Depends(get_current_user)):
+async def send_system_notification(request: NotificationRequest):
 	"""
 	Send a system-wide notification.
 
@@ -103,9 +102,7 @@ async def send_system_notification(request: NotificationRequest, current_user: U
 	Returns:
 	    Success confirmation
 	"""
-	# Only superusers can send system notifications
-	if not current_user.is_superuser:
-		raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized to send system notifications")
+	# Single user system - no superuser check needed
 
 	try:
 		target_users = set(request.target_users) if request.target_users else None
@@ -121,7 +118,7 @@ async def send_system_notification(request: NotificationRequest, current_user: U
 
 
 @router.post("/notifications/job-match")
-async def send_job_match_notification(request: JobMatchNotificationRequest, current_user: User = Depends(get_current_user)):
+async def send_job_match_notification(request: JobMatchNotificationRequest):
 	"""
 	Send a job match notification to a user.
 
@@ -131,9 +128,7 @@ async def send_job_match_notification(request: JobMatchNotificationRequest, curr
 	Returns:
 	    Success confirmation
 	"""
-	# Users can only send notifications to themselves unless they're superuser
-	if current_user.id != request.user_id and not current_user.is_superuser:
-		raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized to send notifications to other users")
+	# Single user system - no permission check needed
 
 	try:
 		await websocket_service.send_job_match_notification(user_id=request.user_id, job_data=request.job_data, match_score=request.match_score)
@@ -145,7 +140,7 @@ async def send_job_match_notification(request: JobMatchNotificationRequest, curr
 
 
 @router.post("/notifications/application-status")
-async def send_application_status_notification(request: ApplicationStatusNotificationRequest, current_user: User = Depends(get_current_user)):
+async def send_application_status_notification(request: ApplicationStatusNotificationRequest):
 	"""
 	Send an application status update notification.
 
@@ -155,9 +150,7 @@ async def send_application_status_notification(request: ApplicationStatusNotific
 	Returns:
 	    Success confirmation
 	"""
-	# Users can only send notifications to themselves unless they're superuser
-	if current_user.id != request.user_id and not current_user.is_superuser:
-		raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized to send notifications to other users")
+	# Single user system - no permission check needed
 
 	try:
 		await websocket_service.send_application_status_update(user_id=request.user_id, application_data=request.application_data)
@@ -169,7 +162,7 @@ async def send_application_status_notification(request: ApplicationStatusNotific
 
 
 @router.post("/connections/disconnect/{user_id}")
-async def disconnect_user(user_id: int, current_user: User = Depends(get_current_user)):
+async def disconnect_user(user_id: int):
 	"""
 	Forcefully disconnect a user's WebSocket connection.
 
@@ -179,9 +172,7 @@ async def disconnect_user(user_id: int, current_user: User = Depends(get_current
 	Returns:
 	    Success confirmation
 	"""
-	# Users can only disconnect themselves unless they're superuser
-	if current_user.id != user_id and not current_user.is_superuser:
-		raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized to disconnect other users")
+	# Single user system - no permission check needed
 
 	try:
 		await websocket_service.disconnect_user(user_id)
@@ -193,7 +184,7 @@ async def disconnect_user(user_id: int, current_user: User = Depends(get_current
 
 
 @router.get("/channels")
-async def get_channels(current_user: User = Depends(get_current_user)):
+async def get_channels():
 	"""
 	Get available notification channels.
 
@@ -216,7 +207,7 @@ async def get_channels(current_user: User = Depends(get_current_user)):
 
 
 @router.get("/job-match/thresholds")
-async def get_job_match_thresholds(current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
+async def get_job_match_thresholds(db: AsyncSession = Depends(get_db)):
 	"""
 	Get current job match thresholds.
 
@@ -244,9 +235,7 @@ class JobMatchThresholdsRequest(BaseModel):
 
 
 @router.put("/job-match/thresholds")
-async def update_job_match_thresholds(
-	request: JobMatchThresholdsRequest, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)
-):
+async def update_job_match_thresholds(request: JobMatchThresholdsRequest, db: AsyncSession = Depends(get_db)):
 	"""
 	Update job match thresholds (admin only).
 
@@ -256,9 +245,7 @@ async def update_job_match_thresholds(
 	Returns:
 	    Updated threshold configuration
 	"""
-	# Only superusers can update thresholds
-	if not current_user.is_superuser:
-		raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized to update job match thresholds")
+	# Single user system - no superuser check needed
 
 	try:
 		from ...services.job_recommendation_service import get_job_recommendation_service

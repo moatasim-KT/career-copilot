@@ -15,13 +15,6 @@ class Settings(BaseSettings):
 	# Database Configuration
 	database_url: Optional[str] = "sqlite:///./data/career_copilot.db"
 
-	# Authentication & Security
-	jwt_secret_key: Optional[SecretStr] = None
-	jwt_secret_file: Optional[Path] = Path("secrets/jwt_secret.txt")
-	jwt_algorithm: Optional[str] = "HS256"
-	jwt_expiration_hours: Optional[int] = 24
-	disable_auth: Optional[bool] = False
-
 	# AI/LLM Service API Keys
 	openai_api_key: Optional[str] = None
 	anthropic_api_key: Optional[str] = None
@@ -73,26 +66,6 @@ class Settings(BaseSettings):
 	# CORS Settings
 	cors_origins: Optional[str] = "http://localhost:3000,http://localhost:8000"
 
-	# OAuth Social Authentication
-	oauth_enabled: Optional[bool] = False
-	firebase_project_id: Optional[str] = None
-	firebase_service_account_key: Optional[str] = None
-
-	# Google OAuth Configuration
-	google_client_id: Optional[str] = None
-	google_client_secret: Optional[str] = None
-	google_redirect_uri: Optional[str] = "http://localhost:8002/api/v1/auth/oauth/google/callback"
-
-	# LinkedIn OAuth Configuration
-	linkedin_client_id: Optional[str] = None
-	linkedin_client_secret: Optional[str] = None
-	linkedin_redirect_uri: Optional[str] = "http://localhost:8002/api/v1/auth/oauth/linkedin/callback"
-
-	# GitHub OAuth Configuration
-	github_client_id: Optional[str] = None
-	github_client_secret: Optional[str] = None
-	github_redirect_uri: Optional[str] = "http://localhost:8002/api/v1/auth/oauth/github/callback"
-
 	# Job Matching Configuration
 	high_match_threshold: Optional[float] = 80.0
 	medium_match_threshold: Optional[float] = 60.0
@@ -104,20 +77,6 @@ class Settings(BaseSettings):
 	enable_opentelemetry: Optional[bool] = False
 	otlp_endpoint: Optional[str] = "http://localhost:4317"
 	service_name: Optional[str] = "career-copilot-api"
-
-	@model_validator(mode="after")
-	def _ensure_jwt_secret(self) -> "Settings":
-		secret = self.jwt_secret_key.get_secret_value() if self.jwt_secret_key else ""
-		if not secret and self.jwt_secret_file:
-			candidate_path = Path(self.jwt_secret_file).expanduser()
-			if candidate_path.exists():
-				candidate = candidate_path.read_text(encoding="utf-8").strip()
-				if candidate:
-					self.jwt_secret_key = SecretStr(candidate)
-					secret = candidate
-		if not secret:
-			raise ValueError("JWT secret key must be supplied via JWT_SECRET_KEY environment variable or secrets/jwt_secret.txt")
-		return self
 
 	model_config = {"env_file": ".env", "env_file_encoding": "utf-8", "extra": "ignore"}
 

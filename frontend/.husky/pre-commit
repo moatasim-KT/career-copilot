@@ -1,0 +1,48 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+# Pre-commit hook for enforcing code quality
+
+echo "🔍 Running pre-commit checks..."
+
+# Check for console.log statements (warn only, don't block)
+if git diff --cached --name-only | grep -E '\.(ts|tsx|js|jsx)$' | xargs grep -n 'console\.log' 2>/dev/null; then
+  echo "⚠️  Warning: console.log statements found. Please remove them before committing to production."
+fi
+
+# Run TypeScript type checking
+echo "📝 Checking TypeScript types..."
+npx tsc --noEmit || {
+  echo "❌ TypeScript errors found. Please fix them before committing."
+  exit 1
+}
+
+# Run ESLint
+echo "🔍 Running ESLint..."
+npx next lint || {
+  echo "❌ ESLint errors found. Please fix them before committing."
+  exit 1
+}
+
+# Run Prettier check
+echo "💅 Checking code formatting..."
+npx prettier --check "src/**/*.{ts,tsx,js,jsx,json,md}" || {
+  echo "❌ Code formatting issues found. Run 'npm run format' to fix."
+  exit 1
+}
+
+# Run tests on staged files
+echo "🧪 Running tests..."
+npm run test -- --bail --findRelatedTests $(git diff --cached --name-only --diff-filter=ACM | grep -E '\.(test|spec)\.(ts|tsx)$' | paste -sd ' ' -) || {
+  echo "❌ Tests failed. Please fix them before committing."
+  exit 1
+}
+
+# Check for sensitive data
+echo "🔒 Checking for sensitive data..."
+if git diff --cached --name-only | xargs grep -i -E '(api_key|api.key|apikey|secret.key|private.key|password|token).*=.*["\'][^"\']+["\']' 2>/dev/null; then
+  echo "❌ Potential sensitive data found in staged files. Please remove before committing."
+  exit 1
+fi
+
+echo "✅ All pre-commit checks passed!"

@@ -1,6 +1,7 @@
 
 import { Plus, Upload, TrendingUp, Briefcase } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+
 import QuickActionCard from './QuickActionCard';
 
 export default function QuickActionsPanel() {

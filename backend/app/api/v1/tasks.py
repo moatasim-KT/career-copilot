@@ -1,18 +1,19 @@
 """
 Task monitoring and management API endpoints
+Single-user system for Moatasim
 """
 
+from typing import Any, Dict, List, Optional
+
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
-from typing import List, Dict, Any, Optional
 from pydantic import BaseModel
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
-from app.core.auth import get_current_user
-from app.models.user import User
-from app.services.task_queue_manager import task_queue_manager
 from app.core.logging import get_logger
+from app.core.single_user import MOATASIM_USER_ID, get_single_user
+from app.services.task_queue_manager import task_queue_manager
 
 logger = get_logger(__name__)
 
@@ -54,18 +55,12 @@ class TaskSubmissionResponse(BaseModel):
 
 
 @router.get("/status/{task_id}", response_model=TaskStatusResponse)
-async def get_task_status(task_id: str, current_user: User = Depends(get_current_user)):
+async def get_task_status(task_id: str):
 	"""Get the status of a specific task"""
 	try:
 		status_info = task_queue_manager.get_task_status(task_id)
 
-		# Check if user has permission to view this task
-		metadata = status_info.get("metadata", {})
-		task_user_id = metadata.get("user_id")
-
-		if task_user_id and task_user_id != current_user.id:
-			raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You don't have permission to view this task")
-
+		# Single-user system - all tasks belong to Moatasim
 		return TaskStatusResponse(**status_info)
 
 	except HTTPException:
@@ -76,14 +71,10 @@ async def get_task_status(task_id: str, current_user: User = Depends(get_current
 
 
 @router.get("/user/{user_id}", response_model=List[TaskStatusResponse])
-async def get_user_tasks(user_id: int, limit: int = 20, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
-	"""Get recent tasks for a specific user"""
-	# Check permission
-	if user_id != current_user.id:
-		raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You can only view your own tasks")
-
+async def get_user_tasks(user_id: int, limit: int = 20, db: AsyncSession = Depends(get_db)):
+	"""Get recent tasks for Moatasim"""
 	try:
-		user_tasks = task_queue_manager.get_user_tasks(user_id, limit)
+		user_tasks = task_queue_manager.get_user_tasks(MOATASIM_USER_ID, limit)
 
 		# Convert to response models
 		task_responses = []
@@ -98,13 +89,13 @@ async def get_user_tasks(user_id: int, limit: int = 20, current_user: User = Dep
 
 
 @router.get("/my-tasks", response_model=List[TaskStatusResponse])
-async def get_my_tasks(limit: int = 20, current_user: User = Depends(get_current_user)):
-	"""Get current user's recent tasks"""
-	return await get_user_tasks(current_user.id, limit, current_user)
+async def get_my_tasks(limit: int = 20):
+	"""Get Moatasim's recent tasks"""
+	return await get_user_tasks(MOATASIM_USER_ID, limit, None)
 
 
 @router.post("/submit", response_model=TaskSubmissionResponse)
-async def submit_task(request: TaskSubmissionRequest, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
+async def submit_task(request: TaskSubmissionRequest, db: AsyncSession = Depends(get_db)):
 	"""Submit a new background task"""
 	try:
 		task_type = request.task_type
@@ -122,7 +113,7 @@ async def submit_task(request: TaskSubmissionRequest, current_user: User = Depen
 				resume_upload_id=parameters["resume_upload_id"],
 				file_path=parameters["file_path"],
 				filename=parameters["filename"],
-				user_id=current_user.id,
+				user_id=MOATASIM_USER_ID,
 				priority=priority,
 			)
 
@@ -133,7 +124,7 @@ async def submit_task(request: TaskSubmissionRequest, current_user: User = Depen
 					raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"Missing required parameter: {param}")
 
 			task_id = task_queue_manager.submit_cover_letter_generation(
-				user_id=current_user.id,
+				user_id=MOATASIM_USER_ID,
 				job_id=parameters["job_id"],
 				tone=parameters.get("tone", "professional"),
 				custom_instructions=parameters.get("custom_instructions"),
@@ -147,14 +138,14 @@ async def submit_task(request: TaskSubmissionRequest, current_user: User = Depen
 					raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"Missing required parameter: {param}")
 
 			task_id = task_queue_manager.submit_resume_tailoring(
-				user_id=current_user.id, job_id=parameters["job_id"], resume_sections=parameters["resume_sections"], priority=priority
+				user_id=MOATASIM_USER_ID, job_id=parameters["job_id"], resume_sections=parameters["resume_sections"], priority=priority
 			)
 
 		elif task_type == "job_scraping":
-			task_id = task_queue_manager.submit_job_scraping_for_user(user_id=current_user.id, priority=priority)
+			task_id = task_queue_manager.submit_job_scraping_for_user(user_id=MOATASIM_USER_ID, priority=priority)
 
 		elif task_type == "user_analytics":
-			task_id = task_queue_manager.submit_user_analytics_generation(user_id=current_user.id)
+			task_id = task_queue_manager.submit_user_analytics_generation(user_id=MOATASIM_USER_ID)
 
 		else:
 			raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"Unsupported task type: {task_type}")
@@ -168,52 +159,35 @@ async def submit_task(request: TaskSubmissionRequest, current_user: User = Depen
 		raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Error submitting task")
 
 
-@router.delete("/cancel/{task_id}")
-async def cancel_task(task_id: str, current_user: User = Depends(get_current_user)):
-	"""Cancel a running task"""
+@router.delete("/cancel/{task_id}", response_model=TaskStatusResponse)
+async def cancel_task(task_id: str):
+	"""Cancel a background task"""
 	try:
-		# Get task info to check permissions
 		status_info = task_queue_manager.get_task_status(task_id)
-		metadata = status_info.get("metadata", {})
-		task_user_id = metadata.get("user_id")
 
-		if task_user_id and task_user_id != current_user.id:
-			raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You don't have permission to cancel this task")
+		# Single user system - no permission check needed
 
-		success = task_queue_manager.cancel_task(task_id)
+		task_queue_manager.cancel_task(task_id)
 
-		if success:
-			return {"message": "Task cancelled successfully"}
-		else:
-			raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Failed to cancel task")
+		updated_status = task_queue_manager.get_task_status(task_id)
+		return TaskStatusResponse(**updated_status)
 
-	except HTTPException:
-		raise
+	except KeyError:
+		raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Task not found")
 	except Exception as e:
-		logger.error(f"Error cancelling task {task_id}: {e}")
-		raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Error cancelling task")
+		logger.error(f"Error canceling task: {e!s}")
+		raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
 
 
-@router.get("/queue-stats", response_model=QueueStatsResponse)
-async def get_queue_stats(current_user: User = Depends(get_current_user)):
-	"""Get task queue statistics (admin only for now)"""
-	try:
-		stats = task_queue_manager.get_queue_stats()
-		return QueueStatsResponse(**stats)
-
-	except Exception as e:
-		logger.error(f"Error getting queue stats: {e}")
-		raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Error retrieving queue statistics")
+@router.get("/queue-stats", response_model=dict)
+async def get_queue_stats():
+	"""Get task queue statistics"""
+	stats = task_queue_manager.get_queue_stats()
+	return stats
 
 
-@router.post("/cleanup")
-async def cleanup_completed_tasks(days_old: int = 7, current_user: User = Depends(get_current_user)):
-	"""Clean up completed tasks (admin only for now)"""
-	try:
-		cleaned_count = task_queue_manager.cleanup_completed_tasks(days_old)
-
-		return {"message": f"Cleaned up {cleaned_count} completed tasks", "days_old": days_old}
-
-	except Exception as e:
-		logger.error(f"Error cleaning up tasks: {e}")
-		raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Error cleaning up tasks")
+@router.post("/cleanup", response_model=dict)
+async def cleanup_completed_tasks():
+	"""Cleanup completed tasks older than retention period"""
+	cleaned_count = task_queue_manager.cleanup_completed_tasks()
+	return {"cleaned_count": cleaned_count, "message": f"Cleaned up {cleaned_count} completed tasks"}

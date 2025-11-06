@@ -1,6 +1,14 @@
 from ..core.database import Base
 from .analytics import Analytics
 from .application import Application
+from .career_resources import (
+	CareerResourceModel,
+	LearningPath,
+	LearningPathEnrollment,
+	ResourceBookmarkModel,
+	ResourceFeedbackModel,
+	ResourceView,
+)
 from .content_generation import ContentGeneration
 from .content_version import ContentVersion
 from .feedback import (
@@ -26,6 +34,7 @@ __all__ = [
 	"Analytics",
 	"Application",
 	"Base",
+	"CareerResourceModel",
 	"ContentGeneration",
 	"ContentVersion",
 	"Feedback",
@@ -41,7 +50,12 @@ __all__ = [
 	# "InterviewType",
 	"Job",
 	"JobRecommendationFeedback",
+	"LearningPath",
+	"LearningPathEnrollment",
 	"OnboardingProgress",
+	"ResourceBookmarkModel",
+	"ResourceFeedbackModel",
+	"ResourceView",
 	"ResumeUpload",
 	"User",
 	"UserJobPreferences",

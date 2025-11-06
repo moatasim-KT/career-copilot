@@ -2,8 +2,6 @@
 
 import dynamic from 'next/dynamic';
 
-import withAuth from '@/components/auth/withAuth';
-
 // Lazy load the AnalyticsPage component
 const AnalyticsPage = dynamic(() => import('@/components/pages/AnalyticsPage'), {
   loading: () => (
@@ -17,4 +15,4 @@ function Analytics() {
   return <AnalyticsPage />;
 }
 
-export default withAuth(Analytics);
+export default Analytics;

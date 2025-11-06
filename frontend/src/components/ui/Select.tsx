@@ -1,4 +1,5 @@
 import React from 'react';
+
 import { cn } from '@/lib/utils';
 
 export interface SelectOption {
@@ -41,7 +42,7 @@ const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
         {error && <p className="text-sm text-red-500">{error}</p>}
       </div>
     );
-  }
+  },
 );
 Select.displayName = 'Select';
 

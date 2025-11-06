@@ -5,16 +5,16 @@
 
 'use client';
 
-import { 
-  CheckCircle, 
-  AlertCircle, 
-  Info, 
-  X, 
+import {
+  CheckCircle,
+  AlertCircle,
+  Info,
+  X,
   Briefcase,
   TrendingUp,
   Bell,
 } from 'lucide-react';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 
 import { useWebSocket } from '@/hooks/useWebSocket';
 import { logger } from '@/lib/logger';
@@ -133,7 +133,7 @@ function NotificationItem({ notification, onClose }: NotificationItemProps) {
 export default function NotificationSystem() {
   const [notifications, setNotifications] = useState<Notification[]>([]);
 
-  const addNotification = (notification: Omit<Notification, 'id' | 'timestamp'>) => {
+  const addNotification = useCallback((notification: Omit<Notification, 'id' | 'timestamp'>) => {
     const newNotification: Notification = {
       ...notification,
       id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
@@ -141,7 +141,7 @@ export default function NotificationSystem() {
     };
 
     setNotifications(prev => [newNotification, ...prev.slice(0, 4)]); // Keep max 5 notifications
-  };
+  }, []);
 
   const removeNotification = (id: string) => {
     setNotifications(prev => prev.filter(n => n.id !== id));
@@ -179,8 +179,8 @@ export default function NotificationSystem() {
 
       case 'system_notification':
         addNotification({
-          type: message.notification_type === 'error' ? 'error' : 
-                message.notification_type === 'warning' ? 'warning' : 'info',
+          type: message.notification_type === 'error' ? 'error' :
+            message.notification_type === 'warning' ? 'warning' : 'info',
           title: 'System Notification',
           message: message.message || 'System update',
           autoHide: message.notification_type !== 'error',
@@ -220,50 +220,61 @@ export default function NotificationSystem() {
   };
 
   // Set up WebSocket connection and message handling
-  const { connected, connecting, error } = useWebSocket({
-    autoConnect: true,
-    onMessage: handleWebSocketMessage,
-    onConnect: () => {
-      logger.log('WebSocket connected - notifications active');
+  const [wsUrl] = useState('ws://localhost:8002/ws');
+
+  const { ws, connectionStatus } = useWebSocket(
+    wsUrl,
+    (data) => {
+      // Handle dashboard updates if needed
+      handleWebSocketMessage({ type: 'dashboard-update', ...data });
     },
-    onDisconnect: () => {
+    (data) => {
+      // Handle application status updates
+      handleWebSocketMessage({ type: 'application-status-update', ...data });
+    },
+    (data) => {
+      // Handle analytics updates
+      handleWebSocketMessage({ type: 'analytics-update', ...data });
+    },
+  );
+
+  const connected = connectionStatus === 'open';
+  const connecting = connectionStatus === 'connecting';
+
+  // Show connection status in development
+  useEffect(() => {
+    if (process.env.NODE_ENV === 'development') {
+      logger.log('WebSocket status:', { connected, connecting, connectionStatus });
+    }
+  }, [connected, connecting, connectionStatus]);
+
+  // Show connection status when it changes
+  useEffect(() => {
+    if (connected) {
+      addNotification({
+        type: 'success',
+        title: 'Connected',
+        message: 'Real-time updates are now active',
+        duration: 2000,
+      });
+    } else if (connectionStatus === 'closed' && !connecting) {
       addNotification({
         type: 'warning',
         title: 'Disconnected',
         message: 'Real-time updates are temporarily unavailable',
         autoHide: false,
       });
-    },
-    onError: (error) => {
-      addNotification({
-        type: 'error',
-        title: 'Connection Error',
-        message: 'Failed to connect to real-time updates',
-        autoHide: false,
-      });
-    },
-  });
-
-  // Show connection status in development
-  useEffect(() => {
-    if (process.env.NODE_ENV === 'development') {
-      logger.log('WebSocket status:', { connected, connecting, error });
     }
-  }, [connected, connecting, error]);
+  }, [connectionStatus, connected, connecting, addNotification]);
 
   return (
     <>
       {/* Connection Status Indicator (only show when there are issues) */}
-      {(connecting || error) && (
+      {connecting && (
         <div className="fixed top-4 left-4 z-50">
-          <div className={`
-            flex items-center space-x-2 px-3 py-2 rounded-lg text-sm font-medium
-            ${connecting ? 'bg-yellow-100 text-yellow-800' : 'bg-red-100 text-red-800'}
-          `}>
+          <div className="flex items-center space-x-2 px-3 py-2 rounded-lg text-sm font-medium bg-yellow-100 text-yellow-800">
             <Bell className="h-4 w-4" />
-            <span>
-              {connecting ? 'Connecting...' : 'Real-time updates unavailable'}
-            </span>
+            <span>Connecting...</span>
           </div>
         </div>
       )}

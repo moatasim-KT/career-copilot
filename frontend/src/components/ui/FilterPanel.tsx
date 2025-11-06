@@ -1,6 +1,6 @@
 
-import { useState } from 'react';
 import { ChevronDown, Filter } from 'lucide-react';
+import { useState } from 'react';
 
 interface FilterCategory {
   id: string;

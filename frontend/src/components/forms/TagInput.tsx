@@ -5,8 +5,8 @@
 
 'use client';
 
-import React, { useState, useRef, KeyboardEvent, ChangeEvent } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import React, { useState, useRef, KeyboardEvent, ChangeEvent } from 'react';
 
 // ============================================================================
 // Types
@@ -57,7 +57,7 @@ export function TagInput({
     const filteredSuggestions = suggestions.filter(
         (suggestion) =>
             suggestion.toLowerCase().includes(inputValue.toLowerCase()) &&
-            (allowDuplicates || !tags.some((tag) => tag.value === suggestion))
+            (allowDuplicates || !tags.some((tag) => tag.value === suggestion)),
     );
 
     // Add a tag
@@ -133,7 +133,7 @@ export function TagInput({
         } else if (e.key === 'ArrowDown') {
             e.preventDefault();
             setSelectedSuggestionIndex((prev) =>
-                prev < filteredSuggestions.length - 1 ? prev + 1 : prev
+                prev < filteredSuggestions.length - 1 ? prev + 1 : prev,
             );
         } else if (e.key === 'ArrowUp') {
             e.preventDefault();

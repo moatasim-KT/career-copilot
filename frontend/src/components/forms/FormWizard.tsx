@@ -5,8 +5,8 @@
 
 'use client';
 
-import React, { useState, createContext, useContext, ReactNode } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import React, { useState, createContext, useContext, ReactNode } from 'react';
 
 // ============================================================================
 // Types

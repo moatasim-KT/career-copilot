@@ -16,11 +16,11 @@ from app.core.config import settings
 from app.core.database import get_db
 from app.models.analytics import Analytics
 from app.models.application import Application
-from app.models.document import Document
+
+# from app.models.document import Document  # TODO: Document model doesn't exist
 from app.models.job import Job
 from app.models.user import User
-from app.utils.logging import (get_logger, handle_exceptions,
-                               performance_tracker)
+from app.utils.logging import get_logger, handle_exceptions, performance_tracker
 
 logger = get_logger(__name__)
 
@@ -260,23 +260,24 @@ class BackupService:
 				)
 
 			# Export documents metadata (not file content)
-			documents = db.query(Document).all()
-			for doc in documents:
-				export_data["documents"].append(
-					{
-						"id": doc.id,
-						"user_id": doc.user_id,
-						"filename": doc.filename,
-						"original_filename": doc.original_filename,
-						"file_type": doc.file_type,
-						"file_size": doc.file_size,
-						"file_path": doc.file_path,
-						"document_type": doc.document_type,
-						"metadata": doc.metadata,
-						"created_at": doc.created_at.isoformat() if doc.created_at else None,
-						"updated_at": doc.updated_at.isoformat() if doc.updated_at else None,
-					}
-				)
+			# TODO: Document model doesn't exist - commenting out for now
+			# documents = db.query(Document).all()
+			# for doc in documents:
+			# 	export_data["documents"].append(
+			# 		{
+			# 			"id": doc.id,
+			# 			"user_id": doc.user_id,
+			# 			"filename": doc.filename,
+			# 			"original_filename": doc.original_filename,
+			# 			"file_type": doc.file_type,
+			# 			"file_size": doc.file_size,
+			# 			"file_path": doc.file_path,
+			# 			"document_type": doc.document_type,
+			# 			"metadata": doc.metadata,
+			# 			"created_at": doc.created_at.isoformat() if doc.created_at else None,
+			# 			"updated_at": doc.updated_at.isoformat() if doc.updated_at else None,
+			# 		}
+			# 	)
 
 			# Export analytics (last 30 days only)
 			cutoff_date = datetime.now(timezone.utc) - timedelta(days=30)
@@ -401,27 +402,27 @@ class BackupService:
 			if member.isdev() or member.ischr() or member.isblk() or member.isfifo():
 				raise ValueError("Archive contains unsupported special file entry")
 
-	for member in members:
-		member_path = (destination_root / member.name).resolve()
-		if member.isdir():
-			member_path.mkdir(parents=True, exist_ok=True)
-			continue
+		for member in members:
+			member_path = (destination_root / member.name).resolve()
+			if member.isdir():
+				member_path.mkdir(parents=True, exist_ok=True)
+				continue
 
-		if member.isfile():
-			member_path.parent.mkdir(parents=True, exist_ok=True)
-			# Security: Path already validated above via _is_within_directory check (lines 396-400)
-			# This prevents tar slip attacks (CWE-22)
-			extracted_file = tar.extractfile(member)
-			if extracted_file is None:
-				raise ValueError(f"Failed to extract file from archive: {member.name}")
-			try:
-				with open(member_path, "wb") as destination_file:
-					shutil.copyfileobj(extracted_file, destination_file)
-			finally:
-				extracted_file.close()
-			continue
+			if member.isfile():
+				member_path.parent.mkdir(parents=True, exist_ok=True)
+				# Security: Path already validated above via _is_within_directory check (lines 396-400)
+				# This prevents tar slip attacks (CWE-22)
+				extracted_file = tar.extractfile(member)
+				if extracted_file is None:
+					raise ValueError(f"Failed to extract file from archive: {member.name}")
+				try:
+					with open(member_path, "wb") as destination_file:
+						shutil.copyfileobj(extracted_file, destination_file)
+				finally:
+					extracted_file.close()
+				continue
 
-		raise ValueError(f"Unsupported tar entry type: {member.name}")
+			raise ValueError(f"Unsupported tar entry type: {member.name}")
 
 	def _is_within_directory(self, directory: Path, target: Path) -> bool:
 		"""Check that target resides within directory."""

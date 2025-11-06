@@ -1,0 +1,29 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+# Pre-push hook for running comprehensive tests
+
+echo "🚀 Running pre-push checks..."
+
+# Run full test suite
+echo "🧪 Running full test suite..."
+npm run test || {
+  echo "❌ Tests failed. Please fix them before pushing."
+  exit 1
+}
+
+# Run build to ensure production build works
+echo "🏗️  Building production bundle..."
+npm run build || {
+  echo "❌ Build failed. Please fix build errors before pushing."
+  exit 1
+}
+
+# Check bundle size
+echo "📊 Checking bundle size..."
+if [ -f ".next/analyze/client.html" ]; then
+  BUNDLE_SIZE=$(du -sh .next/static | awk '{print $1}')
+  echo "Bundle size: $BUNDLE_SIZE"
+fi
+
+echo "✅ All pre-push checks passed!"

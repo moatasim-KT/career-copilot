@@ -23,18 +23,26 @@ class ResumeParserService:
 	_converter_instance: ClassVar[Optional[Any]] = None
 
 	def __init__(self) -> None:
-		self._converter = self._ensure_converter()
+		# Lazy initialization - don't load docling until actually needed
+		self._converter = None
+		self._converter_error = None
 
 	@classmethod
 	def _ensure_converter(cls):
+		"""Lazy load the DocumentConverter only when needed."""
 		if cls._converter_instance is not None:
 			return cls._converter_instance
 		try:
 			from docling.document_converter import DocumentConverter  # type: ignore
-		except ImportError as exc:  # pragma: no cover
-			raise RuntimeError("Docling is required for resume parsing. Install it with `pip install docling`.") from exc
-		cls._converter_instance = DocumentConverter()
-		return cls._converter_instance
+
+			cls._converter_instance = DocumentConverter()
+			_logger.info("✅ Docling DocumentConverter initialized successfully")
+			return cls._converter_instance
+		except (ImportError, RuntimeError) as exc:  # pragma: no cover
+			error_msg = f"Docling initialization failed: {exc}. Resume parsing will be unavailable."
+			_logger.warning(error_msg)
+			# Return None instead of raising - let individual methods handle this
+			return None
 
 	def validate_resume_file(self, file_path: str) -> Tuple[bool, str | None]:
 		"""Validate that the resume exists, is not empty, and is supported."""
@@ -51,6 +59,16 @@ class ResumeParserService:
 
 	def parse_resume_sync(self, file_path: str, filename: str, user_id: int) -> Dict[str, Any]:
 		"""Parse a resume file into structured metadata."""
+		# Lazy load converter only when actually parsing
+		if self._converter is None:
+			self._converter = self._ensure_converter()
+
+		if self._converter is None:
+			raise RuntimeError(
+				"Resume parsing is unavailable. Docling/PyTorch dependencies are not properly installed. "
+				"Please reinstall with: pip uninstall torch && pip install torch && pip install docling"
+			)
+
 		markdown, metadata = self._convert_to_markdown(file_path, filename)
 		sections = self._split_sections(markdown)
 		contact = self._extract_contact_details(markdown)

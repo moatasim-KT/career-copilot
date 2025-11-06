@@ -1,9 +1,9 @@
- 
- 
- 
- 
- 
- 
+
+
+
+
+
+
 /* eslint-disable @typescript-eslint/no-unused-vars */
 'use client';
 
@@ -30,13 +30,19 @@ import {
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 
+import { QuickFilterChips } from '@/components/filters/QuickFilterChips';
+import { SavedFilters } from '@/components/filters/SavedFilters';
+import { StickyFilterPanel } from '@/components/filters/StickyFilterPanel';
 import Button from '@/components/ui/Button';
 import Card, { CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import Input from '@/components/ui/Input';
 import Modal, { ModalFooter } from '@/components/ui/Modal';
 import Select from '@/components/ui/Select';
 import Textarea from '@/components/ui/Textarea';
+import { useLocalStorage } from '@/hooks/useLocalStorage';
 import { apiClient, type Job } from '@/lib/api';
+
+import { JobComparisonView } from './JobComparisonView';
 import { JobListView } from './JobListView';
 import { JobTableView } from './JobTableView';
 
@@ -87,6 +93,53 @@ export default function JobsPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isScraping, setIsScraping] = useState(false);
   const [currentView, setCurrentView] = useState('list'); // 'list' or 'table'
+  const [activeQuickFilters, setActiveQuickFilters] = useState<string[]>([]);
+  const [selectedJobIds, setSelectedJobIds] = useState<number[]>([]);
+  const [showComparisonView, setShowComparisonView] = useState(false);
+  const [savedFilters, setSavedFilters] = useLocalStorage<any[]>('savedJobFilters', []);
+
+  const handleSaveFilter = (filterName: string) => {
+    const currentFilters = {
+      searchTerm,
+      sourceFilter,
+      typeFilter,
+      sortBy,
+      activeQuickFilters,
+    };
+    setSavedFilters(prev => [...prev, { name: filterName, filters: currentFilters }]);
+  };
+
+  const handleApplyFilter = (filter: any) => {
+    setSearchTerm(filter.filters.searchTerm);
+    setSourceFilter(filter.filters.sourceFilter);
+    setTypeFilter(filter.filters.typeFilter);
+    setSortBy(filter.filters.sortBy);
+    setActiveQuickFilters(filter.filters.activeQuickFilters || []);
+  };
+
+  const handleDeleteFilter = (filterName: string) => {
+    setSavedFilters(prev => prev.filter(f => f.name !== filterName));
+  };
+
+  const handleSelectJob = (jobId: number) => {
+    setSelectedJobIds(prev =>
+      prev.includes(jobId) ? prev.filter(id => id !== jobId) : [...prev, jobId],
+    );
+  };
+
+  const handleBulkDelete = async () => {
+    if (!confirm(`Are you sure you want to delete ${selectedJobIds.length} selected jobs?`)) return;
+
+    try {
+      for (const jobId of selectedJobIds) {
+        await apiClient.deleteJob(jobId);
+      }
+      setSelectedJobIds([]);
+      loadJobs();
+    } catch (err) {
+      setError('Failed to delete selected jobs');
+    }
+  };
 
   const [formData, setFormData] = useState({
     company: '',
@@ -124,32 +177,22 @@ export default function JobsPage() {
     }
   };
 
-  const triggerJobScraping = async () => {
+  const handleScrapeJobs = async () => {
     setIsScraping(true);
-    setError('');
     try {
-      const response = await fetch('/api/v1/jobs/scrape', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({}), // Use user's default preferences
-      });
+      const { data, error } = await apiClient.jobs.scrape();
 
-      if (!response.ok) {
-        throw new Error('Failed to scrape jobs');
+      if (error) {
+        alert(`Error: ${error}`);
+        return;
       }
 
-      const data = await response.json();
-
-      // Show success message
-      alert(`✅ Found ${data.jobs_found} jobs! Reloading...`);
-
-      // Reload jobs to show new results
-      await loadJobs();
-    } catch (err) {
-      setError('Failed to scrape jobs. Please try again.');
-      console.error('Job scraping error:', err);
+      alert('Job scraping started successfully!');
+      // Refresh jobs list after scraping
+      loadJobs();
+    } catch (error) {
+      console.error('Error starting job scraping:', error);
+      alert('Failed to start job scraping');
     } finally {
       setIsScraping(false);
     }
@@ -308,7 +351,20 @@ export default function JobsPage() {
       const matchesSource = sourceFilter === 'all' || job.source === sourceFilter;
       const matchesType = typeFilter === 'all' || (job.job_type && job.job_type === typeFilter);
 
-      return matchesSearch && matchesSource && matchesType;
+      const matchesQuickFilters = activeQuickFilters.every(filter => {
+        switch (filter) {
+          case 'remote':
+            return job.remote;
+          case 'full-time':
+            return job.job_type === 'full-time';
+          case 'react':
+            return job.tech_stack && job.tech_stack.includes('React');
+          default:
+            return true;
+        }
+      });
+
+      return matchesSearch && matchesSource && matchesType && matchesQuickFilters;
     })
     .sort((a, b) => {
       switch (sortBy) {
@@ -360,7 +416,7 @@ export default function JobsPage() {
         </div>
         <div className="flex gap-2">
           <Button
-            onClick={triggerJobScraping}
+            onClick={handleScrapeJobs}
             disabled={isScraping}
             variant="outline"
             className="flex items-center space-x-2"
@@ -385,85 +441,159 @@ export default function JobsPage() {
       )}
 
       {/* Search and Filters */}
-      <Card>
-        <CardContent className="p-4">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div className="md:col-span-2">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                <Input
-                  type="text"
-                  placeholder="Search jobs by title, company, location, or tech stack..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10"
-                />
+      <StickyFilterPanel>
+        <Card>
+          <CardContent className="p-4">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <div className="md:col-span-2">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                  <Input
+                    type="text"
+                    placeholder="Search jobs by title, company, location, or tech stack..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pl-10"
+                  />
+                </div>
               </div>
+
+              <Select
+                value={sourceFilter}
+                onChange={(e) => setSourceFilter(e.target.value)}
+                options={[
+                  { value: 'all', label: 'All Sources' },
+                  ...JOB_SOURCES,
+                ]}
+              />
+
+              <Select
+                value={typeFilter}
+                onChange={(e) => setTypeFilter(e.target.value)}
+                options={[
+                  { value: 'all', label: 'All Types' },
+                  ...JOB_TYPES,
+                ]}
+              />
             </div>
 
-            <Select
-              value={sourceFilter}
-              onChange={(e) => setSourceFilter(e.target.value)}
-              options={[
-                { value: 'all', label: 'All Sources' },
-                ...JOB_SOURCES,
-              ]}
-            />
+            <div className="mt-4">
+              <QuickFilterChips
+                filters={[
+                  { label: 'Remote', value: 'remote' },
+                  { label: 'Full-time', value: 'full-time' },
+                  { label: 'React', value: 'react' },
+                ]}
+                activeFilters={activeQuickFilters}
+                onFilterChange={(filterValue) => {
+                  setActiveQuickFilters(prev =>
+                    prev.includes(filterValue)
+                      ? prev.filter(f => f !== filterValue)
+                      : [...prev, filterValue],
+                  );
+                }}
+              />
+            </div>
 
-            <Select
-              value={typeFilter}
-              onChange={(e) => setTypeFilter(e.target.value)}
-              options={[
-                { value: 'all', label: 'All Types' },
-                ...JOB_TYPES,
-              ]}
-            />
-          </div>
+            <div className="mt-4">
+              <SavedFilters
+                filters={savedFilters}
+                onSave={handleSaveFilter}
+                onApply={handleApplyFilter}
+                onDelete={handleDeleteFilter}
+              />
+            </div>
 
-          <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-200">
-            <div className="text-sm text-gray-600">
+            <div className="mt-4 flex items-center justify-between">
+              <div className="flex items-center space-x-2">
+                <input
+                  type="checkbox"
+                  className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                  checked={selectedJobIds.length === filteredAndSortedJobs.length && filteredAndSortedJobs.length > 0}
+                  onChange={() => {
+                    if (selectedJobIds.length === filteredAndSortedJobs.length) {
+                      setSelectedJobIds([]);
+                    } else {
+                      setSelectedJobIds(filteredAndSortedJobs.map(job => job.id));
+                    }
+                  }}
+                />
+                <label className="text-sm font-medium text-gray-700">Select All</label>
+              </div>
+              {selectedJobIds.length > 0 && (
+                <div className="flex space-x-2">
+                  {selectedJobIds.length >= 2 && (
+                    <Button
+                      variant="outline"
+                      onClick={() => setShowComparisonView(true)}
+                      className="flex items-center space-x-2"
+                    >
+                      <span>Compare Selected ({selectedJobIds.length})</span>
+                    </Button>
+                  )}
+                  <Button
+                    variant="destructive"
+                    onClick={handleBulkDelete}
+                    className="flex items-center space-x-2"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                    <span>Delete Selected ({selectedJobIds.length})</span>
+                  </Button>
+                </div>
+              )}
+            </div>
+
+            <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-200">              <div className="text-sm text-gray-600">
               Showing {filteredAndSortedJobs.length} of {jobs.length} jobs
             </div>
 
-            <div className="flex items-center space-x-2">
-              <Select
-                value={sortBy}
-                onChange={(e) => setSortBy(e.target.value)}
-                options={SORT_OPTIONS}
-                className="w-48"
-              />
-              <div className="flex rounded-md shadow-sm">
-                <button
-                  type="button"
-                  onClick={() => setCurrentView('list')}
-                  className={`
-                    px-3 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium
-                    ${currentView === 'list' ? 'text-blue-600 bg-blue-50' : 'text-gray-700 hover:bg-gray-50'}
-                  `}
-                  title="List View"
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                    <path fillRule="evenodd" d="M3 5a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 9a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 13a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clipRule="evenodd" />
-                  </svg>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setCurrentView('table')}
-                  className={`
-                    px-3 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium
-                    ${currentView === 'table' ? 'text-blue-600 bg-blue-50' : 'text-gray-700 hover:bg-gray-50'}
-                  `}
-                  title="Table View"
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                    <path fillRule="evenodd" d="M5 4a1 1 0 00-1 1v4a1 1 0 001 1h10a1 1 0 001-1V5a1 1 0 00-1-1H5zm0 6a1 1 0 00-1 1v4a1 1 0 001 1h10a1 1 0 001-1v-4a1 1 0 00-1-1H5z" clipRule="evenodd" />
-                  </svg>
-                </button>
+              <div className="flex items-center space-x-2">
+                <Select
+                  value={sortBy}
+                  onChange={(e) => setSortBy(e.target.value)}
+                  options={SORT_OPTIONS}
+                  className="w-48"
+                />
+                <div className="flex rounded-md shadow-sm">
+                  <button
+                    type="button"
+                    onClick={() => setCurrentView('list')}
+                    className={`
+                      px-3 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium
+                      ${currentView === 'list' ? 'text-blue-600 bg-blue-50' : 'text-gray-700 hover:bg-gray-50'}
+                    `}
+                    title="List View"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                      <path fillRule="evenodd" d="M3 5a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 9a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 13a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clipRule="evenodd" />
+                    </svg>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setCurrentView('table')}
+                    className={`
+                      px-3 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium
+                      ${currentView === 'table' ? 'text-blue-600 bg-blue-50' : 'text-gray-700 hover:bg-gray-50'}
+                    `}
+                    title="Table View"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                      <path fillRule="evenodd" d="M5 4a1 1 0 00-1 1v4a1 1 0 001 1h10a1 1 0 001-1V5a1 1 0 00-1-1H5zm0 6a1 1 0 00-1 1v4a1 1 0 001 1h10a1 1 0 001-1v-4a1 1 0 00-1-1H5z" clipRule="evenodd" />
+                    </svg>
+                  </button>
+                </div>
               </div>
             </div>
-          </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      </StickyFilterPanel>
+
+      {showComparisonView && (
+        <JobComparisonView
+          jobs={jobs.filter(job => selectedJobIds.includes(job.id))}
+          onClose={() => setShowComparisonView(false)}
+        />
+      )}
 
       {/* Job Form Modal */}
       <Modal
@@ -615,9 +745,19 @@ export default function JobsPage() {
           ))}
         </div>
       ) : currentView === 'list' ? (
-        <JobListView jobs={filteredAndSortedJobs} onJobClick={(jobId) => console.log('View job:', jobId)} />
+        <JobListView
+          jobs={filteredAndSortedJobs}
+          onJobClick={(jobId) => console.log('View job:', jobId)}
+          selectedJobIds={selectedJobIds}
+          onSelectJob={handleSelectJob}
+        />
       ) : (
-        <JobTableView jobs={filteredAndSortedJobs} onJobClick={(jobId) => console.log('View job:', jobId)} />
+        <JobTableView
+          jobs={filteredAndSortedJobs}
+          onJobClick={(jobId) => console.log('View job:', jobId)}
+          selectedJobIds={selectedJobIds}
+          onSelectJob={handleSelectJob}
+        />
       )}
     </div>
   );

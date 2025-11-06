@@ -1,17 +1,18 @@
 
 import { useEffect, useState } from 'react';
-import { Reconnector } from '../lib/websocket/reconnection';
+
+import { handleAnalyticsUpdate } from '../lib/websocket/analytics';
+import { handleApplicationStatusUpdate } from '../lib/websocket/applications';
+import { handleDashboardUpdate } from '../lib/websocket/dashboard';
 import { HealthMonitor } from '../lib/websocket/health';
 import { handleNotification } from '../lib/websocket/notifications';
-import { handleDashboardUpdate } from '../lib/websocket/dashboard';
-import { handleApplicationStatusUpdate } from '../lib/websocket/applications';
-import { handleAnalyticsUpdate } from '../lib/websocket/analytics';
+import { Reconnector } from '../lib/websocket/reconnection';
 
 export function useWebSocket(
   url: string,
   onDashboardUpdate: (data: any) => void,
   onApplicationStatusUpdate: (data: any) => void,
-  onAnalyticsUpdate: (data: any) => void
+  onAnalyticsUpdate: (data: any) => void,
 ) {
   const [ws, setWs] = useState<WebSocket | null>(null);
   const [connectionStatus, setConnectionStatus] = useState('closed');

@@ -1,9 +1,9 @@
 'use client';
 
-import { 
-  Briefcase, 
-  FileText, 
-  Calendar, 
+import {
+  Briefcase,
+  FileText,
+  Calendar,
   Trophy,
   TrendingUp,
   Target,
@@ -16,12 +16,7 @@ import {
 } from 'lucide-react';
 import { useState, useEffect, useCallback } from 'react';
 
-import { 
-  useWebSocket, 
-  useAnalyticsUpdates, 
-  useApplicationStatusUpdates,
-  useJobMatchNotifications, 
-} from '@/hooks/useWebSocket';
+import { useWebSocket } from '@/hooks/useWebSocket';
 import { apiClient, type AnalyticsSummary, type Application } from '@/lib/api';
 import { logger } from '@/lib/logger';
 
@@ -31,58 +26,6 @@ export default function Dashboard() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
-
-  // WebSocket connection for real-time updates
-  const { connected, connecting, error: wsError } = useWebSocket({
-    autoConnect: true,
-    onConnect: () => {
-      logger.log('Dashboard WebSocket connected');
-      setLastUpdated(new Date());
-    },
-    onDisconnect: () => {
-      logger.log('Dashboard WebSocket disconnected');
-    },
-  });
-
-  // Handle real-time analytics updates
-  const handleAnalyticsUpdate = useCallback((data: any) => {
-    logger.log('Analytics update received:', data);
-    if (data.analytics) {
-      setAnalytics(data.analytics);
-      setLastUpdated(new Date());
-    }
-  }, []);
-
-  // Handle real-time application status updates
-  const handleApplicationUpdate = useCallback((data: any) => {
-    logger.log('Application update received:', data);
-    if (data.application) {
-      // Update the specific application in the list
-      setRecentApplications(prev => 
-        prev.map(app => 
-          app.id === data.application.id 
-            ? { ...app, ...data.application }
-            : app,
-        ),
-      );
-      // Refresh analytics to reflect the change
-      loadAnalytics();
-      setLastUpdated(new Date());
-    }
-  }, []);
-
-  // Handle job match notifications
-  const handleJobMatch = useCallback((data: any) => {
-    logger.log('Job match received:', data);
-    // The notification system will handle displaying the notification
-    // We might want to refresh recommendations or show a badge
-    setLastUpdated(new Date());
-  }, []);
-
-  // Set up WebSocket event listeners
-  useAnalyticsUpdates(handleAnalyticsUpdate);
-  useApplicationStatusUpdates(handleApplicationUpdate);
-  useJobMatchNotifications(handleJobMatch);
 
   const loadAnalytics = async () => {
     try {
@@ -192,26 +135,6 @@ export default function Dashboard() {
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-4">
           <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
-          
-          {/* Real-time connection indicator */}
-          <div className="flex items-center space-x-2">
-            {connected ? (
-              <div className="flex items-center space-x-1 text-green-600">
-                <Wifi className="h-4 w-4" />
-                <span className="text-sm font-medium">Live</span>
-              </div>
-            ) : connecting ? (
-              <div className="flex items-center space-x-1 text-yellow-600">
-                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-yellow-600"></div>
-                <span className="text-sm font-medium">Connecting...</span>
-              </div>
-            ) : (
-              <div className="flex items-center space-x-1 text-red-600">
-                <WifiOff className="h-4 w-4" />
-                <span className="text-sm font-medium">Offline</span>
-              </div>
-            )}
-          </div>
         </div>
 
         <div className="flex items-center space-x-3">
@@ -356,7 +279,7 @@ export default function Dashboard() {
                     </span>
                     {application.applied_date && (
                       <span className="text-sm text-gray-500">
-                        {new Date(application.applied_date).toLocaleDateString()}
+                        {new Date(application.applied_date).toLocaleDate-String()}
                       </span>
                     )}
                   </div>

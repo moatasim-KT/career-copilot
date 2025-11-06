@@ -6,21 +6,18 @@ FastAPI application entry point
 import traceback
 from datetime import datetime
 
-from app.core.config import get_settings
-from app.core.database import get_db
-from app.core.exceptions import AuthenticationError, AuthorizationError
-from app.core.logging import get_correlation_id, get_logger, setup_logging
-
-# Authentication middleware disabled for local development
-# from app.middleware.auth_middleware import AuthMiddleware
-from app.middleware.error_handling import add_error_handlers
-from app.middleware.logging_middleware import LoggingMiddleware
-from app.services.resume_parser_service import ResumeParserService
 from fastapi import Depends, FastAPI, HTTPException, Request, WebSocket, status
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
+
+from app.core.config import get_settings
+from app.core.database import get_db
+from app.core.logging import get_correlation_id, get_logger, setup_logging
+from app.middleware.error_handling import add_error_handlers
+from app.middleware.logging_middleware import LoggingMiddleware
+from app.services.resume_parser_service import ResumeParserService
 
 logger = get_logger(__name__)
 
@@ -79,7 +76,6 @@ def create_app() -> FastAPI:
 	logger.info(f"Debug Mode: {settings.debug}")
 	logger.info(f"API Host: {settings.api_host}:{settings.api_port}")
 	logger.info(f"Database URL: {settings.database_url}")
-	logger.info(f"JWT Expiration: {settings.jwt_expiration_hours} hours")
 	logger.info(f"SMTP Enabled: {settings.smtp_enabled}")
 	logger.info(f"Scheduler Enabled: {settings.enable_scheduler}")
 	logger.info(f"Job Scraping Enabled: {settings.enable_job_scraping}")
@@ -110,7 +106,6 @@ def create_app() -> FastAPI:
 	# Essential middleware
 	add_error_handlers(app)
 	app.add_middleware(LoggingMiddleware)
-	# app.add_middleware(AuthMiddleware)  # Disabled for local development
 
 	# Security headers
 	from app.middleware.security_headers import SecurityHeadersMiddleware
@@ -143,34 +138,6 @@ def create_app() -> FastAPI:
 				"timestamp": datetime.now().isoformat(),
 				"correlation_id": get_correlation_id(),
 				"errors": exc.errors(),
-			},
-		)
-
-	@app.exception_handler(AuthenticationError)
-	async def authentication_exception_handler(request: Request, exc: AuthenticationError):
-		"""Handle authentication errors (401)"""
-		logger.warning(f"Authentication error: {exc.message}")
-		return JSONResponse(
-			status_code=401,
-			content={
-				"detail": exc.user_message,
-				"error_code": exc.error_code,
-				"timestamp": datetime.now().isoformat(),
-				"correlation_id": get_correlation_id(),
-			},
-		)
-
-	@app.exception_handler(AuthorizationError)
-	async def authorization_exception_handler(request: Request, exc: AuthorizationError):
-		"""Handle authorization errors (403)"""
-		logger.warning(f"Authorization error: {exc.message}")
-		return JSONResponse(
-			status_code=403,
-			content={
-				"detail": exc.user_message,
-				"error_code": exc.error_code,
-				"timestamp": datetime.now().isoformat(),
-				"correlation_id": get_correlation_id(),
 			},
 		)
 
@@ -218,23 +185,13 @@ def create_app() -> FastAPI:
 	@app.websocket("/ws")
 	async def websocket_endpoint(websocket: WebSocket, db: Session = Depends(get_db)):
 		await websocket.accept()
-		token = websocket.headers.get("authorization")
-		if token and token.startswith("Bearer "):
-			token = token.split(" ")[1]
-
-		user_id = await websocket_service.authenticate_websocket(websocket, token, db)
-
-		if user_id:
-			await websocket_service.handle_websocket_connection(websocket, user_id)
-		else:
-			await websocket.close(code=status.WS_1008_POLICY_VIOLATION, reason="Authentication failed")
+		await websocket_service.handle_websocket_connection(websocket, None)
 
 	# Include routers
 	from .api.v1 import (
 		advanced_user_analytics,
 		analytics,
 		applications,
-		auth,
 		dashboard,
 		database_performance,
 		feedback_analysis,
@@ -245,17 +202,22 @@ def create_app() -> FastAPI:
 		jobs,
 		linkedin_jobs,
 		market_analysis,
-		profile,
+		personalization,
 		recommendations,
 		resume,
 		scheduled_reports,
 		skill_gap_analysis,
+		social,
 		tasks,
 	)
 
 	app.include_router(health.router)
-	app.include_router(auth.router)
-	app.include_router(profile.router)
+
+	# Include personalization and social routers FIRST (before jobs router)
+	# This prevents /jobs/available from conflicting with /jobs/{job_id}
+	app.include_router(personalization.router, prefix="/api/v1", tags=["personalization"])
+	app.include_router(social.router, prefix="/api/v1", tags=["social"])
+
 	app.include_router(jobs.router)
 	app.include_router(job_sources.router)
 	app.include_router(analytics.router)

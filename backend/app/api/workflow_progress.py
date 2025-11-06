@@ -6,16 +6,15 @@ and agent execution status in real-time.
 """
 
 import logging
-from typing import Dict, Any, Optional, List
 from datetime import datetime, timezone
+from typing import Any, Dict, List, Optional
 
-from fastapi import APIRouter, HTTPException, Depends, Query
+from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 
-from ..core.auth import get_current_user
+from ..core.single_user import MOATASIM_USER_ID, MOATASIM_USERNAME, get_single_user
 from ..models.agent_models import WorkflowState, get_workflow_progress_manager
-from ..models.database_models import User
 
 logger = logging.getLogger(__name__)
 
@@ -60,13 +59,12 @@ class AgentProgressResponse(BaseModel):
 
 
 @router.get("/progress/{workflow_id}", response_model=WorkflowProgressResponse)
-async def get_workflow_progress(workflow_id: str, current_user: User = Depends(get_current_user)) -> WorkflowProgressResponse:
+async def get_workflow_progress(workflow_id: str) -> WorkflowProgressResponse:
 	"""
 	Get progress information for a specific workflow.
 
 	Args:
 	    workflow_id: Unique workflow identifier
-	    current_user: Authenticated user
 
 	Returns:
 	    WorkflowProgressResponse: Current workflow progress
@@ -94,7 +92,6 @@ async def get_workflow_progress(workflow_id: str, current_user: User = Depends(g
 
 @router.get("/progress", response_model=List[WorkflowProgressResponse])
 async def get_all_active_workflows(
-	current_user: User = Depends(get_current_user),
 	limit: int = Query(default=50, ge=1, le=100, description="Maximum number of workflows to return"),
 	state_filter: Optional[str] = Query(default=None, description="Filter by workflow state"),
 ) -> List[WorkflowProgressResponse]:
@@ -102,7 +99,6 @@ async def get_all_active_workflows(
 	Get progress information for all active workflows.
 
 	Args:
-	    current_user: Authenticated user
 	    limit: Maximum number of workflows to return
 	    state_filter: Optional filter by workflow state
 
@@ -135,7 +131,6 @@ async def get_all_active_workflows(
 async def get_agent_progress(
 	agent_name: str,
 	workflow_id: Optional[str] = Query(default=None, description="Workflow ID to get agent progress from"),
-	current_user: User = Depends(get_current_user),
 ) -> AgentProgressResponse:
 	"""
 	Get progress information for a specific agent.
@@ -143,7 +138,6 @@ async def get_agent_progress(
 	Args:
 	    agent_name: Name of the agent
 	    workflow_id: Optional workflow ID to get agent progress from
-	    current_user: Authenticated user
 
 	Returns:
 	    AgentProgressResponse: Current agent progress
@@ -190,13 +184,12 @@ async def get_agent_progress(
 
 
 @router.post("/cancel/{workflow_id}")
-async def cancel_workflow(workflow_id: str, current_user: User = Depends(get_current_user)) -> JSONResponse:
+async def cancel_workflow(workflow_id: str) -> JSONResponse:
 	"""
 	Cancel a running workflow.
 
 	Args:
 	    workflow_id: Unique workflow identifier
-	    current_user: Authenticated user
 
 	Returns:
 	    JSONResponse: Cancellation status
@@ -221,14 +214,14 @@ async def cancel_workflow(workflow_id: str, current_user: User = Depends(get_cur
 		success = workflow_progress_manager.cancel_workflow(workflow_id)
 
 		if success:
-			logger.info(f"Workflow {workflow_id} cancelled by user {current_user.username}")
+			logger.info(f"Workflow {workflow_id} cancelled by user {MOATASIM_USERNAME}")
 			return JSONResponse(
 				status_code=200,
 				content={
 					"message": f"Workflow {workflow_id} has been cancelled",
 					"workflow_id": workflow_id,
 					"cancelled_at": datetime.now(timezone.utc).isoformat(),
-					"cancelled_by": current_user.username,
+					"cancelled_by": MOATASIM_USERNAME,
 				},
 			)
 		else:
@@ -242,12 +235,9 @@ async def cancel_workflow(workflow_id: str, current_user: User = Depends(get_cur
 
 
 @router.get("/stats/summary")
-async def get_workflow_stats_summary(current_user: User = Depends(get_current_user)) -> Dict[str, Any]:
+async def get_workflow_stats_summary() -> Dict[str, Any]:
 	"""
 	Get summary statistics for all workflows.
-
-	Args:
-	    current_user: Authenticated user
 
 	Returns:
 	    Dict[str, Any]: Workflow statistics summary
@@ -286,14 +276,12 @@ async def get_workflow_stats_summary(current_user: User = Depends(get_current_us
 @router.delete("/cleanup")
 async def cleanup_completed_workflows(
 	max_age_hours: int = Query(default=24, ge=1, le=168, description="Maximum age in hours for completed workflows"),
-	current_user: User = Depends(get_current_user),
 ) -> JSONResponse:
 	"""
 	Clean up completed workflows older than specified hours.
 
 	Args:
 	    max_age_hours: Maximum age in hours for workflows to keep
-	    current_user: Authenticated user
 
 	Returns:
 	    JSONResponse: Cleanup results
@@ -311,7 +299,7 @@ async def cleanup_completed_workflows(
 				"cleaned_workflows": cleaned_count,
 				"max_age_hours": max_age_hours,
 				"cleaned_at": datetime.now(timezone.utc).isoformat(),
-				"cleaned_by": current_user.username,
+				"cleaned_by": MOATASIM_USERNAME,
 			},
 		)
 
