@@ -10,7 +10,7 @@ from typing import Any, Dict, List, Optional
 from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks
 from pydantic import BaseModel, Field
 
-from ...core.auth import get_current_user
+from ...core.dependencies import get_current_user
 from ...core.monitoring import log_audit_event
 from ...models.api_models import SuccessResponse
 from ...models.database_models import User

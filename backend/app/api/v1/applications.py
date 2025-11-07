@@ -12,13 +12,109 @@ from ...core.dependencies import get_current_user
 from ...models.application import Application
 from ...models.job import Job  # Import Job model
 from ...models.user import User
-from ...schemas.application import (ApplicationCreate, ApplicationResponse,
-                                    ApplicationUpdate)
+from ...schemas.application import ApplicationCreate, ApplicationResponse, ApplicationUpdate
 
 # NOTE: This file has been converted to use AsyncSession.
 # Database queries need to be converted to async: await db.execute(select(...)) instead of db.query(...)
 
 router = APIRouter(tags=["applications"])
+
+
+# IMPORTANT: Define specific routes BEFORE parameterized routes
+@router.get("/api/v1/applications/summary")
+async def get_applications_summary(timeframe_days: int = 30, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
+	"""
+	Get summary of applications statistics.
+
+	- **timeframe_days**: Number of days to analyze (default: 30)
+	"""
+	try:
+		from datetime import datetime, timedelta
+
+		# Get applications within timeframe
+		cutoff_date = datetime.now() - timedelta(days=timeframe_days)
+		stmt = select(Application).where(Application.user_id == current_user.id, Application.created_at >= cutoff_date)
+
+		result = await db.execute(stmt)
+		applications = result.scalars().all()
+
+		# Calculate summary statistics
+		total = len(applications)
+		by_status = {}
+		response_times = []
+
+		for app in applications:
+			status = app.status or "interested"
+			by_status[status] = by_status.get(status, 0) + 1
+
+			if app.response_date and app.created_at:
+				response_time = (app.response_date - app.created_at).days
+				response_times.append(response_time)
+
+		avg_response_time = sum(response_times) / len(response_times) if response_times else 0
+
+		return {
+			"timeframe_days": timeframe_days,
+			"total_applications": total,
+			"status_breakdown": by_status,
+			"average_response_time_days": round(avg_response_time, 1),
+			"applications_with_response": len(response_times),
+			"response_rate": (len(response_times) / total * 100) if total > 0 else 0,
+		}
+	except Exception as e:
+		raise HTTPException(status_code=500, detail=f"Error getting applications summary: {e!s}")
+
+
+@router.get("/api/v1/applications/stats")
+async def get_applications_stats(
+	group_by: str = "status", timeframe_days: int = 30, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)
+):
+	"""
+	Get detailed application statistics.
+
+	- **group_by**: Group results by 'status', 'month', or 'week' (default: 'status')
+	- **timeframe_days**: Number of days to analyze (default: 30)
+	"""
+	try:
+		from collections import defaultdict
+		from datetime import datetime, timedelta
+
+		cutoff_date = datetime.now() - timedelta(days=timeframe_days)
+		stmt = (
+			select(Application)
+			.where(Application.user_id == current_user.id, Application.created_at >= cutoff_date)
+			.order_by(Application.created_at.desc())
+		)
+
+		result = await db.execute(stmt)
+		applications = result.scalars().all()
+
+		stats = {"timeframe_days": timeframe_days, "total_applications": len(applications), "group_by": group_by, "data": {}}
+
+		if group_by == "status":
+			by_status = defaultdict(int)
+			for app in applications:
+				by_status[app.status or "interested"] += 1
+			stats["data"] = dict(by_status)
+
+		elif group_by == "month":
+			by_month = defaultdict(int)
+			for app in applications:
+				month_key = app.created_at.strftime("%Y-%m") if app.created_at else "unknown"
+				by_month[month_key] += 1
+			stats["data"] = dict(sorted(by_month.items()))
+
+		elif group_by == "week":
+			by_week = defaultdict(int)
+			for app in applications:
+				if app.created_at:
+					week_key = app.created_at.strftime("%Y-W%W")
+					by_week[week_key] += 1
+			stats["data"] = dict(sorted(by_week.items()))
+
+		return stats
+	except Exception as e:
+		raise HTTPException(status_code=500, detail=f"Error getting application stats: {e!s}")
 
 
 @router.get("/api/v1/applications", response_model=List[ApplicationResponse])
@@ -108,7 +204,9 @@ async def get_application(app_id: int, current_user: User = Depends(get_current_
 
 
 @router.put("/api/v1/applications/{app_id}", response_model=ApplicationResponse)
-async def update_application(app_id: int, app_data: ApplicationUpdate, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
+async def update_application(
+	app_id: int, app_data: ApplicationUpdate, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)
+):
 	"""
 	Update an application's status and other fields.
 

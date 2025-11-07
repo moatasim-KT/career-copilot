@@ -2,6 +2,9 @@
 __pycache__/
 *.py[cod]
 *$py.class
+*.pyc
+*.pyo
+*.pyd
 *.so
 .Python
 venv/
@@ -19,14 +22,17 @@ parts/
 sdist/
 var/
 wheels/
+pip-wheel-metadata/
 *.egg-info/
 .installed.cfg
 *.egg
+MANIFEST
 
 # Virtual environments
 venv/
 ENV/
 env/
+.venv/
 
 # IDE
 .vscode/
@@ -47,6 +53,11 @@ htmlcov/
 *.db
 *.sqlite
 *.sqlite3
+celerybeat-schedule.db
+test_profile.db
+*.db-journal
+*.db-wal
+*.db-shm
 
 # Environment variables
 .env
@@ -56,12 +67,20 @@ htmlcov/
 # Logs
 logs/
 *.log
+*.log.*
+*.log.*.gz
+backend/logs/
+frontend/logs/
+data/logs/
 
 # Data
 data/uploads/*
 data/storage/*
 data/chroma/*
+data/databases/*
+data/backups/*
 !data/.gitkeep
+!data/*/.gitkeep
 
 # Backups
 backups/
@@ -74,6 +93,9 @@ temp/
 # OS
 .DS_Store
 Thumbs.db
+
+# Archive (reports, backups, temp files)
+.archive/
 
 # Documentation builds
 docs/_build/

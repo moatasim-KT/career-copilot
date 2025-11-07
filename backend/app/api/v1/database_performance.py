@@ -20,7 +20,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from pydantic import BaseModel
 
 from ...core.database import get_db
-from ...core.auth import get_current_user
+from ...core.dependencies import get_current_user
 from ...core.logging import get_logger
 
 logger = get_logger(__name__)

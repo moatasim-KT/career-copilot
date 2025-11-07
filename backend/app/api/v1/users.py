@@ -4,7 +4,7 @@ API endpoints for user management and settings.
 
 from fastapi import APIRouter, Depends, HTTPException, status
 
-from ...core.auth import get_current_active_user, User
+from ...core.dependencies import get_current_user, User
 from ...core.logging import get_logger
 from ...models.api_models import (
 	UserSettingsResponse,
@@ -21,7 +21,7 @@ logger = get_logger(__name__)
 
 
 @router.get("/me/settings", response_model=UserSettingsResponse)
-async def get_user_settings(current_user: User = Depends(get_current_active_user)):
+async def get_user_settings(current_user: User = Depends(get_current_user)):
 	"""Get current user's settings and preferences."""
 	try:
 		settings_service = get_user_settings_service()
@@ -38,7 +38,7 @@ async def get_user_settings(current_user: User = Depends(get_current_active_user
 
 
 @router.put("/me/settings", response_model=UserSettingsResponse)
-async def update_user_settings(settings_update: UserSettingsUpdate, current_user: User = Depends(get_current_active_user)):
+async def update_user_settings(settings_update: UserSettingsUpdate, current_user: User = Depends(get_current_user)):
 	"""Update current user's settings and preferences."""
 	try:
 		settings_service = get_user_settings_service()
@@ -57,7 +57,7 @@ async def update_user_settings(settings_update: UserSettingsUpdate, current_user
 
 
 @router.post("/me/settings/reset", response_model=UserSettingsResponse)
-async def reset_user_settings(current_user: User = Depends(get_current_active_user)):
+async def reset_user_settings(current_user: User = Depends(get_current_user)):
 	"""Reset current user's settings to default values."""
 	try:
 		settings_service = get_user_settings_service()
@@ -74,7 +74,7 @@ async def reset_user_settings(current_user: User = Depends(get_current_active_us
 
 
 @router.get("/me/profile", response_model=UserResponse)
-async def get_user_profile(current_user: User = Depends(get_current_active_user)):
+async def get_user_profile(current_user: User = Depends(get_current_user)):
 	"""Get current user's profile information."""
 	try:
 		return UserResponse(
@@ -93,7 +93,7 @@ async def get_user_profile(current_user: User = Depends(get_current_active_user)
 
 
 @router.put("/me/profile", response_model=SuccessResponse)
-async def update_user_profile(profile_update: UserProfileUpdate, current_user: User = Depends(get_current_active_user)):
+async def update_user_profile(profile_update: UserProfileUpdate, current_user: User = Depends(get_current_user)):
 	"""Update current user's profile information."""
 	try:
 		settings_service = get_user_settings_service()
@@ -113,7 +113,7 @@ async def update_user_profile(profile_update: UserProfileUpdate, current_user: U
 
 
 @router.post("/me/change-password", response_model=SuccessResponse)
-async def change_password(password_change: PasswordChange, current_user: User = Depends(get_current_active_user)):
+async def change_password(password_change: PasswordChange, current_user: User = Depends(get_current_user)):
 	"""Change current user's password."""
 	try:
 		settings_service = get_user_settings_service()
@@ -133,7 +133,7 @@ async def change_password(password_change: PasswordChange, current_user: User = 
 
 
 @router.get("/me/settings/ai-model", response_model=dict)
-async def get_ai_model_preference(current_user: User = Depends(get_current_active_user)):
+async def get_ai_model_preference(current_user: User = Depends(get_current_user)):
 	"""Get current user's AI model preference."""
 	try:
 		settings_service = get_user_settings_service()
@@ -147,7 +147,7 @@ async def get_ai_model_preference(current_user: User = Depends(get_current_activ
 
 
 @router.get("/me/settings/notifications", response_model=dict)
-async def get_notification_preferences(current_user: User = Depends(get_current_active_user)):
+async def get_notification_preferences(current_user: User = Depends(get_current_user)):
 	"""Get current user's notification preferences."""
 	try:
 		settings_service = get_user_settings_service()
@@ -161,7 +161,7 @@ async def get_notification_preferences(current_user: User = Depends(get_current_
 
 
 @router.get("/me/settings/risk-thresholds", response_model=dict)
-async def get_risk_thresholds(current_user: User = Depends(get_current_active_user)):
+async def get_risk_thresholds(current_user: User = Depends(get_current_user)):
 	"""Get current user's risk threshold preferences."""
 	try:
 		settings_service = get_user_settings_service()
@@ -175,7 +175,7 @@ async def get_risk_thresholds(current_user: User = Depends(get_current_active_us
 
 
 @router.get("/me/settings/integrations", response_model=dict)
-async def get_integration_settings(current_user: User = Depends(get_current_active_user)):
+async def get_integration_settings(current_user: User = Depends(get_current_user)):
 	"""Get current user's integration settings."""
 	try:
 		settings_service = get_user_settings_service()
@@ -193,7 +193,7 @@ async def update_integration_setting(
 	integration_name: str,
 	setting_key: str,
 	setting_value: dict,  # Expecting {"value": actual_value}
-	current_user: User = Depends(get_current_active_user),
+	current_user: User = Depends(get_current_user),
 ):
 	"""Update a specific integration setting."""
 	try:

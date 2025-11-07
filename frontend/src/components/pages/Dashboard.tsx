@@ -279,7 +279,7 @@ export default function Dashboard() {
                     </span>
                     {application.applied_date && (
                       <span className="text-sm text-gray-500">
-                        {new Date(application.applied_date).toLocaleDate-String()}
+                        {new Date(application.applied_date).toLocaleDateString()}
                       </span>
                     )}
                   </div>

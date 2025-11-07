@@ -1,0 +1,137 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:14-alpine
+    container_name: career-copilot-postgres
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-career_copilot}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - ./data/postgres:/var/lib/postgresql/data
+      - ./backend/init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - career-copilot-network
+
+  redis:
+    image: redis:7-alpine
+    container_name: career-copilot-redis
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    volumes:
+      - ./data/redis:/data
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - career-copilot-network
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: ../deployment/docker/Dockerfile.backend
+    container_name: career-copilot-backend
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/${POSTGRES_DB:-career_copilot}
+      REDIS_URL: redis://redis:6379/0
+      FRONTEND_URL: ${FRONTEND_URL:-http://localhost:3000}
+      BACKEND_URL: ${BACKEND_URL:-http://localhost:8000}
+      SECRET_KEY: ${SECRET_KEY:-your-secret-key-change-in-production}
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY}
+    ports:
+      - "${BACKEND_PORT:-8000}:8000"
+    volumes:
+      - ./backend:/app
+      - ./data/uploads:/app/uploads
+      - ./data/logs/backend:/app/logs
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    networks:
+      - career-copilot-network
+
+  celery:
+    build:
+      context: ./backend
+      dockerfile: ../deployment/docker/Dockerfile.backend
+    container_name: career-copilot-celery
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/${POSTGRES_DB:-career_copilot}
+      REDIS_URL: redis://redis:6379/0
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY}
+    volumes:
+      - ./backend:/app
+      - ./data/uploads:/app/uploads
+      - ./data/logs/celery:/app/logs
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    command: celery -A app.core.celery_app worker --loglevel=info --concurrency=2
+    networks:
+      - career-copilot-network
+
+  celery-beat:
+    build:
+      context: ./backend
+      dockerfile: ../deployment/docker/Dockerfile.backend
+    container_name: career-copilot-celery-beat
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/${POSTGRES_DB:-career_copilot}
+      REDIS_URL: redis://redis:6379/0
+    volumes:
+      - ./backend:/app
+      - ./data/databases:/app/data
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    command: celery -A app.core.celery_app beat --loglevel=info
+    networks:
+      - career-copilot-network
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: ../deployment/docker/Dockerfile.frontend
+    container_name: career-copilot-frontend
+    environment:
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:8000}
+      NEXT_PUBLIC_FRONTEND_URL: ${NEXT_PUBLIC_FRONTEND_URL:-http://localhost:3000}
+    ports:
+      - "${FRONTEND_PORT:-3000}:3000"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+      - /app/.next
+    depends_on:
+      - backend
+    command: npm run dev
+    networks:
+      - career-copilot-network
+
+networks:
+  career-copilot-network:
+    driver: bridge
+
+volumes:
+  postgres-data:
+  redis-data:

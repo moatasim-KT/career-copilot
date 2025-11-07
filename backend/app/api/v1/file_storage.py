@@ -14,7 +14,7 @@ import io
 from ...services.file_storage_service import file_storage_service, FileRecord, FileVersion, StorageStats, CleanupPolicy
 from ...core.exceptions import StorageError, ValidationError
 from ...core.logging import get_logger
-from ...core.auth import get_current_user
+from ...core.dependencies import get_current_user
 
 logger = get_logger(__name__)
 

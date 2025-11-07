@@ -11,7 +11,7 @@ from pydantic import BaseModel
 
 from ...services.cache_service import get_cache_service, get_session_cache_service
 from ...services.intelligent_cache_service import get_intelligent_cache_service
-from ...core.auth import get_current_user
+from ...core.dependencies import get_current_user
 from ...core.logging import get_logger
 
 logger = get_logger(__name__)

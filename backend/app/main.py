@@ -187,64 +187,119 @@ def create_app() -> FastAPI:
 		await websocket.accept()
 		await websocket_service.handle_websocket_connection(websocket, None)
 
-	# Include routers
+	# Include routers - Comprehensive registration of ALL API endpoints
 	from .api.v1 import (
 		advanced_user_analytics,
 		analytics,
+		analytics_extended,
 		applications,
+		auth,
+		cache_admin,
+		content,
 		dashboard,
+		database_admin,
 		database_performance,
+		email_admin,
+		feedback,
 		feedback_analysis,
 		groq,
 		health,
+		help_articles,
+		integrations_admin,
+		interview,
 		job_recommendation_feedback,
 		job_sources,
 		jobs,
+		learning,
 		linkedin_jobs,
+		llm_admin,
 		market_analysis,
+		notifications_new,
 		personalization,
+		progress_admin,
 		recommendations,
+		resources,
 		resume,
 		scheduled_reports,
+		services_admin,
 		skill_gap_analysis,
+		slack_admin,
 		social,
+		status_admin,
+		storage_admin,
 		tasks,
+		vector_store_admin,
+		workflows,
 	)
 
+	# Core system routes
 	app.include_router(health.router)
+
+	# Authentication & User Management
+	app.include_router(auth.router)
 
 	# Include personalization and social routers FIRST (before jobs router)
 	# This prevents /jobs/available from conflicting with /jobs/{job_id}
 	app.include_router(personalization.router, prefix="/api/v1", tags=["personalization"])
 	app.include_router(social.router, prefix="/api/v1", tags=["social"])
 
+	# Core Business Logic
 	app.include_router(jobs.router)
 	app.include_router(job_sources.router)
-	app.include_router(analytics.router)
-	app.include_router(dashboard.router)
-	app.include_router(recommendations.router)
-	app.include_router(skill_gap_analysis.router)
 	app.include_router(applications.router)
 	app.include_router(resume.router, prefix="/api/v1/resume", tags=["resume", "parsing"])
-	app.include_router(job_recommendation_feedback.router, prefix="/api/v1", tags=["job-recommendation-feedback"])
-	app.include_router(feedback_analysis.router, prefix="/api/v1", tags=["feedback-analysis"])
-	app.include_router(market_analysis.router)
-	app.include_router(advanced_user_analytics.router)
-	app.include_router(scheduled_reports.router)
-	app.include_router(tasks.router)
-	app.include_router(database_performance.router)
 
+	# Analytics & Reporting
+	app.include_router(analytics.router)
+	app.include_router(analytics_extended.router)
+	app.include_router(dashboard.router)
+	app.include_router(advanced_user_analytics.router)
+	app.include_router(market_analysis.router)
+
+	# Recommendations & Matching
+	app.include_router(recommendations.router)
+	app.include_router(skill_gap_analysis.router)
+	app.include_router(job_recommendation_feedback.router, prefix="/api/v1", tags=["job-recommendation-feedback"])
+
+	# User Engagement
+	app.include_router(workflows.router)
+	app.include_router(content.router)
+	app.include_router(resources.router)
+	app.include_router(learning.router)
+	app.include_router(notifications_new.router)
+	app.include_router(feedback.router, prefix="/api/v1", tags=["feedback"])
+	app.include_router(feedback_analysis.router, prefix="/api/v1", tags=["feedback-analysis"])
+	app.include_router(interview.router)  # Already has prefix="/api/v1/interview"
+	app.include_router(help_articles.router, prefix="/api/v1/help", tags=["help"])
+
+	# Reporting & Insights
+	app.include_router(scheduled_reports.router)
+	app.include_router(progress_admin.router)
+	app.include_router(status_admin.router)
+
+	# Integration & External Services
 	app.include_router(linkedin_jobs.router)
+	app.include_router(email_admin.router)
+	app.include_router(slack_admin.router)
+	app.include_router(services_admin.router)
+	app.include_router(integrations_admin.router, prefix="/api/v1/integrations", tags=["integrations"])
 	app.include_router(groq.router, prefix="/api/v1")
+
+	# System Administration
+	app.include_router(database_admin.router)
+	app.include_router(database_performance.router)
+	app.include_router(cache_admin.router)
+	app.include_router(storage_admin.router)
+	app.include_router(vector_store_admin.router)
+	app.include_router(llm_admin.router)
+
+	# Background Tasks
+	app.include_router(tasks.router)
 
 	# Metrics endpoint for Prometheus scraping
 	from .api.v1 import metrics as metrics_api
 
 	app.include_router(metrics_api.router)
-
-	# Temporarily disabled due to SQLAlchemy model registry issues
-	# from .api.v1 import interview
-	# app.include_router(interview.router)
 
 	return app
 

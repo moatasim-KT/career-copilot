@@ -20,6 +20,154 @@ from ...services.cache_service import cache_service
 router = APIRouter(tags=["jobs"])
 
 
+# IMPORTANT: Define specific routes BEFORE parameterized routes to avoid path conflicts
+# /jobs/search must come before /jobs/{job_id}
+
+
+@router.get("/api/v1/jobs/search", response_model=List[JobResponse])
+async def search_jobs(
+	query: str = "",
+	location: str = "",
+	remote_only: bool = False,
+	skip: int = 0,
+	limit: int = 100,
+	current_user: User = Depends(get_current_user),
+	db: AsyncSession = Depends(get_db),
+):
+	"""
+	Search jobs with filters.
+
+	- **query**: Search term for job title, company, or description
+	- **location**: Filter by location
+	- **remote_only**: Only show remote jobs
+	- **skip**: Number of records to skip (default: 0)
+	- **limit**: Maximum number of records to return (default: 100)
+	"""
+	try:
+		# Build base query
+		stmt = select(Job).where(Job.user_id == current_user.id)
+
+		# Apply filters
+		if query:
+			search_term = f"%{query}%"
+			stmt = stmt.where((Job.title.ilike(search_term)) | (Job.company.ilike(search_term)) | (Job.description.ilike(search_term)))
+
+		if location:
+			stmt = stmt.where(Job.location.ilike(f"%{location}%"))
+
+		if remote_only:
+			stmt = stmt.where(Job.remote_option == "yes")
+
+		# Apply pagination and ordering
+		stmt = stmt.order_by(Job.created_at.desc()).offset(skip).limit(limit)
+
+		result = await db.execute(stmt)
+		jobs = result.scalars().all()
+		return jobs
+	except Exception as e:
+		raise HTTPException(status_code=500, detail=f"Error searching jobs: {e!s}")
+
+
+@router.get("/api/v1/jobs/recommendations", response_model=List[JobResponse])
+async def get_job_recommendations(
+	limit: int = 10, min_match_score: int = 70, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)
+):
+	"""
+	Get personalized job recommendations based on user's skills and preferences.
+
+	- **limit**: Maximum number of recommendations (default: 10)
+	- **min_match_score**: Minimum match score percentage (default: 70)
+	"""
+	try:
+		# Get jobs not yet applied to
+		stmt = (
+			select(Job)
+			.where(Job.user_id == current_user.id, Job.status.in_(["not_applied", "saved"]))
+			.order_by(Job.created_at.desc())
+			.limit(limit * 2)
+		)  # Get more than needed for filtering
+
+		result = await db.execute(stmt)
+		jobs = result.scalars().all()
+
+		# Simple recommendation logic based on user skills
+		user_skills = set([s.lower() for s in (current_user.skills or [])])
+		recommendations = []
+
+		for job in jobs:
+			# Calculate simple match score
+			job_tech = set([t.lower() for t in (job.tech_stack or [])])
+			if user_skills and job_tech:
+				match_count = len(user_skills & job_tech)
+				match_score = (match_count / len(user_skills)) * 100 if user_skills else 0
+			else:
+				match_score = 50  # Default score if no tech stack
+
+			if match_score >= min_match_score:
+				recommendations.append(job)
+
+			if len(recommendations) >= limit:
+				break
+
+		return recommendations[:limit]
+	except Exception as e:
+		raise HTTPException(status_code=500, detail=f"Error getting recommendations: {e!s}")
+
+
+@router.get("/api/v1/jobs/analytics")
+async def get_jobs_analytics(timeframe_days: int = 30, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
+	"""
+	Get analytics for jobs including application statistics.
+
+	- **timeframe_days**: Number of days to analyze (default: 30)
+	"""
+	try:
+		from datetime import datetime, timedelta
+
+		# Get jobs within timeframe
+		cutoff_date = datetime.now() - timedelta(days=timeframe_days)
+		stmt = select(Job).where(Job.user_id == current_user.id, Job.created_at >= cutoff_date)
+
+		result = await db.execute(stmt)
+		jobs = result.scalars().all()
+
+		# Calculate statistics
+		total_jobs = len(jobs)
+		by_status = {}
+		by_source = {}
+		by_location = {}
+		remote_count = 0
+
+		for job in jobs:
+			# Status breakdown
+			status = job.status or "not_applied"
+			by_status[status] = by_status.get(status, 0) + 1
+
+			# Source breakdown
+			source = job.source or "manual"
+			by_source[source] = by_source.get(source, 0) + 1
+
+			# Location breakdown
+			if job.location:
+				by_location[job.location] = by_location.get(job.location, 0) + 1
+
+			# Remote jobs
+			if job.remote_option == "yes":
+				remote_count += 1
+
+		return {
+			"timeframe_days": timeframe_days,
+			"total_jobs": total_jobs,
+			"status_breakdown": by_status,
+			"source_breakdown": by_source,
+			"top_locations": dict(sorted(by_location.items(), key=lambda x: x[1], reverse=True)[:10]),
+			"remote_jobs": remote_count,
+			"remote_percentage": (remote_count / total_jobs * 100) if total_jobs > 0 else 0,
+		}
+	except Exception as e:
+		raise HTTPException(status_code=500, detail=f"Error getting job analytics: {e!s}")
+
+
 @router.get("/api/v1/jobs", response_model=List[JobResponse])
 async def list_jobs(skip: int = 0, limit: int = 100, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
 	"""

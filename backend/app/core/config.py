@@ -85,6 +85,32 @@ class Settings:
 		"""Backward compatibility - uppercase version"""
 		return self.firecrawl_api_key
 
+	# -------- OAuth Configuration --------
+	@property
+	def google_client_id(self) -> str | None:
+		"""Google OAuth 2.0 Client ID"""
+		return getattr(self._u, "google_client_id", os.getenv("GOOGLE_CLIENT_ID", None))
+
+	@property
+	def google_client_secret(self) -> str | None:
+		"""Google OAuth 2.0 Client Secret"""
+		return getattr(self._u, "google_client_secret", os.getenv("GOOGLE_CLIENT_SECRET", None))
+
+	@property
+	def linkedin_client_id(self) -> str | None:
+		"""LinkedIn OAuth 2.0 Client ID"""
+		return getattr(self._u, "linkedin_client_id", os.getenv("LINKEDIN_CLIENT_ID", None))
+
+	@property
+	def linkedin_client_secret(self) -> str | None:
+		"""LinkedIn OAuth 2.0 Client Secret"""
+		return getattr(self._u, "linkedin_client_secret", os.getenv("LINKEDIN_CLIENT_SECRET", None))
+
+	@property
+	def backend_url(self) -> str:
+		"""Backend API base URL for OAuth callbacks"""
+		return getattr(self._u, "backend_url", os.getenv("BACKEND_URL", "http://localhost:8000"))
+
 	# -------- Security keys --------
 	@property
 	def jwt_secret_key(self) -> _SecretStrProxy:

@@ -22,9 +22,7 @@ from .feedback import (
 	JobRecommendationFeedback,
 	OnboardingProgress,
 )
-
-# Temporarily disabled due to SQLAlchemy registry issues
-# from .interview import InterviewQuestion, InterviewSession, InterviewStatus, InterviewType
+from .interview import InterviewQuestion, InterviewSession, InterviewStatus, InterviewType
 from .job import Job
 from .resume_upload import ResumeUpload
 from .user import User
@@ -44,10 +42,10 @@ __all__ = [
 	"FeedbackVote",
 	"HelpArticle",
 	"HelpArticleVote",
-	# "InterviewQuestion",
-	# "InterviewSession",
-	# "InterviewStatus",
-	# "InterviewType",
+	"InterviewQuestion",
+	"InterviewSession",
+	"InterviewStatus",
+	"InterviewType",
 	"Job",
 	"JobRecommendationFeedback",
 	"LearningPath",

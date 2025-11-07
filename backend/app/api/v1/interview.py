@@ -1,24 +1,24 @@
 """API endpoints for interview practice"""
 
-from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
-from typing import List
-from typing import List
+from typing import List, Optional
 
-from app.dependencies import get_db, get_current_user
+from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.dependencies import get_current_user, get_db
 from app.models.user import User
 from app.schemas.interview import (
-	InterviewSessionCreate,
-	InterviewSessionUpdate,
-	InterviewSessionResponse,
 	InterviewQuestionCreate,
-	InterviewQuestionUpdate,
 	InterviewQuestionResponse,
+	InterviewQuestionUpdate,
+	InterviewSessionCreate,
+	InterviewSessionResponse,
+	InterviewSessionUpdate,
 )
 from app.services.interview_practice_service import InterviewPracticeService
-from app.services.llm_service import LLMService
 from app.services.job_service import JobService
+from app.services.llm_service import LLMService
 
 # NOTE: This file has been converted to use AsyncSession.
 # Database queries need to be converted to async: await db.execute(select(...)) instead of db.query(...)
@@ -34,6 +34,74 @@ def get_interview_practice_service(db: AsyncSession = Depends(get_db)) -> Interv
 	ai_service_manager = LLMService()
 	job_service = JobService(db)
 	return InterviewPracticeService(db=db, ai_service_manager=ai_service_manager, job_service=job_service)
+
+
+# List endpoints
+@router.get("/sessions", response_model=List[InterviewSessionResponse])
+async def list_interview_sessions(
+	current_user: User = Depends(get_current_user),
+	interview_practice_service: InterviewPracticeService = Depends(get_interview_practice_service),
+	skip: int = 0,
+	limit: int = 50,
+):
+	"""List all interview sessions for the current user"""
+	from app.models.interview_session import InterviewSession
+
+	db = interview_practice_service.db
+	result = await db.execute(
+		select(InterviewSession)
+		.where(InterviewSession.user_id == current_user.id)
+		.order_by(InterviewSession.created_at.desc())
+		.offset(skip)
+		.limit(limit)
+	)
+	sessions = result.scalars().all()
+	return sessions
+
+
+@router.get("/practice")
+async def get_practice_questions(
+	current_user: User = Depends(get_current_user),
+	db: AsyncSession = Depends(get_db),
+	job_id: Optional[int] = None,
+	category: str = "general",
+	limit: int = 10,
+):
+	"""Get practice interview questions"""
+	# Return sample practice questions
+	practice_questions = {
+		"behavioral": [
+			"Tell me about a time when you had to deal with a difficult coworker.",
+			"Describe a situation where you had to meet a tight deadline.",
+			"Give an example of when you showed leadership.",
+		],
+		"technical": [
+			"Explain the difference between async and sync operations.",
+			"How would you optimize a slow database query?",
+			"Describe your approach to debugging production issues.",
+		],
+		"general": [
+			"Why do you want to work here?",
+			"What are your greatest strengths and weaknesses?",
+			"Where do you see yourself in 5 years?",
+		],
+	}
+
+	questions = practice_questions.get(category, practice_questions["general"])
+
+	return {
+		"category": category,
+		"total": len(questions),
+		"questions": [
+			{
+				"id": idx + 1,
+				"question": q,
+				"category": category,
+				"difficulty": "medium",
+			}
+			for idx, q in enumerate(questions[:limit])
+		],
+	}
 
 
 @router.post("/sessions", response_model=InterviewSessionResponse)

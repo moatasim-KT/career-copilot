@@ -48,6 +48,61 @@ content_generator = ContentGeneratorService()
 content_quality = ContentQualityService()
 # profile_service = ProfileService()
 
+
+# Basic resume endpoints
+@router.get("")
+async def list_resumes(
+	current_user: User = Depends(get_current_user),
+	db: AsyncSession = Depends(get_db),
+):
+	"""List all resumes for the current user"""
+	result = await db.execute(select(ResumeUpload).where(ResumeUpload.user_id == current_user.id).order_by(ResumeUpload.created_at.desc()))
+	resumes = result.scalars().all()
+
+	return {
+		"total": len(resumes),
+		"resumes": [
+			{
+				"id": resume.id,
+				"filename": resume.filename,
+				"parsing_status": resume.parsing_status,
+				"created_at": resume.created_at.isoformat() if resume.created_at else None,
+				"updated_at": resume.updated_at.isoformat() if resume.updated_at else None,
+			}
+			for resume in resumes
+		],
+	}
+
+
+@router.get("/history")
+async def get_resume_history(
+	current_user: User = Depends(get_current_user),
+	db: AsyncSession = Depends(get_db),
+	limit: int = 50,
+):
+	"""Get resume upload and parsing history"""
+	result = await db.execute(
+		select(ResumeUpload).where(ResumeUpload.user_id == current_user.id).order_by(ResumeUpload.created_at.desc()).limit(limit)
+	)
+	resumes = result.scalars().all()
+
+	return {
+		"total": len(resumes),
+		"history": [
+			{
+				"id": resume.id,
+				"filename": resume.filename,
+				"file_path": resume.file_path,
+				"parsing_status": resume.parsing_status,
+				"parsing_error": resume.parsing_error,
+				"created_at": resume.created_at.isoformat() if resume.created_at else None,
+				"parsed_at": resume.updated_at.isoformat() if resume.parsing_status == "completed" and resume.updated_at else None,
+			}
+			for resume in resumes
+		],
+	}
+
+
 # Upload directory configuration
 UPLOAD_DIR = "backend/uploads/resumes"
 os.makedirs(UPLOAD_DIR, exist_ok=True)

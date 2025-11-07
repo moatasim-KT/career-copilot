@@ -7,14 +7,14 @@ import logging
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
-from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
 from pydantic import BaseModel, Field
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.system_integration import get_system_integration, SystemIntegrationService
 from app.core.communication_optimizer import get_communication_optimizer
 from app.core.database import get_async_session
-from app.core.auth import get_current_user
+from app.core.dependencies import get_current_user
+from app.core.system_integration import SystemIntegrationService, get_system_integration
 
 logger = logging.getLogger(__name__)
 
