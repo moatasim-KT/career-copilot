@@ -204,7 +204,6 @@ def create_app() -> FastAPI:
 		feedback_analysis,
 		groq,
 		health,
-		help_articles,
 		integrations_admin,
 		interview,
 		job_recommendation_feedback,
@@ -213,6 +212,7 @@ def create_app() -> FastAPI:
 		learning,
 		linkedin_jobs,
 		llm_admin,
+		market,
 		market_analysis,
 		notifications_new,
 		personalization,
@@ -254,6 +254,7 @@ def create_app() -> FastAPI:
 	app.include_router(analytics_extended.router)
 	app.include_router(dashboard.router)
 	app.include_router(advanced_user_analytics.router)
+	app.include_router(market.router, prefix="/api/v1", tags=["Market Intelligence"])
 	app.include_router(market_analysis.router)
 
 	# Recommendations & Matching
@@ -270,7 +271,6 @@ def create_app() -> FastAPI:
 	app.include_router(feedback.router, prefix="/api/v1", tags=["feedback"])
 	app.include_router(feedback_analysis.router, prefix="/api/v1", tags=["feedback-analysis"])
 	app.include_router(interview.router)  # Already has prefix="/api/v1/interview"
-	app.include_router(help_articles.router, prefix="/api/v1/help", tags=["help"])
 
 	# Reporting & Insights
 	app.include_router(scheduled_reports.router)

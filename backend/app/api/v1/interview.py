@@ -45,7 +45,7 @@ async def list_interview_sessions(
 	limit: int = 50,
 ):
 	"""List all interview sessions for the current user"""
-	from app.models.interview_session import InterviewSession
+	from app.models.interview import InterviewSession
 
 	db = interview_practice_service.db
 	result = await db.execute(

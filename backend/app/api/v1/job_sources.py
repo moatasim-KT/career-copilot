@@ -1,17 +1,18 @@
 """Job source management endpoints"""
 
 from fastapi import APIRouter, Depends, HTTPException, Query
-from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from ...core.database import get_db
 from ...core.dependencies import get_current_user
 from ...models.user import User
 from ...schemas.user_job_preferences import (
-	UserJobPreferencesCreate,
-	UserJobPreferencesUpdate,
-	UserJobPreferencesResponse,
-	JobSourceInfo,
 	AvailableSourcesResponse,
+	JobSourceInfo,
+	UserJobPreferencesCreate,
+	UserJobPreferencesResponse,
+	UserJobPreferencesUpdate,
 )
 
 # NOTE: This file has been converted to use AsyncSession.
@@ -39,6 +40,15 @@ async def get_available_job_sources(current_user: User = Depends(get_current_use
 		# Get all available sources
 		sources_info = source_manager.get_available_sources_info()
 
+		# Count jobs per source from database
+		from sqlalchemy import func
+
+		from ...models.job import Job
+
+		# Query to count jobs by source
+		result = await db.execute(select(Job.source, func.count(Job.id).label("count")).group_by(Job.source))
+		job_counts = {row[0]: row[1] for row in result.all()}
+
 		# Convert to schema format
 		job_sources = []
 		for source_info in sources_info:
@@ -50,13 +60,13 @@ async def get_available_job_sources(current_user: User = Depends(get_current_use
 					is_available=source_info["is_active"],
 					requires_api_key=source_info["requires_api_key"],
 					quality_score=source_info["quality_score"],
-					job_count=source_info["job_count"],
+					job_count=job_counts.get(source_info["source"], 0),
 					success_rate=None,  # Will be calculated per user
 				)
 			)
 
 		# Get user preferences
-		user_prefs = source_manager.get_user_preferences(current_user.id)
+		user_prefs = await source_manager.get_user_preferences(current_user.id)
 		user_preferences_response = None
 
 		if user_prefs:

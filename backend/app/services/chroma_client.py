@@ -185,6 +185,40 @@ class ChromaDBConnectionPool:
 			return connection
 
 		except Exception as e:
+			error_msg = str(e)
+
+			# Check for ChromaDB corruption issues
+			if "range start index" in error_msg or "PanicException" in error_msg:
+				logger.error(f"ChromaDB database appears corrupted: {e}")
+				logger.warning("Attempting to recover by resetting ChromaDB...")
+
+				try:
+					# Try to reset/recreate the client
+					import os
+					import shutil
+
+					# Backup corrupted data
+					if os.path.exists(self.persist_directory):
+						backup_dir = f"{self.persist_directory}.corrupted.{int(time.time())}"
+						logger.info(f"Moving corrupted data to {backup_dir}")
+						shutil.move(self.persist_directory, backup_dir)
+
+					# Create fresh directory
+					os.makedirs(self.persist_directory, exist_ok=True)
+
+					# Try creating client again
+					client = chromadb.PersistentClient(
+						path=self.persist_directory, settings=Settings(anonymized_telemetry=False, allow_reset=True, is_persistent=True)
+					)
+
+					connection = ChromaDBConnection(client, connection_id)
+					logger.info(f"Successfully recovered ChromaDB connection: {connection_id}")
+					return connection
+
+				except Exception as recovery_error:
+					logger.error(f"Failed to recover ChromaDB: {recovery_error}")
+					raise VectorStoreError(f"Failed to recover ChromaDB connection: {recovery_error}")
+
 			logger.error(f"Failed to create ChromaDB connection: {e}")
 			raise VectorStoreError(f"Failed to create ChromaDB connection: {e}")
 

@@ -3,6 +3,8 @@
 import json
 from typing import List
 
+from sqlalchemy.orm import Session
+
 from app.core.logging import get_logger
 from app.models import InterviewQuestion, InterviewSession, InterviewType
 from app.schemas.interview import (
@@ -15,7 +17,6 @@ from app.schemas.interview import (
 )
 from app.services.job_service import JobService
 from app.services.llm_service import LLMService, ModelType
-from sqlalchemy.orm import Session
 
 from .cache_service import cache_service
 
@@ -32,8 +33,8 @@ class InterviewPracticeService:
 	async def create_session(self, user_id: int, session_create: InterviewSessionCreate) -> InterviewSessionResponse:
 		session = InterviewSession(**session_create.model_dump(), user_id=user_id)
 		self.db.add(session)
-		self.db.commit()
-		self.db.refresh(session)
+		await self.db.commit()
+		await self.db.refresh(session)
 		return InterviewSessionResponse.from_orm(session)
 
 	async def get_session(self, session_id: int) -> InterviewSessionResponse:

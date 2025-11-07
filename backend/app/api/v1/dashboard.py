@@ -107,8 +107,169 @@ async def get_dashboard_recommendations(
 		raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to get recommendations")
 
 
-@router.get("/dashboard/recent-activity")
-async def get_recent_activity(limit: int = Query(10, ge=1, le=50), current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
+@router.get("/api/v1/dashboard/stats")
+async def get_dashboard_stats(current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
+	"""
+	Get comprehensive dashboard statistics for the current user.
+
+	Returns:
+	- Application statistics (total, by status, success rate)
+	- Job tracking metrics (saved, applied, interviews)
+	- Resume statistics
+	- Recent activity counts
+	- Goal progress
+	- Time-based trends
+	"""
+	try:
+		from datetime import timedelta
+
+		from sqlalchemy import and_, desc, func, or_
+
+		from ...models.application import Application
+		from ...models.feedback import Feedback
+		from ...models.job import Job
+		from ...models.resume_upload import ResumeUpload
+
+		user_id = current_user.id
+
+		# Application Statistics
+		total_apps_result = await db.execute(select(func.count(Application.id)).where(Application.user_id == user_id))
+		total_applications = total_apps_result.scalar() or 0
+
+		# Applications by status
+		status_query = select(Application.status, func.count(Application.id)).where(Application.user_id == user_id).group_by(Application.status)
+		status_result = await db.execute(status_query)
+		applications_by_status = {status: count for status, count in status_result.all()}
+
+		# Recent applications (last 30 days)
+		thirty_days_ago = datetime.now() - timedelta(days=30)
+		recent_apps_result = await db.execute(
+			select(func.count(Application.id)).where(and_(Application.user_id == user_id, Application.created_at >= thirty_days_ago))
+		)
+		recent_applications = recent_apps_result.scalar() or 0
+
+		# Interview statistics
+		interview_result = await db.execute(
+			select(func.count(Application.id)).where(
+				and_(Application.user_id == user_id, or_(Application.status == "interview_scheduled", Application.status == "interviewing"))
+			)
+		)
+		active_interviews = interview_result.scalar() or 0
+
+		# Offer statistics
+		offer_result = await db.execute(
+			select(func.count(Application.id)).where(and_(Application.user_id == user_id, Application.status == "offer_received"))
+		)
+		offers_received = offer_result.scalar() or 0
+
+		# Job Statistics
+		saved_jobs_result = await db.execute(select(func.count(Job.id)).where(and_(Job.user_id == user_id, Job.status.in_(["saved", "bookmarked"]))))
+		saved_jobs = saved_jobs_result.scalar() or 0
+
+		total_jobs_result = await db.execute(select(func.count(Job.id)).where(Job.user_id == user_id))
+		total_jobs_tracked = total_jobs_result.scalar() or 0
+
+		# Recent jobs (last 7 days)
+		seven_days_ago = datetime.now() - timedelta(days=7)
+		new_jobs_result = await db.execute(select(func.count(Job.id)).where(and_(Job.user_id == user_id, Job.created_at >= seven_days_ago)))
+		new_jobs_this_week = new_jobs_result.scalar() or 0
+
+		# Resume Statistics
+		resume_count_result = await db.execute(select(func.count(ResumeUpload.id)).where(ResumeUpload.user_id == user_id))
+		total_resumes = resume_count_result.scalar() or 0
+
+		latest_resume_result = await db.execute(
+			select(ResumeUpload).where(ResumeUpload.user_id == user_id).order_by(desc(ResumeUpload.created_at)).limit(1)
+		)
+		latest_resume = latest_resume_result.scalar_one_or_none()
+
+		# Goal Progress
+		daily_goal = current_user.daily_application_goal or 5
+		today = datetime.now().date()
+		today_apps_result = await db.execute(
+			select(func.count(Application.id)).where(
+				and_(
+					Application.user_id == user_id,
+					func.date(Application.created_at) == today,
+				)
+			)
+		)
+		applications_today = today_apps_result.scalar() or 0
+		goal_progress = min(round((applications_today / daily_goal * 100), 2), 100) if daily_goal > 0 else 0
+
+		# Success Metrics
+		success_rate = 0
+		if total_applications > 0:
+			successful_apps = applications_by_status.get("offer_received", 0) + applications_by_status.get("accepted", 0)
+			success_rate = round((successful_apps / total_applications * 100), 2)
+
+		response_rate = 0
+		if total_applications > 0:
+			responded = sum(
+				applications_by_status.get(status, 0)
+				for status in ["phone_screen", "interview_scheduled", "interviewing", "offer_received", "accepted"]
+			)
+			response_rate = round((responded / total_applications * 100), 2)
+
+		# Weekly trend (applications per day for last 7 days)
+		weekly_trend_query = select(func.date(Application.created_at).label("date"), func.count(Application.id).label("count")).where(
+			and_(Application.user_id == user_id, Application.created_at >= seven_days_ago)
+		)
+		weekly_trend_query = weekly_trend_query.group_by(func.date(Application.created_at)).order_by(func.date(Application.created_at))
+
+		weekly_trend_result = await db.execute(weekly_trend_query)
+		weekly_applications = [{"date": str(date), "count": count} for date, count in weekly_trend_result.all()]
+
+		return {
+			"success": True,
+			"data": {
+				"user": {
+					"id": current_user.id,
+					"username": current_user.username,
+					"email": current_user.email,
+				},
+				"applications": {
+					"total": total_applications,
+					"recent_30_days": recent_applications,
+					"today": applications_today,
+					"by_status": applications_by_status,
+					"active_interviews": active_interviews,
+					"offers_received": offers_received,
+				},
+				"jobs": {
+					"total_tracked": total_jobs_tracked,
+					"saved": saved_jobs,
+					"new_this_week": new_jobs_this_week,
+				},
+				"resumes": {
+					"total": total_resumes,
+					"latest_upload": latest_resume.created_at.isoformat() if latest_resume else None,
+				},
+				"goals": {
+					"daily_application_goal": daily_goal,
+					"applications_today": applications_today,
+					"progress_percentage": goal_progress,
+					"on_track": applications_today >= daily_goal,
+				},
+				"metrics": {
+					"success_rate": success_rate,
+					"response_rate": response_rate,
+				},
+				"trends": {
+					"weekly_applications": weekly_applications,
+				},
+			},
+			"generated_at": datetime.now().isoformat(),
+		}
+	except Exception as e:
+		logger.error(f"Error getting dashboard stats for user {current_user.id}: {e}")
+		raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to get dashboard statistics")
+
+
+@router.get("/api/v1/dashboard/recent-activity")
+async def get_recent_activity(
+	limit: int = Query(10, ge=1, le=50), current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)
+):
 	"""
 	Get recent application activity for the dashboard.
 

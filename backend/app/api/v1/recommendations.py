@@ -1,14 +1,18 @@
 """Recommendation endpoints"""
 
+from datetime import datetime
 from typing import Dict, List
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ...core.database import get_db
 from ...core.dependencies import get_current_user
+from ...models.feedback import JobRecommendationFeedback
+from ...models.job import Job
 from ...models.user import User
+from ...schemas.job_recommendation_feedback import JobRecommendationFeedbackCreate, JobRecommendationFeedbackResponse
 from ...services.cache_service import cache_service
 from ...services.job_recommendation_service import JobRecommendationService
 
@@ -86,3 +90,84 @@ async def get_recommendation_algorithm_info(current_user: User = Depends(get_cur
 			"experience_matching": f"{weights['experience_matching']}% - How well job experience level matches yours",
 		},
 	}
+
+
+@router.post("/api/v1/recommendations/feedback", response_model=JobRecommendationFeedbackResponse, status_code=201)
+async def create_recommendation_feedback(
+	feedback_data: JobRecommendationFeedbackCreate,
+	current_user: User = Depends(get_current_user),
+	db: AsyncSession = Depends(get_db),
+):
+	"""
+	Submit feedback on a job recommendation.
+
+	This endpoint allows users to provide feedback (thumbs up/down) on recommended jobs
+	to help improve future recommendations and train the recommendation algorithm.
+
+	Args:
+		feedback_data: Feedback data including job_id, is_helpful, and optional comment
+		current_user: Current authenticated user
+		db: Database session
+
+	Returns:
+		JobRecommendationFeedbackResponse: Created feedback with full details
+
+	Raises:
+		HTTPException 404: Job not found
+		HTTPException 400: Invalid feedback data
+	"""
+	# Verify job exists
+	job_result = await db.execute(select(Job).where(Job.id == feedback_data.job_id))
+	job = job_result.scalars().first()
+
+	if not job:
+		raise HTTPException(status_code=404, detail=f"Job with id {feedback_data.job_id} not found")
+
+	# Create feedback record with context data for ML training
+	new_feedback = JobRecommendationFeedback(
+		user_id=current_user.id,
+		job_id=feedback_data.job_id,
+		is_helpful=feedback_data.is_helpful,
+		comment=feedback_data.comment,
+		# Capture user context at time of feedback for ML training
+		user_skills_at_time=current_user.skills,
+		user_experience_level=current_user.experience_level,
+		user_preferred_locations=current_user.preferred_locations,
+		# Capture job context at time of feedback
+		job_tech_stack=job.tech_stack,
+		job_location=job.location,
+		match_score=None,  # Could be populated if we have the match score from the recommendation
+		recommendation_context={
+			"feedback_timestamp": datetime.utcnow().isoformat(),
+			"user_id": current_user.id,
+			"job_company": job.company,
+			"job_title": job.title,
+		},
+		created_at=datetime.utcnow(),
+		updated_at=datetime.utcnow(),
+	)
+
+	db.add(new_feedback)
+	await db.commit()
+	await db.refresh(new_feedback)
+
+	# Invalidate recommendations cache since feedback might affect future recommendations
+	cache_key_pattern = f"recommendations:{current_user.id}:*"
+	# Note: cache_service would need a delete_pattern method for this to work fully
+	# For now, we'll just let the cache expire naturally
+
+	# Return response matching the schema
+	return JobRecommendationFeedbackResponse(
+		id=new_feedback.id,
+		user_id=new_feedback.user_id,
+		job_id=new_feedback.job_id,
+		is_helpful=new_feedback.is_helpful,
+		match_score=new_feedback.match_score,
+		user_skills_at_time=new_feedback.user_skills_at_time,
+		user_experience_level=new_feedback.user_experience_level,
+		user_preferred_locations=new_feedback.user_preferred_locations,
+		job_tech_stack=new_feedback.job_tech_stack,
+		job_location=new_feedback.job_location,
+		comment=new_feedback.comment,
+		created_at=new_feedback.created_at,
+	)

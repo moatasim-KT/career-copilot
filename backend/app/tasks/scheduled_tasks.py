@@ -71,23 +71,29 @@ celery_app.conf.beat_schedule = {
 
 
 def run_async(task):
-	"""Helper function to run async tasks in sync context"""
+	"""Helper function to run async tasks in sync context from scheduler threads"""
 	import asyncio
+	import threading
 
-	try:
-		# Try to get the current event loop
-		loop = asyncio.get_event_loop()
-		if loop.is_running():
-			# If loop is running, schedule the task as a coroutine
-			# Store task reference to prevent garbage collection
-			_task = asyncio.create_task(task)
-			return _task
-		else:
-			# If no loop is running, run the task
-			return loop.run_until_complete(task)
-	except RuntimeError:
-		# No event loop exists, create a new one
-		return asyncio.run(task)
+	# Check if we're in the main thread
+	if threading.current_thread() is threading.main_thread():
+		try:
+			loop = asyncio.get_event_loop()
+			if loop.is_running():
+				# Schedule as task if loop is running
+				return asyncio.create_task(task)
+			else:
+				return loop.run_until_complete(task)
+		except RuntimeError:
+			return asyncio.run(task)
+	else:
+		# We're in a thread pool executor, use asyncio.run with new loop
+		# This is safe because each thread gets its own event loop
+		try:
+			return asyncio.run(task)
+		except Exception as e:
+			logger.error(f"Failed to run async task in thread: {e}")
+			return None
 
 
 def run_morning_briefing():
@@ -502,15 +508,15 @@ def start_scheduler():
 		)
 		logger.info("Registered task: send_evening_summary (cron: 0 20 * * *)")
 
-		# Register health snapshot task - runs every 5 minutes
+		# Register health snapshot task - runs every 6 hours
 		scheduler.add_job(
 			func=run_health_snapshot,
-			trigger=CronTrigger(minute="*/5", timezone=utc),
+			trigger=CronTrigger(hour="*/6", minute=0, timezone=utc),
 			id="record_health_snapshot",
 			name="Health Snapshot Recording",
 			replace_existing=True,
 		)
-		logger.info("Registered task: record_health_snapshot (cron: */5 * * * *)")
+		logger.info("Registered task: record_health_snapshot (cron: 0 */6 * * *)")
 
 		# Start the scheduler
 		scheduler.start()

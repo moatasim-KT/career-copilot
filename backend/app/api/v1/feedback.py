@@ -40,10 +40,10 @@ router = APIRouter()
 async def create_feedback(feedback_data: FeedbackCreate, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
 	"""Create new feedback item"""
 	feedback_service = FeedbackService(db)
-	feedback = feedback_service.create_feedback(current_user.id, feedback_data)
+	feedback = await feedback_service.create_feedback(current_user.id, feedback_data)
 
 	# Get feedback with vote counts
-	feedback_with_votes = feedback_service.get_feedback_with_votes(feedback.id, current_user.id)
+	feedback_with_votes = await feedback_service.get_feedback_with_votes(feedback.id, current_user.id)
 
 	return FeedbackResponse(
 		id=feedback.id,
@@ -305,29 +305,38 @@ async def discover_feature(feature_id: str, current_user: User = Depends(get_cur
 # Help system endpoints
 @router.get("/help/articles", response_model=List[HelpArticleSummary])
 async def get_help_articles(
-	category: Optional[str] = Query(None), limit: int = Query(50, ge=1, le=100), offset: int = Query(0, ge=0), db: AsyncSession = Depends(get_db)
+	category: Optional[str] = Query(None),
+	search: Optional[str] = Query(None),
+	limit: int = Query(50, ge=1, le=100),
+	offset: int = Query(0, ge=0),
+	db: AsyncSession = Depends(get_db),
 ):
-	"""Get help articles"""
-	# TODO: Fix HelpService to use async queries
-	# help_service = HelpService(db)
-	# articles = help_service.get_articles(category, True, limit, offset)
-	# Temporary stub: return empty list
-	return []
+	"""Get help articles with optional filtering"""
+	from sqlalchemy import or_, select
 
+	from ...models.feedback import HelpArticle
 
-@router.get("/help/search")
-async def search_help_articles_get(
-	q: str = Query("", description="Search query"), category: Optional[str] = Query(None), limit: int = Query(10, ge=1, le=100)
-):
-	"""Search help articles (GET version for testing)"""
-	return {"results": [], "total": 0, "query": q, "category": category}
+	# Build query
+	query = select(HelpArticle).where(HelpArticle.is_published == True)
+
+	if category:
+		query = query.where(HelpArticle.category == category)
+
+	if search:
+		search_term = f"%{search}%"
+		query = query.where(or_(HelpArticle.title.ilike(search_term), HelpArticle.content.ilike(search_term), HelpArticle.excerpt.ilike(search_term)))
+
+	# Get paginated results
+	query = query.order_by(HelpArticle.view_count.desc()).offset(offset).limit(limit)
+	result = await db.execute(query)
+	articles = result.scalars().all()
 
 	return [
 		HelpArticleSummary(
 			id=article.id,
 			title=article.title,
 			slug=article.slug,
-			excerpt=article.excerpt,
+			excerpt=article.excerpt or "",
 			category=article.category,
 			tags=article.tags or [],
 			view_count=article.view_count,
@@ -461,8 +470,15 @@ async def vote_on_help_article(
 @router.get("/help/categories", response_model=List[str])
 async def get_help_categories(db: AsyncSession = Depends(get_db)):
 	"""Get all help article categories"""
-	help_service = HelpService(db)
-	return help_service.get_categories()
+	from sqlalchemy import distinct, select
+
+	from ...models.feedback import HelpArticle
+
+	# Get distinct categories from published articles
+	result = await db.execute(select(distinct(HelpArticle.category)).where(HelpArticle.is_published == True))
+	categories = [cat for cat in result.scalars().all()]
+
+	return categories
 
 
 @router.get("/help/popular", response_model=List[HelpArticleSummary])

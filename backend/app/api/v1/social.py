@@ -25,8 +25,48 @@ from ...core.single_user import MOATASIM_EXPERIENCE_LEVEL, MOATASIM_SKILLS, MOAT
 from ...services.cache_service import cache_service
 from ...services.career_resources_service import CareerResourcesService
 
-router = APIRouter(tags=["career-resources"])
+router = APIRouter(prefix="/social", tags=["career-resources", "social"])
 logger = get_logger(__name__)
+
+
+# Pydantic models for social feed
+class SocialPost(BaseModel):
+	"""Social feed post creation"""
+
+	content: str = Field(..., min_length=1, max_length=5000, description="Post content")
+	post_type: str = Field(default="general", description="Type: general, achievement, milestone, job_update")
+	visibility: str = Field(default="public", description="Visibility: public, private")
+	tags: List[str] = Field(default_factory=list, description="Post tags")
+
+
+class SocialPostResponse(BaseModel):
+	"""Social feed post response"""
+
+	id: int
+	user_id: int
+	content: str
+	post_type: str
+	visibility: str
+	tags: List[str]
+	likes_count: int = 0
+	comments_count: int = 0
+	created_at: datetime
+	updated_at: datetime
+
+
+class FeedItem(BaseModel):
+	"""Feed item in social feed"""
+
+	id: int
+	author_id: int
+	author_name: str
+	content: str
+	post_type: str
+	tags: List[str]
+	created_at: datetime
+	likes_count: int
+	comments_count: int
+	is_liked: bool = False
 
 
 # Pydantic models
@@ -84,6 +124,126 @@ class ResourceStats(BaseModel):
 	total_feedback: int
 	average_rating: Optional[float]
 	total_learning_hours: float
+
+
+# Social Feed Endpoints
+@router.get("/feed", response_model=List[FeedItem])
+async def get_social_feed(
+	limit: int = Query(20, ge=1, le=100, description="Number of feed items"),
+	offset: int = Query(0, ge=0, description="Offset for pagination"),
+	feed_type: Optional[str] = Query(None, description="Filter: general, achievement, milestone, job_update"),
+	db: AsyncSession = Depends(get_db),
+):
+	"""
+	Get social feed with career updates, achievements, and community posts.
+
+	Returns personalized feed including:
+	- Job application milestones
+	- Skill achievements
+	- Career progress updates
+	- Community posts
+	"""
+	try:
+		from ...models.feedback import Feedback
+		from ...models.user import User
+
+		# For single-user system, create feed from feedback and activity
+		# This serves as a personal timeline/journal
+		query = select(Feedback).order_by(Feedback.created_at.desc()).limit(limit).offset(offset)
+
+		if feed_type:
+			query = query.where(Feedback.category == feed_type)
+
+		result = await db.execute(query)
+		feedbacks = result.scalars().all()
+
+		# Transform feedback into feed items
+		feed_items = []
+		for fb in feedbacks:
+			# Get user info
+			user_result = await db.execute(select(User).where(User.id == fb.user_id))
+			user = user_result.scalar_one_or_none()
+
+			feed_items.append(
+				FeedItem(
+					id=fb.id,
+					author_id=fb.user_id,
+					author_name=user.username if user else "User",
+					content=fb.description or fb.title,
+					post_type=fb.category or "general",
+					tags=[fb.category] if fb.category else [],
+					created_at=fb.created_at,
+					likes_count=0,  # Can be extended with likes table
+					comments_count=0,  # Can be extended with comments table
+					is_liked=False,
+				)
+			)
+
+		logger.info(f"Retrieved {len(feed_items)} feed items for user {MOATASIM_USER_ID}")
+		return feed_items
+
+	except Exception as e:
+		logger.error(f"Error retrieving social feed: {e}")
+		raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Failed to retrieve social feed: {e!s}")
+
+
+@router.post("/post", response_model=SocialPostResponse, status_code=status.HTTP_201_CREATED)
+async def create_social_post(
+	post: SocialPost,
+	db: AsyncSession = Depends(get_db),
+):
+	"""
+	Create a new social feed post.
+
+	Share career achievements, milestones, or general updates.
+	Posts can be tagged and categorized for better organization.
+	"""
+	try:
+		from ...models.feedback import Feedback, FeedbackPriority, FeedbackStatus, FeedbackType
+
+		# Map post_type to FeedbackType
+		feedback_type_map = {
+			"achievement": FeedbackType.GENERAL,
+			"milestone": FeedbackType.GENERAL,
+			"job_update": FeedbackType.JOB_RECOMMENDATION,
+			"general": FeedbackType.GENERAL,
+		}
+
+		# Create feedback entry as social post (using feedback table for now)
+		new_post = Feedback(
+			user_id=MOATASIM_USER_ID,
+			type=feedback_type_map.get(post.post_type, FeedbackType.GENERAL),
+			title=post.post_type,
+			description=post.content,
+			status=FeedbackStatus.OPEN,
+			priority=FeedbackPriority.LOW,
+			created_at=datetime.utcnow(),
+			updated_at=datetime.utcnow(),
+		)
+
+		db.add(new_post)
+		await db.commit()
+		await db.refresh(new_post)
+
+		logger.info(f"Created social post {new_post.id} for user {MOATASIM_USER_ID}")
+
+		return SocialPostResponse(
+			id=new_post.id,
+			user_id=new_post.user_id,
+			content=post.content,
+			post_type=post.post_type,
+			visibility=post.visibility,
+			tags=post.tags,
+			likes_count=0,
+			comments_count=0,
+			created_at=new_post.created_at,
+			updated_at=new_post.updated_at,
+		)
+
+	except Exception as e:
+		logger.error(f"Error creating social post: {e}")
+		await db.rollback()
+		raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Failed to create social post: {e!s}")
 
 
 @router.get("/me/resources", response_model=List[Dict])

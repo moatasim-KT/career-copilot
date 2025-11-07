@@ -3,20 +3,21 @@ Service layer for feedback and onboarding system
 """
 
 from datetime import datetime, timezone
-from typing import List, Optional, Dict, Any
-from sqlalchemy.orm import Session
-from sqlalchemy import and_, or_, func, desc
+from typing import Any, Dict, List, Optional
 
-from app.models.feedback import Feedback, FeedbackVote, OnboardingProgress, HelpArticle, HelpArticleVote, FeedbackStatus
+from sqlalchemy import and_, desc, func, or_, select
+from sqlalchemy.orm import Session
+
+from app.models.feedback import Feedback, FeedbackStatus, FeedbackVote, HelpArticle, HelpArticleVote, OnboardingProgress
 from app.schemas.feedback import (
 	FeedbackCreate,
 	FeedbackUpdate,
 	FeedbackVoteCreate,
-	OnboardingProgressUpdate,
 	HelpArticleCreate,
 	HelpArticleUpdate,
 	HelpArticleVoteCreate,
 	HelpSearchRequest,
+	OnboardingProgressUpdate,
 )
 
 
@@ -119,14 +120,16 @@ class FeedbackService:
 		self.db.commit()
 		return True
 
-	def get_feedback_with_votes(self, feedback_id: int, user_id: Optional[int] = None) -> Optional[Dict[str, Any]]:
+	async def get_feedback_with_votes(self, feedback_id: int, user_id: Optional[int] = None) -> Optional[Dict[str, Any]]:
 		"""Get feedback with vote counts and user's vote"""
-		feedback = self.db.query(Feedback).filter(Feedback.id == feedback_id).first()
+		result = await self.db.execute(select(Feedback).filter(Feedback.id == feedback_id))
+		feedback = result.scalar_one_or_none()
 		if not feedback:
 			return None
 
 		# Calculate vote counts
-		vote_count = self.db.query(func.sum(FeedbackVote.vote)).filter(FeedbackVote.feedback_id == feedback_id).scalar() or 0
+		result = await self.db.execute(select(func.sum(FeedbackVote.vote)).filter(FeedbackVote.feedback_id == feedback_id))
+		vote_count = result.scalar() or 0
 
 		# Get user's vote if user_id provided
 		user_vote = None
