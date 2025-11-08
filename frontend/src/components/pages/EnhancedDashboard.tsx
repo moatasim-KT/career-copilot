@@ -109,8 +109,8 @@ export default function EnhancedDashboard() {
             {/* Header */}
             <div className="flex items-center justify-between">
                 <div>
-                    <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
-                    <p className="text-gray-600 mt-1">Track your job search progress</p>
+                    <h1 className="text-3xl font-bold text-neutral-900">Dashboard</h1>
+                    <p className="text-neutral-600 mt-1">Track your job search progress</p>
                 </div>
 
                 <div className="flex items-center space-x-3">
@@ -135,7 +135,7 @@ export default function EnhancedDashboard() {
                     </div>
 
                     {lastUpdated && (
-                        <span className="text-sm text-gray-500">
+                        <span className="text-sm text-neutral-500">
                             Updated: {lastUpdated.toLocaleTimeString()}
                         </span>
                     )}
@@ -143,7 +143,7 @@ export default function EnhancedDashboard() {
                     <select
                         value={currentPreset}
                         onChange={(e) => setCurrentPreset(e.target.value)}
-                        className="px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                        className="px-3 py-2 border border-neutral-300 rounded-lg shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                     >
                         <option value="default">Default Layout</option>
                         <option value="compact">Compact Layout</option>
@@ -254,10 +254,10 @@ export default function EnhancedDashboard() {
                                 ].map((item) => (
                                     <div key={item.label}>
                                         <div className="flex items-center justify-between text-sm mb-1">
-                                            <span className="text-gray-600">{item.label}</span>
-                                            <span className="font-semibold text-gray-900">{item.count}</span>
+                                            <span className="text-neutral-600">{item.label}</span>
+                                            <span className="font-semibold text-neutral-900">{item.count}</span>
                                         </div>
-                                        <div className="w-full bg-gray-200 rounded-full h-2">
+                                        <div className="w-full bg-neutral-200 rounded-full h-2">
                                             <div
                                                 className={`${item.color} h-2 rounded-full transition-all duration-300`}
                                                 style={{

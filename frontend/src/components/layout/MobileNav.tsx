@@ -182,7 +182,7 @@ export function MobileNav({
                 aria-label="Mobile navigation"
             >
                 {/* Header */}
-                <div className="sticky top-0 bg-white border-b border-gray-200 px-4 py-4 flex items-center justify-between">
+                <div className="sticky top-0 bg-white border-b border-neutral-200 px-4 py-4 flex items-center justify-between">
                     <div className="flex items-center space-x-3">
                         {user?.avatar ? (
                             <img
@@ -196,11 +196,11 @@ export function MobileNav({
                             </div>
                         )}
                         <div className="flex flex-col">
-                            <span className="text-sm font-semibold text-gray-900">
+                            <span className="text-sm font-semibold text-neutral-900">
                                 {user?.username || 'Guest'}
                             </span>
                             {user?.email && (
-                                <span className="text-xs text-gray-500 truncate max-w-[180px]">
+                                <span className="text-xs text-neutral-500 truncate max-w-[180px]">
                                     {user.email}
                                 </span>
                             )}
@@ -208,10 +208,10 @@ export function MobileNav({
                     </div>
                     <button
                         onClick={onClose}
-                        className="p-2 -mr-2 rounded-full hover:bg-gray-100 active:bg-gray-200 transition-colors touch-manipulation"
+                        className="p-2 -mr-2 rounded-full hover:bg-neutral-100 active:bg-neutral-200 transition-colors touch-manipulation"
                         aria-label="Close menu"
                     >
-                        <X className="w-6 h-6 text-gray-600" />
+                        <X className="w-6 h-6 text-neutral-600" />
                     </button>
                 </div>
 
@@ -233,13 +233,13 @@ export function MobileNav({
                       touch-manipulation min-h-[44px]
                       ${isActive
                                                 ? 'bg-blue-50 text-blue-700 font-medium'
-                                                : 'text-gray-700 hover:bg-gray-50 active:bg-gray-100'
+                                                : 'text-neutral-700 hover:bg-neutral-50 active:bg-neutral-100'
                                             }
                     `}
                                     >
                                         <div className="flex items-center space-x-3 flex-1 min-w-0">
                                             <Icon
-                                                className={`w-5 h-5 flex-shrink-0 ${isActive ? 'text-blue-600' : 'text-gray-400'
+                                                className={`w-5 h-5 flex-shrink-0 ${isActive ? 'text-blue-600' : 'text-neutral-400'
                                                     }`}
                                             />
                                             <div className="flex-1 min-w-0">
@@ -252,14 +252,14 @@ export function MobileNav({
                                                     )}
                                                 </div>
                                                 {item.description && (
-                                                    <p className="text-xs text-gray-500 truncate mt-0.5">
+                                                    <p className="text-xs text-neutral-500 truncate mt-0.5">
                                                         {item.description}
                                                     </p>
                                                 )}
                                             </div>
                                         </div>
                                         <ChevronRight
-                                            className={`w-5 h-5 flex-shrink-0 ${isActive ? 'text-blue-600' : 'text-gray-300'
+                                            className={`w-5 h-5 flex-shrink-0 ${isActive ? 'text-blue-600' : 'text-neutral-300'
                                                 }`}
                                         />
                                     </Link>
@@ -271,7 +271,7 @@ export function MobileNav({
 
                 {/* Footer Actions */}
                 {onLogout && (
-                    <div className="absolute bottom-0 left-0 right-0 border-t border-gray-200 bg-white p-4">
+                    <div className="absolute bottom-0 left-0 right-0 border-t border-neutral-200 bg-white p-4">
                         <button
                             onClick={() => {
                                 onLogout();
@@ -279,8 +279,8 @@ export function MobileNav({
                             }}
                             className="
                 w-full flex items-center justify-center space-x-2 px-4 py-3.5
-                bg-gray-100 hover:bg-gray-200 active:bg-gray-300
-                text-gray-700 font-medium rounded-lg
+                bg-neutral-100 hover:bg-neutral-200 active:bg-neutral-300
+                text-neutral-700 font-medium rounded-lg
                 transition-colors touch-manipulation min-h-[44px]
               "
                         >
@@ -310,7 +310,7 @@ export function MobileNavToggle({
         <button
             onClick={onClick}
             className={`
-        p-2 rounded-lg hover:bg-gray-100 active:bg-gray-200
+        p-2 rounded-lg hover:bg-neutral-100 active:bg-neutral-200
         transition-colors touch-manipulation min-h-[44px] min-w-[44px]
         flex items-center justify-center
         ${className}
@@ -318,7 +318,7 @@ export function MobileNavToggle({
             aria-label="Open menu"
         >
             <svg
-                className="w-6 h-6 text-gray-700"
+                className="w-6 h-6 text-neutral-700"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"

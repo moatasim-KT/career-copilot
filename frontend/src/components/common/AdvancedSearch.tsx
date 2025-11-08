@@ -101,7 +101,7 @@ export function highlightText(text: string, highlights: number[]): React.ReactNo
             parts.push(text.substring(lastIndex, index));
         }
         parts.push(
-            <mark key={i} className="bg-yellow-100 text-gray-900 font-medium">
+            <mark key={i} className="bg-yellow-100 text-neutral-900 font-medium">
                 {text[index]}
             </mark>,
         );
@@ -263,7 +263,7 @@ export function AdvancedSearch<T>({
         <div className={`relative ${className}`}>
             {/* Search Input */}
             <div className="relative">
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-neutral-400" />
                 <input
                     ref={inputRef}
                     type="text"
@@ -273,7 +273,7 @@ export function AdvancedSearch<T>({
                     onFocus={() => setIsOpen(true)}
                     placeholder={placeholder}
                     className="
-            w-full pl-12 pr-12 py-3 rounded-lg border border-gray-300
+            w-full pl-12 pr-12 py-3 rounded-lg border border-neutral-300
             focus:border-blue-500 focus:ring-2 focus:ring-blue-100
             transition-all outline-none text-base
           "
@@ -286,10 +286,10 @@ export function AdvancedSearch<T>({
                 {query && (
                     <button
                         onClick={handleClear}
-                        className="absolute right-4 top-1/2 -translate-y-1/2 p-1 hover:bg-gray-100 rounded-full transition-colors"
+                        className="absolute right-4 top-1/2 -translate-y-1/2 p-1 hover:bg-neutral-100 rounded-full transition-colors"
                         aria-label="Clear search"
                     >
-                        <X className="w-5 h-5 text-gray-400" />
+                        <X className="w-5 h-5 text-neutral-400" />
                     </button>
                 )}
             </div>
@@ -299,7 +299,7 @@ export function AdvancedSearch<T>({
                 <div
                     ref={resultsRef}
                     id="search-results"
-                    className="absolute top-full left-0 right-0 mt-2 bg-white rounded-lg shadow-lg border border-gray-200 max-h-96 overflow-y-auto z-50"
+                    className="absolute top-full left-0 right-0 mt-2 bg-white rounded-lg shadow-lg border border-neutral-200 max-h-96 overflow-y-auto z-50"
                     role="listbox"
                 >
                     {/* Loading */}
@@ -313,8 +313,8 @@ export function AdvancedSearch<T>({
                     {!isLoading && showQuickSearches && (
                         <div className="py-2">
                             {showRecent && recentSearches.length > 0 && (
-                                <div className="px-4 py-2">
-                                    <div className="flex items-center space-x-2 text-xs font-semibold text-gray-500 uppercase mb-2">
+<div className="px-4 py-2">
+                                    <div className="flex items-center space-x-2 text-xs font-semibold text-neutral-500 uppercase mb-2">
                                         <Clock className="w-4 h-4" />
                                         <span>Recent Searches</span>
                                     </div>
@@ -323,10 +323,10 @@ export function AdvancedSearch<T>({
                                             <button
                                                 key={index}
                                                 onClick={() => handleQuickSearch(search)}
-                                                className="w-full text-left px-3 py-2 rounded-md hover:bg-gray-50 transition-colors flex items-center justify-between group"
+                                                className="w-full text-left px-3 py-2 rounded-md hover:bg-neutral-50 transition-colors flex items-center justify-between group"
                                             >
-                                                <span className="text-gray-700">{search}</span>
-                                                <ArrowRight className="w-4 h-4 text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity" />
+                                                <span className="text-neutral-700">{search}</span>
+                                                <ArrowRight className="w-4 h-4 text-neutral-400 opacity-0 group-hover:opacity-100 transition-opacity" />
                                             </button>
                                         ))}
                                     </div>
@@ -334,8 +334,8 @@ export function AdvancedSearch<T>({
                             )}
 
                             {showTrending && trendingSearches.length > 0 && (
-                                <div className="px-4 py-2 border-t border-gray-100">
-                                    <div className="flex items-center space-x-2 text-xs font-semibold text-gray-500 uppercase mb-2">
+                                <div className="px-4 py-2 border-t border-neutral-100">
+                                    <div className="flex items-center space-x-2 text-xs font-semibold text-neutral-500 uppercase mb-2">
                                         <TrendingUp className="w-4 h-4" />
                                         <span>Trending</span>
                                     </div>
@@ -344,10 +344,10 @@ export function AdvancedSearch<T>({
                                             <button
                                                 key={index}
                                                 onClick={() => handleQuickSearch(search)}
-                                                className="w-full text-left px-3 py-2 rounded-md hover:bg-gray-50 transition-colors flex items-center justify-between group"
+                                                className="w-full text-left px-3 py-2 rounded-md hover:bg-neutral-50 transition-colors flex items-center justify-between group"
                                             >
-                                                <span className="text-gray-700">{search}</span>
-                                                <ArrowRight className="w-4 h-4 text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity" />
+                                                <span className="text-neutral-700">{search}</span>
+                                                <ArrowRight className="w-4 h-4 text-neutral-400 opacity-0 group-hover:opacity-100 transition-opacity" />
                                             </button>
                                         ))}
                                     </div>
@@ -367,7 +367,7 @@ export function AdvancedSearch<T>({
                                             onClick={() => handleSelect(result)}
                                             className={`
                         w-full text-left px-4 py-3 transition-colors
-                        ${selectedIndex === index ? 'bg-blue-50' : 'hover:bg-gray-50'}
+                        ${selectedIndex === index ? 'bg-blue-50' : 'hover:bg-neutral-50'}
                       `}
                                             role="option"
                                             aria-selected={selectedIndex === index}
@@ -376,14 +376,14 @@ export function AdvancedSearch<T>({
                                                 renderResult(result)
                                             ) : (
                                                 <div>
-                                                    <div className="font-medium text-gray-900 mb-1">
+                                                    <div className="font-medium text-neutral-900 mb-1">
                                                         {result.highlightedTitle || result.title}
                                                     </div>
                                                     {result.subtitle && (
-                                                        <div className="text-sm text-gray-600 mb-1">{result.subtitle}</div>
+                                                        <div className="text-sm text-neutral-600 mb-1">{result.subtitle}</div>
                                                     )}
                                                     {result.description && (
-                                                        <div className="text-sm text-gray-500 line-clamp-2">
+                                                        <div className="text-sm text-neutral-500 line-clamp-2">
                                                             {result.description}
                                                         </div>
                                                     )}
@@ -396,7 +396,7 @@ export function AdvancedSearch<T>({
                                     ))}
                                 </div>
                             ) : (
-                                <div className="py-8 text-center text-gray-500">
+                                <div className="py-8 text-center text-neutral-500">
                                     <p>No results found for "{query}"</p>
                                     <p className="text-sm mt-1">Try a different search term</p>
                                 </div>
@@ -406,7 +406,7 @@ export function AdvancedSearch<T>({
 
                     {/* Hint */}
                     {!isLoading && query.length > 0 && query.length < minChars && (
-                        <div className="py-8 text-center text-gray-500 text-sm">
+                        <div className="py-8 text-center text-neutral-500 text-sm">
                             Type at least {minChars} characters to search
                         </div>
                     )}

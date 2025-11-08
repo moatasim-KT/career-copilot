@@ -85,9 +85,9 @@ export default function Dashboard() {
       case 'rejected':
         return <XCircle className="h-4 w-4 text-red-500" />;
       case 'declined':
-        return <XCircle className="h-4 w-4 text-gray-500" />;
+        return <XCircle className="h-4 w-4 text-neutral-500" />;
       default:
-        return <AlertCircle className="h-4 w-4 text-gray-400" />;
+        return <AlertCircle className="h-4 w-4 text-neutral-400" />;
     }
   };
 
@@ -106,9 +106,9 @@ export default function Dashboard() {
       case 'rejected':
         return 'bg-red-100 text-red-800';
       case 'declined':
-        return 'bg-gray-100 text-gray-800';
+        return 'bg-neutral-100 text-neutral-800';
       default:
-        return 'bg-gray-100 text-gray-800';
+        return 'bg-neutral-100 text-neutral-800';
     }
   };
 
@@ -116,12 +116,12 @@ export default function Dashboard() {
     return (
       <div className="space-y-6">
         <div className="animate-pulse">
-          <div className="h-8 bg-gray-200 rounded w-1/4 mb-6"></div>
+          <div className="h-8 bg-neutral-200 rounded w-1/4 mb-6"></div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
             {[...Array(4)].map((_, i) => (
               <div key={i} className="bg-white p-6 rounded-lg shadow-sm border">
-                <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
-                <div className="h-8 bg-gray-200 rounded w-1/2"></div>
+                <div className="h-4 bg-neutral-200 rounded w-3/4 mb-2"></div>
+                <div className="h-8 bg-neutral-200 rounded w-1/2"></div>
               </div>
             ))}
           </div>
@@ -134,12 +134,12 @@ export default function Dashboard() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-4">
-          <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
+          <h1 className="text-3xl font-bold text-neutral-900">Dashboard</h1>
         </div>
 
         <div className="flex items-center space-x-3">
           {lastUpdated && (
-            <span className="text-sm text-gray-500">
+            <span className="text-sm text-neutral-500">
               Updated: {lastUpdated.toLocaleTimeString()}
             </span>
           )}
@@ -171,8 +171,8 @@ export default function Dashboard() {
           <div className="flex items-center">
             <Briefcase className="h-8 w-8 text-blue-600" />
             <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">Total Jobs</p>
-              <p className="text-2xl font-bold text-gray-900">
+              <p className="text-sm font-medium text-neutral-600">Total Jobs</p>
+              <p className="text-2xl font-bold text-neutral-900">
                 {analytics?.total_jobs || 0}
               </p>
             </div>
@@ -183,8 +183,8 @@ export default function Dashboard() {
           <div className="flex items-center">
             <FileText className="h-8 w-8 text-green-600" />
             <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">Applications</p>
-              <p className="text-2xl font-bold text-gray-900">
+              <p className="text-sm font-medium text-neutral-600">Applications</p>
+              <p className="text-2xl font-bold text-neutral-900">
                 {analytics?.total_applications || 0}
               </p>
             </div>
@@ -195,8 +195,8 @@ export default function Dashboard() {
           <div className="flex items-center">
             <Calendar className="h-8 w-8 text-purple-600" />
             <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">Interviews</p>
-              <p className="text-2xl font-bold text-gray-900">
+              <p className="text-sm font-medium text-neutral-600">Interviews</p>
+              <p className="text-2xl font-bold text-neutral-900">
                 {analytics?.interviews_scheduled || 0}
               </p>
             </div>
@@ -207,8 +207,8 @@ export default function Dashboard() {
           <div className="flex items-center">
             <Trophy className="h-8 w-8 text-yellow-600" />
             <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">Offers</p>
-              <p className="text-2xl font-bold text-gray-900">
+              <p className="text-sm font-medium text-neutral-600">Offers</p>
+              <p className="text-2xl font-bold text-neutral-900">
                 {analytics?.offers_received || 0}
               </p>
             </div>
@@ -220,7 +220,7 @@ export default function Dashboard() {
       {analytics && (
         <div className="bg-white p-6 rounded-lg shadow-sm border">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold text-gray-900 flex items-center">
+            <h2 className="text-lg font-semibold text-neutral-900 flex items-center">
               <Target className="h-5 w-5 text-blue-600 mr-2" />
               Daily Application Goal
             </h2>
@@ -232,7 +232,7 @@ export default function Dashboard() {
                 {analytics.daily_applications_today} / {analytics.daily_application_goal}
               </span>
             </div>
-            <div className="w-full bg-gray-200 rounded-full h-2">
+            <div className="w-full bg-neutral-200 rounded-full h-2">
               <div
                 className="bg-blue-600 h-2 rounded-full transition-all duration-300"
                 style={{
@@ -240,7 +240,7 @@ export default function Dashboard() {
                 }}
               ></div>
             </div>
-            <p className="text-sm text-gray-600">
+            <p className="text-sm text-neutral-600">
               {analytics.daily_goal_progress >= 100
                 ? '🎉 Goal achieved today!'
                 : `${analytics.daily_application_goal - analytics.daily_applications_today} more applications to reach your goal`
@@ -252,23 +252,23 @@ export default function Dashboard() {
 
       {/* Recent Activity */}
       <div className="bg-white rounded-lg shadow-sm border">
-        <div className="p-6 border-b border-gray-200">
-          <h2 className="text-lg font-semibold text-gray-900">Recent Activity</h2>
+        <div className="p-6 border-b border-neutral-200">
+          <h2 className="text-lg font-semibold text-neutral-900">Recent Activity</h2>
         </div>
         <div className="p-6">
           {recentApplications.length > 0 ? (
             <div className="space-y-4">
               {recentApplications.map((application, index) => (
-                <div key={application.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                <div key={application.id} className="flex items-center justify-between p-4 bg-neutral-50 rounded-lg">
                   <div className="flex items-center space-x-4">
                     <div className="flex-shrink-0">
                       {getStatusIcon(application.status)}
                     </div>
                     <div>
-                      <p className="font-medium text-gray-900">
+                      <p className="font-medium text-neutral-900">
                         {application.job?.title || 'Unknown Position'}
                       </p>
-                      <p className="text-sm text-gray-600">
+                      <p className="text-sm text-neutral-600">
                         {application.job?.company || 'Unknown Company'}
                       </p>
                     </div>
@@ -278,7 +278,7 @@ export default function Dashboard() {
                       {application.status.charAt(0).toUpperCase() + application.status.slice(1)}
                     </span>
                     {application.applied_date && (
-                      <span className="text-sm text-gray-500">
+                      <span className="text-sm text-neutral-500">
                         {new Date(application.applied_date).toLocaleDateString()}
                       </span>
                     )}
@@ -288,9 +288,9 @@ export default function Dashboard() {
             </div>
           ) : (
             <div className="text-center py-8">
-              <FileText className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-              <p className="text-gray-600">No applications yet</p>
-              <p className="text-sm text-gray-500 mt-1">
+              <FileText className="h-12 w-12 text-neutral-400 mx-auto mb-4" />
+              <p className="text-neutral-600">No applications yet</p>
+              <p className="text-sm text-neutral-500 mt-1">
                 Start by adding jobs and applying to them
               </p>
             </div>
@@ -301,15 +301,15 @@ export default function Dashboard() {
       {/* Status Breakdown */}
       {analytics?.application_status_breakdown && Object.keys(analytics.application_status_breakdown).length > 0 && (
         <div className="bg-white p-6 rounded-lg shadow-sm border">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">Application Status Breakdown</h2>
+          <h2 className="text-lg font-semibold text-neutral-900 mb-4">Application Status Breakdown</h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {Object.entries(analytics.application_status_breakdown).map(([status, count]) => (
               <div key={status} className="text-center">
                 <div className="flex justify-center mb-2">
                   {getStatusIcon(status)}
                 </div>
-                <p className="text-2xl font-bold text-gray-900">{count}</p>
-                <p className="text-sm text-gray-600 capitalize">{status}</p>
+                <p className="text-2xl font-bold text-neutral-900">{count}</p>
+                <p className="text-sm text-neutral-600 capitalize">{status}</p>
               </div>
             ))}
           </div>

@@ -65,15 +65,15 @@ function MetricCard({
     const changeColors = {
         positive: 'text-green-600 bg-green-100',
         negative: 'text-red-600 bg-red-100',
-        neutral: 'text-gray-600 bg-gray-100',
+        neutral: 'text-neutral-600 bg-neutral-100',
     };
 
     return (
-        <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm transition-shadow hover:shadow-md">
+        <div className="rounded-lg border border-neutral-200 bg-white p-6 shadow-sm transition-shadow hover:shadow-md">
             <div className="flex items-center justify-between">
                 <div className="flex-1">
-                    <p className="text-sm font-medium text-gray-600">{title}</p>
-                    <p className="mt-2 text-3xl font-bold text-gray-900">{value}</p>
+                    <p className="text-sm font-medium text-neutral-600">{title}</p>
+                    <p className="mt-2 text-3xl font-bold text-neutral-900">{value}</p>
                     {change && changeType && (
                         <div className="mt-2 flex items-center gap-1">
                             <span
@@ -83,7 +83,7 @@ function MetricCard({
                                 {changeType === 'negative' && '↓'}
                                 {change}
                             </span>
-                            <span className="text-xs text-gray-500">vs last period</span>
+                            <span className="text-xs text-neutral-500">vs last period</span>
                         </div>
                     )}
                 </div>
@@ -211,8 +211,8 @@ export default function AnalyticsDashboard({
             {/* Header */}
             <div className="flex items-center justify-between">
                 <div>
-                    <h1 className="text-3xl font-bold text-gray-900">Analytics Dashboard</h1>
-                    <p className="mt-1 text-sm text-gray-500">
+                    <h1 className="text-3xl font-bold text-neutral-900">Analytics Dashboard</h1>
+                    <p className="mt-1 text-sm text-neutral-500">
                         Track your job search progress and metrics
                     </p>
                 </div>
@@ -225,7 +225,7 @@ export default function AnalyticsDashboard({
                             onClick={() => setTimePeriod(period)}
                             className={`rounded-md px-4 py-2 text-sm font-medium transition-colors ${timePeriod === period
                                 ? 'bg-blue-600 text-white'
-                                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                                : 'bg-neutral-100 text-neutral-700 hover:bg-neutral-200'
                                 }`}
                         >
                             {period === 'all' ? 'All Time' : period.toUpperCase()}
@@ -284,9 +284,8 @@ export default function AnalyticsDashboard({
 
             {/* Charts */}
             <div className="grid gap-6 lg:grid-cols-2">
-                {/* Application Trend */}
-                <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
-                    <h3 className="mb-4 text-lg font-semibold text-gray-900">
+<div className="rounded-lg border border-neutral-200 bg-white p-6 shadow-sm">
+                    <h3 className="mb-4 text-lg font-semibold text-neutral-900">
                         Application Trend
                     </h3>
                     <LineChartComponent
@@ -297,8 +296,8 @@ export default function AnalyticsDashboard({
                 </div>
 
                 {/* Weekly Activity */}
-                <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
-                    <h3 className="mb-4 text-lg font-semibold text-gray-900">
+                <div className="rounded-lg border border-neutral-200 bg-white p-6 shadow-sm">
+                    <h3 className="mb-4 text-lg font-semibold text-neutral-900">
                         Weekly Activity
                     </h3>
                     <BarChartComponent
@@ -309,16 +308,16 @@ export default function AnalyticsDashboard({
                 </div>
 
                 {/* Status Distribution */}
-                <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
-                    <h3 className="mb-4 text-lg font-semibold text-gray-900">
+                <div className="rounded-lg border border-neutral-200 bg-white p-6 shadow-sm">
+                    <h3 className="mb-4 text-lg font-semibold text-neutral-900">
                         Status Distribution
                     </h3>
                     <PieChartComponent data={displayData.statusDistribution} height={250} />
                 </div>
 
                 {/* Industry Distribution */}
-                <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
-                    <h3 className="mb-4 text-lg font-semibold text-gray-900">
+                <div className="rounded-lg border border-neutral-200 bg-white p-6 shadow-sm">
+                    <h3 className="mb-4 text-lg font-semibold text-neutral-900">
                         Industry Distribution
                     </h3>
                     <AreaChartComponent
@@ -332,26 +331,26 @@ export default function AnalyticsDashboard({
             {/* Detailed Stats */}
             <div className="grid gap-6 lg:grid-cols-3">
                 {/* Applications Breakdown */}
-                <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
-                    <h3 className="mb-4 text-lg font-semibold text-gray-900">
+                <div className="rounded-lg border border-neutral-200 bg-white p-6 shadow-sm">
+                    <h3 className="mb-4 text-lg font-semibold text-neutral-900">
                         Applications
                     </h3>
                     <dl className="space-y-3">
                         <div className="flex justify-between">
-                            <dt className="text-sm text-gray-600">This Week</dt>
-                            <dd className="text-sm font-medium text-gray-900">
+                            <dt className="text-sm text-neutral-600">This Week</dt>
+                            <dd className="text-sm font-medium text-neutral-900">
                                 {displayData.applications.thisWeek}
                             </dd>
                         </div>
                         <div className="flex justify-between">
-                            <dt className="text-sm text-gray-600">This Month</dt>
-                            <dd className="text-sm font-medium text-gray-900">
+                            <dt className="text-sm text-neutral-600">This Month</dt>
+                            <dd className="text-sm font-medium text-neutral-900">
                                 {displayData.applications.thisMonth}
                             </dd>
                         </div>
                         <div className="flex justify-between border-t pt-3">
-                            <dt className="text-sm font-semibold text-gray-900">Total</dt>
-                            <dd className="text-sm font-bold text-gray-900">
+                            <dt className="text-sm font-semibold text-neutral-900">Total</dt>
+                            <dd className="text-sm font-bold text-neutral-900">
                                 {displayData.applications.total}
                             </dd>
                         </div>
@@ -359,26 +358,26 @@ export default function AnalyticsDashboard({
                 </div>
 
                 {/* Interviews Breakdown */}
-                <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
-                    <h3 className="mb-4 text-lg font-semibold text-gray-900">
+                <div className="rounded-lg border border-neutral-200 bg-white p-6 shadow-sm">
+                    <h3 className="mb-4 text-lg font-semibold text-neutral-900">
                         Interviews
                     </h3>
                     <dl className="space-y-3">
                         <div className="flex justify-between">
-                            <dt className="text-sm text-gray-600">Scheduled</dt>
-                            <dd className="text-sm font-medium text-gray-900">
+                            <dt className="text-sm text-neutral-600">Scheduled</dt>
+                            <dd className="text-sm font-medium text-neutral-900">
                                 {displayData.interviews.scheduled}
                             </dd>
                         </div>
                         <div className="flex justify-between">
-                            <dt className="text-sm text-gray-600">Completed</dt>
-                            <dd className="text-sm font-medium text-gray-900">
+                            <dt className="text-sm text-neutral-600">Completed</dt>
+                            <dd className="text-sm font-medium text-neutral-900">
                                 {displayData.interviews.completed}
                             </dd>
                         </div>
                         <div className="flex justify-between border-t pt-3">
-                            <dt className="text-sm font-semibold text-gray-900">Success Rate</dt>
-                            <dd className="text-sm font-bold text-gray-900">
+                            <dt className="text-sm font-semibold text-neutral-900">Success Rate</dt>
+                            <dd className="text-sm font-bold text-neutral-900">
                                 {displayData.interviews.successRate}%
                             </dd>
                         </div>
@@ -386,25 +385,25 @@ export default function AnalyticsDashboard({
                 </div>
 
                 {/* Offers Breakdown */}
-                <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
-                    <h3 className="mb-4 text-lg font-semibold text-gray-900">
+                <div className="rounded-lg border border-neutral-200 bg-white p-6 shadow-sm">
+                    <h3 className="mb-4 text-lg font-semibold text-neutral-900">
                         Offers
                     </h3>
                     <dl className="space-y-3">
                         <div className="flex justify-between">
-                            <dt className="text-sm text-gray-600">Pending</dt>
-                            <dd className="text-sm font-medium text-gray-900">
+                            <dt className="text-sm text-neutral-600">Pending</dt>
+                            <dd className="text-sm font-medium text-neutral-900">
                                 {displayData.offers.pending}
                             </dd>
                         </div>
                         <div className="flex justify-between">
-                            <dt className="text-sm text-gray-600">Accepted</dt>
+                            <dt className="text-sm text-neutral-600">Accepted</dt>
                             <dd className="text-sm font-medium text-green-600">
                                 {displayData.offers.accepted}
                             </dd>
                         </div>
                         <div className="flex justify-between">
-                            <dt className="text-sm text-gray-600">Rejected</dt>
+                            <dt className="text-sm text-neutral-600">Rejected</dt>
                             <dd className="text-sm font-medium text-red-600">
                                 {displayData.offers.rejected}
                             </dd>

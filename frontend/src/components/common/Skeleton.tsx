@@ -48,7 +48,7 @@ export function Skeleton({
     return (
         <div
             className={clsx(
-                'bg-gray-200',
+                'bg-neutral-200',
                 {
                     'animate-pulse': animation === 'pulse',
                     'animate-shimmer': animation === 'wave',
@@ -148,7 +148,7 @@ export function SkeletonTable({
     return (
         <div className={clsx('bg-white rounded-lg shadow overflow-hidden', className)}>
             {/* Header */}
-            <div className="border-b border-gray-200 p-4">
+            <div className="border-b border-neutral-200 p-4">
                 <div className="grid gap-4" style={{ gridTemplateColumns: `repeat(${columns}, 1fr)` }}>
                     {Array.from({ length: columns }).map((_, index) => (
                         <Skeleton key={index} height={20} />
@@ -157,7 +157,7 @@ export function SkeletonTable({
             </div>
 
             {/* Rows */}
-            <div className="divide-y divide-gray-200">
+            <div className="divide-y divide-neutral-200">
                 {Array.from({ length: rows }).map((_, rowIndex) => (
                     <div key={rowIndex} className="p-4">
                         <div className="grid gap-4" style={{ gridTemplateColumns: `repeat(${columns}, 1fr)` }}>
@@ -246,7 +246,7 @@ export function SkeletonDashboard({ className = '' }: { className?: string }) {
  */
 export function SkeletonApplicationCard({ className = '' }: { className?: string }) {
     return (
-        <div className={clsx('bg-white rounded-lg shadow-sm border border-gray-200 p-6', className)}>
+        <div className={clsx('bg-white rounded-lg shadow-sm border border-neutral-200 p-6', className)}>
             <div className="flex items-start justify-between mb-4">
                 <div className="flex-1">
                     <Skeleton width="70%" height={24} className="mb-2" />
@@ -266,7 +266,7 @@ export function SkeletonApplicationCard({ className = '' }: { className?: string
                 </div>
             </div>
 
-            <div className="flex items-center justify-between pt-4 border-t border-gray-100">
+            <div className="flex items-center justify-between pt-4 border-t border-neutral-100">
                 <Skeleton width={100} height={32} variant="rounded" />
                 <Skeleton variant="circular" width={32} height={32} />
             </div>

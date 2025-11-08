@@ -9,11 +9,11 @@ interface JobComparisonViewProps {
 
 export function JobComparisonView({ jobs, onClose }: JobComparisonViewProps) {
   return (
-    <div className="fixed inset-0 bg-gray-800 bg-opacity-75 flex items-center justify-center z-50">
+    <div className="fixed inset-0 bg-neutral-800 bg-opacity-75 flex items-center justify-center z-50">
       <div className="bg-white rounded-lg shadow-xl p-6 w-full max-w-4xl max-h-[90vh] overflow-y-auto">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-2xl font-bold">Job Comparison</h2>
-          <button onClick={onClose} className="text-gray-500 hover:text-gray-700">
+          <button onClick={onClose} className="text-neutral-500 hover:text-neutral-700">
             <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
             </svg>
@@ -23,11 +23,11 @@ export function JobComparisonView({ jobs, onClose }: JobComparisonViewProps) {
           {jobs.map(job => (
             <div key={job.id} className="border p-4 rounded-md">
               <h3 className="text-xl font-semibold">{job.title}</h3>
-              <p className="text-gray-600">{job.company}</p>
-              <p className="text-gray-500 text-sm">{job.location}</p>
-              <p className="text-gray-500 text-sm">{job.job_type}</p>
-              <p className="text-gray-500 text-sm">{job.salary_range}</p>
-              <p className="text-gray-700 mt-2">{job.description}</p>
+              <p className="text-neutral-600">{job.company}</p>
+              <p className="text-neutral-500 text-sm">{job.location}</p>
+              <p className="text-neutral-500 text-sm">{job.job_type}</p>
+              <p className="text-neutral-500 text-sm">{job.salary_range}</p>
+              <p className="text-neutral-700 mt-2">{job.description}</p>
               <div className="mt-2">
                 <strong>Tech Stack:</strong> {job.tech_stack?.join(', ')}
               </div>
@@ -35,7 +35,7 @@ export function JobComparisonView({ jobs, onClose }: JobComparisonViewProps) {
           ))}
         </div>
         {jobs.length === 0 && (
-          <p className="text-center text-gray-500">No jobs selected for comparison.</p>
+          <p className="text-center text-neutral-500">No jobs selected for comparison.</p>
         )}
       </div>
     </div>

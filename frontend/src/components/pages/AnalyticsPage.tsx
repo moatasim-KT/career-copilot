@@ -127,13 +127,13 @@ export default function AnalyticsPage() {
   if (loading) {
     return (
       <div className="space-y-6">
-        <h1 className="text-3xl font-bold text-gray-900">Analytics Dashboard</h1>
+        <h1 className="text-3xl font-bold text-neutral-900">Analytics Dashboard</h1>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {[...Array(8)].map((_, i) => (
             <Card key={i} className="p-6">
               <div className="animate-pulse">
-                <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
-                <div className="h-8 bg-gray-200 rounded w-1/2"></div>
+                <div className="h-4 bg-neutral-200 rounded w-3/4 mb-2"></div>
+                <div className="h-8 bg-neutral-200 rounded w-1/2"></div>
               </div>
             </Card>
           ))}
@@ -145,11 +145,11 @@ export default function AnalyticsPage() {
   if (error) {
     return (
       <div className="space-y-6">
-        <h1 className="text-3xl font-bold text-gray-900">Analytics Dashboard</h1>
+        <h1 className="text-3xl font-bold text-neutral-900">Analytics Dashboard</h1>
         <Card className="p-6">
           <div className="text-center">
             <div className="text-red-500 mb-2">⚠️</div>
-            <p className="text-gray-600">Error loading analytics: {error}</p>
+            <p className="text-neutral-600">Error loading analytics: {error}</p>
             <button
               className="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
             >
@@ -164,9 +164,9 @@ export default function AnalyticsPage() {
   if (!analytics) {
     return (
       <div className="space-y-6">
-        <h1 className="text-3xl font-bold text-gray-900">Analytics Dashboard</h1>
+        <h1 className="text-3xl font-bold text-neutral-900">Analytics Dashboard</h1>
         <Card className="p-6">
-          <p className="text-gray-600">No analytics data available</p>
+          <p className="text-neutral-600">No analytics data available</p>
         </Card>
       </div>
     );
@@ -199,10 +199,10 @@ export default function AnalyticsPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold text-gray-900">Analytics Dashboard</h1>
+        <h1 className="text-3xl font-bold text-neutral-900">Analytics Dashboard</h1>
         <div className="flex items-center space-x-3">
           {lastUpdated && (
-            <span className="text-sm text-gray-500">
+            <span className="text-sm text-neutral-500">
               Updated: {lastUpdated.toLocaleTimeString()}
             </span>
           )}
@@ -222,8 +222,8 @@ export default function AnalyticsPage() {
         <Card className="p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600">Total Jobs</p>
-              <p className="text-2xl font-bold text-gray-900">{analytics.total_jobs}</p>
+              <p className="text-sm font-medium text-neutral-600">Total Jobs</p>
+              <p className="text-2xl font-bold text-neutral-900">{analytics.total_jobs}</p>
             </div>
             <Briefcase className="w-8 h-8 text-blue-500" />
           </div>
@@ -232,8 +232,8 @@ export default function AnalyticsPage() {
         <Card className="p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600">Total Applications</p>
-              <p className="text-2xl font-bold text-gray-900">{analytics.total_applications}</p>
+              <p className="text-sm font-medium text-neutral-600">Total Applications</p>
+              <p className="text-2xl font-bold text-neutral-900">{analytics.total_applications}</p>
             </div>
             <Users className="w-8 h-8 text-green-500" />
           </div>
@@ -242,8 +242,8 @@ export default function AnalyticsPage() {
         <Card className="p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600">Interviews</p>
-              <p className="text-2xl font-bold text-gray-900">{analytics.interviews_scheduled}</p>
+              <p className="text-sm font-medium text-neutral-600">Interviews</p>
+              <p className="text-2xl font-bold text-neutral-900">{analytics.interviews_scheduled}</p>
             </div>
             <Calendar className="w-8 h-8 text-purple-500" />
           </div>
@@ -252,8 +252,8 @@ export default function AnalyticsPage() {
         <Card className="p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600">Offers</p>
-              <p className="text-2xl font-bold text-gray-900">{analytics.offers_received}</p>
+              <p className="text-sm font-medium text-neutral-600">Offers</p>
+              <p className="text-2xl font-bold text-neutral-900">{analytics.offers_received}</p>
             </div>
             <Award className="w-8 h-8 text-yellow-500" />
           </div>
@@ -265,8 +265,8 @@ export default function AnalyticsPage() {
         <Card className="p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600">Pending Applications</p>
-              <p className="text-2xl font-bold text-gray-900">{analytics.pending_applications}</p>
+              <p className="text-sm font-medium text-neutral-600">Pending Applications</p>
+              <p className="text-2xl font-bold text-neutral-900">{analytics.pending_applications}</p>
             </div>
             <TrendingUp className="w-8 h-8 text-orange-500" />
           </div>
@@ -275,8 +275,8 @@ export default function AnalyticsPage() {
         <Card className="p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600">Acceptance Rate</p>
-              <p className="text-2xl font-bold text-gray-900">{analytics.acceptance_rate}%</p>
+              <p className="text-sm font-medium text-neutral-600">Acceptance Rate</p>
+              <p className="text-2xl font-bold text-neutral-900">{analytics.acceptance_rate}%</p>
             </div>
             <Target className="w-8 h-8 text-indigo-500" />
           </div>
@@ -285,19 +285,19 @@ export default function AnalyticsPage() {
         <Card className="p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600">Daily Goal Progress</p>
-              <p className="text-2xl font-bold text-gray-900">{analytics.daily_goal_progress}%</p>
+              <p className="text-sm font-medium text-neutral-600">Daily Goal Progress</p>
+              <p className="text-2xl font-bold text-neutral-900">{analytics.daily_goal_progress}%</p>
             </div>
             <BarChart3 className="w-8 h-8 text-pink-500" />
           </div>
           <div className="mt-2">
-            <div className="w-full bg-gray-200 rounded-full h-2">
+            <div className="w-full bg-neutral-200 rounded-full h-2">
               <div
                 className="bg-pink-500 h-2 rounded-full transition-all duration-300"
                 style={{ width: `${Math.min(analytics.daily_goal_progress, 100)}%` }}
               ></div>
             </div>
-            <p className="text-xs text-gray-500 mt-1">
+            <p className="text-xs text-neutral-500 mt-1">
               {analytics.daily_applications_today} / {analytics.daily_application_goal} applications today
             </p>
           </div>
@@ -306,8 +306,8 @@ export default function AnalyticsPage() {
         <Card className="p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600">Rejections</p>
-              <p className="text-2xl font-bold text-gray-900">{analytics.rejections_received}</p>
+              <p className="text-sm font-medium text-neutral-600">Rejections</p>
+              <p className="text-2xl font-bold text-neutral-900">{analytics.rejections_received}</p>
             </div>
             <Activity className="w-8 h-8 text-red-500" />
           </div>
@@ -317,7 +317,7 @@ export default function AnalyticsPage() {
       {/* Time Range Selector */}
       <Card className="p-4">
         <div className="flex items-center justify-between">
-          <h3 className="text-lg font-semibold text-gray-900">Analytics Timeframe</h3>
+          <h3 className="text-lg font-semibold text-neutral-900">Analytics Timeframe</h3>
           <div className="flex gap-2">
             {[30, 60, 90, 180].map((days) => (
               <button
@@ -325,7 +325,7 @@ export default function AnalyticsPage() {
                 onClick={() => setTimeframe(days)}
                 className={`px-3 py-1 rounded text-sm ${timeframe === days
                     ? 'bg-blue-500 text-white'
-                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                    : 'bg-neutral-200 text-neutral-700 hover:bg-neutral-300'
                   }`}
               >
                 {days}d
@@ -339,7 +339,7 @@ export default function AnalyticsPage() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Application Status Breakdown */}
         <Card className="p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Application Status Breakdown</h3>
+          <h3 className="text-lg font-semibold text-neutral-900 mb-4">Application Status Breakdown</h3>
           {statusBreakdownData.length > 0 ? (
             <ResponsiveContainer width="100%" height={300}>
               <PieChart>
@@ -361,7 +361,7 @@ export default function AnalyticsPage() {
               </PieChart>
             </ResponsiveContainer>
           ) : (
-            <div className="flex items-center justify-center h-64 text-gray-500">
+            <div className="flex items-center justify-center h-64 text-neutral-500">
               No application data available
             </div>
           )}
@@ -369,7 +369,7 @@ export default function AnalyticsPage() {
 
         {/* Application Trends */}
         <Card className="p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Application Trends</h3>
+          <h3 className="text-lg font-semibold text-neutral-900 mb-4">Application Trends</h3>
           <ResponsiveContainer width="100%" height={300}>
             <BarChart data={applicationTrendData}>
               <CartesianGrid strokeDasharray="3 3" />
@@ -387,7 +387,7 @@ export default function AnalyticsPage() {
         <div className="grid grid-cols-1 gap-6">
           {/* Application Timeline */}
           <Card className="p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Application Timeline</h3>
+            <h3 className="text-lg font-semibold text-neutral-900 mb-4">Application Timeline</h3>
             {comprehensiveData.application_trends && comprehensiveData.application_trends.length > 0 ? (
               <ResponsiveContainer width="100%" height={300}>
                 <LineChart data={comprehensiveData.application_trends}>
@@ -410,7 +410,7 @@ export default function AnalyticsPage() {
                 </LineChart>
               </ResponsiveContainer>
             ) : (
-              <div className="flex items-center justify-center h-64 text-gray-500">
+              <div className="flex items-center justify-center h-64 text-neutral-500">
                 No timeline data available
               </div>
             )}
@@ -418,7 +418,7 @@ export default function AnalyticsPage() {
 
           {/* Weekly Performance Trends */}
           <Card className="p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Weekly Performance Trends</h3>
+            <h3 className="text-lg font-semibold text-neutral-900 mb-4">Weekly Performance Trends</h3>
             {comprehensiveData.weekly_performance && comprehensiveData.weekly_performance.length > 0 ? (
               <ResponsiveContainer width="100%" height={400}>
                 <ComposedChart data={comprehensiveData.weekly_performance.reverse()}>
@@ -457,7 +457,7 @@ export default function AnalyticsPage() {
                 </ComposedChart>
               </ResponsiveContainer>
             ) : (
-              <div className="flex items-center justify-center h-64 text-gray-500">
+              <div className="flex items-center justify-center h-64 text-neutral-500">
                 No performance trend data available
               </div>
             )}
@@ -469,7 +469,7 @@ export default function AnalyticsPage() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Top Skills */}
         <Card className="p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Top Skills in Jobs</h3>
+          <h3 className="text-lg font-semibold text-neutral-900 mb-4">Top Skills in Jobs</h3>
           {skillsData.length > 0 ? (
             <ResponsiveContainer width="100%" height={300}>
               <BarChart data={skillsData} layout="horizontal">
@@ -481,7 +481,7 @@ export default function AnalyticsPage() {
               </BarChart>
             </ResponsiveContainer>
           ) : (
-            <div className="flex items-center justify-center h-64 text-gray-500">
+            <div className="flex items-center justify-center h-64 text-neutral-500">
               No skills data available
             </div>
           )}
@@ -489,7 +489,7 @@ export default function AnalyticsPage() {
 
         {/* Top Companies */}
         <Card className="p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Top Companies Applied</h3>
+          <h3 className="text-lg font-semibold text-neutral-900 mb-4">Top Companies Applied</h3>
           {companiesData.length > 0 ? (
             <ResponsiveContainer width="100%" height={300}>
               <BarChart data={companiesData} layout="horizontal">
@@ -501,7 +501,7 @@ export default function AnalyticsPage() {
               </BarChart>
             </ResponsiveContainer>
           ) : (
-            <div className="flex items-center justify-center h-64 text-gray-500">
+            <div className="flex items-center justify-center h-64 text-neutral-500">
               No company data available
             </div>
           )}
@@ -510,7 +510,7 @@ export default function AnalyticsPage() {
 
       {/* Summary Stats */}
       <Card className="p-6">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">Quick Summary</h3>
+        <h3 className="text-lg font-semibold text-neutral-900 mb-4">Quick Summary</h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
           <div className="bg-blue-50 p-4 rounded-lg">
             <p className="font-medium text-blue-900">Weekly Activity</p>
