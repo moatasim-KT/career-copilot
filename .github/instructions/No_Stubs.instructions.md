@@ -1,0 +1,1 @@
+Dont create simplified versions, stubs,minimal implementations, synthetic data etc. Always do comprehensive implementation
