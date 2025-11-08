@@ -15,6 +15,7 @@
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 ![Status](https://img.shields.io/badge/status-production--ready-success.svg)
 [![Version](https://img.shields.io/badge/version-1.0.0-orange.svg)](VERSION)
+[![Phase 1](https://img.shields.io/badge/Phase%201-In%20Progress-yellow.svg)](TODO.md)
 
 ---
 
@@ -63,6 +64,14 @@ That's it! The application is now running with all services configured.
 ## 📚 Documentation
 
 Comprehensive documentation is available in the [`docs/`](docs/) directory:
+
+### 🤖 AI Agent Coordination (New!)
+
+- **[Quick Start for Contributors](.agents/START_HERE.md)** - Immediate action steps with examples
+- **[Coordination System Overview](.agents/README.md)** - Complete guide to multi-agent development
+- **[Coordination Rules](.agents/coordination-rules.md)** - File locking, branching, and conflict prevention
+- **[Task Assignments](.agents/task-partition-plan.md)** - Detailed task breakdown (18 Gemini + 16 Copilot tasks)
+- **[Real-Time Status](.agents/task-assignments.json)** - Live agent state and progress tracking
 
 ### 📖 Setup & Installation
 
@@ -282,7 +291,7 @@ See [Security Best Practices](docs/deployment/DEPLOYMENT.md#security) for more d
 
 **Version**: 1.0.0 (Production Ready)
 
-**Features**:
+**Core Platform Features**:
 - ✅ Job scraping from 9 sources
 - ✅ AI-powered resume generation
 - ✅ Application tracking system
@@ -294,30 +303,85 @@ See [Security Best Practices](docs/deployment/DEPLOYMENT.md#security) for more d
 - ✅ Comprehensive API (70+ endpoints)
 - ✅ Single-user mode (User ID: 1)
 
-**In Development**:
+**🎯 Phase 1: Enterprise Frontend Upgrade (In Progress)**
+
+**Design System Foundation**:
+- ✅ Complete design tokens in `globals.css` (5-level color palettes, spacing, typography, shadows)
+- ✅ Button2 component (7 variants, 5 sizes)
+- ✅ Card2 component (5 elevation levels)
+
+**Migration Progress**:
+- ✅ **Task 1.4 Complete** (6/6 files migrated)
+  - Layout & navigation components
+  - Dashboard & analytics
+  - Forms & profile management
+  - Settings & advanced features
+  - Job tracking & AI-powered tools
+
+**Next Phase (In Development)**:
+- 🔄 16 new components (SkeletonText, Badge, Avatar, Tooltip, etc.)
+- 🔄 Theme switching infrastructure
+- 🔄 Accessibility improvements (ARIA, keyboard navigation)
+- 🔄 Performance optimization (React.memo, Suspense)
+- 🔄 Testing & documentation
+
+See [TODO.md](TODO.md) for complete 320+ task breakdown across 6 phases.
+
+**Other Features In Development**:
 - 🔄 Multi-user authentication system
 - 🔄 Real-time notifications (WebSocket)
 - 🔄 Advanced analytics & reporting
 - 🔄 Mobile application
 - 🔄 Interview preparation tools
 
-## 🤝 Contributing
+## � AI Agent Coordination
+
+This project uses a **File-Level Task Partitioning** strategy for parallel development with multiple AI agents:
+
+- **Gemini CLI**: Focused on migrations and architectural tasks (Task 1.4 ✅ complete)
+- **GitHub Copilot**: Building new components (Tasks 1.5-1.7 in progress)
+- **Zero-Conflict Design**: Each agent works on different files simultaneously
+- **Git Workflow**: Dedicated branches (`agent/gemini/*`, `agent/copilot/*`) with daily integration
+
+**For Contributors & AI Agents**:
+- **Quick Start**: See [.agents/START_HERE.md](.agents/START_HERE.md) for immediate action steps
+- **Coordination Rules**: [.agents/coordination-rules.md](.agents/coordination-rules.md)
+- **Task Assignments**: [.agents/task-partition-plan.md](.agents/task-partition-plan.md)
+- **Real-Time Status**: Run `.agents/shared/quick-status.sh`
+
+**Benefits**:
+- ⚡ 4-5x speedup (3-4 days vs 10-14 days)
+- 🎯 Zero merge conflicts by design
+- 💰 $0 cost (free tier AI tools only)
+- 📊 Real-time progress tracking with JSON state
+
+## �🤝 Contributing
 
 We welcome contributions! Please see our [Contributing Guide](frontend/CONTRIBUTING.md) for details.
 
 ### Development Workflow
 
+**For Human Contributors**:
 1. Fork the repository
 2. Create a feature branch (`git checkout -b feature/amazing-feature`)
 3. Commit your changes (`git commit -m 'Add amazing feature'`)
 4. Push to the branch (`git push origin feature/amazing-feature`)
 5. Open a Pull Request
 
+**For AI Agent Contributors**:
+1. Read [.agents/START_HERE.md](.agents/START_HERE.md)
+2. Check task assignments in [.agents/task-assignments.json](.agents/task-assignments.json)
+3. Follow your agent-specific instructions (`.agents/gemini/` or `.agents/copilot/`)
+4. Use designated branch (`agent/gemini/*` or `agent/copilot/*`)
+5. Run sync checks before committing (`.agents/shared/sync-check.sh`)
+
 ### Code Style
 
 - **Python**: Follow PEP 8, use `ruff` for linting
 - **TypeScript**: Follow project ESLint configuration
-- **Commits**: Use conventional commits format
+- **React**: Use functional components, TypeScript interfaces, proper prop typing
+- **Design System**: Use tokens from `globals.css`, follow Button2/Card2 patterns
+- **Commits**: Use conventional commits format (`feat:`, `fix:`, `docs:`, etc.)
 
 ## 📄 License
 
