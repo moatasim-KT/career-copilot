@@ -26,16 +26,16 @@ type Story = StoryObj<typeof meta>;
  * Demo component to trigger toasts
  */
 function ToastDemo({ type, message, duration }: { type: 'success' | 'error' | 'warning' | 'info'; message: string; duration?: number }) {
-    const { addToast } = useToast();
+    const toast = useToast();
 
     useEffect(() => {
-        addToast(message, type, { duration });
-    }, [addToast, message, type, duration]);
+        toast[type](message, undefined, undefined);
+    }, [toast, type, message]);
 
     return (
         <div className="flex flex-col gap-4 p-8">
             <button
-                onClick={() => addToast(message, type, { duration })}
+                onClick={() => toast[type](message, undefined, undefined)}
                 className="rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
             >
                 Show {type} Toast
@@ -79,24 +79,29 @@ export const Info: Story = {
 export const WithAction: Story = {
     render: () => (
         <ToastProvider>
-            <div className="flex flex-col gap-4 p-8">
-                <button
-                    onClick={() => {
-                        const { addToast } = useToast();
-                        addToast('Application saved as draft', 'info', {
-                            action: {
-                                label: 'View',
-                                onClick: () => console.log('View clicked'),
-                            },
-                        });
-                    }}
-                    className="rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
-                >
-                    Show Toast with Action
-                </button>
-            </div>
+            <WithActionDemo />
         </ToastProvider>
     ),
+};
+
+function WithActionDemo() {
+    const toast = useToast();
+    return (
+        <div className="flex flex-col gap-4 p-8">
+            <button
+                onClick={() => {
+                    toast.info('Application saved as draft', 'Info', {
+                        label: 'View',
+                        onClick: () => console.log('View clicked'),
+                    });
+                }}
+                className="rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
+            >
+                Show Toast with Action
+            </button>
+        </div>
+    );
+}
 };
 
 export const LongDuration: Story = {
@@ -110,19 +115,26 @@ export const LongDuration: Story = {
 export const Multiple: Story = {
     render: () => (
         <ToastProvider>
-            <div className="flex flex-col gap-4 p-8">
-                <button
-                    onClick={() => {
-                        const { addToast } = useToast();
-                        addToast('First notification', 'info');
-                        setTimeout(() => addToast('Second notification', 'success'), 500);
-                        setTimeout(() => addToast('Third notification', 'warning'), 1000);
-                    }}
-                    className="rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
-                >
-                    Show Multiple Toasts
-                </button>
-            </div>
+            <MultipleDemo />
         </ToastProvider>
     ),
+};
+
+function MultipleDemo() {
+    const toast = useToast();
+    return (
+        <div className="flex flex-col gap-4 p-8">
+            <button
+                onClick={() => {
+                    toast.info('First notification');
+                    setTimeout(() => toast.success('Second notification'), 500);
+                    setTimeout(() => toast.warning('Third notification'), 1000);
+                }}
+                className="rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
+            >
+                Show Multiple Toasts
+            </button>
+        </div>
+    );
+}
 };

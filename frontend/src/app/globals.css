@@ -7,14 +7,16 @@
     /* ============================================
        COLORS - Professional Blue/Gray Palette
        ============================================ */
-    
+
     /* Primary Colors (Blue) */
-    --color-primary-50: 239 246 255;   /* rgb(239 246 255) */
+    --color-primary-50: 239 246 255;
+    /* rgb(239 246 255) */
     --color-primary-100: 219 234 254;
     --color-primary-200: 191 219 254;
     --color-primary-300: 147 197 253;
     --color-primary-400: 96 165 250;
-    --color-primary-500: 59 130 246;   /* Main brand color */
+    --color-primary-500: 59 130 246;
+    /* Main brand color */
     --color-primary-600: 37 99 235;
     --color-primary-700: 29 78 216;
     --color-primary-800: 30 64 175;
@@ -72,33 +74,56 @@
        SPACING SCALE (8px base)
        ============================================ */
     --space-0: 0;
-    --space-1: 0.25rem;  /* 4px */
-    --space-2: 0.5rem;   /* 8px */
-    --space-3: 0.75rem;  /* 12px */
-    --space-4: 1rem;     /* 16px */
-    --space-5: 1.25rem;  /* 20px */
-    --space-6: 1.5rem;   /* 24px */
-    --space-8: 2rem;     /* 32px */
-    --space-10: 2.5rem;  /* 40px */
-    --space-12: 3rem;    /* 48px */
-    --space-16: 4rem;    /* 64px */
-    --space-20: 5rem;    /* 80px */
-    --space-24: 6rem;    /* 96px */
+    --space-1: 0.25rem;
+    /* 4px */
+    --space-2: 0.5rem;
+    /* 8px */
+    --space-3: 0.75rem;
+    /* 12px */
+    --space-4: 1rem;
+    /* 16px */
+    --space-5: 1.25rem;
+    /* 20px */
+    --space-6: 1.5rem;
+    /* 24px */
+    --space-8: 2rem;
+    /* 32px */
+    --space-10: 2.5rem;
+    /* 40px */
+    --space-12: 3rem;
+    /* 48px */
+    --space-16: 4rem;
+    /* 64px */
+    --space-20: 5rem;
+    /* 80px */
+    --space-24: 6rem;
+    /* 96px */
 
     /* ============================================
        TYPOGRAPHY SCALE
        ============================================ */
-    --font-size-xs: 0.75rem;      /* 12px */
-    --font-size-sm: 0.875rem;     /* 14px */
-    --font-size-base: 1rem;       /* 16px */
-    --font-size-lg: 1.125rem;     /* 18px */
-    --font-size-xl: 1.25rem;      /* 20px */
-    --font-size-2xl: 1.5rem;      /* 24px */
-    --font-size-3xl: 1.875rem;    /* 30px */
-    --font-size-4xl: 2.25rem;     /* 36px */
-    --font-size-5xl: 3rem;        /* 48px */
-    --font-size-6xl: 3.75rem;     /* 60px */
-    --font-size-7xl: 4.5rem;      /* 72px */
+    --font-size-xs: 0.75rem;
+    /* 12px */
+    --font-size-sm: 0.875rem;
+    /* 14px */
+    --font-size-base: 1rem;
+    /* 16px */
+    --font-size-lg: 1.125rem;
+    /* 18px */
+    --font-size-xl: 1.25rem;
+    /* 20px */
+    --font-size-2xl: 1.5rem;
+    /* 24px */
+    --font-size-3xl: 1.875rem;
+    /* 30px */
+    --font-size-4xl: 2.25rem;
+    /* 36px */
+    --font-size-5xl: 3rem;
+    /* 48px */
+    --font-size-6xl: 3.75rem;
+    /* 60px */
+    --font-size-7xl: 4.5rem;
+    /* 72px */
 
     /* Line Heights */
     --line-height-tight: 1.25;
@@ -126,12 +151,18 @@
        BORDER RADIUS
        ============================================ */
     --radius-none: 0;
-    --radius-sm: 0.25rem;   /* 4px */
-    --radius-base: 0.5rem;  /* 8px */
-    --radius-md: 0.75rem;   /* 12px */
-    --radius-lg: 1rem;      /* 16px */
-    --radius-xl: 1.5rem;    /* 24px */
-    --radius-2xl: 2rem;     /* 32px */
+    --radius-sm: 0.25rem;
+    /* 4px */
+    --radius-base: 0.5rem;
+    /* 8px */
+    --radius-md: 0.75rem;
+    /* 12px */
+    --radius-lg: 1rem;
+    /* 16px */
+    --radius-xl: 1.5rem;
+    /* 24px */
+    --radius-2xl: 2rem;
+    /* 32px */
     --radius-full: 9999px;
 
     /* ============================================
@@ -172,7 +203,8 @@
   /* Removed invalid @apply border-border; */
 
   body {
-    @apply bg-background text-foreground;
+    background-color: rgb(var(--background));
+    color: rgb(var(--foreground));
     font-feature-settings: "rlig" 1, "calt" 1;
   }
 
@@ -184,7 +216,7 @@
   }
 
   .gradient-mesh {
-    background: 
+    background:
       radial-gradient(at 40% 20%, rgb(var(--color-primary-200)) 0px, transparent 50%),
       radial-gradient(at 80% 0%, rgb(var(--color-primary-300)) 0px, transparent 50%),
       radial-gradient(at 0% 50%, rgb(var(--color-primary-100)) 0px, transparent 50%),
@@ -195,11 +227,25 @@
   }
 
   .glass {
-    @apply backdrop-blur-lg bg-white/70 dark:bg-neutral-900/70 border border-white/20;
+    backdrop-filter: blur(16px);
+    background-color: rgba(255, 255, 255, 0.7);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+  }
+
+  @media (prefers-color-scheme: dark) {
+    .glass {
+      background-color: rgba(23, 37, 84, 0.7);
+      /* fallback for dark bg-neutral-900/70 */
+    }
   }
 
   .card-hover {
-    @apply transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5;
+    transition: all 0.2s;
+  }
+
+  .card-hover:hover {
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+    transform: translateY(-2px);
   }
 
   /* ============================================
@@ -215,6 +261,7 @@
     0% {
       transform: translateX(-100%);
     }
+
     50%,
     100% {
       transform: translateX(100%);
