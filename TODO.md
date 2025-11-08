@@ -1,5 +1,58 @@
 
 
+## Backend API Endpoints Overview (as of Nov 2025)
+
+### General Principles
+- **No authentication or login is required for any backend endpoint.**
+- All endpoints are accessible to the frontend and public clients (see `backend/app/core/dependencies.py`).
+- CORS is configured to allow frontend communication (see `backend/app/main.py`).
+
+### Main Endpoint Groups
+
+- **Jobs** (`/api/v1/jobs`)
+  - List, create, update, delete jobs
+  - Search jobs, get recommendations, analytics, job scraping, job sources, enrichment
+  - All job endpoints require no authentication
+- **Applications** (`/api/v1/applications`)
+  - List, create, update, delete applications
+  - Application summary, stats, analytics
+  - No authentication required
+- **Personalization** (`/api/v1/users/{user_id}/preferences`, `/api/v1/users/{user_id}/behavior`)
+  - Get/update user preferences, track behavior, get available jobs
+  - No authentication required
+- **LLM/AI** (`/api/v1/llm`, `/api/v1/enhanced-llm`)
+  - Generate completions, get providers, health, metrics
+  - No authentication required
+- **User Management** (`/api/v1/users`)
+  - List, create, update, delete users, get profile
+  - No authentication required
+- **Analytics** (`/api/v1/analytics`, `/api/v1/analytics_extended`, `/api/v1/advanced_user_analytics`)
+  - Dashboard, performance, risk, success metrics, etc.
+  - No authentication required
+- **Notifications, Social, Resume, Content, Feedback, Integrations, Storage, etc.**
+  - All major features have endpoints, all are public
+
+### Endpoint Guarantee
+- **All endpoints are accessible without authentication or login.**
+- No auth middleware is enforced; see `get_current_user` in `backend/app/core/dependencies.py`.
+- Frontend can call any backend endpoint directly.
+
+---
+## [NEW] Backend-Frontend Communication Mapping
+
+- All frontend features that require backend data must use the available endpoints above.
+- If a frontend feature is missing a backend endpoint, add a TODO in this file and implement the backend service (see below).
+
+#### [ACTION REQUIRED] For each frontend feature:
+1. **Check if a backend endpoint exists.**
+2. **If not, add a TODO to implement the backend service.**
+3. **Ensure the frontend uses the unified API client (`frontend/src/lib/api/client.ts`) and does NOT require authentication.**
+
+---
+## [TODO] Missing Backend Services for Frontend Features
+
+- [ ] (Add here any frontend feature that does not have a backend endpoint. For each, create a plan to implement the backend service, ensuring it is public and requires no authentication.)
+
 ---
 
 ## Phase 1: Design System Foundation (Week 1-2)
