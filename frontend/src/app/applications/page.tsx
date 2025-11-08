@@ -1,39 +1,19 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 
+import { ApplicationsService, type ApplicationResponse } from '@/lib/api/client';
 import { DocumentUpload } from '@/components/features/DocumentUpload';
 import { InterviewPreparation, InterviewQuestion } from '@/components/features/InterviewPreparation';
 import { NotesAndReminders } from '@/components/features/NotesAndReminders';
 import { KanbanBoard } from '@/components/kanban/KanbanBoard';
 import { ApplicationTimeline } from '@/components/ui/ApplicationTimeline';
 
-interface Application {
-  id: string;
-  title: string;
-  company: string;
-  status: string;
-}
-
 interface Column {
   id: string;
   title: string;
-  applicationIds: string[];
+  applicationIds: (string | number)[];
 }
-
-const initialApplications: Application[] = [
-  { id: '1', title: 'Frontend Developer', company: 'Tech Solutions', status: 'Applied' },
-  { id: '2', title: 'Backend Engineer', company: 'Data Innovations', status: 'Applied' },
-  { id: '3', title: 'UX Designer', company: 'Creative Agency', status: 'Interviewing' },
-  { id: '4', title: 'DevOps Engineer', company: 'Cloud Services', status: 'Offer' },
-];
-
-const initialColumns: Column[] = [
-  { id: 'applied', title: 'Applied', applicationIds: ['1', '2'] },
-  { id: 'interviewing', title: 'Interviewing', applicationIds: ['3'] },
-  { id: 'offer', title: 'Offer', applicationIds: ['4'] },
-  { id: 'rejected', title: 'Rejected', applicationIds: [] },
-];
 
 const dummyTimelineEvents = [
   { id: '1', date: '2023-01-15', description: 'Applied for Frontend Developer at Tech Solutions', color: 'blue' },
@@ -66,12 +46,39 @@ const dummyInterviewQuestions: InterviewQuestion[] = [
 ];
 
 export default function ApplicationsPage() {
-  const [applications, setApplications] = useState(initialApplications);
-  const [columns, setColumns] = useState(initialColumns);
+  const [applications, setApplications] = useState<ApplicationResponse[]>([]);
+  const [columns, setColumns] = useState<Column[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState('');
   const [showTimeline, setShowTimeline] = useState(false);
   const [showInterviewPrep, setShowInterviewPrep] = useState(false);
   const [showDocumentUpload, setShowDocumentUpload] = useState(false);
   const [showNotesAndReminders, setShowNotesAndReminders] = useState(false);
+
+  useEffect(() => {
+    const loadApplications = async () => {
+      setIsLoading(true);
+      try {
+        const response = await ApplicationsService.getApplicationsApiV1ApplicationsGet();
+        setApplications(response);
+        // This is a simplified column generation. A real implementation
+        // would likely involve more sophisticated logic.
+        const columns: Column[] = [
+          { id: 'applied', title: 'Applied', applicationIds: response.filter(a => a.status === 'Applied').map(a => a.id) },
+          { id: 'interviewing', title: 'Interviewing', applicationIds: response.filter(a => a.status === 'Interviewing').map(a => a.id) },
+          { id: 'offer', title: 'Offer', applicationIds: response.filter(a => a.status === 'Offer').map(a => a.id) },
+          { id: 'rejected', title: 'Rejected', applicationIds: response.filter(a => a.status === 'Rejected').map(a => a.id) },
+        ];
+        setColumns(columns);
+      } catch (err) {
+        setError('Failed to load applications');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadApplications();
+  }, []);
 
   const dummyDocuments = [
     { id: 'doc1', name: 'Resume.pdf', url: '#', type: 'pdf', uploadedAt: '2023-10-26' },
@@ -206,10 +213,16 @@ export default function ApplicationsPage() {
       ) : showTimeline ? (
         <ApplicationTimeline events={dummyTimelineEvents} />
       ) : (
-        <KanbanBoard
-          initialApplications={applications}
-          initialColumns={columns}
-        />
+        isLoading ? (
+          <div>Loading...</div>
+        ) : error ? (
+          <div>{error}</div>
+        ) : (
+          <KanbanBoard
+            initialApplications={applications}
+            initialColumns={columns}
+          />
+        )
       )}
     </div>
   );

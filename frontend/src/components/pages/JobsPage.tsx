@@ -40,7 +40,7 @@ import Modal, { ModalFooter } from '@/components/ui/Modal';
 import Select from '@/components/ui/Select';
 import Textarea from '@/components/ui/Textarea';
 import { useLocalStorage } from '@/hooks/useLocalStorage';
-import { apiClient, type Job } from '@/lib/api';
+import { ApplicationsService, JobsService, type JobCreate, type JobResponse } from '@/lib/api/client';
 
 import { JobComparisonView } from './JobComparisonView';
 import { JobListView } from './JobListView';
@@ -81,12 +81,12 @@ const TECH_SKILLS = [
 ];
 
 export default function JobsPage() {
-  const [jobs, setJobs] = useState<Job[]>([]);
+  const [jobs, setJobs] = useState<JobResponse[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   const [showJobModal, setShowJobModal] = useState(false);
-  const [editingJob, setEditingJob] = useState<Job | null>(null);
+  const [editingJob, setEditingJob] = useState<JobResponse | null>(null);
   const [sourceFilter, setSourceFilter] = useState('all');
   const [typeFilter, setTypeFilter] = useState('all');
   const [sortBy, setSortBy] = useState('created_at_desc');
@@ -132,7 +132,7 @@ export default function JobsPage() {
 
     try {
       for (const jobId of selectedJobIds) {
-        await apiClient.deleteJob(jobId);
+        await JobsService.deleteJobApiV1JobsJobIdDelete({ jobId });
       }
       setSelectedJobIds([]);
       loadJobs();
@@ -141,7 +141,7 @@ export default function JobsPage() {
     }
   };
 
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<JobCreate>({
     company: '',
     title: '',
     location: '',
@@ -164,12 +164,8 @@ export default function JobsPage() {
   const loadJobs = async () => {
     setIsLoading(true);
     try {
-      const response = await apiClient.getJobs();
-      if (response.error) {
-        setError(response.error);
-      } else if (response.data) {
-        setJobs(response.data);
-      }
+      const response = await JobsService.getJobsApiV1JobsGet();
+      setJobs(response);
     } catch (err) {
       setError('Failed to load jobs');
     } finally {
@@ -180,13 +176,7 @@ export default function JobsPage() {
   const handleScrapeJobs = async () => {
     setIsScraping(true);
     try {
-      const { data, error } = await apiClient.jobs.scrape();
-
-      if (error) {
-        alert(`Error: ${error}`);
-        return;
-      }
-
+      await JobsService.scrapeJobsApiV1JobsScrapePost();
       alert('Job scraping started successfully!');
       // Refresh jobs list after scraping
       loadJobs();
@@ -238,17 +228,13 @@ export default function JobsPage() {
 
     try {
       const response = editingJob
-        ? await apiClient.updateJob(editingJob.id, formData)
-        : await apiClient.createJob(formData);
+        ? await JobsService.updateJobApiV1JobsJobIdPut({ jobId: editingJob.id, requestBody: formData })
+        : await JobsService.createJobApiV1JobsPost({ requestBody: formData });
 
-      if (response.error) {
-        setError(response.error);
-      } else {
-        setShowJobModal(false);
-        setEditingJob(null);
-        resetForm();
-        loadJobs();
-      }
+      setShowJobModal(false);
+      setEditingJob(null);
+      resetForm();
+      loadJobs();
     } catch (err) {
       setError('Failed to save job');
     } finally {
@@ -260,31 +246,24 @@ export default function JobsPage() {
     if (!confirm('Are you sure you want to delete this job?')) return;
 
     try {
-      const response = await apiClient.deleteJob(jobId);
-      if (response.error) {
-        setError(response.error);
-      } else {
-        loadJobs();
-      }
+      await JobsService.deleteJobApiV1JobsJobIdDelete({ jobId });
+      loadJobs();
     } catch (err) {
       setError('Failed to delete job');
     }
   };
 
-  const handleApply = async (job: Job) => {
+  const handleApply = async (job: JobResponse) => {
     try {
-      const response = await apiClient.createApplication({
-        job_id: job.id,
-        status: 'interested',
-        notes: 'Applied via job management',
+      await ApplicationsService.createApplicationApiV1ApplicationsPost({
+        requestBody: {
+          job_id: job.id,
+          status: 'interested',
+          notes: 'Applied via job management',
+        }
       });
-
-      if (response.error) {
-        setError(response.error);
-      } else {
-        // Show success message or update UI
-        alert('Application created successfully!');
-      }
+      // Show success message or update UI
+      alert('Application created successfully!');
     } catch (err) {
       setError('Failed to create application');
     }
@@ -307,21 +286,22 @@ export default function JobsPage() {
     setFormErrors({});
   };
 
-  const startEdit = (job: Job) => {
+  const startEdit = (job: JobResponse) => {
     setEditingJob(job);
-    setFormData({
+    const jobCreate: JobCreate = {
       company: job.company,
       title: job.title,
       location: job.location || '',
       url: job.url || '',
       salary_range: job.salary_range || '',
-      job_type: job.job_type,
+      job_type: job.job_type || 'full-time',
       description: job.description || '',
-      remote: job.remote,
+      remote: job.remote || false,
       tech_stack: job.tech_stack || [],
       responsibilities: job.responsibilities || '',
-      source: job.source,
-    });
+      source: job.source || 'manual',
+    };
+    setFormData(jobCreate);
     setFormErrors({});
     setShowJobModal(true);
   };
@@ -348,17 +328,17 @@ export default function JobsPage() {
           tech.toLowerCase().includes(searchTerm.toLowerCase()),
         ));
 
-      const matchesSource = sourceFilter === 'all' || job.source === sourceFilter;
+      const matchesSource = sourceFilter === 'all' || (job.source && job.source === sourceFilter);
       const matchesType = typeFilter === 'all' || (job.job_type && job.job_type === typeFilter);
 
       const matchesQuickFilters = activeQuickFilters.every(filter => {
         switch (filter) {
           case 'remote':
-            return job.remote;
+            return job.remote || false;
           case 'full-time':
             return job.job_type === 'full-time';
           case 'react':
-            return job.tech_stack && job.tech_stack.includes('React');
+            return job.tech_stack?.includes('React');
           default:
             return true;
         }
@@ -514,7 +494,7 @@ export default function JobsPage() {
                     if (selectedJobIds.length === filteredAndSortedJobs.length) {
                       setSelectedJobIds([]);
                     } else {
-                      setSelectedJobIds(filteredAndSortedJobs.map(job => job.id));
+                      setSelectedJobIds(filteredAndSortedJobs.map(job => job.id || 0));
                     }
                   }}
                 />
@@ -590,7 +570,7 @@ export default function JobsPage() {
 
       {showComparisonView && (
         <JobComparisonView
-          jobs={jobs.filter(job => selectedJobIds.includes(job.id))}
+          jobs={jobs.filter(job => job.id && selectedJobIds.includes(job.id))}
           onClose={() => setShowComparisonView(false)}
         />
       )}
