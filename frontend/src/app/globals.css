@@ -169,9 +169,7 @@
     --ring: 147 197 253;
   }
 
-  * {
-    @apply border-border;
-  }
+  /* Removed invalid @apply border-border; */
 
   body {
     @apply bg-background text-foreground;
