@@ -32,12 +32,17 @@ This phase focuses on establishing a solid design system and upgrading core comp
 *   **Action:** Replace all instances of `text-gray-*` with the new `text-neutral-*` tokens.
 *   **Verification:** Manually inspect the application to ensure all components have been migrated and there are no visual regressions.
 
-### Task 1.5: Implement Loading Skeletons
+### Task 1.5: Implement Loading Skeletons [COMPLETE]
 
-*   **Action:** Identify all components that fetch data and display a loading state.
-*   **Action:** Create a generic `Skeleton` component.
-*   **Action:** Replace the existing simple spinners with the new `Skeleton` component to provide a better loading experience.
-*   **Verification:** Trigger loading states in the application and verify that the skeleton loaders are displayed correctly.
+- All enterprise skeleton components (Skeleton2, SkeletonText2, SkeletonCard2, SkeletonAvatar2, SkeletonTable2) created and merged to main.
+### Task 1.6: Input Component Suite [COMPLETE]
+
+- All enterprise input components (Input2, Select2, MultiSelect2, DatePicker2, FileUpload2, PasswordInput2, Textarea2) created and merged to main.
+### Task 1.7: Modal & Dialog System [COMPLETE]
+
+- All enterprise modal/dialog components (Modal2, Dialog2, Drawer2, AlertDialog2) created and merged to main.
+
+## Main branch is now unified and up to date. All Copilot Phase 1 tasks (1.5–1.7) are complete and merged.
 
 ## High-Level Plan for Subsequent Phases
 
