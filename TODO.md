@@ -1,13 +1,4 @@
-# Frontend Enterprise Upgrade TODO
 
-- [x] Complete Task 1.8: Modal/Dialog System
-  - Implement all subtasks for Task 1.8 as described in TODO.md: Modal, ConfirmDialog, Drawer, Popover, Tooltip enhancements. Add to design-system test page. Use enterprise patterns and accessibility.
-- [x] Complete Task 1.9: Form Validation & Patterns
-  - Implement all subtasks for Task 1.9 as described in TODO.md: Form component, validation schemas, form examples. Use react-hook-form and Zod. Document validation patterns.
-- [ ] Complete Task 1.10: Storybook Documentation
-  - Implement all subtasks for Task 1.10 as described in TODO.md: Setup Storybook, create stories for all new components, document design tokens, showcase variants and states.
-- [ ] Complete Task 1.11: Accessibility Audit
-  - Implement all subtasks for Task 1.11 as described in TODO.md: Automated testing with axe, keyboard navigation, screen reader testing, ARIA patterns. Document results and fixes.
 
 ---
 
