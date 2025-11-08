@@ -227,7 +227,7 @@ export default function ResumeUpload({ onUploadComplete, onProfileUpdate }: Resu
             onDrop={handleDrop}
           >
             <div className="space-y-4">
-              <div className="text-gray-500">
+              <div className="text-neutral-500">
                 <svg className="mx-auto h-12 w-12" stroke="currentColor" fill="none" viewBox="0 0 48 48">
                   <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
@@ -244,7 +244,7 @@ export default function ResumeUpload({ onUploadComplete, onProfileUpdate }: Resu
                   />
                 </label>
               </div>
-              <p className="text-sm text-gray-500">
+              <p className="text-sm text-neutral-500">
                 Supports PDF, DOC, and DOCX files up to 10MB
               </p>
             </div>
@@ -253,16 +253,16 @@ export default function ResumeUpload({ onUploadComplete, onProfileUpdate }: Resu
 
         {file && !uploadResult && (
           <div className="space-y-4">
-            <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+            <div className="flex items-center justify-between p-4 bg-neutral-50 rounded-lg">
               <div className="flex items-center space-x-3">
                 <div className="flex-shrink-0">
-                  <svg className="h-8 w-8 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                  <svg className="h-8 w-8 text-neutral-400" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clipRule="evenodd" />
                   </svg>
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-gray-900">{file.name}</p>
-                  <p className="text-sm text-gray-500">{(file.size / 1024 / 1024).toFixed(2)} MB</p>
+                  <p className="text-sm font-medium text-neutral-900">{file.name}</p>
+                  <p className="text-sm text-neutral-500">{(file.size / 1024 / 1024).toFixed(2)} MB</p>
                 </div>
               </div>
               <Button
@@ -311,7 +311,7 @@ export default function ResumeUpload({ onUploadComplete, onProfileUpdate }: Resu
               {uploadResult.extracted_data.contact_info && (
                 <div>
                   <h5 className="font-medium mb-2">Contact Information</h5>
-                  <div className="bg-gray-50 p-3 rounded-lg">
+                  <div className="bg-neutral-50 p-3 rounded-lg">
                     <p><strong>Name:</strong> {uploadResult.extracted_data.contact_info.name || 'Not found'}</p>
                     <p><strong>Email:</strong> {uploadResult.extracted_data.contact_info.email || 'Not found'}</p>
                     <p><strong>Phone:</strong> {uploadResult.extracted_data.contact_info.phone || 'Not found'}</p>
@@ -340,7 +340,7 @@ export default function ResumeUpload({ onUploadComplete, onProfileUpdate }: Resu
               {uploadResult.extracted_data.experience_level && (
                 <div>
                   <h5 className="font-medium mb-2">Experience Level</h5>
-                  <p className="text-gray-700 capitalize">{uploadResult.extracted_data.experience_level}</p>
+                  <p className="text-neutral-700 capitalize">{uploadResult.extracted_data.experience_level}</p>
                 </div>
               )}
 
@@ -351,7 +351,7 @@ export default function ResumeUpload({ onUploadComplete, onProfileUpdate }: Resu
                   
                   {uploadResult.suggestions.profile_updates.skills_to_add.length > 0 && (
                     <div className="mb-4">
-                      <p className="text-sm text-gray-600 mb-2">Skills to add to your profile:</p>
+                      <p className="text-sm text-neutral-600 mb-2">Skills to add to your profile:</p>
                       <div className="flex flex-wrap gap-2">
                         {uploadResult.suggestions.profile_updates.skills_to_add.map((skill, index) => (
                           <span

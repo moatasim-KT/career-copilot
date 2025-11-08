@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 
-import Button from '@/components/ui/Button';
+import Button2 from '@/components/ui/Button2';
 import Card, { CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import Container from '@/components/ui/Container';
 import { apiClient, Job } from '@/lib/api';
@@ -76,7 +76,7 @@ export default function RecommendationsPage() {
   };
 
   const getMatchScoreColor = (score?: number) => {
-    if (!score) return 'text-gray-500';
+    if (!score) return 'text-neutral-500';
     if (score >= 80) return 'text-green-600';
     if (score >= 60) return 'text-yellow-600';
     return 'text-red-600';
@@ -86,12 +86,12 @@ export default function RecommendationsPage() {
     return (
       <Container>
         <div className="space-y-6">
-          <h1 className="text-3xl font-bold text-gray-900">Job Recommendations & Skill Analysis</h1>
+          <h1 className="text-3xl font-bold text-neutral-900">Job Recommendations & Skill Analysis</h1>
           <Card>
             <CardContent>
               <div className="flex items-center justify-center py-8">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-                <span className="ml-2 text-gray-600">Loading recommendations...</span>
+                <span className="ml-2 text-neutral-600">Loading recommendations...</span>
               </div>
             </CardContent>
           </Card>
@@ -104,12 +104,12 @@ export default function RecommendationsPage() {
     return (
       <Container>
         <div className="space-y-6">
-          <h1 className="text-3xl font-bold text-gray-900">Job Recommendations & Skill Analysis</h1>
+          <h1 className="text-3xl font-bold text-neutral-900">Job Recommendations & Skill Analysis</h1>
           <Card>
             <CardContent>
               <div className="text-center py-8">
                 <p className="text-red-600 mb-4">{error}</p>
-                <Button onClick={loadData}>Try Again</Button>
+                <Button2 onClick={loadData}>Try Again</Button2>
               </div>
             </CardContent>
           </Card>
@@ -121,17 +121,17 @@ export default function RecommendationsPage() {
   return (
     <Container>
       <div className="space-y-6">
-        <h1 className="text-3xl font-bold text-gray-900">Job Recommendations & Skill Analysis</h1>
+        <h1 className="text-3xl font-bold text-neutral-900">Job Recommendations & Skill Analysis</h1>
         
         {/* Tab Navigation */}
-        <div className="border-b border-gray-200">
+        <div className="border-b border-neutral-200">
           <nav className="-mb-px flex space-x-8">
             <button
               onClick={() => setActiveTab('recommendations')}
               className={`py-2 px-1 border-b-2 font-medium text-sm ${
                 activeTab === 'recommendations'
                   ? 'border-blue-500 text-blue-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  : 'border-transparent text-neutral-500 hover:text-neutral-700 hover:border-neutral-300'
               }`}
             >
               Job Recommendations ({recommendations.length})
@@ -156,8 +156,8 @@ export default function RecommendationsPage() {
               <Card>
                 <CardContent>
                   <div className="text-center py-8">
-                    <p className="text-gray-600 mb-4">No job recommendations available.</p>
-                    <p className="text-sm text-gray-500">
+                    <p className="text-neutral-600 mb-4">No job recommendations available.</p>
+                    <p className="text-sm text-neutral-500">
                       Add some jobs and update your profile to get personalized recommendations.
                     </p>
                   </div>
@@ -169,28 +169,28 @@ export default function RecommendationsPage() {
                   <CardContent>
                     <div className="flex justify-between items-start mb-4">
                       <div className="flex-1">
-                        <h3 className="text-xl font-semibold text-gray-900 mb-1">
+                        <h3 className="text-xl font-semibold text-neutral-900 mb-1">
                           {job.title}
                         </h3>
-                        <p className="text-lg text-gray-700 mb-2">{job.company}</p>
+                        <p className="text-lg text-neutral-700 mb-2">{job.company}</p>
                         {job.location && (
-                          <p className="text-sm text-gray-600 mb-2">📍 {job.location}</p>
+                          <p className="text-sm text-neutral-600 mb-2">📍 {job.location}</p>
                         )}
                         {job.salary_range && (
-                          <p className="text-sm text-gray-600 mb-2">💰 {job.salary_range}</p>
+                          <p className="text-sm text-neutral-600 mb-2">💰 {job.salary_range}</p>
                         )}
                       </div>
                       <div className="text-right">
                         <div className={`text-2xl font-bold ${getMatchScoreColor(job.match_score)}`}>
                           {formatMatchScore(job.match_score)}
                         </div>
-                        <p className="text-xs text-gray-500">Match Score</p>
+                        <p className="text-xs text-neutral-500">Match Score</p>
                       </div>
                     </div>
 
                     {job.tech_stack && job.tech_stack.length > 0 && (
                       <div className="mb-4">
-                        <p className="text-sm font-medium text-gray-700 mb-2">Tech Stack:</p>
+                        <p className="text-sm font-medium text-neutral-700 mb-2">Tech Stack:</p>
                         <div className="flex flex-wrap gap-2">
                           {job.tech_stack.map((tech, index) => (
                             <span
@@ -206,34 +206,34 @@ export default function RecommendationsPage() {
 
                     {job.description && (
                       <div className="mb-4">
-                        <p className="text-sm text-gray-600 line-clamp-3">
+                        <p className="text-sm text-neutral-600 line-clamp-3">
                           {job.description}
                         </p>
                       </div>
                     )}
 
                     <div className="flex justify-between items-center">
-                      <div className="flex items-center space-x-4 text-sm text-gray-500">
+                      <div className="flex items-center space-x-4 text-sm text-neutral-500">
                         <span className="capitalize">{job.job_type}</span>
                         {job.remote && <span>🏠 Remote</span>}
                         <span>Source: {job.source}</span>
                       </div>
                       <div className="flex space-x-2">
                         {job.url && (
-                          <Button
+                          <Button2
                             variant="outline"
                             size="sm"
                             onClick={() => window.open(job.url, '_blank')}
                           >
                             View Job
-                          </Button>
+                          </Button2>
                         )}
-                        <Button
+                        <Button2
                           size="sm"
                           onClick={() => handleApplyToJob(job.id)}
                         >
                           Apply
-                        </Button>
+                        </Button2>
                       </div>
                     </div>
                   </CardContent>
@@ -250,8 +250,8 @@ export default function RecommendationsPage() {
               <Card>
                 <CardContent>
                   <div className="text-center py-8">
-                    <p className="text-gray-600 mb-4">No skill gap analysis available.</p>
-                    <p className="text-sm text-gray-500">
+                    <p className="text-neutral-600 mb-4">No skill gap analysis available.</p>
+                    <p className="text-sm text-neutral-500">
                       Add some jobs to your list to get skill gap insights.
                     </p>
                   </div>
@@ -270,7 +270,7 @@ export default function RecommendationsPage() {
                         <p className="text-3xl font-bold text-blue-600">
                           {Math.round(skillGapAnalysis.skill_coverage_percentage)}%
                         </p>
-                        <p className="text-sm text-gray-600">Skills Coverage</p>
+                        <p className="text-sm text-neutral-600">Skills Coverage</p>
                       </div>
                       <div className="w-32 h-32">
                         <svg className="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
@@ -290,7 +290,7 @@ export default function RecommendationsPage() {
                         </svg>
                       </div>
                     </div>
-                    <p className="text-sm text-gray-600">
+                    <p className="text-sm text-neutral-600">
                       You have {skillGapAnalysis.user_skills.length} skills out of {skillGapAnalysis.top_market_skills.length} top market skills.
                     </p>
                   </CardContent>
@@ -303,7 +303,7 @@ export default function RecommendationsPage() {
                   </CardHeader>
                   <CardContent>
                     {skillGapAnalysis.user_skills.length === 0 ? (
-                      <p className="text-gray-600">No skills added to your profile yet.</p>
+                      <p className="text-neutral-600">No skills added to your profile yet.</p>
                     ) : (
                       <div className="flex flex-wrap gap-2">
                         {skillGapAnalysis.user_skills.map((skill, index) => (
@@ -326,7 +326,7 @@ export default function RecommendationsPage() {
                   </CardHeader>
                   <CardContent>
                     {skillGapAnalysis.missing_skills.length === 0 ? (
-                      <p className="text-gray-600">Great! You have all the skills from your target jobs.</p>
+                      <p className="text-neutral-600">Great! You have all the skills from your target jobs.</p>
                     ) : (
                       <div className="flex flex-wrap gap-2">
                         {skillGapAnalysis.missing_skills.map((skill, index) => (
@@ -355,7 +355,7 @@ export default function RecommendationsPage() {
                           className={`px-3 py-1 text-sm rounded-full ${
                             skillGapAnalysis.user_skills.includes(skill)
                               ? 'bg-green-100 text-green-800'
-                              : 'bg-gray-100 text-gray-800'
+                              : 'bg-neutral-100 text-neutral-800'
                           }`}
                         >
                           {skillGapAnalysis.user_skills.includes(skill) ? '✓ ' : ''}{skill}
@@ -376,7 +376,7 @@ export default function RecommendationsPage() {
                         {skillGapAnalysis.recommendations.map((recommendation, index) => (
                           <li key={index} className="flex items-start">
                             <span className="text-blue-600 mr-2">•</span>
-                            <span className="text-gray-700">{recommendation}</span>
+                            <span className="text-neutral-700">{recommendation}</span>
                           </li>
                         ))}
                       </ul>

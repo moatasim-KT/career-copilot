@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 
-import Button from '@/components/ui/Button';
+import Button2 from '@/components/ui/Button2';
 import Card from '@/components/ui/Card';
 import Textarea from '@/components/ui/Textarea';
 import { apiClient, Job } from '@/lib/api';
@@ -198,7 +198,7 @@ export default function ContentGeneration({
           <div className="space-y-6">
             {/* Content Type Selection */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-3">
+              <label className="block text-sm font-medium text-neutral-700 mb-3">
                 Content Type
               </label>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -209,14 +209,14 @@ export default function ContentGeneration({
                       className={`p-4 border rounded-lg cursor-pointer transition-colors ${
                         contentType === type
                           ? 'border-blue-500 bg-blue-50'
-                          : 'border-gray-200 hover:border-gray-300'
+                          : 'border-neutral-200 hover:border-neutral-300'
                       }`}
                       onClick={() => setContentType(type)}
                     >
-                      <h4 className="font-medium text-gray-900 mb-2">
+                      <h4 className="font-medium text-neutral-900 mb-2">
                         {getContentTypeLabel(type)}
                       </h4>
-                      <p className="text-sm text-gray-600">
+                      <p className="text-sm text-neutral-600">
                         {getContentTypeDescription(type)}
                       </p>
                     </div>
@@ -227,13 +227,13 @@ export default function ContentGeneration({
 
             {/* Job Selection */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-neutral-700 mb-2">
                 Select Job
               </label>
               <select
                 value={selectedJobId || ''}
                 onChange={e => setSelectedJobId(Number(e.target.value) || null)}
-                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full p-3 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               >
                 <option value="">Choose a job...</option>
                 {jobs.map(job => (
@@ -246,7 +246,7 @@ export default function ContentGeneration({
 
             {/* Tone Selection */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-neutral-700 mb-2">
                 Tone
               </label>
               <div className="flex space-x-4">
@@ -270,7 +270,7 @@ export default function ContentGeneration({
 
             {/* Custom Prompt */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-neutral-700 mb-2">
                 Additional Instructions (Optional)
               </label>
               <Textarea
@@ -282,7 +282,7 @@ export default function ContentGeneration({
             </div>
 
             {/* Generate Button */}
-            <Button
+            <Button2
               onClick={handleGenerate}
               disabled={generating || !selectedJobId}
               className="w-full"
@@ -295,7 +295,7 @@ export default function ContentGeneration({
               ) : (
                 `Generate ${getContentTypeLabel(contentType)}`
               )}
-            </Button>
+            </Button2>
           </div>
         ) : (
           <div className="space-y-6">
@@ -305,19 +305,19 @@ export default function ContentGeneration({
                 <h4 className="text-lg font-medium">
                   Generated {getContentTypeLabel(generatedContent.content_type)}
                 </h4>
-                <p className="text-sm text-gray-600">
+                <p className="text-sm text-neutral-600">
                   For: {jobs.find(job => job.id === generatedContent.job_id)?.title} at{' '}
                   {jobs.find(job => job.id === generatedContent.job_id)?.company}
                 </p>
               </div>
-              <Button variant="outline" onClick={resetGeneration}>
+              <Button2 variant="outline" onClick={resetGeneration}>
                 Generate New
-              </Button>
+              </Button2>
             </div>
 
             {/* Content Editor */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-neutral-700 mb-2">
                 Content (Click to edit)
               </label>
               <Textarea
@@ -330,43 +330,43 @@ export default function ContentGeneration({
 
             {/* Action Buttons */}
             <div className="flex flex-wrap gap-3">
-              <Button
+              <Button2
                 onClick={handleSaveModifications}
                 disabled={saving}
                 variant="outline"
               >
                 {saving ? 'Saving...' : 'Save Changes'}
-              </Button>
+              </Button2>
 
-              <Button onClick={() => handleExport('txt')} variant="outline">
+              <Button2 onClick={() => handleExport('txt')} variant="outline">
                 Export as TXT
-              </Button>
+              </Button2>
 
-              <Button onClick={() => handleExport('pdf')} variant="outline" disabled>
+              <Button2 onClick={() => handleExport('pdf')} variant="outline" disabled>
                 Export as PDF
-              </Button>
+              </Button2>
 
-              <Button onClick={() => handleExport('docx')} variant="outline" disabled>
+              <Button2 onClick={() => handleExport('docx')} variant="outline" disabled>
                 Export as DOCX
-              </Button>
+              </Button2>
             </div>
 
             {/* Content Statistics */}
-            <div className="bg-gray-50 p-4 rounded-lg">
+            <div className="bg-neutral-50 p-4 rounded-lg">
               <h5 className="font-medium mb-2">Content Statistics</h5>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                 <div>
-                  <span className="text-gray-600">Words:</span>
+                  <span className="text-neutral-600">Words:</span>
                   <span className="ml-2 font-medium">
                     {editedContent.split(/\s+/).filter(word => word.length > 0).length}
                   </span>
                 </div>
                 <div>
-                  <span className="text-gray-600">Characters:</span>
+                  <span className="text-neutral-600">Characters:</span>
                   <span className="ml-2 font-medium">{editedContent.length}</span>
                 </div>
                 <div>
-                  <span className="text-gray-600">Paragraphs:</span>
+                  <span className="text-neutral-600">Paragraphs:</span>
                   <span className="ml-2 font-medium">
                     {
                       editedContent.split('\n\n').filter(p => p.trim().length > 0)
@@ -375,7 +375,7 @@ export default function ContentGeneration({
                   </span>
                 </div>
                 <div>
-                  <span className="text-gray-600">Reading Time:</span>
+                  <span className="text-neutral-600">Reading Time:</span>
                   <span className="ml-2 font-medium">
                     {Math.ceil(editedContent.split(/\s+/).length / 200)} min
                   </span>

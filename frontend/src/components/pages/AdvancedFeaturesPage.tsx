@@ -5,7 +5,7 @@ import React, { useState } from 'react';
 import ContentGeneration from '@/components/features/ContentGeneration';
 import InterviewPractice from '@/components/features/InterviewPractice';
 import ResumeUpload from '@/components/features/ResumeUpload';
-import Button from '@/components/ui/Button';
+import Button2 from '@/components/ui/Button2';
 import Card from '@/components/ui/Card';
 import { logger } from '@/lib/logger';
 
@@ -87,12 +87,12 @@ export default function AdvancedFeaturesPage() {
               {features.find(f => f.id === activeFeature)?.description}
             </p>
           </div>
-          <Button
+          <Button2
             variant="outline"
             onClick={() => setActiveFeature(null)}
           >
             ← Back to Features
-          </Button>
+          </Button2>
         </div>
 
         {/* Feature Content */}
@@ -165,12 +165,12 @@ export default function AdvancedFeaturesPage() {
                 </p>
               </div>
               
-              <Button
+              <Button2
                 className={`w-full ${getColorClasses(feature.color, 'text')} border-current`}
                 variant="outline"
               >
                 Get Started
-              </Button>
+              </Button2>
             </div>
           </Card>
           </div>

@@ -20,7 +20,7 @@ import {
 } from 'lucide-react';
 import { useState, useEffect, useCallback } from 'react';
 
-import Button from '@/components/ui/Button';
+import Button2 from '@/components/ui/Button2';
 import Card, { CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import Input from '@/components/ui/Input';
 import Modal, { ModalFooter } from '@/components/ui/Modal';
@@ -207,9 +207,9 @@ export default function ApplicationsPage() {
       case 'rejected':
         return <XCircle className="h-4 w-4 text-red-500" />;
       case 'declined':
-        return <XCircle className="h-4 w-4 text-gray-500" />;
+        return <XCircle className="h-4 w-4 text-neutral-500" />;
       default:
-        return <AlertCircle className="h-4 w-4 text-gray-400" />;
+        return <AlertCircle className="h-4 w-4 text-neutral-400" />;
     }
   };
 
@@ -228,9 +228,9 @@ export default function ApplicationsPage() {
       case 'rejected':
         return 'bg-red-100 text-red-800';
       case 'declined':
-        return 'bg-gray-100 text-gray-800';
+        return 'bg-neutral-100 text-neutral-800';
       default:
-        return 'bg-gray-100 text-gray-800';
+        return 'bg-neutral-100 text-neutral-800';
     }
   };
 
@@ -267,14 +267,14 @@ export default function ApplicationsPage() {
     return (
       <div className="space-y-6">
         <div className="animate-pulse">
-          <div className="h-8 bg-gray-200 rounded w-1/4 mb-6"></div>
+          <div className="h-8 bg-neutral-200 rounded w-1/4 mb-6"></div>
           <div className="space-y-4">
             {[...Array(3)].map((_, i) => (
               <Card key={i}>
                 <CardContent className="p-6">
-                  <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
-                  <div className="h-4 bg-gray-200 rounded w-1/2 mb-4"></div>
-                  <div className="h-4 bg-gray-200 rounded w-1/4"></div>
+                  <div className="h-4 bg-neutral-200 rounded w-3/4 mb-2"></div>
+                  <div className="h-4 bg-neutral-200 rounded w-1/2 mb-4"></div>
+                  <div className="h-4 bg-neutral-200 rounded w-1/4"></div>
                 </CardContent>
               </Card>
             ))}
@@ -288,18 +288,18 @@ export default function ApplicationsPage() {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Applications</h1>
-          <p className="text-gray-600 mt-1">
+          <h1 className="text-3xl font-bold text-neutral-900">Applications</h1>
+          <p className="text-neutral-600 mt-1">
             Track your job applications and their progress
           </p>
           {lastUpdated && (
-            <p className="text-sm text-gray-500 mt-1">
+            <p className="text-sm text-neutral-500 mt-1">
               Last updated: {lastUpdated.toLocaleTimeString()}
             </p>
           )}
         </div>
         <div className="flex items-center space-x-3">
-          <Button 
+          <Button2 
             variant="outline" 
             onClick={loadApplications}
             disabled={isLoading}
@@ -307,11 +307,11 @@ export default function ApplicationsPage() {
           >
             <FileText className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
             <span>{isLoading ? 'Loading...' : 'Refresh'}</span>
-          </Button>
-          <Button onClick={openAddModal} className="flex items-center space-x-2">
+          </Button2>
+          <Button2 onClick={openAddModal} className="flex items-center space-x-2">
             <Plus className="h-4 w-4" />
             <span>Add Application</span>
-          </Button>
+          </Button2>
         </div>
       </div>
 
@@ -329,7 +329,7 @@ export default function ApplicationsPage() {
         <CardContent className="p-4">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-neutral-400" />
               <Input
                 type="text"
                 placeholder="Search applications..."
@@ -355,8 +355,8 @@ export default function ApplicationsPage() {
             />
           </div>
           
-          <div className="mt-4 pt-4 border-t border-gray-200">
-            <div className="text-sm text-gray-600">
+          <div className="mt-4 pt-4 border-t border-neutral-200">
+            <div className="text-sm text-neutral-600">
               Showing {filteredAndSortedApplications.length} of {applications.length} applications
               {statusFilter !== 'all' && ` with status: ${statusFilter}`}
             </div>
@@ -422,19 +422,19 @@ export default function ApplicationsPage() {
           />
 
           <ModalFooter>
-            <Button
+            <Button2
               type="button"
               variant="outline"
               onClick={closeModal}
             >
               Cancel
-            </Button>
-            <Button
+            </Button2>
+            <Button2
               type="submit"
               loading={isSubmitting}
             >
               {editingApplication ? 'Update Application' : 'Add Application'}
-            </Button>
+            </Button2>
           </ModalFooter>
         </form>
       </Modal>
@@ -447,7 +447,7 @@ export default function ApplicationsPage() {
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
                     <div className="flex items-center space-x-3 mb-2">
-                      <h3 className="text-lg font-semibold text-gray-900">
+                      <h3 className="text-lg font-semibold text-neutral-900">
                         {application.job?.title || 'Unknown Position'}
                       </h3>
                       <div className="flex items-center space-x-1">
@@ -458,7 +458,7 @@ export default function ApplicationsPage() {
                       </div>
                     </div>
                     
-                    <div className="flex flex-wrap items-center gap-4 text-sm text-gray-600 mb-3">
+                    <div className="flex flex-wrap items-center gap-4 text-sm text-neutral-600 mb-3">
                       <div className="flex items-center space-x-1">
                         <Building className="h-4 w-4" />
                         <span>{application.job?.company || 'Unknown Company'}</span>
@@ -478,12 +478,12 @@ export default function ApplicationsPage() {
                     </div>
 
                     {application.notes && (
-                      <p className="text-sm text-gray-600 mb-3">
+                      <p className="text-sm text-neutral-600 mb-3">
                         <strong>Notes:</strong> {application.notes}
                       </p>
                     )}
 
-                    <div className="flex flex-wrap items-center gap-4 text-sm text-gray-500">
+                    <div className="flex flex-wrap items-center gap-4 text-sm text-neutral-500">
                       {application.interview_date && (
                         <span>Interview: {new Date(application.interview_date).toLocaleDateString()}</span>
                       )}
@@ -494,14 +494,14 @@ export default function ApplicationsPage() {
                   </div>
 
                   <div className="flex items-center space-x-2 ml-4">
-                    <Button
+                    <Button2
                       variant="ghost"
                       size="sm"
                       onClick={() => startEdit(application)}
                       title="Edit Application"
                     >
                       <Edit className="h-4 w-4" />
-                    </Button>
+                    </Button2>
                     
                     <Select
                       value={application.status}
@@ -514,12 +514,12 @@ export default function ApplicationsPage() {
 
                 {/* Interview Feedback Section */}
                 {application.interview_feedback && (
-                  <div className="mt-4 pt-4 border-t border-gray-200">
-                    <h4 className="text-sm font-medium text-gray-900 mb-2">Interview Feedback</h4>
+                  <div className="mt-4 pt-4 border-t border-neutral-200">
+                    <h4 className="text-sm font-medium text-neutral-900 mb-2">Interview Feedback</h4>
                     
                     {application.interview_feedback.questions && application.interview_feedback.questions.length > 0 && (
                       <div className="mb-2">
-                        <p className="text-xs font-medium text-gray-700">Questions Asked:</p>
+                        <p className="text-xs font-medium text-neutral-700">Questions Asked:</p>
                         <div className="flex flex-wrap gap-1 mt-1">
                           {application.interview_feedback.questions.map((question, idx) => (
                             <span key={idx} className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">
@@ -532,7 +532,7 @@ export default function ApplicationsPage() {
 
                     {application.interview_feedback.skill_areas && application.interview_feedback.skill_areas.length > 0 && (
                       <div className="mb-2">
-                        <p className="text-xs font-medium text-gray-700">Skill Areas Discussed:</p>
+                        <p className="text-xs font-medium text-neutral-700">Skill Areas Discussed:</p>
                         <div className="flex flex-wrap gap-1 mt-1">
                           {application.interview_feedback.skill_areas.map((skill, idx) => (
                             <span key={idx} className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full">
@@ -545,8 +545,8 @@ export default function ApplicationsPage() {
 
                     {application.interview_feedback.notes && (
                       <div>
-                        <p className="text-xs font-medium text-gray-700">Notes:</p>
-                        <p className="text-sm text-gray-600 mt-1">{application.interview_feedback.notes}</p>
+                        <p className="text-xs font-medium text-neutral-700">Notes:</p>
+                        <p className="text-sm text-neutral-600 mt-1">{application.interview_feedback.notes}</p>
                       </div>
                     )}
                   </div>
@@ -554,16 +554,16 @@ export default function ApplicationsPage() {
 
                 {/* Job Tech Stack */}
                 {application.job?.tech_stack && application.job.tech_stack.length > 0 && (
-                  <div className="mt-4 pt-4 border-t border-gray-200">
-                    <p className="text-xs font-medium text-gray-700 mb-2">Required Tech Stack:</p>
+                  <div className="mt-4 pt-4 border-t border-neutral-200">
+                    <p className="text-xs font-medium text-neutral-700 mb-2">Required Tech Stack:</p>
                     <div className="flex flex-wrap gap-1">
                       {application.job.tech_stack.slice(0, 10).map((tech) => (
-                        <span key={tech} className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded-full">
+                        <span key={tech} className="px-2 py-1 bg-neutral-100 text-neutral-700 text-xs rounded-full">
                           {tech}
                         </span>
                       ))}
                       {application.job.tech_stack.length > 10 && (
-                        <span className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded-full">
+                        <span className="px-2 py-1 bg-neutral-100 text-neutral-600 text-xs rounded-full">
                           +{application.job.tech_stack.length - 10} more
                         </span>
                       )}
@@ -577,23 +577,23 @@ export default function ApplicationsPage() {
       ) : (
         <Card>
           <CardContent className="text-center py-12">
-            <FileText className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">
+            <FileText className="h-12 w-12 text-neutral-400 mx-auto mb-4" />
+            <h3 className="text-lg font-medium text-neutral-900 mb-2">
               {searchTerm || statusFilter !== 'all'
                 ? 'No applications found'
                 : 'No applications yet'
               }
             </h3>
-            <p className="text-gray-600 mb-4">
+            <p className="text-neutral-600 mb-4">
               {searchTerm || statusFilter !== 'all'
                 ? 'Try adjusting your search terms or filters'
                 : 'Start by adding jobs and creating applications to track your progress'
               }
             </p>
             {!searchTerm && statusFilter === 'all' && (
-              <Button onClick={openAddModal}>
+              <Button2 onClick={openAddModal}>
                 Add Your First Application
-              </Button>
+              </Button2>
             )}
           </CardContent>
         </Card>

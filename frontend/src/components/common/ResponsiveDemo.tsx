@@ -2,7 +2,7 @@
 
 import { CheckCircle, Monitor, Palette, Smartphone, Tablet } from 'lucide-react';
 
-import Button from '../ui/Button';
+import Button2 from '../ui/Button2';
 import Card, { CardContent, CardHeader, CardTitle } from '../ui/Card';
 import Container from '../ui/Container';
 import Grid, { GridItem } from '../ui/Grid';
@@ -21,12 +21,12 @@ export default function ResponsiveDemo() {
           accessible.
         </p>
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
-          <Button size="lg" className="w-full sm:w-auto">
+          <Button2 size="lg" className="w-full sm:w-auto">
             Get Started
-          </Button>
-          <Button variant="outline" size="lg" className="w-full sm:w-auto">
+          </Button2>
+          <Button2 variant="outline" size="lg" className="w-full sm:w-auto">
             Learn More
-          </Button>
+          </Button2>
         </div>
       </div>
 
@@ -86,26 +86,26 @@ export default function ResponsiveDemo() {
               <h3 className="font-semibold mb-4">Button Variants</h3>
               <div className="space-y-3">
                 <div className="flex flex-wrap gap-2">
-                  <Button size="sm">Primary</Button>
-                  <Button variant="secondary" size="sm">
+                  <Button2 size="sm">Primary</Button2>
+                  <Button2 variant="secondary" size="sm">
                     Secondary
-                  </Button>
-                  <Button variant="outline" size="sm">
+                  </Button2>
+                  <Button2 variant="outline" size="sm">
                     Outline
-                  </Button>
-                  <Button variant="ghost" size="sm">
+                  </Button2>
+                  <Button2 variant="ghost" size="sm">
                     Ghost
-                  </Button>
+                  </Button2>
                 </div>
                 <div className="flex flex-wrap gap-2">
-                  <Button>Medium</Button>
-                  <Button variant="secondary">Secondary</Button>
+                  <Button2>Medium</Button2>
+                  <Button2 variant="secondary">Secondary</Button2>
                 </div>
                 <div className="flex flex-wrap gap-2">
-                  <Button size="lg">Large Primary</Button>
-                  <Button variant="outline" size="lg">
+                  <Button2 size="lg">Large Primary</Button2>
+                  <Button2 variant="outline" size="lg">
                     Large Outline
-                  </Button>
+                  </Button2>
                 </div>
               </div>
             </GridItem>

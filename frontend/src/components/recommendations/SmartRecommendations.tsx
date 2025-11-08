@@ -23,7 +23,7 @@ import {
 import { useState } from 'react';
 
 import Badge from '@/components/ui/Badge';
-import Button from '@/components/ui/Button';
+import Button2 from '@/components/ui/Button2';
 import Card, { CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import { usePersonalization } from '@/features/personalization/PersonalizationEngine';
 import { apiClient } from '@/lib/api';
@@ -53,7 +53,7 @@ function ConfidenceIndicator({ score }: { score: number }) {
 
     return (
         <div className="flex items-center gap-2">
-            <div className="w-24 h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+            <div className="w-24 h-2 bg-neutral-200 dark:bg-neutral-700 rounded-full overflow-hidden">
                 <div
                     className={`h-full ${getColor()} transition-all duration-500`}
                     style={{ width: `${score}%` }}
@@ -91,7 +91,7 @@ function RecommendationCard({
                         <CardTitle className="text-xl mb-1">
                             {recommendation.position}
                         </CardTitle>
-                        <p className="text-gray-600 dark:text-gray-400 flex items-center gap-2">
+                        <p className="text-neutral-600 dark:text-neutral-400 flex items-center gap-2">
                             <Briefcase className="w-4 h-4" />
                             {recommendation.company}
                         </p>
@@ -102,7 +102,7 @@ function RecommendationCard({
 
             <CardContent className="space-y-4">
                 {/* Location & Salary */}
-                <div className="flex gap-4 text-sm text-gray-600 dark:text-gray-400">
+                <div className="flex gap-4 text-sm text-neutral-600 dark:text-neutral-400">
                     <span className="flex items-center gap-1">
                         <MapPin className="w-4 h-4" />
                         {recommendation.location}
@@ -123,7 +123,7 @@ function RecommendationCard({
                     </div>
                     <ul className="space-y-1 ml-6">
                         {recommendation.reasons.slice(0, showDetails ? undefined : 2).map((reason: string, idx: number) => (
-                            <li key={idx} className="text-sm text-gray-600 dark:text-gray-400 list-disc">
+                            <li key={idx} className="text-sm text-neutral-600 dark:text-neutral-400 list-disc">
                                 {reason}
                             </li>
                         ))}
@@ -154,7 +154,7 @@ function RecommendationCard({
                         ))}
                     </div>
                     {!showDetails && recommendation.missingSkills.length > 0 && (
-                        <p className="text-xs text-gray-500">
+                        <p className="text-xs text-neutral-500">
                             {recommendation.missingSkills.length} skills to learn
                         </p>
                     )}
@@ -162,45 +162,45 @@ function RecommendationCard({
 
                 {/* Actions */}
                 <div className="flex gap-2 pt-2 border-t border-gray-200 dark:border-gray-700">
-                    <Button
+                    <Button2
                         onClick={onApply}
                         className="flex-1"
                     >
                         Apply Now
-                    </Button>
-                    <Button
+                    </Button2>
+                    <Button2
                         variant="outline"
                         onClick={onSave}
                     >
                         <Bookmark className="w-4 h-4" />
-                    </Button>
-                    <Button
+                    </Button2>
+                    <Button2
                         variant="outline"
                         onClick={() => window.open(`/jobs/${recommendation.id}`, '_blank')}
                     >
                         <ExternalLink className="w-4 h-4" />
-                    </Button>
+                    </Button2>
                 </div>
 
                 {/* Feedback */}
-                <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+                <div className="flex items-center gap-2 text-sm text-neutral-600 dark:text-neutral-400">
                     <span>Was this helpful?</span>
-                    <Button
+                    <Button2
                         variant="ghost"
                         size="sm"
                         onClick={() => onFeedback(true)}
                         className="hover:text-green-500"
                     >
                         <ThumbsUp className="w-4 h-4" />
-                    </Button>
-                    <Button
+                    </Button2>
+                    <Button2
                         variant="ghost"
                         size="sm"
                         onClick={() => onFeedback(false)}
                         className="hover:text-red-500"
                     >
                         <ThumbsDown className="w-4 h-4" />
-                    </Button>
+                    </Button2>
                 </div>
             </CardContent>
         </Card>
@@ -277,13 +277,13 @@ export function SmartRecommendations({
                 {[...Array(3)].map((_, i) => (
                     <Card key={i} className="animate-pulse">
                         <CardHeader>
-                            <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded w-2/3" />
-                            <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/3 mt-2" />
+                            <div className="h-6 bg-neutral-200 dark:bg-neutral-700 rounded w-2/3" />
+                            <div className="h-4 bg-neutral-200 dark:bg-neutral-700 rounded w-1/3 mt-2" />
                         </CardHeader>
                         <CardContent>
                             <div className="space-y-2">
-                                <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded" />
-                                <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4" />
+                                <div className="h-4 bg-neutral-200 dark:bg-neutral-700 rounded" />
+                                <div className="h-4 bg-neutral-200 dark:bg-neutral-700 rounded w-3/4" />
                             </div>
                         </CardContent>
                     </Card>
@@ -298,18 +298,18 @@ export function SmartRecommendations({
             <div className="flex items-center justify-between">
                 <div>
                     <h2 className="text-2xl font-bold">Smart Recommendations</h2>
-                    <p className="text-gray-600 dark:text-gray-400 mt-1">
+                    <p className="text-neutral-600 dark:text-neutral-400 mt-1">
                         {filteredRecommendations.length} jobs matched to your profile
                     </p>
                 </div>
-                <Button
+                <Button2
                     variant="outline"
                     size="sm"
                     onClick={() => setShowInsights(!showInsights)}
                 >
                     <Info className="w-4 h-4 mr-2" />
                     {showInsights ? 'Hide' : 'Show'} Insights
-                </Button>
+                </Button2>
             </div>
 
             {/* Learning Insights */}
@@ -337,27 +337,27 @@ export function SmartRecommendations({
             {/* Filters */}
             {showFilters && (
                 <div className="flex gap-2">
-                    <Button
+                    <Button2
                         variant={filter === 'all' ? 'primary' : 'outline'}
                         onClick={() => setFilter('all')}
                         size="sm"
                     >
                         All Matches
-                    </Button>
-                    <Button
+                    </Button2>
+                    <Button2
                         variant={filter === 'excellent' ? 'primary' : 'outline'}
                         onClick={() => setFilter('excellent')}
                         size="sm"
                     >
                         Excellent (80%+)
-                    </Button>
-                    <Button
+                    </Button2>
+                    <Button2
                         variant={filter === 'good' ? 'primary' : 'outline'}
                         onClick={() => setFilter('good')}
                         size="sm"
                     >
                         Good (60-80%)
-                    </Button>
+                    </Button2>
                 </div>
             )}
 
@@ -365,7 +365,7 @@ export function SmartRecommendations({
             {filteredRecommendations.length === 0 ? (
                 <Card>
                     <CardContent className="py-12 text-center">
-                        <p className="text-gray-600 dark:text-gray-400">
+                        <p className="text-neutral-600 dark:text-neutral-400">
                             No recommendations found. Try adjusting your preferences.
                         </p>
                     </CardContent>

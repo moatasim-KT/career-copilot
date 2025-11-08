@@ -11,7 +11,7 @@ import { useState } from 'react';
 import { useWebSocket } from '@/hooks/useWebSocket';
 import { logger } from '@/lib/logger';
 
-import Button from '../ui/Button';
+import Button2 from '../ui/Button2';
 import Card from '../ui/Card';
 
 interface TestMessage {
@@ -154,26 +154,26 @@ export default function WebSocketTest() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
             <div className="space-y-2">
-              <h3 className="text-sm font-medium text-gray-700">Connection Control</h3>
+              <h3 className="text-sm font-medium text-neutral-700">Connection Control</h3>
               <div className="flex space-x-2">
-                <Button onClick={() => ws?.close()} disabled={!connected} variant="outline" size="sm">
+                <Button2 onClick={() => ws?.close()} disabled={!connected} variant="outline" size="sm">
                   Disconnect
-                </Button>
+                </Button2>
               </div>
             </div>
 
             <div className="space-y-2">
-              <h3 className="text-sm font-medium text-gray-700">Test Notifications</h3>
+              <h3 className="text-sm font-medium text-neutral-700">Test Notifications</h3>
               <div className="flex flex-wrap gap-2">
-                <Button onClick={testJobMatch} size="sm" variant="outline">
+                <Button2 onClick={testJobMatch} size="sm" variant="outline">
                   Job Match
-                </Button>
-                <Button onClick={testApplicationUpdate} size="sm" variant="outline">
+                </Button2>
+                <Button2 onClick={testApplicationUpdate} size="sm" variant="outline">
                   App Update
-                </Button>
-                <Button onClick={testAnalyticsUpdate} size="sm" variant="outline">
+                </Button2>
+                <Button2 onClick={testAnalyticsUpdate} size="sm" variant="outline">
                   Analytics
-                </Button>
+                </Button2>
               </div>
             </div>
           </div>
@@ -184,15 +184,15 @@ export default function WebSocketTest() {
               value={testMessage}
               onChange={e => setTestMessage(e.target.value)}
               placeholder="Enter test message..."
-              className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="flex-1 px-3 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               onKeyPress={e => e.key === 'Enter' && sendTestMessage()}
             />
-            <Button onClick={sendTestMessage} size="sm">
+            <Button2 onClick={sendTestMessage} size="sm">
               <Send className="h-4 w-4" />
-            </Button>
-            <Button onClick={clearMessages} size="sm" variant="outline">
+            </Button2>
+            <Button2 onClick={clearMessages} size="sm" variant="outline">
               <Trash2 className="h-4 w-4" />
-            </Button>
+            </Button2>
           </div>
         </div>
       </Card>
@@ -201,29 +201,29 @@ export default function WebSocketTest() {
         <div className="p-6">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-lg font-semibold">Message Log</h3>
-            <span className="text-sm text-gray-500">{messages.length} messages</span>
+            <span className="text-sm text-neutral-500">{messages.length} messages</span>
           </div>
 
           <div className="space-y-2 max-h-96 overflow-y-auto">
             {messages.length === 0 ? (
-              <div className="text-center py-8 text-gray-500">
+              <div className="text-center py-8 text-neutral-500">
                 No messages yet. Connect to start receiving messages.
               </div>
             ) : (
               messages.map(message => (
                 <div
                   key={message.id}
-                  className="p-3 bg-gray-50 rounded-lg border-l-4 border-blue-500"
+                  className="p-3 bg-neutral-50 rounded-lg border-l-4 border-blue-500"
                 >
                   <div className="flex items-center justify-between mb-1">
-                    <span className="text-sm font-medium text-gray-900">
+                    <span className="text-sm font-medium text-neutral-900">
                       {message.type}
                     </span>
-                    <span className="text-xs text-gray-500">
+                    <span className="text-xs text-neutral-500">
                       {message.timestamp.toLocaleTimeString()}
                     </span>
                   </div>
-                  <pre className="text-xs text-gray-700 whitespace-pre-wrap overflow-x-auto">
+                  <pre className="text-xs text-neutral-700 whitespace-pre-wrap overflow-x-auto">
                     {JSON.stringify(message.data, null, 2)}
                   </pre>
                 </div>

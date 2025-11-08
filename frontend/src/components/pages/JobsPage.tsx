@@ -33,7 +33,7 @@ import { useState, useEffect } from 'react';
 import { QuickFilterChips } from '@/components/filters/QuickFilterChips';
 import { SavedFilters } from '@/components/filters/SavedFilters';
 import { StickyFilterPanel } from '@/components/filters/StickyFilterPanel';
-import Button from '@/components/ui/Button';
+import Button2 from '@/components/ui/Button2';
 import Card, { CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import Input from '@/components/ui/Input';
 import Modal, { ModalFooter } from '@/components/ui/Modal';
@@ -389,12 +389,12 @@ export default function JobsPage() {
 
   const getSourceBadgeColor = (source: string) => {
     switch (source.toLowerCase()) {
-      case 'manual': return 'bg-gray-100 text-gray-800';
+      case 'manual': return 'bg-neutral-100 text-neutral-800';
       case 'scraped': return 'bg-blue-100 text-blue-800';
       case 'linkedin': return 'bg-blue-100 text-blue-800';
       case 'indeed': return 'bg-green-100 text-green-800';
       case 'glassdoor': return 'bg-purple-100 text-purple-800';
-      default: return 'bg-gray-100 text-gray-800';
+      default: return 'bg-neutral-100 text-neutral-800';
     }
   };
 
@@ -409,13 +409,13 @@ export default function JobsPage() {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Job Management</h1>
-          <p className="text-gray-600 mt-1">
+          <h1 className="text-3xl font-bold text-neutral-900">Job Management</h1>
+          <p className="text-neutral-600 mt-1">
             Manage your job opportunities and track applications
           </p>
         </div>
         <div className="flex gap-2">
-          <Button
+          <Button2
             onClick={handleScrapeJobs}
             disabled={isScraping}
             variant="outline"
@@ -423,11 +423,11 @@ export default function JobsPage() {
           >
             <RefreshCw className={`h-4 w-4 ${isScraping ? 'animate-spin' : ''}`} />
             <span>{isScraping ? 'Finding Jobs...' : 'Find Jobs'}</span>
-          </Button>
-          <Button onClick={openAddModal} className="flex items-center space-x-2">
+          </Button2>
+          <Button2 onClick={openAddModal} className="flex items-center space-x-2">
             <Plus className="h-4 w-4" />
             <span>Add Job</span>
-          </Button>
+          </Button2>
         </div>
       </div>
 
@@ -447,7 +447,7 @@ export default function JobsPage() {
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               <div className="md:col-span-2">
                 <div className="relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-neutral-400" />
                   <Input
                     type="text"
                     placeholder="Search jobs by title, company, location, or tech stack..."
@@ -508,7 +508,7 @@ export default function JobsPage() {
               <div className="flex items-center space-x-2">
                 <input
                   type="checkbox"
-                  className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                  className="rounded border-neutral-300 text-blue-600 focus:ring-blue-500"
                   checked={selectedJobIds.length === filteredAndSortedJobs.length && filteredAndSortedJobs.length > 0}
                   onChange={() => {
                     if (selectedJobIds.length === filteredAndSortedJobs.length) {
@@ -518,32 +518,32 @@ export default function JobsPage() {
                     }
                   }}
                 />
-                <label className="text-sm font-medium text-gray-700">Select All</label>
+                <label className="text-sm font-medium text-neutral-700">Select All</label>
               </div>
               {selectedJobIds.length > 0 && (
                 <div className="flex space-x-2">
                   {selectedJobIds.length >= 2 && (
-                    <Button
+                    <Button2
                       variant="outline"
                       onClick={() => setShowComparisonView(true)}
                       className="flex items-center space-x-2"
                     >
                       <span>Compare Selected ({selectedJobIds.length})</span>
-                    </Button>
+                    </Button2>
                   )}
-                  <Button
+                  <Button2
                     variant="destructive"
                     onClick={handleBulkDelete}
                     className="flex items-center space-x-2"
                   >
                     <Trash2 className="h-4 w-4" />
                     <span>Delete Selected ({selectedJobIds.length})</span>
-                  </Button>
+                  </Button2>
                 </div>
               )}
             </div>
 
-            <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-200">              <div className="text-sm text-gray-600">
+            <div className="flex items-center justify-between mt-4 pt-4 border-t border-neutral-200">              <div className="text-sm text-neutral-600">
               Showing {filteredAndSortedJobs.length} of {jobs.length} jobs
             </div>
 
@@ -559,8 +559,8 @@ export default function JobsPage() {
                     type="button"
                     onClick={() => setCurrentView('list')}
                     className={`
-                      px-3 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium
-                      ${currentView === 'list' ? 'text-blue-600 bg-blue-50' : 'text-gray-700 hover:bg-gray-50'}
+                      px-3 py-2 rounded-l-md border border-neutral-300 bg-background text-sm font-medium
+                      ${currentView === 'list' ? 'text-blue-600 bg-blue-50' : 'text-neutral-700 hover:bg-neutral-50'}
                     `}
                     title="List View"
                   >
@@ -572,8 +572,8 @@ export default function JobsPage() {
                     type="button"
                     onClick={() => setCurrentView('table')}
                     className={`
-                      px-3 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium
-                      ${currentView === 'table' ? 'text-blue-600 bg-blue-50' : 'text-gray-700 hover:bg-gray-50'}
+                      px-3 py-2 rounded-r-md border border-neutral-300 bg-background text-sm font-medium
+                      ${currentView === 'table' ? 'text-blue-600 bg-blue-50' : 'text-neutral-700 hover:bg-neutral-50'}
                     `}
                     title="Table View"
                   >
@@ -657,17 +657,17 @@ export default function JobsPage() {
                 type="checkbox"
                 checked={formData.remote}
                 onChange={(e) => setFormData(prev => ({ ...prev, remote: e.target.checked }))}
-                className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                className="rounded border-neutral-300 text-blue-600 focus:ring-blue-500"
               />
-              <span className="text-sm font-medium text-gray-700">Remote Position</span>
+              <span className="text-sm font-medium text-neutral-700">Remote Position</span>
             </label>
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-neutral-700 mb-2">
               Tech Stack
             </label>
-            <div className="grid grid-cols-3 md:grid-cols-4 gap-2 max-h-40 overflow-y-auto border border-gray-300 rounded-md p-3">
+            <div className="grid grid-cols-3 md:grid-cols-4 gap-2 max-h-40 overflow-y-auto border border-neutral-300 rounded-md p-3">
               {TECH_SKILLS.map(skill => (
                 <label key={skill} className="flex items-center space-x-2 text-sm">
                   <input
@@ -686,13 +686,13 @@ export default function JobsPage() {
                         }));
                       }
                     }}
-                    className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                    className="rounded border-neutral-300 text-blue-600 focus:ring-blue-500"
                   />
                   <span>{skill}</span>
                 </label>
               ))}
             </div>
-            <p className="text-xs text-gray-500 mt-1">
+            <p className="text-xs text-neutral-500 mt-1">
               Selected: {formData.tech_stack.length} skills
             </p>
           </div>
@@ -714,19 +714,19 @@ export default function JobsPage() {
           />
 
           <ModalFooter>
-            <Button
+            <Button2
               type="button"
               variant="outline"
               onClick={closeModal}
             >
               Cancel
-            </Button>
-            <Button
+            </Button2>
+            <Button2
               type="submit"
               loading={isSubmitting}
             >
               {editingJob ? 'Update Job' : 'Add Job'}
-            </Button>
+            </Button2>
           </ModalFooter>
         </form>
       </Modal>
@@ -737,9 +737,9 @@ export default function JobsPage() {
           {[...Array(3)].map((_, i) => (
             <Card key={i} className="animate-pulse">
               <CardContent className="p-6">
-                <div className="h-4 bg-gray-200 rounded w-1/4 mb-2"></div>
-                <div className="h-6 bg-gray-200 rounded w-1/2 mb-4"></div>
-                <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+                <div className="h-4 bg-neutral-200 rounded w-1/4 mb-2"></div>
+                <div className="h-6 bg-neutral-200 rounded w-1/2 mb-4"></div>
+                <div className="h-4 bg-neutral-200 rounded w-3/4"></div>
               </CardContent>
             </Card>
           ))}

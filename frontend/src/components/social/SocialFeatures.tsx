@@ -23,7 +23,7 @@ import {
 import { useState } from 'react';
 
 import Badge from '@/components/ui/Badge';
-import Button from '@/components/ui/Button';
+import Button2 from '@/components/ui/Button2';
 import Card, { CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import apiClient from '@/lib/api/client';
 
@@ -89,7 +89,7 @@ function ShareDialog({
                         <CardTitle>Share Achievement</CardTitle>
                         <button
                             onClick={onClose}
-                            className="text-gray-500 hover:text-gray-700"
+                            className="text-neutral-500 hover:text-neutral-700"
                         >
                             ✕
                         </button>
@@ -97,44 +97,42 @@ function ShareDialog({
                 </CardHeader>
                 <CardContent className="space-y-4">
                     {/* Achievement Preview */}
-                    <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                    <div className="p-4 bg-neutral-50 dark:bg-neutral-800 rounded-lg">
                         <div className="flex items-start gap-3">
                             <Award className="w-8 h-8 text-yellow-500" />
                             <div>
                                 <h3 className="font-semibold">{achievement.title}</h3>
-                                <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                                <p className="text-sm text-neutral-600 dark:text-neutral-400 mt-1">
                                     {achievement.description}
                                 </p>
-                                <p className="text-xs text-gray-500 mt-2">{achievement.date}</p>
+                                <p className="text-xs text-neutral-500 mt-2">{achievement.date}</p>
                             </div>
                         </div>
                     </div>
 
                     {/* Share Options */}
                     <div className="space-y-2">
-                        <Button
-                            onClick={handleLinkedInShare}
-                            className="w-full flex items-center justify-center gap-2 bg-[#0077b5] hover:bg-[#006399]"
-                        >
-                            <Linkedin className="w-5 h-5" />
-                            Share on LinkedIn
-                        </Button>
-                        <Button
-                            onClick={handleTwitterShare}
-                            className="w-full flex items-center justify-center gap-2 bg-[#1da1f2] hover:bg-[#1a91da]"
-                        >
-                            <Twitter className="w-5 h-5" />
-                            Share on Twitter
-                        </Button>
-                        <Button
-                            onClick={handleCopyLink}
-                            variant="outline"
-                            className="w-full flex items-center justify-center gap-2"
-                        >
-                            {copied ? <Check className="w-5 h-5" /> : <Copy className="w-5 h-5" />}
-                            {copied ? 'Link Copied!' : 'Copy Link'}
-                        </Button>
-                    </div>
+                                            <Button2
+                                                onClick={handleLinkedInShare}
+                                                className="w-full flex items-center justify-center gap-2 bg-[#0077b5] hover:bg-[#006399]"
+                                            >
+                                                <Linkedin className="w-5 h-5" />
+                                                Share on LinkedIn
+                                            </Button2>                    <Button2
+                        onClick={handleTwitterShare}
+                        className="w-full flex items-center justify-center gap-2 bg-[#1da1f2] hover:bg-[#1a91da]"
+                    >
+                        <Twitter className="w-5 h-5" />
+                        Share on Twitter
+                    </Button2>
+                                            <Button2
+                                                onClick={handleCopyLink}
+                                                variant="outline"
+                                                className="w-full flex items-center justify-center gap-2"
+                                            >
+                                                {copied ? <Check className="w-5 h-5" /> : <Copy className="w-5 h-5" />}
+                                                {copied ? 'Link Copied!' : 'Copy Link'}
+                                            </Button2>                    </div>
                 </CardContent>
             </Card>
         </div>
@@ -163,19 +161,19 @@ function MentorCard({
                     {/* Info */}
                     <div className="flex-1 min-w-0">
                         <h3 className="font-semibold truncate">{mentor.name}</h3>
-                        <p className="text-sm text-gray-600 dark:text-gray-400 truncate">
+                        <p className="text-sm text-neutral-600 dark:text-neutral-400 truncate">
                             {mentor.title} at {mentor.company}
                         </p>
 
                         {/* Match Score */}
                         <div className="flex items-center gap-2 mt-2">
-                            <div className="w-20 h-1.5 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+                            <div className="w-20 h-1.5 bg-neutral-200 dark:bg-neutral-700 rounded-full overflow-hidden">
                                 <div
                                     className="h-full bg-green-500"
                                     style={{ width: `${mentor.matchScore}%` }}
                                 />
                             </div>
-                            <span className="text-xs text-gray-600">
+                            <span className="text-xs text-neutral-600">
                                 {mentor.matchScore}% match
                             </span>
                         </div>
@@ -188,21 +186,21 @@ function MentorCard({
                                 </Badge>
                             ))}
                             {mentor.expertise.length > 3 && (
-                                <span className="text-xs text-gray-500">
+                                <span className="text-xs text-neutral-500">
                                     +{mentor.expertise.length - 3}
                                 </span>
                             )}
                         </div>
 
                         {/* Connect Button */}
-                        <Button
+                        <Button2
                             onClick={onConnect}
                             size="sm"
                             className="mt-3 w-full"
                         >
                             <Users className="w-4 h-4 mr-2" />
                             Connect
-                        </Button>
+                        </Button2>
                     </div>
                 </div>
             </CardContent>
@@ -285,22 +283,22 @@ export function SocialFeatures({ userId, achievements = [] }: SocialFeaturesProp
                             {achievements.slice(0, 3).map((achievement) => (
                                 <div
                                     key={achievement.id}
-                                    className="flex items-start justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg"
+                                    className="flex items-start justify-between p-3 bg-neutral-50 dark:bg-neutral-800 rounded-lg"
                                 >
                                     <div className="flex-1">
                                         <h4 className="font-medium">{achievement.title}</h4>
-                                        <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                                        <p className="text-sm text-neutral-600 dark:text-neutral-400 mt-1">
                                             {achievement.description}
                                         </p>
-                                        <p className="text-xs text-gray-500 mt-1">{achievement.date}</p>
+                                        <p className="text-xs text-neutral-500 mt-1">{achievement.date}</p>
                                     </div>
-                                    <Button
+                                    <Button2
                                         onClick={() => handleShare(achievement)}
                                         variant="outline"
                                         size="sm"
                                     >
                                         <Share2 className="w-4 h-4" />
-                                    </Button>
+                                    </Button2>
                                 </div>
                             ))}
                         </div>
@@ -316,7 +314,7 @@ export function SocialFeatures({ userId, achievements = [] }: SocialFeaturesProp
                             <Users className="w-5 h-5 text-blue-500" />
                             Find Mentors
                         </CardTitle>
-                        <Button
+                        <Button2
                             onClick={loadMentors}
                             variant="outline"
                             size="sm"
@@ -324,13 +322,13 @@ export function SocialFeatures({ userId, achievements = [] }: SocialFeaturesProp
                         >
                             <TrendingUp className="w-4 h-4 mr-2" />
                             {loading ? 'Loading...' : 'Get Recommendations'}
-                        </Button>
+                        </Button2>
                     </div>
                 </CardHeader>
                 <CardContent>
                     {mentors.length === 0 ? (
-                        <div className="text-center py-8 text-gray-600 dark:text-gray-400">
-                            <Users className="w-12 h-12 mx-auto mb-3 text-gray-400" />
+                        <div className="text-center py-8 text-neutral-600 dark:text-neutral-400">
+                            <Users className="w-12 h-12 mx-auto mb-3 text-neutral-400" />
                             <p>Click "Get Recommendations" to find mentors</p>
                             <p className="text-sm mt-1">
                                 We'll match you with professionals in your field
