@@ -160,7 +160,6 @@ class JobMarketPatternsResponse(BaseModel):
 	seasonal_patterns: SeasonalPatternsSchema
 	market_velocity: MarketVelocitySchema
 	market_insights: list[str]
-	chart_data: dict[str, list[dict[str, Any]]]
 
 
 class OpportunityAlertSchema(BaseModel):

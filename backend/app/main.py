@@ -213,7 +213,6 @@ def create_app() -> FastAPI:
 		linkedin_jobs,
 		llm_admin,
 		market,
-		market_analysis,
 		notifications_new,
 		personalization,
 		progress_admin,
@@ -255,7 +254,6 @@ def create_app() -> FastAPI:
 	app.include_router(dashboard.router)
 	app.include_router(advanced_user_analytics.router)
 	app.include_router(market.router, prefix="/api/v1", tags=["Market Intelligence"])
-	app.include_router(market_analysis.router)
 
 	# Recommendations & Matching
 	app.include_router(recommendations.router)

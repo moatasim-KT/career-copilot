@@ -288,7 +288,7 @@ class ConfigManager:
 			environment: Environment name (development, production, staging, testing)
 		"""
 		self.environment = environment or os.getenv("ENVIRONMENT", "development")
-		self.project_root = Path(__file__).parent.parent.parent.parent.parent
+		self.project_root = Path(__file__).parent.parent.parent.parent
 		self.config_dir = self.project_root / "config"
 
 	def load_yaml_file(self, file_path: Path) -> Dict[str, Any]:

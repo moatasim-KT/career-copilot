@@ -17,24 +17,20 @@ import {
 import { useState, useEffect, useCallback } from 'react';
 
 import { useWebSocket } from '@/hooks/useWebSocket';
-import { apiClient, type AnalyticsSummary, type Application } from '@/lib/api';
+import { AnalyticsService, ApplicationsService, type AnalyticsSummaryResponse, type ApplicationResponse } from '@/lib/api/client';
 import { logger } from '@/lib/logger';
 
 export default function Dashboard() {
-  const [analytics, setAnalytics] = useState<AnalyticsSummary | null>(null);
-  const [recentApplications, setRecentApplications] = useState<Application[]>([]);
+  const [analytics, setAnalytics] = useState<AnalyticsSummaryResponse | null>(null);
+  const [recentApplications, setRecentApplications] = useState<ApplicationResponse[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
 
   const loadAnalytics = async () => {
     try {
-      const response = await apiClient.getAnalyticsSummary();
-      if (response.error) {
-        setError(response.error);
-      } else if (response.data) {
-        setAnalytics(response.data);
-      }
+      const response = await AnalyticsService.getAnalyticsSummaryApiV1AnalyticsSummaryGet();
+      setAnalytics(response);
     } catch (err) {
       setError('Failed to load analytics');
     }
@@ -42,10 +38,8 @@ export default function Dashboard() {
 
   const loadRecentApplications = async () => {
     try {
-      const response = await apiClient.getApplications(0, 5);
-      if (response.data) {
-        setRecentApplications(response.data);
-      }
+      const response = await ApplicationsService.getApplicationsApiV1ApplicationsGet({ skip: 0, limit: 5 });
+      setRecentApplications(response);
     } catch (err) {
       logger.error('Failed to load recent applications:', err);
     }
@@ -70,7 +64,7 @@ export default function Dashboard() {
     }
   };
 
-  const getStatusIcon = (status: string) => {
+  const getStatusIcon = (status: string | undefined) => {
     switch (status) {
       case 'interested':
         return <Clock className="h-4 w-4 text-yellow-500" />;
@@ -91,7 +85,7 @@ export default function Dashboard() {
     }
   };
 
-  const getStatusColor = (status: string) => {
+  const getStatusColor = (status: string | undefined) => {
     switch (status) {
       case 'interested':
         return 'bg-yellow-100 text-yellow-800';
@@ -236,15 +230,14 @@ export default function Dashboard() {
               <div
                 className="bg-blue-600 h-2 rounded-full transition-all duration-300"
                 style={{
-                  width: `${Math.min((analytics.daily_goal_progress || 0), 100)}%`,
+                  width: `${Math.min(analytics.daily_goal_progress ?? 0, 100)}%`,
                 }}
               ></div>
             </div>
             <p className="text-sm text-neutral-600">
-              {analytics.daily_goal_progress >= 100
+              {(analytics.daily_goal_progress ?? 0) >= 100
                 ? '🎉 Goal achieved today!'
-                : `${analytics.daily_application_goal - analytics.daily_applications_today} more applications to reach your goal`
-              }
+                : `${(analytics.daily_application_goal ?? 0) - (analytics.daily_applications_today ?? 0)} more applications to reach your goal`}
             </p>
           </div>
         </div>
@@ -266,20 +259,20 @@ export default function Dashboard() {
                     </div>
                     <div>
                       <p className="font-medium text-neutral-900">
-                        {application.job?.title || 'Unknown Position'}
+                        {application.job_title || 'Unknown Position'}
                       </p>
                       <p className="text-sm text-neutral-600">
-                        {application.job?.company || 'Unknown Company'}
+                        {application.job_company || 'Unknown Company'}
                       </p>
                     </div>
                   </div>
                   <div className="flex items-center space-x-3">
                     <span className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(application.status)}`}>
-                      {application.status.charAt(0).toUpperCase() + application.status.slice(1)}
+                      {application.status?.charAt(0).toUpperCase()}{application.status?.slice(1)}
                     </span>
-                    {application.applied_date && (
+                    {application.applied_at && (
                       <span className="text-sm text-neutral-500">
-                        {new Date(application.applied_date).toLocaleDateString()}
+                        {new Date(application.applied_at).toLocaleDateString()}
                       </span>
                     )}
                   </div>
