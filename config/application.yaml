@@ -20,7 +20,7 @@ api:
   debug: false
   workers: 1
   timeout: 300
-  max_request_size: 52428800  # 50MB
+  max_request_size: 52428800 # 50MB
   reload: false
 
 # =============================================================================
@@ -179,21 +179,21 @@ frontend:
       maxUploadSize: 50
       maxMessageSize: 50
       enableWebsocketCompression: true
-    
+
     browser:
       serverAddress: "localhost"
       serverPort: 8501
-    
+
     theme:
       primaryColor: "#007bff"
       backgroundColor: "#ffffff"
       secondaryBackgroundColor: "#f8f9fa"
       textColor: "#333333"
       font: "sans serif"
-    
+
     runner:
       magicEnabled: true
-    
+
     logger:
       level: "INFO"
 
@@ -265,7 +265,7 @@ external_services:
     timeout: 30
   gmail:
     enabled: false
-    scopes: ["https://www.googleapis.com/auth/gmail.send"]
+    scopes: []
     timeout: 30
   google_drive:
     enabled: false
@@ -343,7 +343,7 @@ deployment:
         retries: 3
         start_period: "40s"
       restart_policy: "unless-stopped"
-      
+
     frontend:
       image: "career-copilot-frontend"
       tag: "latest"
@@ -475,10 +475,10 @@ deployment:
     ca_path: "./secrets/ssl/ca.crt"
     protocols: ["TLSv1.2", "TLSv1.3"]
     ciphers: "ECDHE+AESGCM:ECDHE+CHACHA20:DHE+AESGCM:DHE+CHACHA20:!aNULL:!MD5:!DSS"
-    
+
   backup:
     enabled: true
-    schedule: "0 2 * * *"  # Daily at 2 AM
+    schedule: "0 2 * * *" # Daily at 2 AM
     retention_days: 30
     storage_path: "data/backups"
     compress: true
@@ -518,7 +518,7 @@ environments:
         - "http://127.0.0.1:8503"
         - "http://127.0.0.1:3000"
       jwt:
-        expiration_hours: 168  # 7 days
+        expiration_hours: 168 # 7 days
       rate_limiting:
         enabled: false
       file_upload:
@@ -576,13 +576,13 @@ environments:
         enabled: false
       backup:
         enabled: false
-        
+
   production:
     api:
       debug: false
       workers: 8
       timeout: 300
-      max_request_size: 26214400  # 25MB
+      max_request_size: 26214400 # 25MB
     database:
       echo: false
       pool_size: 20
@@ -591,7 +591,7 @@ environments:
       pool_recycle: 1800
       pool_pre_ping: true
     security:
-      cors_origins: []  # Must be set via environment variables
+      cors_origins: [] # Must be set via environment variables
       jwt:
         expiration_hours: 8
       rate_limiting:
@@ -670,7 +670,7 @@ environments:
         destinations:
           s3:
             enabled: true
-            
+
   testing:
     api:
       debug: false

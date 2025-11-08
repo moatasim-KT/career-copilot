@@ -1,10 +1,13 @@
+
+import { zodResolver } from '@hookform/resolvers/zod';
 import React from 'react';
 import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
+
 import { profileSchema, ProfileFormValues } from '@/lib/validation';
+
+import { Button } from './Button2';
 import { Form, FormField, FormLabel, FormError } from './Form';
 import { Input2 } from './Input2';
-import { Button } from './Button2';
 
 export default function FormExample() {
     const methods = useForm<ProfileFormValues>({
