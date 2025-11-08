@@ -123,17 +123,8 @@ export default function AnalyticsDashboard({
         async function fetchData() {
             setIsLoading(true);
             try {
-                const { data: analyticsData, error } = await apiClient.analytics.get({
-                    userId,
-                    period: timePeriod,
-                });
-
-                if (error) {
-                    console.error('Failed to fetch analytics:', error);
-                    return;
-                }
-
-                setData(analyticsData);
+                const response = await apiClient.get('/api/v1/analytics/summary');
+                setData(response.data);
             } catch (error) {
                 console.error('Failed to fetch analytics:', error);
             } finally {
@@ -142,61 +133,7 @@ export default function AnalyticsDashboard({
         }
 
         fetchData();
-    }, [userId, timePeriod]);
-
-    /**
-     * Mock data for development
-     */
-    const mockData: AnalyticsData = {
-        applications: {
-            total: 127,
-            thisWeek: 8,
-            thisMonth: 34,
-            trend: [
-                { name: 'Week 1', value: 12 },
-                { name: 'Week 2', value: 19 },
-                { name: 'Week 3', value: 15 },
-                { name: 'Week 4', value: 22 },
-            ],
-        },
-        interviews: {
-            total: 18,
-            scheduled: 5,
-            completed: 13,
-            successRate: 72,
-        },
-        offers: {
-            total: 5,
-            pending: 2,
-            accepted: 2,
-            rejected: 1,
-        },
-        statusDistribution: [
-            { name: 'Applied', value: 45 },
-            { name: 'Screening', value: 28 },
-            { name: 'Interviewing', value: 15 },
-            { name: 'Offered', value: 5 },
-            { name: 'Rejected', value: 34 },
-        ],
-        companyDistribution: [
-            { name: 'Tech', value: 42 },
-            { name: 'Finance', value: 28 },
-            { name: 'Healthcare', value: 18 },
-            { name: 'Retail', value: 12 },
-            { name: 'Other', value: 27 },
-        ],
-        weeklyActivity: [
-            { name: 'Mon', applications: 3, interviews: 1 },
-            { name: 'Tue', applications: 5, interviews: 2 },
-            { name: 'Wed', applications: 4, interviews: 1 },
-            { name: 'Thu', applications: 6, interviews: 0 },
-            { name: 'Fri', applications: 2, interviews: 1 },
-            { name: 'Sat', applications: 0, interviews: 0 },
-            { name: 'Sun', applications: 1, interviews: 0 },
-        ],
-    };
-
-    const displayData = data || mockData;
+    }, [timePeriod]);
 
     if (isLoading) {
         return (
@@ -204,6 +141,10 @@ export default function AnalyticsDashboard({
                 <div className="h-12 w-12 animate-spin rounded-full border-b-2 border-blue-600"></div>
             </div>
         );
+    }
+
+    if (!data) {
+        return <div>No data available</div>;
     }
 
     return (
@@ -238,7 +179,7 @@ export default function AnalyticsDashboard({
             <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
                 <MetricCard
                     title="Total Applications"
-                    value={displayData.applications.total}
+                    value={data.applications.total}
                     change="+12%"
                     changeType="positive"
                     icon={
@@ -249,7 +190,7 @@ export default function AnalyticsDashboard({
                 />
                 <MetricCard
                     title="Interviews"
-                    value={displayData.interviews.total}
+                    value={data.interviews.total}
                     change="+8%"
                     changeType="positive"
                     icon={
@@ -260,7 +201,7 @@ export default function AnalyticsDashboard({
                 />
                 <MetricCard
                     title="Offers"
-                    value={displayData.offers.total}
+                    value={data.offers.total}
                     change="+25%"
                     changeType="positive"
                     icon={
@@ -271,7 +212,7 @@ export default function AnalyticsDashboard({
                 />
                 <MetricCard
                     title="Success Rate"
-                    value={`${displayData.interviews.successRate}%`}
+                    value={`${data.interviews.successRate}%`}
                     change="-3%"
                     changeType="negative"
                     icon={
@@ -289,7 +230,7 @@ export default function AnalyticsDashboard({
                         Application Trend
                     </h3>
                     <LineChartComponent
-                        data={displayData.applications.trend}
+                        data={data.applications.trend}
                         dataKeys={['value']}
                         height={250}
                     />
@@ -301,7 +242,7 @@ export default function AnalyticsDashboard({
                         Weekly Activity
                     </h3>
                     <BarChartComponent
-                        data={displayData.weeklyActivity}
+                        data={data.weeklyActivity}
                         dataKeys={['applications', 'interviews']}
                         height={250}
                     />
@@ -312,7 +253,7 @@ export default function AnalyticsDashboard({
                     <h3 className="mb-4 text-lg font-semibold text-neutral-900">
                         Status Distribution
                     </h3>
-                    <PieChartComponent data={displayData.statusDistribution} height={250} />
+                    <PieChartComponent data={data.statusDistribution} height={250} />
                 </div>
 
                 {/* Industry Distribution */}
@@ -321,7 +262,7 @@ export default function AnalyticsDashboard({
                         Industry Distribution
                     </h3>
                     <AreaChartComponent
-                        data={displayData.companyDistribution}
+                        data={data.companyDistribution}
                         dataKeys={['value']}
                         height={250}
                     />
@@ -339,19 +280,19 @@ export default function AnalyticsDashboard({
                         <div className="flex justify-between">
                             <dt className="text-sm text-neutral-600">This Week</dt>
                             <dd className="text-sm font-medium text-neutral-900">
-                                {displayData.applications.thisWeek}
+                                {data.applications.thisWeek}
                             </dd>
                         </div>
                         <div className="flex justify-between">
                             <dt className="text-sm text-neutral-600">This Month</dt>
                             <dd className="text-sm font-medium text-neutral-900">
-                                {displayData.applications.thisMonth}
+                                {data.applications.thisMonth}
                             </dd>
                         </div>
                         <div className="flex justify-between border-t pt-3">
                             <dt className="text-sm font-semibold text-neutral-900">Total</dt>
                             <dd className="text-sm font-bold text-neutral-900">
-                                {displayData.applications.total}
+                                {data.applications.total}
                             </dd>
                         </div>
                     </dl>
@@ -366,19 +307,19 @@ export default function AnalyticsDashboard({
                         <div className="flex justify-between">
                             <dt className="text-sm text-neutral-600">Scheduled</dt>
                             <dd className="text-sm font-medium text-neutral-900">
-                                {displayData.interviews.scheduled}
+                                {data.interviews.scheduled}
                             </dd>
                         </div>
                         <div className="flex justify-between">
                             <dt className="text-sm text-neutral-600">Completed</dt>
                             <dd className="text-sm font-medium text-neutral-900">
-                                {displayData.interviews.completed}
+                                {data.interviews.completed}
                             </dd>
                         </div>
                         <div className="flex justify-between border-t pt-3">
                             <dt className="text-sm font-semibold text-neutral-900">Success Rate</dt>
                             <dd className="text-sm font-bold text-neutral-900">
-                                {displayData.interviews.successRate}%
+                                {data.interviews.successRate}%
                             </dd>
                         </div>
                     </dl>
@@ -393,19 +334,19 @@ export default function AnalyticsDashboard({
                         <div className="flex justify-between">
                             <dt className="text-sm text-neutral-600">Pending</dt>
                             <dd className="text-sm font-medium text-neutral-900">
-                                {displayData.offers.pending}
+                                {data.offers.pending}
                             </dd>
                         </div>
                         <div className="flex justify-between">
                             <dt className="text-sm text-neutral-600">Accepted</dt>
                             <dd className="text-sm font-medium text-green-600">
-                                {displayData.offers.accepted}
+                                {data.offers.accepted}
                             </dd>
                         </div>
                         <div className="flex justify-between">
                             <dt className="text-sm text-neutral-600">Rejected</dt>
                             <dd className="text-sm font-medium text-red-600">
-                                {displayData.offers.rejected}
+                                {data.offers.rejected}
                             </dd>
                         </div>
                     </dl>

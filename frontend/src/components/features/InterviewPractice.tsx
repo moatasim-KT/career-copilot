@@ -127,20 +127,8 @@ export default function InterviewPractice({ selectedJob, onSessionComplete }: In
         session_type: sessionType,
       };
 
-      // Mock API call - replace with actual API call
-      const mockSession: InterviewSession = {
-        id: Date.now().toString(),
-        job_id: selectedJobId || undefined,
-        session_type: sessionType,
-        questions: generateMockQuestions(sessionType, selectedJobId),
-        answers: [],
-        feedback: [],
-        duration_minutes: 0,
-        status: 'active',
-        created_at: new Date().toISOString(),
-      };
-
-      setCurrentSession(mockSession);
+      const response = await apiClient.post('/api/v1/interview/start', sessionData);
+      setCurrentSession(response.data);
       setCurrentQuestionIndex(0);
       setCurrentAnswer('');
       setStartTime(new Date());
@@ -150,57 +138,6 @@ export default function InterviewPractice({ selectedJob, onSessionComplete }: In
     } finally {
       setLoading(false);
     }
-  };
-
-  const generateMockQuestions = (type: string, jobId: number | null): InterviewQuestion[] => {
-    const baseQuestions: InterviewQuestion[] = [
-      {
-        id: '1',
-        question: 'Tell me about yourself and your background.',
-        type: 'general',
-        difficulty: 'easy',
-        expected_duration: 3,
-      },
-      {
-        id: '2',
-        question: 'Why are you interested in this position?',
-        type: 'general',
-        difficulty: 'easy',
-        expected_duration: 2,
-      },
-      {
-        id: '3',
-        question: 'Describe a challenging project you worked on and how you overcame obstacles.',
-        type: 'behavioral',
-        difficulty: 'medium',
-        expected_duration: 4,
-      },
-    ];
-
-    if (type === 'technical') {
-      baseQuestions.push({
-        id: '4',
-        question: 'Explain the difference between synchronous and asynchronous programming.',
-        type: 'technical',
-        difficulty: 'medium',
-        expected_duration: 3,
-      });
-    }
-
-    if (type === 'job_specific' && jobId) {
-      const job = jobs.find(j => j.id === jobId);
-      if (job) {
-        baseQuestions.push({
-          id: '5',
-          question: `How would your experience with ${job.tech_stack?.slice(0, 2).join(' and ')} help you succeed in this ${job.title} role?`,
-          type: 'company_specific',
-          difficulty: 'medium',
-          expected_duration: 3,
-        });
-      }
-    }
-
-    return baseQuestions;
   };
 
   const submitAnswer = async () => {
@@ -215,11 +152,8 @@ export default function InterviewPractice({ selectedJob, onSessionComplete }: In
       timestamp: new Date().toISOString(),
     };
 
-    // Mock feedback generation
-    const feedback: InterviewFeedback = generateMockFeedback(
-      currentSession.questions[currentQuestionIndex],
-      currentAnswer,
-    );
+    const response = await apiClient.post(`/api/v1/interview/${currentSession.id}/answer`, answer);
+    const { feedback, next_question } = response.data;
 
     const updatedSession = {
       ...currentSession,
@@ -231,37 +165,11 @@ export default function InterviewPractice({ selectedJob, onSessionComplete }: In
     setCurrentAnswer('');
     setStartTime(new Date());
 
-    // Move to next question or complete session
-    if (currentQuestionIndex < currentSession.questions.length - 1) {
+    if (next_question) {
       setCurrentQuestionIndex(currentQuestionIndex + 1);
     } else {
       completeSession(updatedSession);
     }
-  };
-
-  const generateMockFeedback = (question: InterviewQuestion, answer: string): InterviewFeedback => {
-    const wordCount = answer.split(/\s+/).length;
-    const score = Math.min(10, Math.max(1, Math.floor(wordCount / 10) + Math.floor(Math.random() * 3)));
-
-    return {
-      question_id: question.id,
-      score,
-      strengths: [
-        'Clear communication',
-        'Relevant examples',
-        'Good structure',
-      ].slice(0, Math.floor(Math.random() * 3) + 1),
-      improvements: [
-        'Could provide more specific examples',
-        'Consider elaborating on technical details',
-        'Try to quantify your achievements',
-      ].slice(0, Math.floor(Math.random() * 2) + 1),
-      suggestions: [
-        'Practice the STAR method (Situation, Task, Action, Result)',
-        'Prepare specific metrics and numbers',
-        'Research the company culture and values',
-      ].slice(0, Math.floor(Math.random() * 2) + 1),
-    };
   };
 
   const completeSession = (session: InterviewSession) => {

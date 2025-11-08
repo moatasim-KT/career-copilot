@@ -1,6 +1,7 @@
 """Analytics endpoints"""
 
 from datetime import datetime, timedelta, timezone
+from typing import List, Dict, Any
 
 from fastapi import APIRouter, Depends
 from sqlalchemy import func
@@ -174,43 +175,115 @@ async def get_status_breakdown(current_user: User = Depends(get_current_user), d
 
 @router.get("/api/v1/analytics/interview-trends", response_model=InterviewTrendsResponse)
 async def get_interview_trends(current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
-	"""Get analysis of interview trends for the current user."""
-	from sqlalchemy import and_, select
+    """Get analysis of interview trends for the current user."""
+    from sqlalchemy import and_, select
 
-	# Count interviews by status
-	result = await db.execute(
-		select(func.count()).select_from(Application).where(and_(Application.user_id == current_user.id, Application.status == "interview"))
-	)
-	total_interviews = result.scalar() or 0
+    # Get all interviews
+    result = await db.execute(
+        select(Application).where(and_(Application.user_id == current_user.id, Application.status == "interview"))
+    )
+    interviews = result.scalars().all()
 
-	# For now, return basic interview trend data
-	# TODO: Implement full interview trends analysis
-	return {"total_interviews": total_interviews, "avg_preparation_time": 0, "success_rate": 0.0, "common_topics": [], "difficulty_distribution": {}}
+    total_interviews = len(interviews)
+    if total_interviews == 0:
+        return {
+            "total_interviews": 0,
+            "avg_preparation_time": 0,
+            "success_rate": 0.0,
+            "common_topics": [],
+            "difficulty_distribution": {},
+        }
+
+    # Calculate success rate (offers from interviews)
+    offers_result = await db.execute(
+        select(func.count())
+        .select_from(Application)
+        .where(and_(Application.user_id == current_user.id, Application.status.in_(["offer", "accepted"])))
+    )
+    successful_interviews = offers_result.scalar() or 0
+    success_rate = (successful_interviews / total_interviews * 100) if total_interviews > 0 else 0.0
+
+    # Difficulty distribution
+    difficulty_distribution = {}
+    for i in interviews:
+        difficulty = i.interview_difficulty or "medium"
+        difficulty_distribution[difficulty] = difficulty_distribution.get(difficulty, 0) + 1
+
+    # Calculate average preparation time (example logic)
+    # This is a simplified calculation. A real implementation would need more data.
+    total_prep_time = timedelta(0)
+    prep_time_count = 0
+    for i in interviews:
+        if i.status_history and "interested" in i.status_history and "interview" in i.status_history:
+            interested_date = i.status_history["interested"]
+            interview_date = i.status_history["interview"]
+            if interested_date and interview_date:
+                total_prep_time += interview_date - interested_date
+                prep_time_count += 1
+    avg_preparation_time = (total_prep_time.days / prep_time_count) if prep_time_count > 0 else 0
+
+    # Extract common topics from job descriptions (simplified)
+    from collections import Counter
+    from ...models.job import Job
+
+    job_ids = [i.job_id for i in interviews if i.job_id]
+    if job_ids:
+        jobs_result = await db.execute(select(Job.description).where(Job.id.in_(job_ids)))
+        descriptions = [desc for (desc,) in jobs_result.all() if desc]
+        words = " ".join(descriptions).lower().split()
+        common_words = [word for word, count in Counter(words).most_common(10) if len(word) > 4 and word.isalpha()]
+    else:
+        common_words = []
+
+
+    return {
+        "total_interviews": total_interviews,
+        "avg_preparation_time": avg_preparation_time,
+        "success_rate": round(success_rate, 2),
+        "common_topics": common_words,
+        "difficulty_distribution": difficulty_distribution,
+    }
 
 
 @router.get("/api/v1/analytics/comprehensive-dashboard")
 async def get_comprehensive_dashboard(days: int = 90, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
-	"""Get comprehensive analytics data for dashboard visualization."""
-	from sqlalchemy import and_, select
+    """Get comprehensive analytics data for dashboard visualization."""
+    from sqlalchemy import and_, select
 
-	# Get time-based trends
-	end_date = datetime.now(timezone.utc).date()
-	start_date = end_date - timedelta(days=days)
+    # Get time-based trends
+    end_date = datetime.now(timezone.utc).date()
+    start_date = end_date - timedelta(days=days)
 
-	# Application trends over time using async
-	result = await db.execute(
-		select(func.date(Application.applied_date).label("date"), func.count(Application.id).label("count"))
-		.where(and_(Application.user_id == current_user.id, Application.applied_date >= start_date, Application.applied_date <= end_date))
-		.group_by(func.date(Application.applied_date))
-	)
-	applications_by_date = result.all()
+    # Application trends over time using async
+    result = await db.execute(
+        select(func.date(Application.applied_date).label("date"), func.count(Application.id).label("count"))
+        .where(and_(Application.user_id == current_user.id, Application.applied_date >= start_date, Application.applied_date <= end_date))
+        .group_by(func.date(Application.applied_date))
+    )
+    applications_by_date = result.all()
 
-	# For now, return simplified data
-	# TODO: Implement full weekly performance analysis with async queries
-	return {
-		"application_trends": [
-			{"date": date.isoformat() if hasattr(date, "isoformat") else str(date), "applications": count} for date, count in applications_by_date
-		],
-		"weekly_performance": [],
-		"generated_at": datetime.now(timezone.utc).isoformat(),
-	}
+    # Weekly performance
+    weekly_performance = []
+    for i in range(4):
+        week_end = end_date - timedelta(days=i * 7)
+        week_start = week_end - timedelta(days=7)
+        result = await db.execute(
+            select(func.count(Application.id)).where(
+                and_(
+                    Application.user_id == current_user.id,
+                    Application.applied_date >= week_start,
+                    Application.applied_date < week_end,
+                )
+            )
+        )
+        weekly_apps = result.scalar() or 0
+        weekly_performance.append({"week": f"Week {-i}", "applications": weekly_apps})
+
+    return {
+        "application_trends": [
+            {"date": date.isoformat() if hasattr(date, "isoformat") else str(date), "applications": count}
+            for date, count in applications_by_date
+        ],
+        "weekly_performance": weekly_performance,
+        "generated_at": datetime.now(timezone.utc).isoformat(),
+    }

@@ -237,7 +237,9 @@ async def get_best_provider(
 		logger.error(f"Failed to get best provider: {e}")
 		raise HTTPException(status_code=500, detail=f"Failed to get best provider: {e!s}")
 
-	llm_manager: LLMService = Depends(get_llm_service)
+
+@router.post("/cache/clear", status_code=200)
+async def clear_llm_cache(current_user: dict = Depends(get_current_user), llm_manager: LLMService = Depends(get_llm_service)):
 	"""Clear LLM response cache."""
 	try:
 		await llm_manager.clear_cache()
