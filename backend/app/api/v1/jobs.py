@@ -1,7 +1,7 @@
 """Job management endpoints"""
 
 from datetime import datetime, timezone
-from typing import List, Optional
+from typing import List
 
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import select
@@ -364,7 +364,9 @@ async def delete_job(job_id: int, current_user: User = Depends(get_current_user)
 async def get_source_analytics(timeframe_days: int = 30, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
 	"""Get analytics for job sources"""
 	try:
-		source_manager = JobRecommendationService(db)
+		from ...services.job_source_manager import JobSourceManager
+
+		source_manager = JobSourceManager(db)
 
 		analytics = source_manager.get_source_analytics(timeframe_days)
 		user_preferences = source_manager.get_user_source_preferences(current_user.id)

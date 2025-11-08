@@ -20,8 +20,10 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ...core.database import get_db
+from ...core.dependencies import get_current_user
 from ...core.logging import get_logger
 from ...core.single_user import MOATASIM_EXPERIENCE_LEVEL, MOATASIM_SKILLS, MOATASIM_USER_ID
+from ...models.user import User
 from ...services.cache_service import cache_service
 from ...services.career_resources_service import CareerResourcesService
 
@@ -410,6 +412,7 @@ async def get_user_bookmarks(
 async def update_bookmark(
 	resource_id: str,
 	update: BookmarkUpdate,
+	current_user: User = Depends(get_current_user),
 	db: AsyncSession = Depends(get_db),
 ):
 	"""
@@ -422,26 +425,22 @@ async def update_bookmark(
 	"""
 	try:
 		service = CareerResourcesService(db)
+		result = await service.update_bookmark(
+			user_id=current_user.id,
+			resource_id=resource_id,
+			notes=update.notes,
+			priority=update.priority,
+			status=update.status,
+			progress_percentage=update.progress_percentage,
+		)
 
-		# Update progress if provided
-		if update.progress_percentage is not None:
-			result = await service.update_bookmark_progress(
-				user_id=MOATASIM_USER_ID,
-				resource_id=resource_id,
-				progress_percentage=update.progress_percentage,
-			)
-
-			return {
-				"message": "Bookmark updated successfully",
-				"bookmark_id": str(result.id),
-				"progress_percentage": result.progress_percentage,
-				"status": result.status,
-				"updated_at": result.updated_at.isoformat() if result.updated_at else None,
-			}
-
-		# For other updates, get the bookmark and update fields
-		# (This would need additional service methods for full implementation)
-		return {"message": "Bookmark update not yet fully implemented for this field"}
+		return {
+			"message": "Bookmark updated successfully",
+			"bookmark_id": str(result.id),
+			"progress_percentage": result.progress_percentage,
+			"status": result.status,
+			"updated_at": result.updated_at.isoformat() if result.updated_at else None,
+		}
 
 	except ValueError as e:
 		logger.warning(f"Bookmark update validation error: {e}")

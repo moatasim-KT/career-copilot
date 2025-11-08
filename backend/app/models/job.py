@@ -43,5 +43,3 @@ class Job(Base):
 	applications = relationship("Application", back_populates="job", cascade="all, delete-orphan")
 	content_generations = relationship("ContentGeneration", back_populates="job", cascade="all, delete-orphan")
 	recommendation_feedback = relationship("JobRecommendationFeedback", back_populates="job", cascade="all, delete-orphan")
-	content_generations = relationship("ContentGeneration", back_populates="job", cascade="all, delete-orphan")
-	recommendation_feedback = relationship("JobRecommendationFeedback", back_populates="job", cascade="all, delete-orphan")

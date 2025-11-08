@@ -6,13 +6,17 @@ from fastapi import APIRouter, Depends, HTTPException, status
 
 from ...core.dependencies import get_current_user, User
 from ...core.logging import get_logger
-from ...models.api_models import (
+from ...schemas.api_models import (
 	UserSettingsResponse,
 	UserSettingsUpdate,
 	UserProfileUpdate,
 	PasswordChange,
 	UserResponse,
 	SuccessResponse,
+	IntegrationSettingsResponse,
+	AIModelPreferenceResponse,
+	NotificationPreferencesResponse,
+	RiskThresholdsResponse,
 )
 from ...services.user_settings_service import get_user_settings_service
 
@@ -77,15 +81,7 @@ async def reset_user_settings(current_user: User = Depends(get_current_user)):
 async def get_user_profile(current_user: User = Depends(get_current_user)):
 	"""Get current user's profile information."""
 	try:
-		return UserResponse(
-			id=current_user.id,
-			username=current_user.username,
-			email=current_user.email,
-			is_active=current_user.is_active,
-			is_superuser=current_user.is_superuser,
-			created_at=current_user.created_at if hasattr(current_user, "created_at") else None,
-			updated_at=current_user.updated_at if hasattr(current_user, "updated_at") else None,
-		)
+		return current_user
 
 	except Exception as e:
 		logger.error(f"Error getting user profile: {e}")
@@ -132,56 +128,56 @@ async def change_password(password_change: PasswordChange, current_user: User = 
 		raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to change password")
 
 
-@router.get("/me/settings/ai-model", response_model=dict)
+@router.get("/me/settings/ai-model", response_model=AIModelPreferenceResponse)
 async def get_ai_model_preference(current_user: User = Depends(get_current_user)):
 	"""Get current user's AI model preference."""
 	try:
 		settings_service = get_user_settings_service()
 		ai_model = await settings_service.get_ai_model_preference(current_user.id)
 
-		return {"ai_model_preference": ai_model}
+		return AIModelPreferenceResponse(ai_model_preference=ai_model)
 
 	except Exception as e:
 		logger.error(f"Error getting AI model preference: {e}")
 		raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to retrieve AI model preference")
 
 
-@router.get("/me/settings/notifications", response_model=dict)
+@router.get("/me/settings/notifications", response_model=NotificationPreferencesResponse)
 async def get_notification_preferences(current_user: User = Depends(get_current_user)):
 	"""Get current user's notification preferences."""
 	try:
 		settings_service = get_user_settings_service()
 		preferences = await settings_service.get_notification_preferences(current_user.id)
 
-		return {"notification_preferences": preferences}
+		return NotificationPreferencesResponse(notification_preferences=preferences)
 
 	except Exception as e:
 		logger.error(f"Error getting notification preferences: {e}")
 		raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to retrieve notification preferences")
 
 
-@router.get("/me/settings/risk-thresholds", response_model=dict)
+@router.get("/me/settings/risk-thresholds", response_model=RiskThresholdsResponse)
 async def get_risk_thresholds(current_user: User = Depends(get_current_user)):
 	"""Get current user's risk threshold preferences."""
 	try:
 		settings_service = get_user_settings_service()
 		thresholds = await settings_service.get_risk_thresholds(current_user.id)
 
-		return {"risk_thresholds": thresholds}
+		return RiskThresholdsResponse(risk_thresholds=thresholds)
 
 	except Exception as e:
 		logger.error(f"Error getting risk thresholds: {e}")
 		raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to retrieve risk thresholds")
 
 
-@router.get("/me/settings/integrations", response_model=dict)
+@router.get("/me/settings/integrations", response_model=IntegrationSettingsResponse)
 async def get_integration_settings(current_user: User = Depends(get_current_user)):
 	"""Get current user's integration settings."""
 	try:
 		settings_service = get_user_settings_service()
 		settings = await settings_service.get_integration_settings(current_user.id)
 
-		return {"integration_settings": settings}
+		return IntegrationSettingsResponse(integration_settings=settings)
 
 	except Exception as e:
 		logger.error(f"Error getting integration settings: {e}")

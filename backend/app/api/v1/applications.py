@@ -268,14 +268,6 @@ async def update_application(
 		}
 		await websocket_service.send_application_status_update(current_user.id, application_data)
 
-		# Also send analytics update if status changed
-		if old_status != app.status:
-			from ...services.job_analytics_service import JobAnalyticsService
-
-			analytics_service = JobAnalyticsService(db)
-			analytics_data = analytics_service.get_summary_metrics(current_user)
-			await websocket_service.send_analytics_update(current_user.id, analytics_data)
-
 	except Exception as e:
 		# Don't fail application update if WebSocket notification fails
 		from ...core.logging import get_logger
@@ -283,18 +275,14 @@ async def update_application(
 		logger = get_logger(__name__)
 		logger.error(f"Error sending application update notification: {e}")
 
-	# Trigger dashboard update
+	# Trigger analytics update
 	try:
-		from ...services.dashboard_service import get_dashboard_service
-
-		dashboard_service = get_dashboard_service(db)
-		await dashboard_service.handle_application_update(current_user.id, app.id)
+		from ...services.websocket_service import websocket_service
+		await websocket_service.send_analytics_update(current_user.id)
 	except Exception as e:
-		# Don't fail application update if dashboard update fails
 		from ...core.logging import get_logger
-
 		logger = get_logger(__name__)
-		logger.error(f"Error sending dashboard update for application {app.id}: {e}")
+		logger.error(f"Error sending analytics update for user {current_user.id}: {e}")
 
 	return app
 
