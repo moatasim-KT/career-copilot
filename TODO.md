@@ -155,66 +155,39 @@ This file breaks down the frontend upgrade plan into actionable tasks with detai
 
 ---
 
-### ❌ Task 1.8: Modal/Dialog System [NOT STARTED]
+### ✅ Task 1.8: Modal/Dialog System [COMPLETE]
 
 #### 1.8.1: Base Modal Component
-- [ ] Create `frontend/src/components/ui/Modal.tsx`
-  - Backdrop with blur effect
-  - Focus trap (prevent tabbing outside)
-  - ESC key to close
-  - Click outside to close (optional)
-  - Sizes: sm, md, lg, xl, fullscreen
-  - Animation entrance/exit (Framer Motion)
-- [ ] Add to design-system test page
+- [x] Created `frontend/src/components/ui/Modal.tsx` (backdrop, focus trap, ESC, click outside, sizes, animation)
+- [x] Added to design-system test page
 
 #### 1.8.2: Modal Variants
-- [ ] Create `frontend/src/components/ui/ConfirmDialog.tsx`
-  - Title, message, confirm/cancel buttons
-  - Destructive variant (red confirm button)
-- [ ] Create `frontend/src/components/ui/Drawer.tsx`
-  - Slide from left, right, top, bottom
-  - Sheet-style overlay
-- [ ] Add to design-system test page
+- [x] Created `frontend/src/components/ui/ConfirmDialog.tsx` (title, message, confirm/cancel, destructive)
+- [x] Created `frontend/src/components/ui/Drawer.tsx` (slide from edges, sheet overlay)
+- [x] Added to design-system test page
 
 #### 1.8.3: Popover Component
-- [ ] Create `frontend/src/components/ui/Popover.tsx`
-  - Positioning (top, bottom, left, right, auto)
-  - Arrow indicator
-  - Click or hover trigger
-  - Portal rendering
-- [ ] Add to design-system test page
+- [x] Created `frontend/src/components/ui/Popover.tsx` (positioning, arrow, click/hover, portal)
+- [x] Added to design-system test page
 
 #### 1.8.4: Tooltip Component
-- [ ] Enhance existing `frontend/src/components/ui/Tooltip.tsx`
-  - Use design tokens
-  - Positioning with arrow
-  - Delay on hover
-  - Max width constraint
-- [ ] Update Tooltip.stories.tsx
+- [x] Enhanced `frontend/src/components/ui/Tooltip.tsx` (design tokens, arrow, delay, max width)
+- [x] Updated Tooltip.stories.tsx
 
 ---
 
-### ❌ Task 1.9: Form Validation & Patterns [NOT STARTED]
+### ✅ Task 1.9: Form Validation & Patterns [COMPLETE]
 
 #### 1.9.1: Form Component with react-hook-form
-- [ ] Create `frontend/src/components/ui/Form.tsx`
-  - Integration with react-hook-form
-  - FormField wrapper component
-  - FormLabel, FormControl, FormMessage components
-  - Error display patterns
-- [ ] Create example form in design-system test page
+- [x] Created `frontend/src/components/ui/Form.tsx` (integration, wrappers, error display)
+- [x] Created example form in design-system test page
 
 #### 1.9.2: Validation Schemas
-- [ ] Create `frontend/src/lib/validation.ts`
-  - Common Zod schemas (email, password, phone, URL)
-  - Reusable validation rules
-- [ ] Document validation patterns
+- [x] Created `frontend/src/lib/validation.ts` (Zod schemas: email, password, phone, URL, profile)
+- [x] Documented validation patterns
 
 #### 1.9.3: Form Examples
-- [ ] Create login form example
-- [ ] Create registration form example
-- [ ] Create profile edit form example
-- [ ] Create job application form example
+- [x] Created login, registration, profile edit, and job application form examples
 
 ---
 
