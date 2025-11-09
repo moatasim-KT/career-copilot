@@ -5,29 +5,29 @@
  * Provides consistent animations across the application.
  */
 
-import { Variants, Transition } from 'framer-motion';
+import { Variants } from 'framer-motion';
 
 /**
  * Fade animation variants
  */
 export const fadeVariants: Variants = {
   hidden: { 
-    opacity: 0 
+    opacity: 0, 
   },
   visible: { 
     opacity: 1, 
     transition: { 
       duration: 0.2,
-      ease: 'easeOut'
-    } 
+      ease: 'easeOut',
+    }, 
   },
   exit: { 
     opacity: 0, 
     transition: { 
       duration: 0.15,
-      ease: 'easeIn'
-    } 
-  }
+      ease: 'easeIn',
+    }, 
+  },
 };
 
 /**
@@ -37,59 +37,59 @@ export const slideVariants = {
   left: {
     hidden: { 
       x: -20, 
-      opacity: 0 
+      opacity: 0, 
     },
     visible: { 
       x: 0, 
       opacity: 1,
       transition: {
         duration: 0.3,
-        ease: 'easeOut'
-      }
-    }
+        ease: 'easeOut',
+      },
+    },
   },
   right: {
     hidden: { 
       x: 20, 
-      opacity: 0 
+      opacity: 0, 
     },
     visible: { 
       x: 0, 
       opacity: 1,
       transition: {
         duration: 0.3,
-        ease: 'easeOut'
-      }
-    }
+        ease: 'easeOut',
+      },
+    },
   },
   up: {
     hidden: { 
       y: 20, 
-      opacity: 0 
+      opacity: 0, 
     },
     visible: { 
       y: 0, 
       opacity: 1,
       transition: {
         duration: 0.3,
-        ease: 'easeOut'
-      }
-    }
+        ease: 'easeOut',
+      },
+    },
   },
   down: {
     hidden: { 
       y: -20, 
-      opacity: 0 
+      opacity: 0, 
     },
     visible: { 
       y: 0, 
       opacity: 1,
       transition: {
         duration: 0.3,
-        ease: 'easeOut'
-      }
-    }
-  }
+        ease: 'easeOut',
+      },
+    },
+  },
 };
 
 /**
@@ -98,24 +98,24 @@ export const slideVariants = {
 export const scaleVariants: Variants = {
   hidden: { 
     scale: 0.95, 
-    opacity: 0 
+    opacity: 0, 
   },
   visible: { 
     scale: 1, 
     opacity: 1,
     transition: {
       duration: 0.2,
-      ease: 'easeOut'
-    }
+      ease: 'easeOut',
+    },
   },
   exit: { 
     scale: 0.95, 
     opacity: 0,
     transition: {
       duration: 0.15,
-      ease: 'easeIn'
-    }
-  }
+      ease: 'easeIn',
+    },
+  },
 };
 
 /**
@@ -123,15 +123,15 @@ export const scaleVariants: Variants = {
  */
 export const staggerContainer: Variants = {
   hidden: { 
-    opacity: 0 
+    opacity: 0, 
   },
   visible: {
     opacity: 1,
     transition: {
       staggerChildren: 0.1,
-      delayChildren: 0.05
-    }
-  }
+      delayChildren: 0.05,
+    },
+  },
 };
 
 /**
@@ -140,16 +140,16 @@ export const staggerContainer: Variants = {
 export const staggerItem: Variants = {
   hidden: { 
     y: 20, 
-    opacity: 0 
+    opacity: 0, 
   },
   visible: {
     y: 0,
     opacity: 1,
     transition: {
       duration: 0.3,
-      ease: 'easeOut'
-    }
-  }
+      ease: 'easeOut',
+    },
+  },
 };
 
 /**
@@ -159,23 +159,23 @@ export const springConfigs = {
   gentle: { 
     type: 'spring' as const, 
     stiffness: 100, 
-    damping: 15 
+    damping: 15, 
   },
   bouncy: { 
     type: 'spring' as const, 
     stiffness: 300, 
-    damping: 20 
+    damping: 20, 
   },
   stiff: { 
     type: 'spring' as const, 
     stiffness: 400, 
-    damping: 30 
+    damping: 30, 
   },
   smooth: {
     type: 'spring' as const,
     stiffness: 200,
-    damping: 25
-  }
+    damping: 25,
+  },
 };
 
 /**
@@ -185,7 +185,7 @@ export const durations = {
   fast: 0.15,
   normal: 0.2,
   slow: 0.3,
-  slower: 0.5
+  slower: 0.5,
 };
 
 /**
@@ -195,29 +195,29 @@ export const easings = {
   easeIn: [0.4, 0, 1, 1],
   easeOut: [0, 0, 0.2, 1],
   easeInOut: [0.4, 0, 0.2, 1],
-  sharp: [0.4, 0, 0.6, 1]
+  sharp: [0.4, 0, 0.6, 1],
 };
 
 /**
  * Hover animation for interactive elements
  */
-export const hoverScale: Transition = {
+export const hoverScale = {
   scale: 1.02,
   transition: {
     duration: durations.fast,
-    ease: 'easeOut'
-  }
+    ease: 'easeOut',
+  },
 };
 
 /**
  * Tap animation for buttons
  */
-export const tapScale: Transition = {
+export const tapScale = {
   scale: 0.98,
   transition: {
     duration: durations.fast,
-    ease: 'easeIn'
-  }
+    ease: 'easeIn',
+  },
 };
 
 /**
@@ -226,7 +226,7 @@ export const tapScale: Transition = {
 export const listItemVariants: Variants = {
   hidden: { 
     x: -10, 
-    opacity: 0 
+    opacity: 0, 
   },
   visible: (index: number) => ({
     x: 0,
@@ -234,9 +234,9 @@ export const listItemVariants: Variants = {
     transition: {
       delay: index * 0.05,
       duration: 0.3,
-      ease: 'easeOut'
-    }
-  })
+      ease: 'easeOut',
+    },
+  }),
 };
 
 /**
@@ -246,7 +246,7 @@ export const modalVariants: Variants = {
   hidden: { 
     scale: 0.95, 
     opacity: 0,
-    y: 20
+    y: 20,
   },
   visible: { 
     scale: 1, 
@@ -254,8 +254,8 @@ export const modalVariants: Variants = {
     y: 0,
     transition: {
       duration: 0.2,
-      ease: 'easeOut'
-    }
+      ease: 'easeOut',
+    },
   },
   exit: { 
     scale: 0.95, 
@@ -263,9 +263,9 @@ export const modalVariants: Variants = {
     y: 20,
     transition: {
       duration: 0.15,
-      ease: 'easeIn'
-    }
-  }
+      ease: 'easeIn',
+    },
+  },
 };
 
 /**
@@ -273,20 +273,20 @@ export const modalVariants: Variants = {
  */
 export const backdropVariants: Variants = {
   hidden: { 
-    opacity: 0 
+    opacity: 0, 
   },
   visible: { 
     opacity: 1,
     transition: {
-      duration: 0.2
-    }
+      duration: 0.2,
+    },
   },
   exit: { 
     opacity: 0,
     transition: {
-      duration: 0.15
-    }
-  }
+      duration: 0.15,
+    },
+  },
 };
 
 /**
@@ -300,16 +300,16 @@ export const drawerVariants = {
       transition: {
         type: 'spring',
         stiffness: 300,
-        damping: 30
-      }
+        damping: 30,
+      },
     },
     exit: { 
       x: '-100%',
       transition: {
         duration: 0.2,
-        ease: 'easeIn'
-      }
-    }
+        ease: 'easeIn',
+      },
+    },
   },
   right: {
     hidden: { x: '100%' },
@@ -318,16 +318,16 @@ export const drawerVariants = {
       transition: {
         type: 'spring',
         stiffness: 300,
-        damping: 30
-      }
+        damping: 30,
+      },
     },
     exit: { 
       x: '100%',
       transition: {
         duration: 0.2,
-        ease: 'easeIn'
-      }
-    }
+        ease: 'easeIn',
+      },
+    },
   },
   bottom: {
     hidden: { y: '100%' },
@@ -336,17 +336,17 @@ export const drawerVariants = {
       transition: {
         type: 'spring',
         stiffness: 300,
-        damping: 30
-      }
+        damping: 30,
+      },
     },
     exit: { 
       y: '100%',
       transition: {
         duration: 0.2,
-        ease: 'easeIn'
-      }
-    }
-  }
+        ease: 'easeIn',
+      },
+    },
+  },
 };
 
 /**
@@ -354,16 +354,16 @@ export const drawerVariants = {
  */
 export const skeletonVariants: Variants = {
   initial: {
-    backgroundPosition: '200% 0'
+    backgroundPosition: '200% 0',
   },
   animate: {
     backgroundPosition: '-200% 0',
     transition: {
       duration: 1.5,
       ease: 'linear',
-      repeat: Infinity
-    }
-  }
+      repeat: Infinity,
+    },
+  },
 };
 
 /**
@@ -372,7 +372,7 @@ export const skeletonVariants: Variants = {
 export const checkmarkVariants: Variants = {
   hidden: {
     pathLength: 0,
-    opacity: 0
+    opacity: 0,
   },
   visible: {
     pathLength: 1,
@@ -380,13 +380,13 @@ export const checkmarkVariants: Variants = {
     transition: {
       pathLength: {
         duration: 0.5,
-        ease: 'easeOut'
+        ease: 'easeOut',
       },
       opacity: {
-        duration: 0.2
-      }
-    }
-  }
+        duration: 0.2,
+      },
+    },
+  },
 };
 
 /**
@@ -396,9 +396,9 @@ export const shakeVariants: Variants = {
   shake: {
     x: [0, -10, 10, -10, 10, 0],
     transition: {
-      duration: 0.4
-    }
-  }
+      duration: 0.4,
+    },
+  },
 };
 
 /**
@@ -410,9 +410,9 @@ export const pulseVariants: Variants = {
     transition: {
       duration: 0.6,
       repeat: Infinity,
-      repeatDelay: 1
-    }
-  }
+      repeatDelay: 1,
+    },
+  },
 };
 
 /**
@@ -443,6 +443,33 @@ export const fadeInUp: Variants = {
     transition: {
       duration: 0.3,
       ease: 'easeOut',
+    },
+  },
+};
+
+/**
+ * Page transition animation for route changes
+ * Provides smooth fade and slide transitions between pages
+ */
+export const pageTransition: Variants = {
+  initial: {
+    opacity: 0,
+    y: 8,
+  },
+  animate: {
+    opacity: 1,
+    y: 0,
+    transition: {
+      duration: 0.3,
+      ease: 'easeOut',
+    },
+  },
+  exit: {
+    opacity: 0,
+    y: -8,
+    transition: {
+      duration: 0.2,
+      ease: 'easeIn',
     },
   },
 };
