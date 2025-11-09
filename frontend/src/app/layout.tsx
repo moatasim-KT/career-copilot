@@ -1,9 +1,11 @@
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import { Toaster } from 'sonner';
+import Script from 'next/script';
 
 import Layout from '@/components/layout/Layout';
 import PageTransition from '@/components/layout/PageTransition';
+import { getThemeInitScript } from '@/hooks/useDarkMode';
 
 import Providers from './providers';
 import './globals.css';
@@ -27,9 +29,19 @@ export default function RootLayout({
   // In a real Next.js app, page transitions are best handled in a client component wrapper.
   // Here, we show the pattern for AnimatePresence and motion.div usage.
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
+      <head>
+        {/* Prevent flash of wrong theme */}
+        <Script
+          id="theme-init"
+          strategy="beforeInteractive"
+          dangerouslySetInnerHTML={{
+            __html: getThemeInitScript()
+          }}
+        />
+      </head>
       <body
-        className={`${inter.variable} font-sans antialiased bg-gray-50 min-h-screen`}
+        className={`${inter.variable} font-sans antialiased bg-neutral-50 dark:bg-neutral-900 min-h-screen`}
       >
         <Providers>
           {/* PageTransition is a client component that handles AnimatePresence/motion */}

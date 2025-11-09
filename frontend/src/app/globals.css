@@ -202,6 +202,20 @@
 
   /* Removed invalid @apply border-border; */
 
+  /* Dark Mode Smooth Transitions */
+  * {
+    transition-property: background-color, border-color, color, fill, stroke;
+    transition-duration: 200ms;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  /* Exclude animations, transforms, and opacity from theme transitions */
+  *,
+  *::before,
+  *::after {
+    transition-property: background-color, border-color, color, fill, stroke;
+  }
+
   body {
     background-color: rgb(var(--background));
     color: rgb(var(--foreground));
@@ -226,17 +240,47 @@
       radial-gradient(at 0% 0%, rgb(var(--color-primary-200)) 0px, transparent 50%);
   }
 
+  .dark .gradient-mesh {
+    background:
+      radial-gradient(at 40% 20%, rgba(59, 130, 246, 0.15) 0px, transparent 50%),
+      radial-gradient(at 80% 0%, rgba(96, 165, 250, 0.15) 0px, transparent 50%),
+      radial-gradient(at 0% 50%, rgba(37, 99, 235, 0.1) 0px, transparent 50%),
+      radial-gradient(at 80% 50%, rgba(59, 130, 246, 0.15) 0px, transparent 50%),
+      radial-gradient(at 0% 100%, rgba(96, 165, 250, 0.15) 0px, transparent 50%),
+      radial-gradient(at 80% 100%, rgba(59, 130, 246, 0.15) 0px, transparent 50%),
+      radial-gradient(at 0% 0%, rgba(59, 130, 246, 0.15) 0px, transparent 50%);
+  }
+
+  .gradient-mesh-blue {
+    background:
+      radial-gradient(at 40% 20%, rgba(59, 130, 246, 0.2) 0px, transparent 50%),
+      radial-gradient(at 80% 0%, rgba(96, 165, 250, 0.2) 0px, transparent 50%),
+      radial-gradient(at 0% 50%, rgba(37, 99, 235, 0.15) 0px, transparent 50%);
+  }
+
+  .gradient-mesh-purple {
+    background:
+      radial-gradient(at 40% 20%, rgba(168, 85, 247, 0.2) 0px, transparent 50%),
+      radial-gradient(at 80% 0%, rgba(192, 132, 252, 0.2) 0px, transparent 50%),
+      radial-gradient(at 0% 50%, rgba(147, 51, 234, 0.15) 0px, transparent 50%);
+  }
+
+  .gradient-mesh-green {
+    background:
+      radial-gradient(at 40% 20%, rgba(34, 197, 94, 0.2) 0px, transparent 50%),
+      radial-gradient(at 80% 0%, rgba(74, 222, 128, 0.2) 0px, transparent 50%),
+      radial-gradient(at 0% 50%, rgba(22, 163, 74, 0.15) 0px, transparent 50%);
+  }
+
   .glass {
-    backdrop-filter: blur(16px);
+    backdrop-filter: blur(16px) saturate(180%);
     background-color: rgba(255, 255, 255, 0.7);
     border: 1px solid rgba(255, 255, 255, 0.2);
   }
 
-  @media (prefers-color-scheme: dark) {
-    .glass {
-      background-color: rgba(23, 37, 84, 0.7);
-      /* fallback for dark bg-neutral-900/70 */
-    }
+  .dark .glass {
+    background-color: rgba(30, 41, 59, 0.7);
+    border: 1px solid rgba(71, 85, 105, 0.2);
   }
 
   .card-hover {
