@@ -545,3 +545,232 @@ export const inputFocusVariants = {
     },
   },
 };
+
+/**
+ * Skeleton to content crossfade animation
+ * Smooth transition from loading skeleton to actual content
+ */
+export const skeletonToContentVariants: Variants = {
+  skeleton: {
+    opacity: 1,
+    transition: {
+      duration: 0.2,
+      ease: 'easeOut',
+    },
+  },
+  content: {
+    opacity: 0,
+    transition: {
+      duration: 0.2,
+      ease: 'easeIn',
+    },
+  },
+};
+
+export const contentFromSkeletonVariants: Variants = {
+  hidden: {
+    opacity: 0,
+    scale: 0.98,
+  },
+  visible: {
+    opacity: 1,
+    scale: 1,
+    transition: {
+      duration: 0.3,
+      ease: [0, 0, 0.2, 1] as const,
+      delay: 0.1,
+    },
+  },
+};
+
+/**
+ * Stagger reveal animation for multiple items
+ * Used when loading multiple items that appear sequentially
+ */
+export const staggerRevealContainer: Variants = {
+  hidden: {
+    opacity: 0,
+  },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.08,
+      delayChildren: 0.1,
+    },
+  },
+};
+
+export const staggerRevealItem: Variants = {
+  hidden: {
+    opacity: 0,
+    y: 20,
+    scale: 0.95,
+  },
+  visible: {
+    opacity: 1,
+    y: 0,
+    scale: 1,
+    transition: {
+      duration: 0.4,
+      ease: [0, 0, 0.2, 1] as const,
+    },
+  },
+};
+
+/**
+ * Fast stagger reveal for smaller items (like list items)
+ */
+export const fastStaggerContainer: Variants = {
+  hidden: {
+    opacity: 0,
+  },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.05,
+      delayChildren: 0.05,
+    },
+  },
+};
+
+export const fastStaggerItem: Variants = {
+  hidden: {
+    opacity: 0,
+    x: -10,
+  },
+  visible: {
+    opacity: 1,
+    x: 0,
+    transition: {
+      duration: 0.25,
+      ease: 'easeOut',
+    },
+  },
+};
+
+/**
+ * Smooth spinner rotation with custom easing
+ * Provides a more natural spinning animation
+ */
+export const spinnerVariants: Variants = {
+  spin: {
+    rotate: 360,
+    transition: {
+      duration: 1,
+      ease: 'linear',
+      repeat: Infinity,
+    },
+  },
+};
+
+/**
+ * Smooth spinner with easing curves for more organic feel
+ * Uses cubic-bezier for acceleration/deceleration
+ */
+export const smoothSpinnerVariants: Variants = {
+  spin: {
+    rotate: 360,
+    transition: {
+      duration: 1.2,
+      ease: [0.4, 0, 0.6, 1] as const,
+      repeat: Infinity,
+    },
+  },
+};
+
+/**
+ * Pulsing spinner variant
+ * Combines rotation with scale pulsing
+ */
+export const pulsingSpinnerVariants: Variants = {
+  spin: {
+    rotate: 360,
+    scale: [1, 1.1, 1],
+    transition: {
+      rotate: {
+        duration: 1,
+        ease: 'linear',
+        repeat: Infinity,
+      },
+      scale: {
+        duration: 1,
+        ease: 'easeInOut',
+        repeat: Infinity,
+      },
+    },
+  },
+};
+
+/**
+ * Dots loading animation
+ * For three-dot loading indicators
+ */
+export const dotsLoadingVariants = {
+  container: {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.15,
+        repeat: Infinity,
+        repeatDelay: 0.5,
+      },
+    },
+  },
+  dot: {
+    hidden: {
+      y: 0,
+      opacity: 0.3,
+    },
+    visible: {
+      y: -10,
+      opacity: 1,
+      transition: {
+        duration: 0.4,
+        ease: 'easeInOut',
+      },
+    },
+  },
+};
+
+/**
+ * Progress bar animation
+ * Smooth indeterminate progress bar
+ */
+export const progressBarVariants: Variants = {
+  indeterminate: {
+    x: ['-100%', '100%'],
+    transition: {
+      duration: 1.5,
+      ease: 'easeInOut',
+      repeat: Infinity,
+    },
+  },
+};
+
+/**
+ * Loading overlay fade
+ * For full-screen or container loading overlays
+ */
+export const loadingOverlayVariants: Variants = {
+  hidden: {
+    opacity: 0,
+    backdropFilter: 'blur(0px)',
+  },
+  visible: {
+    opacity: 1,
+    backdropFilter: 'blur(4px)',
+    transition: {
+      duration: 0.2,
+      ease: 'easeOut',
+    },
+  },
+  exit: {
+    opacity: 0,
+    backdropFilter: 'blur(0px)',
+    transition: {
+      duration: 0.15,
+      ease: 'easeIn',
+    },
+  },
+};
