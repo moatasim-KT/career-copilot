@@ -108,8 +108,28 @@
     "whatwg-fetch": "^3.6.20"
   },
   "eslintConfig": {
+    "root": true,
+    "parser": "@typescript-eslint/parser",
+    "parserOptions": {
+      "project": "./tsconfig.eslint.json"
+    },
+    "plugins": [
+      "@typescript-eslint",
+      "react",
+      "react-hooks",
+      "jsx-a11y",
+      "import",
+      "storybook"
+    ],
     "extends": [
+      "plugin:@typescript-eslint/recommended",
+      "plugin:react/recommended",
+      "plugin:react-hooks/recommended",
+      "plugin:jsx-a11y/recommended",
+      "plugin:import/errors",
+      "plugin:import/warnings",
       "plugin:storybook/recommended"
-    ]
+    ],
+    "rules": {}
   }
 }

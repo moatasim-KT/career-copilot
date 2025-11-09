@@ -4,12 +4,13 @@
 
 
 import { motion, AnimatePresence } from 'framer-motion';
+import type { MotionProps } from 'framer-motion';
 import { Loader2 } from 'lucide-react';
 import { forwardRef, ReactNode, ButtonHTMLAttributes, useRef, useState } from 'react';
 
 import { cn } from '@/lib/utils';
 
-export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
+export interface ButtonProps extends Omit<ButtonHTMLAttributes<HTMLButtonElement>, keyof MotionProps>, MotionProps {
   children: ReactNode;
   variant?: 'primary' | 'secondary' | 'outline' | 'ghost' | 'destructive' | 'success' | 'link';
   size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl';

@@ -162,7 +162,7 @@ export function createAuthInterceptor(
     onAuthError?: () => void,
 ): RequestInterceptor {
     return {
-        onRequest: async (config: RequestInit, url: string) => {
+        onRequest: async (config: RequestInit, _url: string) => {
             const token = getToken();
 
             if (token) {
@@ -181,7 +181,7 @@ export function createAuthInterceptor(
                     if (!newToken && onAuthError) {
                         onAuthError();
                     }
-                } catch (_refreshError) {
+                } catch {
                     if (onAuthError) {
                         onAuthError();
                     }
@@ -199,7 +199,7 @@ export function createRetryHeadersInterceptor(): RequestInterceptor {
     let retryCount = 0;
 
     return {
-        onRequest: async (config: RequestInit, url: string) => {
+        onRequest: async (config: RequestInit, _url: string) => {
             const headers = new Headers(config.headers);
 
             if (retryCount > 0) {
@@ -209,7 +209,7 @@ export function createRetryHeadersInterceptor(): RequestInterceptor {
             config.headers = headers;
             return config;
         },
-        onRequestError: (error: Error) => {
+        onRequestError: (_error: Error) => {
             retryCount++;
         },
     };
@@ -221,7 +221,7 @@ export function createRetryHeadersInterceptor(): RequestInterceptor {
 
 export function createRequestIdInterceptor(): RequestInterceptor {
     return {
-        onRequest: async (config: RequestInit, url: string) => {
+        onRequest: async (config: RequestInit, _url: string) => {
             const headers = new Headers(config.headers);
             const requestId = `req_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
             headers.set('X-Request-ID', requestId);

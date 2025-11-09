@@ -7,7 +7,7 @@
  * Extended: Added rotate, page transitions, spring configs, and duration constants.
  */
 
-import { Variants, Transition } from 'framer-motion';
+import { Variants } from 'framer-motion';
 
 // Duration constants
 export const DURATION = {

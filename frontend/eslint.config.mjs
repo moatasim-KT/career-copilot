@@ -22,7 +22,7 @@ const eslintConfig = [// Base JavaScript configuration
                 ecmaFeatures: {
                     jsx: true,
                 },
-                project: './tsconfig.json',
+                project: './tsconfig.eslint.json',
             },
             globals: {
                 ...globals.browser,

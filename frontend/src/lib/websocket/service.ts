@@ -145,7 +145,10 @@ export class WebSocketService {
         if (!this.messageHandlers.has(type)) {
             this.messageHandlers.set(type, new Set());
         }
-        this.messageHandlers.get(type)!.add(handler);
+        const handlers = this.messageHandlers.get(type);
+        if (handlers) {
+            handlers.add(handler);
+        }
 
         // Return unsubscribe function
         return () => {
