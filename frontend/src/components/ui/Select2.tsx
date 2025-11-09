@@ -4,8 +4,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronDown } from 'lucide-react';
 import { forwardRef, SelectHTMLAttributes, ReactNode, useState, useEffect } from 'react';
 
-import { cn } from '@/lib/utils';
 import { errorMessageVariants, shakeVariants } from '@/lib/animations';
+import { cn } from '@/lib/utils';
 
 export interface Select2Props extends Omit<SelectHTMLAttributes<HTMLSelectElement>, 'size'> {
     variant?: 'default' | 'filled' | 'outlined';
@@ -98,7 +98,7 @@ export const Select2 = forwardRef<HTMLSelectElement, Select2Props>(
                         </motion.div>
                     )}
 
-                    <motion.select
+                    <select
                         ref={ref}
                         disabled={disabled}
                         className={cn(
@@ -120,12 +120,10 @@ export const Select2 = forwardRef<HTMLSelectElement, Select2Props>(
                             setIsFocused(false);
                             props.onBlur?.(e);
                         }}
-                        whileFocus={{ scale: 1 }}
-                        transition={{ duration: 0.2, ease: 'easeOut' }}
                         {...props}
                     >
                         {children}
-                    </motion.select>
+                    </select>
 
                     <motion.div
                         className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none"

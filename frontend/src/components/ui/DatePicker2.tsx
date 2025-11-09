@@ -164,7 +164,7 @@ export const DatePicker2 = forwardRef<HTMLDivElement, DatePicker2Props>(
                     animate={shouldShake ? 'shake' : 'default'}
                     variants={shakeVariants}
                 >
-                    <motion.input
+                    <input
                         ref={inputRef}
                         type="text"
                         value={displayValue}
@@ -180,8 +180,6 @@ export const DatePicker2 = forwardRef<HTMLDivElement, DatePicker2Props>(
                             error && 'border-error-500 focus:border-error-500',
                         )}
                         placeholder={range ? 'Select date range' : 'Select date'}
-                        whileTap={!disabled ? { scale: 0.995 } : {}}
-                        transition={{ duration: 0.15 }}
                     />
                     <AnimatePresence>
                         {displayValue && !disabled && (

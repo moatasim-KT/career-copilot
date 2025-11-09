@@ -4,8 +4,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Eye, EyeOff, Check, X } from 'lucide-react';
 import { forwardRef, InputHTMLAttributes, useState, useEffect } from 'react';
 
+import { errorMessageVariants, shakeVariants } from '@/lib/animations';
 import { cn } from '@/lib/utils';
-import { errorMessageVariants, shakeVariants, fadeInUp } from '@/lib/animations';
 
 export interface PasswordInput2Props extends Omit<InputHTMLAttributes<HTMLInputElement>, 'type'> {
     label?: string;
@@ -109,7 +109,7 @@ export const PasswordInput2 = forwardRef<HTMLInputElement, PasswordInput2Props>(
                     animate={shouldShake ? 'shake' : 'default'}
                     variants={shakeVariants}
                 >
-                    <motion.input
+                    <input
                         ref={ref}
                         type={showPassword ? 'text' : 'password'}
                         value={value}
@@ -125,8 +125,6 @@ export const PasswordInput2 = forwardRef<HTMLInputElement, PasswordInput2Props>(
                         )}
                         onFocus={() => setIsFocused(true)}
                         onBlur={() => setIsFocused(false)}
-                        whileFocus={{ scale: 1 }}
-                        transition={{ duration: 0.2, ease: 'easeOut' }}
                         {...props}
                     />
 

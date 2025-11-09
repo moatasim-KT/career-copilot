@@ -4,8 +4,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { X, Loader2 } from 'lucide-react';
 import { forwardRef, InputHTMLAttributes, ReactNode, useState, useEffect } from 'react';
 
-import { cn } from '@/lib/utils';
 import { errorMessageVariants, shakeVariants } from '@/lib/animations';
+import { cn } from '@/lib/utils';
 
 export interface Input2Props extends Omit<InputHTMLAttributes<HTMLInputElement>, 'size'> {
     /**
@@ -194,7 +194,7 @@ export const Input2 = forwardRef<HTMLInputElement, Input2Props>(
                     )}
 
                     {/* Input */}
-                    <motion.input
+                    <input
                         ref={ref}
                         value={value}
                         disabled={disabled || loading}
@@ -218,8 +218,6 @@ export const Input2 = forwardRef<HTMLInputElement, Input2Props>(
                             setIsFocused(false);
                             props.onBlur?.(e);
                         }}
-                        whileFocus={{ scale: 1 }}
-                        transition={{ duration: 0.2, ease: 'easeOut' }}
                         {...props}
                     />
 

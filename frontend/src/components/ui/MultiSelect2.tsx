@@ -4,8 +4,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { X, Check } from 'lucide-react';
 import { forwardRef, useState, useRef, useEffect } from 'react';
 
+import { errorMessageVariants, shakeVariants } from '@/lib/animations';
 import { cn } from '@/lib/utils';
-import { errorMessageVariants, shakeVariants, fadeInUp } from '@/lib/animations';
 
 export interface MultiSelect2Option {
     value: string;
