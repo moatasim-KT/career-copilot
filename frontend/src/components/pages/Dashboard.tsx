@@ -11,58 +11,72 @@ import {
   CheckCircle,
   Clock,
   XCircle,
-  Wifi,
-  WifiOff,
 } from 'lucide-react';
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 
-import { useWebSocket } from '@/hooks/useWebSocket';
-import { AnalyticsService, ApplicationsService, type AnalyticsSummaryResponse, type ApplicationResponse } from '@/lib/api/client';
+import { apiClient } from '@/lib/api';
 import { logger } from '@/lib/logger';
 
 export default function Dashboard() {
-  const [analytics, setAnalytics] = useState<AnalyticsSummaryResponse | null>(null);
-  const [recentApplications, setRecentApplications] = useState<ApplicationResponse[]>([]);
+  const [analytics, setAnalytics] = useState<any | null>(null);
+  const [recentApplications, setRecentApplications] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
 
-  const loadAnalytics = async () => {
-    try {
-      const response = await AnalyticsService.getAnalyticsSummaryApiV1AnalyticsSummaryGet();
-      setAnalytics(response);
-    } catch (err) {
-      setError('Failed to load analytics');
-    }
-  };
-
-  const loadRecentApplications = async () => {
-    try {
-      const response = await ApplicationsService.getApplicationsApiV1ApplicationsGet({ skip: 0, limit: 5 });
-      setRecentApplications(response);
-    } catch (err) {
-      logger.error('Failed to load recent applications:', err);
-    }
-  };
-
-  useEffect(() => {
-    loadDashboardData();
-  }, []);
-
-  const loadDashboardData = async () => {
+  const refreshDashboard = async () => {
     setIsLoading(true);
     try {
-      await Promise.all([
-        loadAnalytics(),
-        loadRecentApplications(),
+      const [analyticsResp, recentResp] = await Promise.all([
+        apiClient.getAnalyticsSummary(),
+        apiClient.getApplications(0, 5),
       ]);
+
+      if (analyticsResp && !analyticsResp.error && analyticsResp.data) {
+        setAnalytics(analyticsResp.data);
+      }
+      if (recentResp && !recentResp.error && recentResp.data) {
+        setRecentApplications(recentResp.data);
+      }
       setLastUpdated(new Date());
     } catch (err) {
-      setError('Failed to load dashboard data');
+      setError('Failed to refresh dashboard');
+      logger.error('Dashboard: refresh failed', err);
     } finally {
       setIsLoading(false);
     }
   };
+
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      setIsLoading(true);
+      try {
+        const [analyticsResp, recentResp] = await Promise.all([
+          apiClient.getAnalyticsSummary(),
+          apiClient.getApplications(0, 5),
+        ]);
+
+        if (!mounted) return;
+
+        if (analyticsResp && !analyticsResp.error && analyticsResp.data) {
+          setAnalytics(analyticsResp.data);
+        }
+        if (recentResp && !recentResp.error && recentResp.data) {
+          setRecentApplications(recentResp.data);
+        }
+        setLastUpdated(new Date());
+      } catch (err) {
+        setError('Failed to load dashboard data');
+        logger.error('Dashboard: initial load failed', err);
+      } finally {
+        if (mounted) setIsLoading(false);
+      }
+    })();
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
   const getStatusIcon = (status: string | undefined) => {
     switch (status) {
@@ -138,7 +152,7 @@ export default function Dashboard() {
             </span>
           )}
           <button
-            onClick={loadDashboardData}
+            onClick={refreshDashboard}
             disabled={isLoading}
             className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
@@ -251,7 +265,7 @@ export default function Dashboard() {
         <div className="p-6">
           {recentApplications.length > 0 ? (
             <div className="space-y-4">
-              {recentApplications.map((application, index) => (
+              {recentApplications.map((application) => (
                 <div key={application.id} className="flex items-center justify-between p-4 bg-neutral-50 rounded-lg">
                   <div className="flex items-center space-x-4">
                     <div className="flex-shrink-0">
@@ -301,7 +315,7 @@ export default function Dashboard() {
                 <div className="flex justify-center mb-2">
                   {getStatusIcon(status)}
                 </div>
-                <p className="text-2xl font-bold text-neutral-900">{count}</p>
+                <p className="text-2xl font-bold text-neutral-900">{String(count)}</p>
                 <p className="text-sm text-neutral-600 capitalize">{status}</p>
               </div>
             ))}

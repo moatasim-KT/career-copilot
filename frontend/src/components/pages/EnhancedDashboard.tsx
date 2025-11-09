@@ -1,34 +1,27 @@
 'use client';
 
-import { Responsive, WidthProvider } from 'react-grid-layout';
-import 'react-grid-layout/css/styles.css';
-import 'react-resizable/css/styles.css';
 import {
     Briefcase,
     FileText,
     Calendar,
     Trophy,
-    Plus,
-    Upload,
     RefreshCw,
-    Clock,
-    CheckCircle,
-    XCircle,
     Wifi,
     WifiOff,
-    TrendingUp,
     AlertCircle,
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
+import { Responsive, WidthProvider } from 'react-grid-layout';
+import 'react-grid-layout/css/styles.css';
+import 'react-resizable/css/styles.css';
 
 import ActivityTimeline from '@/components/ui/ActivityTimeline';
 import MetricCard from '@/components/ui/MetricCard';
 import QuickActionsPanel from '@/components/ui/QuickActionsPanel';
 import Widget from '@/components/ui/Widget';
-import WidgetGrid from '@/components/ui/WidgetGrid';
 import { useWebSocket } from '@/hooks/useWebSocket';
-import { apiClient, type AnalyticsSummary, type Application } from '@/lib/api';
+import { apiClient, type AnalyticsSummary } from '@/lib/api';
 import { logger } from '@/lib/logger';
 
 export default function EnhancedDashboard() {
@@ -56,7 +49,9 @@ export default function EnhancedDashboard() {
                 setAnalytics(response.data);
             }
         } catch (err) {
+            // keep user-facing message but record the error for debugging
             setError('Failed to load analytics');
+            logger.error('EnhancedDashboard: failed to load analytics', err);
         }
     };
 
@@ -79,7 +74,7 @@ export default function EnhancedDashboard() {
     const [currentPreset, setCurrentPreset] = useState('default');
     const [layout, setLayout] = useState<any[]>([]);
 
-    const presets = {
+    const presets = useMemo(() => ({
         default: [
             { i: 'metrics', x: 0, y: 0, w: 2, h: 2, minW: 2, minH: 2 },
             { i: 'activity', x: 2, y: 0, w: 1, h: 2, minW: 1, minH: 2 },
@@ -92,11 +87,11 @@ export default function EnhancedDashboard() {
             { i: 'quick-actions', x: 2, y: 1, w: 1, h: 1, minW: 1, minH: 1 },
             { i: 'progress', x: 0, y: 2, w: 3, h: 1, minW: 1, minH: 1 },
         ],
-    };
+    }), []);
 
     useEffect(() => {
         setLayout(presets[currentPreset as keyof typeof presets]);
-    }, [currentPreset]);
+    }, [currentPreset, presets]);
 
     const onLayoutChange = (newLayout: any) => {
         setLayout(newLayout);
