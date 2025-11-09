@@ -1,9 +1,10 @@
 'use client';
 
-import { 
-  FileText, 
-  Calendar, 
-  Building, 
+import { motion } from 'framer-motion';
+import {
+  FileText,
+  Calendar,
+  Building,
   MapPin,
   Clock,
   CheckCircle,
@@ -13,20 +14,18 @@ import {
   Eye,
   Plus,
   Edit,
-  Filter,
   Search,
-  SortAsc,
-  SortDesc,
 } from 'lucide-react';
 import { useState, useEffect, useCallback } from 'react';
 
 import Button2 from '@/components/ui/Button2';
-import Card, { CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
+import Card, { CardContent } from '@/components/ui/Card';
 import Input from '@/components/ui/Input';
 import Modal, { ModalFooter } from '@/components/ui/Modal';
 import Select from '@/components/ui/Select';
 import Textarea from '@/components/ui/Textarea';
 import { useWebSocket } from '@/hooks/useWebSocket';
+import { staggerContainer, staggerItem } from '@/lib/animations';
 import { apiClient, type Application } from '@/lib/api';
 import { logger } from '@/lib/logger';
 import { handleApplicationStatusUpdate } from '@/lib/websocket/applications';
@@ -65,9 +64,9 @@ export default function ApplicationsPage() {
   const handleApplicationUpdate = useCallback((data: any) => {
     logger.log('Application update received:', data);
     if (data.applicationId) {
-      setApplications(prev => 
-        prev.map(app => 
-          app.id === data.applicationId 
+      setApplications(prev =>
+        prev.map(app =>
+          app.id === data.applicationId
             ? { ...app, status: data.status }
             : app,
         ),
@@ -76,11 +75,15 @@ export default function ApplicationsPage() {
     }
   }, []);
 
-  useWebSocket('ws://localhost:8080/api/ws', (data) => {
-    if (data.type === 'application-status-update') {
-      handleApplicationStatusUpdate(data.payload, handleApplicationUpdate);
-    }
-  });
+  useWebSocket(
+    'ws://localhost:8080/api/ws',
+    // onDashboardUpdate (not needed here)
+    () => { },
+    // onApplicationStatusUpdate
+    (data) => handleApplicationStatusUpdate(data, handleApplicationUpdate),
+    // onAnalyticsUpdate (not needed)
+    () => { },
+  );
 
   const [formData, setFormData] = useState({
     job_id: 0,
@@ -105,7 +108,8 @@ export default function ApplicationsPage() {
         setApplications(response.data);
         setLastUpdated(new Date());
       }
-    } catch (err) {
+    } catch (error) {
+      logger.error('Failed to load applications', error);
       setError('Failed to load applications');
     } finally {
       setIsLoading(false);
@@ -120,14 +124,15 @@ export default function ApplicationsPage() {
       } else {
         loadApplications();
       }
-    } catch (err) {
+    } catch (error) {
+      logger.error('Failed to update application', error);
       setError('Failed to update application');
     }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!formData.job_id || formData.job_id === 0) {
       setError('Please select a job');
       return;
@@ -149,7 +154,8 @@ export default function ApplicationsPage() {
         resetForm();
         loadApplications();
       }
-    } catch (err) {
+    } catch (error) {
+      logger.error('Failed to save application', error);
       setError('Failed to save application');
     } finally {
       setIsSubmitting(false);
@@ -237,11 +243,11 @@ export default function ApplicationsPage() {
   const filteredAndSortedApplications = applications
     .filter(app => {
       const matchesStatus = statusFilter === 'all' || app.status === statusFilter;
-      const matchesSearch = 
+      const matchesSearch =
         (app.job?.title || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
         (app.job?.company || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
         (app.notes || '').toLowerCase().includes(searchTerm.toLowerCase());
-      
+
       return matchesStatus && matchesSearch;
     })
     .sort((a, b) => {
@@ -299,8 +305,8 @@ export default function ApplicationsPage() {
           )}
         </div>
         <div className="flex items-center space-x-3">
-          <Button2 
-            variant="outline" 
+          <Button2
+            variant="outline"
             onClick={loadApplications}
             disabled={isLoading}
             className="flex items-center space-x-2"
@@ -338,7 +344,7 @@ export default function ApplicationsPage() {
                 className="pl-10"
               />
             </div>
-            
+
             <Select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
@@ -347,14 +353,14 @@ export default function ApplicationsPage() {
                 ...STATUS_OPTIONS,
               ]}
             />
-            
+
             <Select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value)}
               options={SORT_OPTIONS}
             />
           </div>
-          
+
           <div className="mt-4 pt-4 border-t border-neutral-200">
             <div className="text-sm text-neutral-600">
               Showing {filteredAndSortedApplications.length} of {applications.length} applications
@@ -440,140 +446,148 @@ export default function ApplicationsPage() {
       </Modal>
 
       {filteredAndSortedApplications.length > 0 ? (
-        <div className="space-y-4">
+        <motion.div className="space-y-4" variants={staggerContainer} initial="hidden" animate="visible">
           {filteredAndSortedApplications.map((application) => (
-            <Card key={application.id} hover className="transition-all duration-200">
-              <CardContent className="p-6">
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center space-x-3 mb-2">
-                      <h3 className="text-lg font-semibold text-neutral-900">
-                        {application.job?.title || 'Unknown Position'}
-                      </h3>
-                      <div className="flex items-center space-x-1">
-                        {getStatusIcon(application.status)}
-                        <span className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(application.status)}`}>
-                          {application.status.charAt(0).toUpperCase() + application.status.slice(1)}
-                        </span>
-                      </div>
-                    </div>
-                    
-                    <div className="flex flex-wrap items-center gap-4 text-sm text-neutral-600 mb-3">
-                      <div className="flex items-center space-x-1">
-                        <Building className="h-4 w-4" />
-                        <span>{application.job?.company || 'Unknown Company'}</span>
-                      </div>
-                      {application.job?.location && (
+            <motion.div key={application.id} variants={staggerItem} initial="hidden" animate="visible" exit={{ opacity: 0, y: 8 }} layout>
+              <Card hover className="transition-all duration-200">
+                <CardContent className="p-6">
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <div className="flex items-center space-x-3 mb-2">
+                        <h3 className="text-lg font-semibold text-neutral-900">
+                          {application.job?.title || 'Unknown Position'}
+                        </h3>
                         <div className="flex items-center space-x-1">
-                          <MapPin className="h-4 w-4" />
-                          <span>{application.job.location}</span>
+                          {getStatusIcon(application.status)}
+                          <motion.span
+                            key={application.status}
+                            initial={{ opacity: 0, scale: 0.9 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            transition={{ type: 'spring', stiffness: 300, damping: 18 }}
+                            className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(application.status)}`}
+                          >
+                            {application.status.charAt(0).toUpperCase() + application.status.slice(1)}
+                          </motion.span>
                         </div>
-                      )}
-                      {application.applied_date && (
+                      </div>
+
+                      <div className="flex flex-wrap items-center gap-4 text-sm text-neutral-600 mb-3">
                         <div className="flex items-center space-x-1">
-                          <Clock className="h-4 w-4" />
-                          <span>Applied {new Date(application.applied_date).toLocaleDateString()}</span>
+                          <Building className="h-4 w-4" />
+                          <span>{application.job?.company || 'Unknown Company'}</span>
+                        </div>
+                        {application.job?.location && (
+                          <div className="flex items-center space-x-1">
+                            <MapPin className="h-4 w-4" />
+                            <span>{application.job.location}</span>
+                          </div>
+                        )}
+                        {application.applied_date && (
+                          <div className="flex items-center space-x-1">
+                            <Clock className="h-4 w-4" />
+                            <span>Applied {new Date(application.applied_date).toLocaleDateString()}</span>
+                          </div>
+                        )}
+                      </div>
+
+                      {application.notes && (
+                        <p className="text-sm text-neutral-600 mb-3">
+                          <strong>Notes:</strong> {application.notes}
+                        </p>
+                      )}
+
+                      <div className="flex flex-wrap items-center gap-4 text-sm text-neutral-500">
+                        {application.interview_date && (
+                          <span>Interview: {new Date(application.interview_date).toLocaleDateString()}</span>
+                        )}
+                        {application.response_date && (
+                          <span>Response: {new Date(application.response_date).toLocaleDateString()}</span>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="flex items-center space-x-2 ml-4">
+                      <Button2
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => startEdit(application)}
+                        title="Edit Application"
+                      >
+                        <Edit className="h-4 w-4" />
+                      </Button2>
+
+                      <Select
+                        value={application.status}
+                        onChange={(e) => updateApplicationStatus(application.id, e.target.value)}
+                        options={STATUS_OPTIONS}
+                        className="w-32"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Interview Feedback Section */}
+                  {application.interview_feedback && (
+                    <div className="mt-4 pt-4 border-t border-neutral-200">
+                      <h4 className="text-sm font-medium text-neutral-900 mb-2">Interview Feedback</h4>
+
+                      {application.interview_feedback.questions && application.interview_feedback.questions.length > 0 && (
+                        <div className="mb-2">
+                          <p className="text-xs font-medium text-neutral-700">Questions Asked:</p>
+                          <div className="flex flex-wrap gap-1 mt-1">
+                            {application.interview_feedback.questions.map((question, idx) => (
+                              <span key={idx} className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">
+                                {question}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {application.interview_feedback.skill_areas && application.interview_feedback.skill_areas.length > 0 && (
+                        <div className="mb-2">
+                          <p className="text-xs font-medium text-neutral-700">Skill Areas Discussed:</p>
+                          <div className="flex flex-wrap gap-1 mt-1">
+                            {application.interview_feedback.skill_areas.map((skill, idx) => (
+                              <span key={idx} className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full">
+                                {skill}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {application.interview_feedback.notes && (
+                        <div>
+                          <p className="text-xs font-medium text-neutral-700">Notes:</p>
+                          <p className="text-sm text-neutral-600 mt-1">{application.interview_feedback.notes}</p>
                         </div>
                       )}
                     </div>
+                  )}
 
-                    {application.notes && (
-                      <p className="text-sm text-neutral-600 mb-3">
-                        <strong>Notes:</strong> {application.notes}
-                      </p>
-                    )}
-
-                    <div className="flex flex-wrap items-center gap-4 text-sm text-neutral-500">
-                      {application.interview_date && (
-                        <span>Interview: {new Date(application.interview_date).toLocaleDateString()}</span>
-                      )}
-                      {application.response_date && (
-                        <span>Response: {new Date(application.response_date).toLocaleDateString()}</span>
-                      )}
+                  {/* Job Tech Stack */}
+                  {application.job?.tech_stack && application.job.tech_stack.length > 0 && (
+                    <div className="mt-4 pt-4 border-t border-neutral-200">
+                      <p className="text-xs font-medium text-neutral-700 mb-2">Required Tech Stack:</p>
+                      <div className="flex flex-wrap gap-1">
+                        {application.job.tech_stack.slice(0, 10).map((tech) => (
+                          <span key={tech} className="px-2 py-1 bg-neutral-100 text-neutral-700 text-xs rounded-full">
+                            {tech}
+                          </span>
+                        ))}
+                        {application.job.tech_stack.length > 10 && (
+                          <span className="px-2 py-1 bg-neutral-100 text-neutral-600 text-xs rounded-full">
+                            +{application.job.tech_stack.length - 10} more
+                          </span>
+                        )}
+                      </div>
                     </div>
-                  </div>
-
-                  <div className="flex items-center space-x-2 ml-4">
-                    <Button2
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => startEdit(application)}
-                      title="Edit Application"
-                    >
-                      <Edit className="h-4 w-4" />
-                    </Button2>
-                    
-                    <Select
-                      value={application.status}
-                      onChange={(e) => updateApplicationStatus(application.id, e.target.value)}
-                      options={STATUS_OPTIONS}
-                      className="w-32"
-                    />
-                  </div>
-                </div>
-
-                {/* Interview Feedback Section */}
-                {application.interview_feedback && (
-                  <div className="mt-4 pt-4 border-t border-neutral-200">
-                    <h4 className="text-sm font-medium text-neutral-900 mb-2">Interview Feedback</h4>
-                    
-                    {application.interview_feedback.questions && application.interview_feedback.questions.length > 0 && (
-                      <div className="mb-2">
-                        <p className="text-xs font-medium text-neutral-700">Questions Asked:</p>
-                        <div className="flex flex-wrap gap-1 mt-1">
-                          {application.interview_feedback.questions.map((question, idx) => (
-                            <span key={idx} className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">
-                              {question}
-                            </span>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
-                    {application.interview_feedback.skill_areas && application.interview_feedback.skill_areas.length > 0 && (
-                      <div className="mb-2">
-                        <p className="text-xs font-medium text-neutral-700">Skill Areas Discussed:</p>
-                        <div className="flex flex-wrap gap-1 mt-1">
-                          {application.interview_feedback.skill_areas.map((skill, idx) => (
-                            <span key={idx} className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full">
-                              {skill}
-                            </span>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
-                    {application.interview_feedback.notes && (
-                      <div>
-                        <p className="text-xs font-medium text-neutral-700">Notes:</p>
-                        <p className="text-sm text-neutral-600 mt-1">{application.interview_feedback.notes}</p>
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                {/* Job Tech Stack */}
-                {application.job?.tech_stack && application.job.tech_stack.length > 0 && (
-                  <div className="mt-4 pt-4 border-t border-neutral-200">
-                    <p className="text-xs font-medium text-neutral-700 mb-2">Required Tech Stack:</p>
-                    <div className="flex flex-wrap gap-1">
-                      {application.job.tech_stack.slice(0, 10).map((tech) => (
-                        <span key={tech} className="px-2 py-1 bg-neutral-100 text-neutral-700 text-xs rounded-full">
-                          {tech}
-                        </span>
-                      ))}
-                      {application.job.tech_stack.length > 10 && (
-                        <span className="px-2 py-1 bg-neutral-100 text-neutral-600 text-xs rounded-full">
-                          +{application.job.tech_stack.length - 10} more
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
+                  )}
+                </CardContent>
+              </Card>
+            </motion.div>
           ))}
-        </div>
+        </motion.div>
       ) : (
         <Card>
           <CardContent className="text-center py-12">

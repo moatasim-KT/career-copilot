@@ -1,6 +1,7 @@
 'use client';
 
 import { forwardRef, HTMLAttributes } from 'react';
+
 import { cn } from '@/lib/utils';
 
 export interface SkeletonCard2Props extends HTMLAttributes<HTMLDivElement> {
@@ -75,7 +76,7 @@ export const SkeletonCard2 = forwardRef<HTMLDivElement, SkeletonCard2Props>(
             className,
             ...props
         },
-        ref
+        ref,
     ) => {
         const animationClass = animations[animation];
 
@@ -87,7 +88,7 @@ export const SkeletonCard2 = forwardRef<HTMLDivElement, SkeletonCard2Props>(
                 className={cn(
                     'bg-white dark:bg-neutral-800 rounded-xl border border-neutral-200 dark:border-neutral-700',
                     sizes[size],
-                    className
+                    className,
                 )}
                 {...props}
             >
@@ -96,7 +97,7 @@ export const SkeletonCard2 = forwardRef<HTMLDivElement, SkeletonCard2Props>(
                     <div
                         className={cn(
                             'w-full h-48 bg-neutral-200 dark:bg-neutral-700 rounded-lg mb-4',
-                            animationClass
+                            animationClass,
                         )}
                     />
                 )}
@@ -107,20 +108,20 @@ export const SkeletonCard2 = forwardRef<HTMLDivElement, SkeletonCard2Props>(
                         <div
                             className={cn(
                                 'w-10 h-10 bg-neutral-200 dark:bg-neutral-700 rounded-full flex-shrink-0',
-                                animationClass
+                                animationClass,
                             )}
                         />
                         <div className="flex-1 space-y-2">
                             <div
                                 className={cn(
                                     'h-4 bg-neutral-200 dark:bg-neutral-700 rounded w-3/4',
-                                    animationClass
+                                    animationClass,
                                 )}
                             />
                             <div
                                 className={cn(
                                     'h-3 bg-neutral-200 dark:bg-neutral-700 rounded w-1/2',
-                                    animationClass
+                                    animationClass,
                                 )}
                             />
                         </div>
@@ -133,13 +134,13 @@ export const SkeletonCard2 = forwardRef<HTMLDivElement, SkeletonCard2Props>(
                         <div
                             className={cn(
                                 'h-6 bg-neutral-200 dark:bg-neutral-700 rounded w-3/4',
-                                animationClass
+                                animationClass,
                             )}
                         />
                         <div
                             className={cn(
                                 'h-4 bg-neutral-200 dark:bg-neutral-700 rounded w-1/2',
-                                animationClass
+                                animationClass,
                             )}
                         />
                     </div>
@@ -157,7 +158,7 @@ export const SkeletonCard2 = forwardRef<HTMLDivElement, SkeletonCard2Props>(
                                 className={cn(
                                     'h-4 bg-neutral-200 dark:bg-neutral-700 rounded',
                                     width,
-                                    animationClass
+                                    animationClass,
                                 )}
                             />
                         );
@@ -170,13 +171,13 @@ export const SkeletonCard2 = forwardRef<HTMLDivElement, SkeletonCard2Props>(
                         <div
                             className={cn(
                                 'h-8 bg-neutral-200 dark:bg-neutral-700 rounded w-20',
-                                animationClass
+                                animationClass,
                             )}
                         />
                         <div
                             className={cn(
                                 'h-8 bg-neutral-200 dark:bg-neutral-700 rounded w-24',
-                                animationClass
+                                animationClass,
                             )}
                         />
                     </div>
@@ -185,7 +186,7 @@ export const SkeletonCard2 = forwardRef<HTMLDivElement, SkeletonCard2Props>(
                 <span className="sr-only">Loading...</span>
             </div>
         );
-    }
+    },
 );
 
 SkeletonCard2.displayName = 'SkeletonCard2';

@@ -1,7 +1,8 @@
 'use client';
 
-import { forwardRef, useEffect, useRef } from 'react';
 import { X, AlertTriangle } from 'lucide-react';
+import { forwardRef, useEffect, useRef } from 'react';
+
 import { cn } from '@/lib/utils';
 
 export interface AlertDialog2Props {
@@ -70,7 +71,7 @@ export const AlertDialog2 = forwardRef<HTMLDivElement, AlertDialog2Props>(
             <div
                 className={cn(
                     'fixed inset-0 z-50 flex items-center justify-center bg-black/40',
-                    overlayClassName
+                    overlayClassName,
                 )}
                 aria-modal="true"
                 role="alertdialog"
@@ -81,7 +82,7 @@ export const AlertDialog2 = forwardRef<HTMLDivElement, AlertDialog2Props>(
                     className={cn(
                         'relative w-full max-w-md rounded-lg bg-white dark:bg-neutral-900 shadow-lg outline-none',
                         'focus:outline-none',
-                        className
+                        className,
                     )}
                     tabIndex={-1}
                     aria-labelledby={ariaLabelledBy}
@@ -120,7 +121,7 @@ export const AlertDialog2 = forwardRef<HTMLDivElement, AlertDialog2Props>(
                             onClick={onConfirm}
                             className={cn(
                                 'px-4 py-2 rounded-lg text-white font-semibold focus:outline-none',
-                                danger ? 'bg-error-600 hover:bg-error-700' : 'bg-primary-600 hover:bg-primary-700'
+                                danger ? 'bg-error-600 hover:bg-error-700' : 'bg-primary-600 hover:bg-primary-700',
                             )}
                         >
                             {confirmLabel}

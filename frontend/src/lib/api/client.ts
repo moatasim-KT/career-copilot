@@ -1,0 +1,321 @@
+/**
+ * Unified API Client
+ * 
+ * Central API client for all backend communication.
+ * Handles authentication, error handling, and request/response formatting.
+ * 
+ * @module lib/api/client
+ */
+
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8002';
+const API_VERSION = '/api/v1';
+
+interface RequestOptions extends RequestInit {
+    params?: Record<string, string | number | boolean>;
+    requiresAuth?: boolean;
+}
+
+interface ApiResponse<T = any> {
+    data?: T;
+    error?: string;
+    status: number;
+}
+
+/**
+ * Get authentication token from storage
+ */
+function getAuthToken(): string | null {
+    if (typeof window === 'undefined') return null;
+    return localStorage.getItem('auth_token');
+}
+
+/**
+ * Build URL with query parameters
+ */
+function buildUrl(endpoint: string, params?: Record<string, any>): string {
+    const url = new URL(`${API_BASE_URL}${API_VERSION}${endpoint}`);
+
+    if (params) {
+        Object.entries(params).forEach(([key, value]) => {
+            if (value !== undefined && value !== null) {
+                url.searchParams.append(key, String(value));
+            }
+        });
+    }
+
+    return url.toString();
+}
+
+/**
+ * Base fetch wrapper with error handling
+ */
+async function fetchApi<T = any>(
+    endpoint: string,
+    options: RequestOptions = {},
+): Promise<ApiResponse<T>> {
+    const { params, requiresAuth = false, ...fetchOptions } = options;
+
+    const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+        ...(fetchOptions.headers as Record<string, string>),
+    };
+
+    // Add auth token if required (authentication disabled by default)
+    if (requiresAuth) {
+        const token = getAuthToken();
+        if (token) {
+            headers['Authorization'] = `Bearer ${token}`;
+        }
+    }
+
+    const url = buildUrl(endpoint, params);
+
+    try {
+        const response = await fetch(url, {
+            ...fetchOptions,
+            headers,
+        });
+
+        let data: T | undefined;
+        const contentType = response.headers.get('content-type');
+
+        if (contentType?.includes('application/json')) {
+            data = await response.json();
+        }
+
+        if (!response.ok) {
+            return {
+                error: (data as any)?.detail || `HTTP ${response.status}: ${response.statusText}`,
+                status: response.status,
+            };
+        }
+
+        return {
+            data,
+            status: response.status,
+        };
+    } catch (error) {
+        return {
+            error: error instanceof Error ? error.message : 'Network error',
+            status: 0,
+        };
+    }
+}
+
+/**
+ * API Client
+ */
+export const apiClient = {
+    // ============================================================================
+    // Authentication
+    // ============================================================================
+    auth: {
+        login: (email: string, password: string) =>
+            fetchApi('/auth/login', {
+                method: 'POST',
+                body: JSON.stringify({ email, password }),
+                requiresAuth: false,
+            }),
+
+        register: (email: string, password: string, username: string) =>
+            fetchApi('/auth/register', {
+                method: 'POST',
+                body: JSON.stringify({ email, password, username }),
+                requiresAuth: false,
+            }),
+
+        logout: () =>
+            fetchApi('/auth/logout', {
+                method: 'POST',
+            }),
+
+        me: () =>
+            fetchApi('/auth/me'),
+    },
+
+    // ============================================================================
+    // Jobs
+    // ============================================================================
+    jobs: {
+        list: (params?: { skip?: number; limit?: number }) =>
+            fetchApi('/jobs', { params }),
+
+        get: (id: number) =>
+            fetchApi(`/jobs/${id}`),
+
+        create: (data: any) =>
+            fetchApi('/jobs', {
+                method: 'POST',
+                body: JSON.stringify(data),
+            }),
+
+        update: (id: number, data: any) =>
+            fetchApi(`/jobs/${id}`, {
+                method: 'PUT',
+                body: JSON.stringify(data),
+            }),
+
+        delete: (id: number) =>
+            fetchApi(`/jobs/${id}`, {
+                method: 'DELETE',
+            }),
+
+        available: (params?: { limit?: number; skip?: number }) =>
+            fetchApi('/jobs/available', { params }),
+
+        scrape: () =>
+            fetchApi('/jobs/scrape', {
+                method: 'POST',
+            }),
+    },
+
+    // ============================================================================
+    // Applications
+    // ============================================================================
+    applications: {
+        list: (params?: { skip?: number; limit?: number; status?: string }) =>
+            fetchApi('/applications', { params }),
+
+        get: (id: number) =>
+            fetchApi(`/applications/${id}`),
+
+        create: (data: any) =>
+            fetchApi('/applications', {
+                method: 'POST',
+                body: JSON.stringify(data),
+            }),
+
+        update: (id: number, data: any) =>
+            fetchApi(`/applications/${id}`, {
+                method: 'PUT',
+                body: JSON.stringify(data),
+            }),
+
+        delete: (id: number) =>
+            fetchApi(`/applications/${id}`, {
+                method: 'DELETE',
+            }),
+    },
+
+    // ============================================================================
+    // Recommendations
+    // ============================================================================
+    recommendations: {
+        list: (params?: { limit?: number; use_adaptive?: boolean }) =>
+            fetchApi('/recommendations', { params }),
+
+        algorithmInfo: () =>
+            fetchApi('/recommendations/algorithm-info'),
+
+        feedback: (jobId: number, userId: number, isPositive: boolean, reason?: string) =>
+            fetchApi(`/recommendations/${jobId}/feedback`, {
+                method: 'POST',
+                body: JSON.stringify({ user_id: userId, is_positive: isPositive, reason }),
+            }),
+    },
+
+    // ============================================================================
+    // Personalization
+    // ============================================================================
+    personalization: {
+        getPreferences: (userId: number) =>
+            fetchApi(`/users/${userId}/preferences`),
+
+        updatePreferences: (userId: number, preferences: any) =>
+            fetchApi(`/users/${userId}/preferences`, {
+                method: 'PUT',
+                body: JSON.stringify(preferences),
+            }),
+
+        getBehavior: (userId: number) =>
+            fetchApi(`/users/${userId}/behavior`),
+
+        trackBehavior: (userId: number, action: string, jobId: string) =>
+            fetchApi(`/users/${userId}/behavior`, {
+                method: 'POST',
+                body: JSON.stringify({ action, job_id: jobId }),
+            }),
+    },
+
+    // ============================================================================
+    // Social Features
+    // ============================================================================
+    social: {
+        getMentors: (userId: number, limit?: number) => {
+            const params: Record<string, number> = {};
+            if (limit !== undefined) params.limit = limit;
+            return fetchApi(`/users/${userId}/mentors`, { params });
+        },
+
+        createConnection: (userId: number, mentorId: string) =>
+            fetchApi(`/users/${userId}/connections`, {
+                method: 'POST',
+                body: JSON.stringify({ mentor_id: mentorId }),
+            }),
+
+        getConnections: (userId: number, statusFilter?: string) => {
+            const params: Record<string, string> = {};
+            if (statusFilter) params.status_filter = statusFilter;
+            return fetchApi(`/users/${userId}/connections`, { params });
+        },
+    },
+
+    // ============================================================================
+    // Analytics
+    // ============================================================================
+    analytics: {
+        get: (params?: { userId?: string; period?: string }) =>
+            fetchApi('/analytics', { params }),
+
+        dashboard: (userId: string) =>
+            fetchApi('/analytics/dashboard', { params: { user_id: userId } }),
+    },
+
+    // ============================================================================
+    // User Profile
+    // ============================================================================
+    user: {
+        getProfile: () =>
+            fetchApi('/users/me/profile'),
+
+        updateProfile: (data: any) =>
+            fetchApi('/users/me/profile', {
+                method: 'PUT',
+                body: JSON.stringify(data),
+            }),
+
+        getSettings: () =>
+            fetchApi('/users/me/settings'),
+
+        updateSettings: (data: any) =>
+            fetchApi('/users/me/settings', {
+                method: 'PUT',
+                body: JSON.stringify(data),
+            }),
+
+        changePassword: (currentPassword: string, newPassword: string) =>
+            fetchApi('/users/me/change-password', {
+                method: 'POST',
+                body: JSON.stringify({
+                    current_password: currentPassword,
+                    new_password: newPassword,
+                }),
+            }),
+    },
+
+    // ============================================================================
+    // Health & Status
+    // ============================================================================
+    health: {
+        check: () =>
+            fetchApi('/health', { requiresAuth: false }),
+
+        comprehensive: () =>
+            fetchApi('/health/comprehensive', { requiresAuth: false }),
+    },
+};
+
+/**
+ * Type-safe API client hooks
+ */
+export default apiClient;

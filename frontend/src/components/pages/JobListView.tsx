@@ -1,10 +1,13 @@
+import { motion, AnimatePresence } from 'framer-motion';
 import React from 'react';
 
 import JobCard from '@/components/ui/JobCard';
-import { Job } from '@/lib/api';
+import { staggerContainer, staggerItem } from '@/lib/animations';
+// use a loose type here to accommodate shapes from API and the UI JobCard
+type AnyJob = any;
 
 interface JobListViewProps {
-  jobs: Job[];
+  jobs: AnyJob[];
   onJobClick: (jobId: number) => void;
   selectedJobIds: number[];
   onSelectJob: (jobId: number) => void;
@@ -20,16 +23,23 @@ export function JobListView({ jobs, onJobClick, selectedJobIds, onSelectJob }: J
   }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      {jobs.map((job) => (
-        <JobCard
-          key={job.id}
-          job={job}
-          onClick={() => onJobClick(job.id)}
-          isSelected={selectedJobIds.includes(job.id)}
-          onSelect={() => onSelectJob(job.id)}
-        />
-      ))}
-    </div>
+    <motion.div
+      className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+      variants={staggerContainer}
+      initial="hidden"
+      animate="visible"
+    >
+      <AnimatePresence>
+        {jobs.map((job) => (
+          <motion.div key={job.id} variants={staggerItem} layout onClick={() => onJobClick(job.id)}>
+            <JobCard
+              job={job}
+              isSelected={selectedJobIds.includes(job.id)}
+              onSelect={() => onSelectJob(job.id)}
+            />
+          </motion.div>
+        ))}
+      </AnimatePresence>
+    </motion.div>
   );
 }

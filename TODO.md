@@ -690,152 +690,152 @@
 
 ## Phase 3: Advanced Features & Components (Week 5-6)
 
-### Task 3.1: Enterprise Data Table with @tanstack/react-table
+### ✅ Task 3.1: Enterprise Data Table with @tanstack/react-table [COMPLETE]
 
-#### 3.1.1: Base DataTable Component
-- [ ] Create `frontend/src/components/ui/DataTable/DataTable.tsx`
+#### ✅ 3.1.1: Base DataTable Component [COMPLETE]
+- [x] Create `frontend/src/components/ui/DataTable/DataTable.tsx`
   - Install/verify @tanstack/react-table in package.json
   - Create base table component with proper types
   - Add table styling using design tokens
   - Support generic data type: `DataTable<T>`
   - Add empty state component
   - Add loading skeleton state
-- [ ] Create `frontend/src/components/ui/DataTable/index.ts` (barrel export)
+- [x] Create `frontend/src/components/ui/DataTable/index.ts` (barrel export)
 
-#### 3.1.2: Column Sorting
-- [ ] Implement single-column sorting
+#### ✅ 3.1.2: Column Sorting [COMPLETE]
+- [x] Implement single-column sorting
   - Add sort indicators (↑↓ icons) in column headers
   - Click to sort ascending → descending → no sort
   - Persist sort state in URL query params
-- [ ] Implement multi-column sorting
+- [x] Implement multi-column sorting
   - Hold Shift + click for multi-column
   - Show sort order numbers (1, 2, 3) on multiple sorted columns
   - Add "Clear all sorts" button
-- [ ] Add default sort configuration prop
-- [ ] Test with string, number, date columns
+- [x] Add default sort configuration prop
+- [x] Test with string, number, date columns
 
-#### 3.1.3: Column Filtering
-- [ ] Create filter UI components
+#### ✅ 3.1.3: Column Filtering [COMPLETE]
+- [x] Create filter UI components
   - Text filter: input with debounce (300ms)
   - Select filter: dropdown with options
   - Multi-select filter: checkboxes
   - Date range filter: date picker (start/end)
   - Number range filter: min/max inputs
-- [ ] Add filter button/icon to column headers
-- [ ] Show active filter count badge on column header
-- [ ] Create `ColumnFilter.tsx` component for each type
-- [ ] Add "Clear filters" button for each column
-- [ ] Persist filters in URL query params
+- [x] Add filter button/icon to column headers
+- [x] Show active filter count badge on column header
+- [x] Create `ColumnFilter.tsx` component for each type
+- [x] Add "Clear filters" button for each column
+- [x] Persist filters in URL query params
 
-#### 3.1.4: Global Search
-- [ ] Add global search input above table
+#### ✅ 3.1.4: Global Search [COMPLETE]
+- [x] Add global search input above table
   - Debounced search (300ms delay)
   - Search placeholder: "Search across all columns..."
   - Search icon (lucide-react)
   - Clear button (X) when text entered
-- [ ] Implement search across all visible columns
-- [ ] Highlight search matches in cells (optional)
-- [ ] Show search result count: "Showing 24 of 156 results"
+- [x] Implement search across all visible columns
+- [x] Highlight search matches in cells (optional)
+- [x] Show search result count: "Showing 24 of 156 results"
 
-#### 3.1.5: Pagination
-- [ ] Create pagination controls component
+#### ✅ 3.1.5: Pagination [COMPLETE]
+- [x] Create pagination controls component
   - Previous/Next buttons
   - Page number buttons (show 1, 2, 3, ..., last)
   - "Go to page" input
   - Rows per page dropdown (10, 25, 50, 100)
-- [ ] Show pagination info: "Showing 1-25 of 156"
-- [ ] Support server-side pagination (optional prop)
-- [ ] Persist page state in URL query params
-- [ ] Add keyboard shortcuts (arrow keys for prev/next)
+- [x] Show pagination info: "Showing 1-25 of 156"
+- [x] Support server-side pagination (optional prop)
+- [x] Persist page state in URL query params
+- [x] Add keyboard shortcuts (arrow keys for prev/next)
 
-#### 3.1.6: Row Selection
-- [ ] Add checkbox column for row selection
+#### ✅ 3.1.6: Row Selection [COMPLETE]
+- [x] Add checkbox column for row selection
   - Checkbox in header for select all (on current page)
   - Checkboxes in each row
   - Indeterminate state when some rows selected
   - Keyboard support (Shift + click for range selection)
-- [ ] Show selection count: "3 of 25 selected"
-- [ ] Add "Select all X rows" button (if more than page size)
-- [ ] Add "Clear selection" button
-- [ ] Expose selected rows via callback prop
+- [x] Show selection count: "3 of 25 selected"
+- [x] Add "Select all X rows" button (if more than page size)
+- [x] Add "Clear selection" button
+- [x] Expose selected rows via callback prop
 
-#### 3.1.7: Expandable Rows
-- [ ] Add expand/collapse icon column
+#### ✅ 3.1.7: Expandable Rows [COMPLETE]
+- [x] Add expand/collapse icon column
   - Chevron right (collapsed) / down (expanded)
   - Smooth expansion animation
-- [ ] Support custom expanded row content (render prop)
-- [ ] Allow expanding multiple rows or single row
-- [ ] Keyboard support (Enter to expand/collapse)
-- [ ] Persist expanded state
+- [x] Support custom expanded row content (render prop)
+- [x] Allow expanding multiple rows or single row
+- [x] Keyboard support (Enter to expand/collapse)
+- [x] Persist expanded state
 
-#### 3.1.8: Column Visibility Toggle
-- [ ] Create column visibility dropdown
+#### ✅ 3.1.8: Column Visibility Toggle [COMPLETE]
+- [x] Create column visibility dropdown
   - Dropdown button: "Columns" with column icon
   - Checklist of all columns
   - Show/hide checkboxes for each column
   - "Show all" / "Hide all" buttons
-- [ ] Prevent hiding all columns (at least 1 required)
-- [ ] Persist visibility state in localStorage
-- [ ] Add "Reset to default" button
+- [x] Prevent hiding all columns (at least 1 required)
+- [x] Persist visibility state in localStorage
+- [x] Add "Reset to default" button
 
-#### 3.1.9: Column Resizing
-- [ ] Add resize handles between column headers
+#### ✅ 3.1.9: Column Resizing [COMPLETE]
+- [x] Add resize handles between column headers
   - Vertical divider line
   - Cursor changes to resize indicator
   - Drag to resize column width
   - Double-click to auto-fit width
-- [ ] Set min/max column widths
-- [ ] Persist column widths in localStorage
-- [ ] Add "Reset column widths" button
+- [x] Set min/max column widths
+- [x] Persist column widths in localStorage
+- [x] Add "Reset column widths" button
 
-#### 3.1.10: Column Reordering (Drag & Drop)
-- [ ] Install/verify @dnd-kit/core in package.json
-- [ ] Make column headers draggable
+#### ✅ 3.1.10: Column Reordering (Drag & Drop) [COMPLETE]
+- [x] Install/verify @dnd-kit/core in package.json
+- [x] Make column headers draggable
   - Drag handle icon in header
   - Visual feedback during drag (ghost element)
   - Drop indicators between columns
-- [ ] Update column order on drop
-- [ ] Persist column order in localStorage
-- [ ] Add "Reset column order" button
+- [x] Update column order on drop
+- [x] Persist column order in localStorage
+- [x] Add "Reset column order" button
 
-#### 3.1.11: Export to CSV
-- [ ] Create export utility function
+#### ✅ 3.1.11: Export to CSV [COMPLETE]
+- [x] Create export utility function
   - Export current view (filtered/sorted data)
   - Export all data (unfiltered)
   - Export selected rows only
-- [ ] Add "Export" dropdown button
+- [x] Add "Export" dropdown button
   - Options: Current view, All data, Selected rows
   - Download as CSV file
   - Proper CSV formatting (escape commas, quotes)
-- [ ] Show export progress for large datasets (>1000 rows)
+- [x] Show export progress for large datasets (>1000 rows)
 
-#### 3.1.12: Responsive Mobile View
-- [ ] Detect mobile viewport (<768px)
-- [ ] Switch to card view on mobile
+#### ✅ 3.1.12: Responsive Mobile View [COMPLETE]
+- [x] Detect mobile viewport (<768px)
+- [x] Switch to card view on mobile
   - Each row becomes a card
   - Show key columns prominently
   - Collapsible card for additional data
-- [ ] Add view toggle: "Table" | "Cards" (mobile only)
-- [ ] Maintain sorting/filtering in card view
-- [ ] Test on mobile devices
+- [x] Add view toggle: "Table" | "Cards" (mobile only)
+- [x] Maintain sorting/filtering in card view
+- [x] Test on mobile devices
 
-#### 3.1.13: DataTable Storybook Documentation
-- [ ] Create `DataTable.stories.tsx`
+#### ✅ 3.1.13: DataTable Storybook Documentation [COMPLETE]
+- [x] Create `DataTable.stories.tsx`
   - Basic example with sample data
   - With sorting enabled
   - With filtering enabled
   - With row selection
   - With expandable rows
   - With all features enabled
-- [ ] Document all props and callbacks
+- [x] Document all props and callbacks
 
-#### 3.1.14: Replace Existing Tables
-- [ ] Replace `frontend/src/components/pages/JobTableView.tsx`
+#### ✅ 3.1.14: Replace Existing Tables [COMPLETE]
+- [x] Replace `frontend/src/components/pages/JobTableView.tsx`
   - Migrate to DataTable component
   - Configure columns for job data
   - Add custom cell renderers (status badges, etc.)
   - Test all functionality
-- [ ] Create `frontend/src/components/pages/ApplicationsTable.tsx`
+- [x] Create `frontend/src/components/pages/ApplicationsTable.tsx`
   - Use DataTable component
   - Configure columns for application data
   - Add status column with colored badges

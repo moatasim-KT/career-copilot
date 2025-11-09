@@ -1,6 +1,7 @@
 'use client';
 
 import { forwardRef, HTMLAttributes } from 'react';
+
 import { cn } from '@/lib/utils';
 
 export interface SkeletonTextProps extends HTMLAttributes<HTMLDivElement> {
@@ -69,7 +70,7 @@ export const SkeletonText = forwardRef<HTMLDivElement, SkeletonTextProps>(
             className,
             ...props
         },
-        ref
+        ref,
     ) => {
         // Handle custom width values (e.g., "200px", "50%")
         const widthClass = widths[width as keyof typeof widths] || '';
@@ -87,7 +88,7 @@ export const SkeletonText = forwardRef<HTMLDivElement, SkeletonTextProps>(
                         variants[variant],
                         widthClass,
                         animations[animation],
-                        className
+                        className,
                     )}
                     style={customWidth}
                     {...props}
@@ -119,7 +120,7 @@ export const SkeletonText = forwardRef<HTMLDivElement, SkeletonTextProps>(
                                 'bg-neutral-200 dark:bg-neutral-700',
                                 variants[variant],
                                 lineWidthClass,
-                                animations[animation]
+                                animations[animation],
                             )}
                             style={isLastLine && !widths[lineWidth as keyof typeof widths] ? { width: '75%' } : customWidth}
                         />
@@ -128,7 +129,7 @@ export const SkeletonText = forwardRef<HTMLDivElement, SkeletonTextProps>(
                 <span className="sr-only">Loading...</span>
             </div>
         );
-    }
+    },
 );
 
 SkeletonText.displayName = 'SkeletonText';

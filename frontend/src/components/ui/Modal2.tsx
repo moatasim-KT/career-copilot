@@ -1,7 +1,8 @@
 'use client';
 
-import { forwardRef, useEffect, useRef } from 'react';
 import { X } from 'lucide-react';
+import { forwardRef, useEffect, useRef } from 'react';
+
 import { cn } from '@/lib/utils';
 
 export interface Modal2Props {
@@ -82,7 +83,7 @@ export const Modal2 = forwardRef<HTMLDivElement, Modal2Props>(
             <div
                 className={cn(
                     'fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm',
-                    overlayClassName
+                    overlayClassName,
                 )}
                 aria-modal="true"
                 role="dialog"
@@ -94,7 +95,7 @@ export const Modal2 = forwardRef<HTMLDivElement, Modal2Props>(
                         'relative w-full rounded-xl bg-white dark:bg-neutral-900 shadow-xl outline-none',
                         'focus:outline-none',
                         sizes[size],
-                        className
+                        className,
                     )}
                     tabIndex={-1}
                     aria-labelledby={ariaLabelledBy}

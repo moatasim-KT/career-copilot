@@ -1,7 +1,8 @@
 'use client';
 
-import { forwardRef, useEffect, useRef } from 'react';
 import { X } from 'lucide-react';
+import { forwardRef, useEffect, useRef } from 'react';
+
 import { cn } from '@/lib/utils';
 
 export interface Dialog2Props {
@@ -72,7 +73,7 @@ export const Dialog2 = forwardRef<HTMLDivElement, Dialog2Props>(
             <div
                 className={cn(
                     'fixed inset-0 z-50 flex items-center justify-center bg-black/30',
-                    overlayClassName
+                    overlayClassName,
                 )}
                 aria-modal="true"
                 role="dialog"
@@ -84,7 +85,7 @@ export const Dialog2 = forwardRef<HTMLDivElement, Dialog2Props>(
                         'relative w-full rounded-lg bg-white dark:bg-neutral-900 shadow-lg outline-none',
                         'focus:outline-none',
                         sizes[size],
-                        className
+                        className,
                     )}
                     tabIndex={-1}
                     aria-labelledby={ariaLabelledBy}

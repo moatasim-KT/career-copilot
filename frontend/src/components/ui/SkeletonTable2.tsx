@@ -1,6 +1,7 @@
 'use client';
 
 import { forwardRef, HTMLAttributes } from 'react';
+
 import { cn } from '@/lib/utils';
 
 export interface SkeletonTable2Props extends HTMLAttributes<HTMLDivElement> {
@@ -56,7 +57,7 @@ export const SkeletonTable2 = forwardRef<HTMLDivElement, SkeletonTable2Props>(
             className,
             ...props
         },
-        ref
+        ref,
     ) => {
         const animationClass = animations[animation];
 
@@ -67,7 +68,7 @@ export const SkeletonTable2 = forwardRef<HTMLDivElement, SkeletonTable2Props>(
                 aria-label={`Loading table with ${columns} columns and ${rows} rows`}
                 className={cn(
                     'w-full rounded-lg border border-neutral-200 dark:border-neutral-700 overflow-hidden',
-                    className
+                    className,
                 )}
                 {...props}
             >
@@ -82,7 +83,7 @@ export const SkeletonTable2 = forwardRef<HTMLDivElement, SkeletonTable2Props>(
                                             <div
                                                 className={cn(
                                                     'h-4 bg-neutral-300 dark:bg-neutral-600 rounded w-3/4',
-                                                    animationClass
+                                                    animationClass,
                                                 )}
                                             />
                                         </th>
@@ -102,7 +103,7 @@ export const SkeletonTable2 = forwardRef<HTMLDivElement, SkeletonTable2Props>(
                                                     'h-4 bg-neutral-200 dark:bg-neutral-700 rounded',
                                                     // Vary widths for more natural appearance
                                                     colIndex === 0 ? 'w-2/3' : colIndex === columns - 1 ? 'w-1/2' : 'w-full',
-                                                    animationClass
+                                                    animationClass,
                                                 )}
                                             />
                                         </td>
@@ -116,7 +117,7 @@ export const SkeletonTable2 = forwardRef<HTMLDivElement, SkeletonTable2Props>(
                 <span className="sr-only">Loading...</span>
             </div>
         );
-    }
+    },
 );
 
 SkeletonTable2.displayName = 'SkeletonTable2';

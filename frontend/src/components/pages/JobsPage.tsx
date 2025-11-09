@@ -260,7 +260,7 @@ export default function JobsPage() {
           job_id: job.id,
           status: 'interested',
           notes: 'Applied via job management',
-        }
+        },
       });
       // Show success message or update UI
       alert('Application created successfully!');

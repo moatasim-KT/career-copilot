@@ -3,6 +3,8 @@
 
 import { motion } from 'framer-motion';
 import { ReactNode, forwardRef, HTMLAttributes } from 'react';
+
+import { fadeInUp, staggerItem } from '@/lib/animations';
 import { cn } from '@/lib/utils';
 
 export interface CardProps extends HTMLAttributes<HTMLDivElement> {
@@ -12,6 +14,10 @@ export interface CardProps extends HTMLAttributes<HTMLDivElement> {
   hover?: boolean;
   interactive?: boolean;
   gradient?: boolean;
+  // Animation controls
+  animateOnMount?: boolean; // whether to play entrance animation on mount
+  entrance?: 'fade' | 'slideUp' | 'scale';
+  index?: number; // optional index for staggered lists
 }
 
 const elevations = {
@@ -40,11 +46,23 @@ export const Card = forwardRef<HTMLDivElement, CardProps>(
       hover = false,
       interactive = false,
       gradient = false,
+      animateOnMount = true,
+      entrance = 'fade',
+      index = 0,
       className,
       ...props
     },
-    ref
+    ref,
   ) => {
+    // choose variant based on entrance prop
+    let variants = undefined as any;
+    if (animateOnMount) {
+      // small mapping; default to fadeInUp variant from animations
+      variants = entrance === 'scale' ? undefined : fadeInUp;
+    }
+
+    const transition = animateOnMount ? { duration: 0.28, delay: index ? index * 0.06 : 0 } : undefined;
+
     return (
       <motion.div
         ref={ref}
@@ -56,10 +74,14 @@ export const Card = forwardRef<HTMLDivElement, CardProps>(
           hover && 'hover:shadow-lg hover:-translate-y-0.5',
           interactive && 'cursor-pointer',
           gradient && 'relative overflow-hidden',
-          className
+          className,
         )}
-        whileHover={hover ? { y: -2 } : undefined}
-        {...props}
+        variants={variants || staggerItem}
+        initial={animateOnMount ? 'hidden' : undefined}
+        animate={animateOnMount ? 'visible' : undefined}
+        transition={transition}
+        whileHover={hover ? { y: -4, scale: 1.01 } : undefined}
+        {...(props as any)}
       >
         {gradient && (
           <div className="absolute inset-0 bg-gradient-to-br from-primary-50 to-transparent opacity-50 pointer-events-none" />
@@ -67,7 +89,7 @@ export const Card = forwardRef<HTMLDivElement, CardProps>(
         <div className="relative">{children}</div>
       </motion.div>
     );
-  }
+  },
 );
 
 Card.displayName = 'Card';

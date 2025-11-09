@@ -1,7 +1,8 @@
 'use client';
 
-import { forwardRef, useRef, useState } from 'react';
 import { X, UploadCloud, Image as ImageIcon, FileText } from 'lucide-react';
+import { forwardRef, useRef, useState } from 'react';
+
 import { cn } from '@/lib/utils';
 
 export interface FileUpload2Props {

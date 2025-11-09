@@ -1,7 +1,8 @@
 'use client';
 
-import { forwardRef, useEffect, useRef } from 'react';
 import { X } from 'lucide-react';
+import { forwardRef, useEffect, useRef } from 'react';
+
 import { cn } from '@/lib/utils';
 
 export interface Drawer2Props {
@@ -82,7 +83,7 @@ export const Drawer2 = forwardRef<HTMLDivElement, Drawer2Props>(
             <div
                 className={cn(
                     'fixed inset-0 z-50 flex bg-black/30',
-                    overlayClassName
+                    overlayClassName,
                 )}
                 aria-modal="true"
                 role="dialog"
@@ -95,7 +96,7 @@ export const Drawer2 = forwardRef<HTMLDivElement, Drawer2Props>(
                         sideStyles[side],
                         sizeStyles[size],
                         'rounded-tl-xl rounded-bl-xl rounded-tr-xl rounded-br-xl',
-                        className
+                        className,
                     )}
                     tabIndex={-1}
                     aria-labelledby={ariaLabelledBy}

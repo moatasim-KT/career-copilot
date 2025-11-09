@@ -1,7 +1,7 @@
 'use client';
 
-import { forwardRef, useState, useRef, useEffect } from 'react';
 import { X, Check } from 'lucide-react';
+import { forwardRef, useState, useRef, useEffect } from 'react';
 
 import { cn } from '@/lib/utils';
 
@@ -52,7 +52,7 @@ export const MultiSelect2 = forwardRef<HTMLDivElement, MultiSelect2Props>(
 
         const filteredOptions = searchable
             ? options.filter(opt =>
-                opt.label.toLowerCase().includes(searchQuery.toLowerCase())
+                opt.label.toLowerCase().includes(searchQuery.toLowerCase()),
             )
             : options;
 

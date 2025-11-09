@@ -1,7 +1,8 @@
 'use client';
 
-import { forwardRef, useState, useRef, useEffect } from 'react';
 import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, X } from 'lucide-react';
+import { forwardRef, useState, useRef, useEffect } from 'react';
+
 import { cn } from '@/lib/utils';
 
 export interface DatePicker2Props {

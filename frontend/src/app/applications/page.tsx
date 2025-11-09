@@ -2,12 +2,12 @@
 
 import React, { useEffect, useState } from 'react';
 
-import { ApplicationsService, type ApplicationResponse } from '@/lib/api/client';
 import { DocumentUpload } from '@/components/features/DocumentUpload';
 import { InterviewPreparation, InterviewQuestion } from '@/components/features/InterviewPreparation';
 import { NotesAndReminders } from '@/components/features/NotesAndReminders';
 import { KanbanBoard } from '@/components/kanban/KanbanBoard';
 import { ApplicationTimeline } from '@/components/ui/ApplicationTimeline';
+import { ApplicationsService, type ApplicationResponse } from '@/lib/api/client';
 
 interface Column {
   id: string;

@@ -1,6 +1,7 @@
 'use client';
 
 import { forwardRef, HTMLAttributes } from 'react';
+
 import { cn } from '@/lib/utils';
 
 export interface SkeletonAvatar2Props extends HTMLAttributes<HTMLDivElement> {
@@ -65,7 +66,7 @@ export const SkeletonAvatar2 = forwardRef<HTMLDivElement, SkeletonAvatar2Props>(
             className,
             ...props
         },
-        ref
+        ref,
     ) => {
         return (
             <div
@@ -77,14 +78,14 @@ export const SkeletonAvatar2 = forwardRef<HTMLDivElement, SkeletonAvatar2Props>(
                     shapes[shape],
                     sizes[size],
                     animations[animation],
-                    className
+                    className,
                 )}
                 {...props}
             >
                 <span className="sr-only">Loading...</span>
             </div>
         );
-    }
+    },
 );
 
 SkeletonAvatar2.displayName = 'SkeletonAvatar2';
