@@ -1,10 +1,9 @@
-import { AnimatePresence, motion } from 'framer-motion';
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import { Toaster } from 'sonner';
 
 import Layout from '@/components/layout/Layout';
-import { pageTransition } from '@/lib/animations';
+import PageTransition from '@/components/layout/PageTransition';
 
 import Providers from './providers';
 import './globals.css';
@@ -33,22 +32,10 @@ export default function RootLayout({
         className={`${inter.variable} font-sans antialiased bg-gray-50 min-h-screen`}
       >
         <Providers>
-          <AnimatePresence mode="wait">
-            {/*
-              In a real app, use a key based on route (e.g., pathname) to trigger transitions.
-              This is a static example; for dynamic transitions, move this logic to a client component.
-            */}
-            <motion.div
-              key="page"
-              variants={pageTransition}
-              initial="initial"
-              animate="animate"
-              exit="exit"
-              style={{ minHeight: '100vh' }}
-            >
-              <Layout>{children}</Layout>
-            </motion.div>
-          </AnimatePresence>
+          {/* PageTransition is a client component that handles AnimatePresence/motion */}
+          <PageTransition>
+            <Layout>{children}</Layout>
+          </PageTransition>
         </Providers>
         {/* Loading indicator placeholder for route transitions */}
         {/* <div id="page-loading-indicator" /> */}
