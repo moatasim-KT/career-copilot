@@ -1,9 +1,11 @@
 'use client';
 
+import { motion, AnimatePresence } from 'framer-motion';
 import { Eye, EyeOff, Check, X } from 'lucide-react';
-import { forwardRef, InputHTMLAttributes, useState } from 'react';
+import { forwardRef, InputHTMLAttributes, useState, useEffect } from 'react';
 
 import { cn } from '@/lib/utils';
+import { errorMessageVariants, shakeVariants, fadeInUp } from '@/lib/animations';
 
 export interface PasswordInput2Props extends Omit<InputHTMLAttributes<HTMLInputElement>, 'type'> {
     label?: string;
@@ -56,9 +58,21 @@ export const PasswordInput2 = forwardRef<HTMLInputElement, PasswordInput2Props>(
     ) => {
         const [showPassword, setShowPassword] = useState(false);
         const [isFocused, setIsFocused] = useState(false);
+        const [shouldShake, setShouldShake] = useState(false);
+        const [prevError, setPrevError] = useState(error);
 
         const passwordValue = (value as string) || '';
         const { strength, requirements } = checkPasswordStrength(passwordValue);
+
+        // Trigger shake animation when error changes
+        useEffect(() => {
+            if (error && error !== prevError) {
+                setShouldShake(true);
+                const timer = setTimeout(() => setShouldShake(false), 400);
+                return () => clearTimeout(timer);
+            }
+            setPrevError(error);
+        }, [error, prevError]);
 
         const strengthColors = {
             weak: 'bg-error-500',
@@ -78,14 +92,24 @@ export const PasswordInput2 = forwardRef<HTMLInputElement, PasswordInput2Props>(
         return (
             <div className={cn('w-full', className)}>
                 {label && (
-                    <label htmlFor={props.id} className="mb-1.5 block text-sm font-medium text-neutral-700">
+                    <motion.label 
+                        htmlFor={props.id} 
+                        className="mb-1.5 block text-sm font-medium text-neutral-700"
+                        initial={{ opacity: 0, y: -5 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.2, ease: 'easeOut' }}
+                    >
                         {label}
                         {required && <span className="ml-1 text-error-500">*</span>}
-                    </label>
+                    </motion.label>
                 )}
 
-                <div className="relative">
-                    <input
+                <motion.div 
+                    className="relative"
+                    animate={shouldShake ? 'shake' : 'default'}
+                    variants={shakeVariants}
+                >
+                    <motion.input
                         ref={ref}
                         type={showPassword ? 'text' : 'password'}
                         value={value}
@@ -101,56 +125,131 @@ export const PasswordInput2 = forwardRef<HTMLInputElement, PasswordInput2Props>(
                         )}
                         onFocus={() => setIsFocused(true)}
                         onBlur={() => setIsFocused(false)}
+                        whileFocus={{ scale: 1 }}
+                        transition={{ duration: 0.2, ease: 'easeOut' }}
                         {...props}
                     />
 
-                    <button
+                    <motion.button
                         type="button"
                         onClick={() => setShowPassword(!showPassword)}
                         className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-600 transition-colors"
                         tabIndex={-1}
+                        whileHover={{ scale: 1.1 }}
+                        whileTap={{ scale: 0.9 }}
+                        transition={{ duration: 0.15 }}
                     >
-                        {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                    </button>
-                </div>
+                        <AnimatePresence mode="wait">
+                            {showPassword ? (
+                                <motion.div
+                                    key="eyeoff"
+                                    initial={{ opacity: 0, rotate: -90 }}
+                                    animate={{ opacity: 1, rotate: 0 }}
+                                    exit={{ opacity: 0, rotate: 90 }}
+                                    transition={{ duration: 0.15 }}
+                                >
+                                    <EyeOff className="h-4 w-4" />
+                                </motion.div>
+                            ) : (
+                                <motion.div
+                                    key="eye"
+                                    initial={{ opacity: 0, rotate: -90 }}
+                                    animate={{ opacity: 1, rotate: 0 }}
+                                    exit={{ opacity: 0, rotate: 90 }}
+                                    transition={{ duration: 0.15 }}
+                                >
+                                    <Eye className="h-4 w-4" />
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
+                    </motion.button>
+                </motion.div>
 
                 {/* Strength meter */}
-                {showStrength && passwordValue && (
-                    <div className="mt-2">
-                        <div className="h-1.5 bg-neutral-200 rounded-full overflow-hidden">
-                            <div
-                                className={cn(
-                                    'h-full transition-all duration-300',
-                                    strengthColors[strength],
-                                    strengthWidths[strength],
-                                )}
-                            />
-                        </div>
-                        <p className="mt-1 text-xs text-neutral-600 capitalize">
-                            Password strength: <span className="font-medium">{strength}</span>
-                        </p>
-                    </div>
-                )}
+                <AnimatePresence>
+                    {showStrength && passwordValue && (
+                        <motion.div 
+                            className="mt-2"
+                            initial={{ opacity: 0, height: 0 }}
+                            animate={{ opacity: 1, height: 'auto' }}
+                            exit={{ opacity: 0, height: 0 }}
+                            transition={{ duration: 0.2, ease: 'easeOut' }}
+                        >
+                            <div className="h-1.5 bg-neutral-200 rounded-full overflow-hidden">
+                                <motion.div
+                                    className={cn(
+                                        'h-full',
+                                        strengthColors[strength],
+                                    )}
+                                    initial={{ width: 0 }}
+                                    animate={{ width: strengthWidths[strength] }}
+                                    transition={{ duration: 0.3, ease: 'easeOut' }}
+                                />
+                            </div>
+                            <motion.p 
+                                className="mt-1 text-xs text-neutral-600 capitalize"
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                transition={{ delay: 0.1, duration: 0.2 }}
+                            >
+                                Password strength: <span className="font-medium">{strength}</span>
+                            </motion.p>
+                        </motion.div>
+                    )}
+                </AnimatePresence>
 
                 {/* Requirements checklist */}
-                {showRequirements && passwordValue && isFocused && (
-                    <div className="mt-3 p-3 bg-neutral-50 rounded-lg space-y-1.5">
-                        {requirements.map((req, index) => (
-                            <div key={index} className="flex items-center gap-2 text-xs">
-                                {req.met ? (
-                                    <Check className="h-3 w-3 text-success-500 flex-shrink-0" />
-                                ) : (
-                                    <X className="h-3 w-3 text-neutral-400 flex-shrink-0" />
-                                )}
-                                <span className={cn(req.met ? 'text-success-600' : 'text-neutral-600')}>
-                                    {req.label}
-                                </span>
-                            </div>
-                        ))}
-                    </div>
-                )}
+                <AnimatePresence>
+                    {showRequirements && passwordValue && isFocused && (
+                        <motion.div 
+                            className="mt-3 p-3 bg-neutral-50 rounded-lg space-y-1.5"
+                            initial={{ opacity: 0, height: 0, y: -10 }}
+                            animate={{ opacity: 1, height: 'auto', y: 0 }}
+                            exit={{ opacity: 0, height: 0, y: -10 }}
+                            transition={{ duration: 0.2, ease: 'easeOut' }}
+                        >
+                            {requirements.map((req, index) => (
+                                <motion.div 
+                                    key={index} 
+                                    className="flex items-center gap-2 text-xs"
+                                    initial={{ opacity: 0, x: -10 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    transition={{ delay: index * 0.05, duration: 0.2 }}
+                                >
+                                    <motion.div
+                                        initial={{ scale: 0 }}
+                                        animate={{ scale: 1 }}
+                                        transition={{ delay: index * 0.05 + 0.1, duration: 0.2, type: 'spring' }}
+                                    >
+                                        {req.met ? (
+                                            <Check className="h-3 w-3 text-success-500 flex-shrink-0" />
+                                        ) : (
+                                            <X className="h-3 w-3 text-neutral-400 flex-shrink-0" />
+                                        )}
+                                    </motion.div>
+                                    <span className={cn(req.met ? 'text-success-600' : 'text-neutral-600')}>
+                                        {req.label}
+                                    </span>
+                                </motion.div>
+                            ))}
+                        </motion.div>
+                    )}
+                </AnimatePresence>
 
-                {message && <p className={cn('mt-1.5 text-sm', messageColor)}>{message}</p>}
+                <AnimatePresence mode="wait">
+                    {message && (
+                        <motion.p 
+                            key={message}
+                            className={cn('mt-1.5 text-sm overflow-hidden', messageColor)}
+                            initial="hidden"
+                            animate="visible"
+                            exit="hidden"
+                            variants={errorMessageVariants}
+                        >
+                            {message}
+                        </motion.p>
+                    )}
+                </AnimatePresence>
             </div>
         );
     },

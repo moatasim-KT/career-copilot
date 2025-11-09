@@ -473,3 +473,75 @@ export const pageTransition: Variants = {
     },
   },
 };
+
+/**
+ * Form input label animation
+ * Slides label up when input is focused or has value
+ */
+export const labelSlideVariants: Variants = {
+  default: {
+    y: 0,
+    scale: 1,
+    transition: {
+      duration: 0.2,
+      ease: 'easeOut',
+    },
+  },
+  focused: {
+    y: -8,
+    scale: 0.85,
+    transition: {
+      duration: 0.2,
+      ease: 'easeOut',
+    },
+  },
+};
+
+/**
+ * Error message animation
+ * Slides down with shake effect for form validation errors
+ */
+export const errorMessageVariants: Variants = {
+  hidden: {
+    opacity: 0,
+    height: 0,
+    y: -10,
+  },
+  visible: {
+    opacity: 1,
+    height: 'auto',
+    y: 0,
+    transition: {
+      duration: 0.2,
+      ease: 'easeOut',
+    },
+  },
+  shake: {
+    x: [0, -8, 8, -8, 8, 0],
+    transition: {
+      duration: 0.4,
+      ease: 'easeInOut',
+    },
+  },
+};
+
+/**
+ * Input focus ring animation
+ * Smooth border color and ring transitions
+ */
+export const inputFocusVariants = {
+  default: {
+    scale: 1,
+    transition: {
+      duration: 0.2,
+      ease: 'easeOut',
+    },
+  },
+  focused: {
+    scale: 1,
+    transition: {
+      duration: 0.2,
+      ease: 'easeOut',
+    },
+  },
+};

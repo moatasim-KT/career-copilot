@@ -1,9 +1,11 @@
 'use client';
 
+import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronDown } from 'lucide-react';
-import { forwardRef, SelectHTMLAttributes, ReactNode } from 'react';
+import { forwardRef, SelectHTMLAttributes, ReactNode, useState, useEffect } from 'react';
 
 import { cn } from '@/lib/utils';
+import { errorMessageVariants, shakeVariants } from '@/lib/animations';
 
 export interface Select2Props extends Omit<SelectHTMLAttributes<HTMLSelectElement>, 'size'> {
     variant?: 'default' | 'filled' | 'outlined';
@@ -48,26 +50,55 @@ export const Select2 = forwardRef<HTMLSelectElement, Select2Props>(
         },
         ref,
     ) => {
+        const [isFocused, setIsFocused] = useState(false);
+        const [shouldShake, setShouldShake] = useState(false);
+        const [prevError, setPrevError] = useState(error);
+
         const message = error || helperText;
         const messageColor = error ? 'text-error-600' : 'text-neutral-500';
+
+        // Trigger shake animation when error changes
+        useEffect(() => {
+            if (error && error !== prevError) {
+                setShouldShake(true);
+                const timer = setTimeout(() => setShouldShake(false), 400);
+                return () => clearTimeout(timer);
+            }
+            setPrevError(error);
+        }, [error, prevError]);
 
         return (
             <div className={cn('w-full', className)}>
                 {label && (
-                    <label htmlFor={props.id} className="mb-1.5 block text-sm font-medium text-neutral-700">
+                    <motion.label 
+                        htmlFor={props.id} 
+                        className="mb-1.5 block text-sm font-medium text-neutral-700"
+                        initial={{ opacity: 0, y: -5 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.2, ease: 'easeOut' }}
+                    >
                         {label}
                         {required && <span className="ml-1 text-error-500">*</span>}
-                    </label>
+                    </motion.label>
                 )}
 
-                <div className="relative">
+                <motion.div 
+                    className="relative"
+                    animate={shouldShake ? 'shake' : 'default'}
+                    variants={shakeVariants}
+                >
                     {prefixIcon && (
-                        <div className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400">
+                        <motion.div 
+                            className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400"
+                            initial={{ opacity: 0, scale: 0.8 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            transition={{ duration: 0.2, ease: 'easeOut' }}
+                        >
                             {prefixIcon}
-                        </div>
+                        </motion.div>
                     )}
 
-                    <select
+                    <motion.select
                         ref={ref}
                         disabled={disabled}
                         className={cn(
@@ -79,16 +110,46 @@ export const Select2 = forwardRef<HTMLSelectElement, Select2Props>(
                             error && 'border-error-500 focus:border-error-500',
                             prefixIcon && 'pl-10',
                             'pr-10',
+                            isFocused && 'ring-2',
                         )}
+                        onFocus={(e) => {
+                            setIsFocused(true);
+                            props.onFocus?.(e);
+                        }}
+                        onBlur={(e) => {
+                            setIsFocused(false);
+                            props.onBlur?.(e);
+                        }}
+                        whileFocus={{ scale: 1 }}
+                        transition={{ duration: 0.2, ease: 'easeOut' }}
                         {...props}
                     >
                         {children}
-                    </select>
+                    </motion.select>
 
-                    <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-neutral-400 pointer-events-none" />
-                </div>
+                    <motion.div
+                        className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none"
+                        animate={{ rotate: isFocused ? 180 : 0 }}
+                        transition={{ duration: 0.2, ease: 'easeOut' }}
+                    >
+                        <ChevronDown className="h-4 w-4 text-neutral-400" />
+                    </motion.div>
+                </motion.div>
 
-                {message && <p className={cn('mt-1.5 text-sm', messageColor)}>{message}</p>}
+                <AnimatePresence mode="wait">
+                    {message && (
+                        <motion.p 
+                            key={message}
+                            className={cn('mt-1.5 text-sm overflow-hidden', messageColor)}
+                            initial="hidden"
+                            animate="visible"
+                            exit="hidden"
+                            variants={errorMessageVariants}
+                        >
+                            {message}
+                        </motion.p>
+                    )}
+                </AnimatePresence>
             </div>
         );
     },

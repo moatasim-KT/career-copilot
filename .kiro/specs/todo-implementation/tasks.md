@@ -32,13 +32,13 @@ This implementation plan converts the TODO.md remaining tasks into actionable co
   - Animate filtering/sorting changes
   - _Requirements: 1.1_
 
-- [-] 1.6 Add list animations to ApplicationsPage
+- [x] 1.6 Add list animations to ApplicationsPage
   - Update `frontend/src/components/pages/ApplicationsPage.tsx`
   - Implement stagger animation for application cards
   - Animate status changes with color transitions
   - _Requirements: 1.1_
 
-- [ ] 1.7 Add form input animations
+- [x] 1.7 Add form input animations
   - Update all input components with focus animations
   - Add border color transitions and label slide animations
   - Implement error message slide down with shake effect

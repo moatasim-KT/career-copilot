@@ -1,9 +1,11 @@
 'use client';
 
+import { motion, AnimatePresence } from 'framer-motion';
 import { X, Loader2 } from 'lucide-react';
-import { forwardRef, InputHTMLAttributes, ReactNode, useState } from 'react';
+import { forwardRef, InputHTMLAttributes, ReactNode, useState, useEffect } from 'react';
 
 import { cn } from '@/lib/utils';
+import { errorMessageVariants, shakeVariants } from '@/lib/animations';
 
 export interface Input2Props extends Omit<InputHTMLAttributes<HTMLInputElement>, 'size'> {
     /**
@@ -134,10 +136,22 @@ export const Input2 = forwardRef<HTMLInputElement, Input2Props>(
         ref,
     ) => {
         const [isFocused, setIsFocused] = useState(false);
+        const [shouldShake, setShouldShake] = useState(false);
+        const [prevError, setPrevError] = useState(error);
 
         const finalState = error ? 'error' : success ? 'success' : disabled ? 'disabled' : state;
         const message = error || success || helperText;
         const messageColor = error ? 'text-error-600' : success ? 'text-success-600' : 'text-neutral-500';
+
+        // Trigger shake animation when error changes
+        useEffect(() => {
+            if (error && error !== prevError) {
+                setShouldShake(true);
+                const timer = setTimeout(() => setShouldShake(false), 400);
+                return () => clearTimeout(timer);
+            }
+            setPrevError(error);
+        }, [error, prevError]);
 
         const handleClear = () => {
             if (onClear) {
@@ -149,26 +163,38 @@ export const Input2 = forwardRef<HTMLInputElement, Input2Props>(
             <div className={cn('w-full', className)}>
                 {/* Label */}
                 {label && (
-                    <label
+                    <motion.label
                         htmlFor={props.id}
                         className="mb-1.5 block text-sm font-medium text-neutral-700 dark:text-neutral-300"
+                        initial={{ opacity: 0, y: -5 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.2, ease: 'easeOut' }}
                     >
                         {label}
                         {required && <span className="ml-1 text-error-500">*</span>}
-                    </label>
+                    </motion.label>
                 )}
 
                 {/* Input wrapper */}
-                <div className="relative">
+                <motion.div 
+                    className="relative"
+                    animate={shouldShake ? 'shake' : 'default'}
+                    variants={shakeVariants}
+                >
                     {/* Prefix icon */}
                     {prefixIcon && (
-                        <div className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400">
+                        <motion.div 
+                            className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400"
+                            initial={{ opacity: 0, scale: 0.8 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            transition={{ duration: 0.2, ease: 'easeOut' }}
+                        >
                             {prefixIcon}
-                        </div>
+                        </motion.div>
                     )}
 
                     {/* Input */}
-                    <input
+                    <motion.input
                         ref={ref}
                         value={value}
                         disabled={disabled || loading}
@@ -192,34 +218,74 @@ export const Input2 = forwardRef<HTMLInputElement, Input2Props>(
                             setIsFocused(false);
                             props.onBlur?.(e);
                         }}
+                        whileFocus={{ scale: 1 }}
+                        transition={{ duration: 0.2, ease: 'easeOut' }}
                         {...props}
                     />
 
                     {/* Suffix content */}
                     <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1">
-                        {loading && <Loader2 className="h-4 w-4 animate-spin text-neutral-400" />}
+                        <AnimatePresence mode="wait">
+                            {loading && (
+                                <motion.div
+                                    key="loader"
+                                    initial={{ opacity: 0, scale: 0.8 }}
+                                    animate={{ opacity: 1, scale: 1 }}
+                                    exit={{ opacity: 0, scale: 0.8 }}
+                                    transition={{ duration: 0.15 }}
+                                >
+                                    <Loader2 className="h-4 w-4 animate-spin text-neutral-400" />
+                                </motion.div>
+                            )}
 
-                        {!loading && clearable && value && (
-                            <button
-                                type="button"
-                                onClick={handleClear}
-                                className="text-neutral-400 hover:text-neutral-600 transition-colors"
-                                tabIndex={-1}
-                            >
-                                <X className="h-4 w-4" />
-                            </button>
-                        )}
+                            {!loading && clearable && value && (
+                                <motion.button
+                                    key="clear"
+                                    type="button"
+                                    onClick={handleClear}
+                                    className="text-neutral-400 hover:text-neutral-600 transition-colors"
+                                    tabIndex={-1}
+                                    initial={{ opacity: 0, scale: 0.8 }}
+                                    animate={{ opacity: 1, scale: 1 }}
+                                    exit={{ opacity: 0, scale: 0.8 }}
+                                    whileHover={{ scale: 1.1 }}
+                                    whileTap={{ scale: 0.9 }}
+                                    transition={{ duration: 0.15 }}
+                                >
+                                    <X className="h-4 w-4" />
+                                </motion.button>
+                            )}
 
-                        {!loading && suffixIcon && <div className="text-neutral-400">{suffixIcon}</div>}
+                            {!loading && suffixIcon && (
+                                <motion.div 
+                                    key="suffix"
+                                    className="text-neutral-400"
+                                    initial={{ opacity: 0, scale: 0.8 }}
+                                    animate={{ opacity: 1, scale: 1 }}
+                                    transition={{ duration: 0.2, ease: 'easeOut' }}
+                                >
+                                    {suffixIcon}
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
                     </div>
-                </div>
+                </motion.div>
 
                 {/* Message */}
-                {message && (
-                    <p className={cn('mt-1.5 text-sm', messageColor)}>
-                        {message}
-                    </p>
-                )}
+                <AnimatePresence mode="wait">
+                    {message && (
+                        <motion.p 
+                            key={message}
+                            className={cn('mt-1.5 text-sm overflow-hidden', messageColor)}
+                            initial="hidden"
+                            animate="visible"
+                            exit="hidden"
+                            variants={errorMessageVariants}
+                        >
+                            {message}
+                        </motion.p>
+                    )}
+                </AnimatePresence>
             </div>
         );
     },

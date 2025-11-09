@@ -1,8 +1,10 @@
 'use client';
 
+import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, X } from 'lucide-react';
 import { forwardRef, useState, useRef, useEffect } from 'react';
 
+import { errorMessageVariants, shakeVariants } from '@/lib/animations';
 import { cn } from '@/lib/utils';
 
 export interface DatePicker2Props {
@@ -58,11 +60,22 @@ export const DatePicker2 = forwardRef<HTMLDivElement, DatePicker2Props>(
         const [showCalendar, setShowCalendar] = useState(false);
         const [currentMonth, setCurrentMonth] = useState((value || startDate || new Date()).getMonth());
         const [currentYear, setCurrentYear] = useState((value || startDate || new Date()).getFullYear());
-        const [hoveredDate, setHoveredDate] = useState<Date | null>(null);
         const [internalStart, setInternalStart] = useState<Date | null>(startDate || null);
         const [internalEnd, setInternalEnd] = useState<Date | null>(endDate || null);
+        const [shouldShake, setShouldShake] = useState(false);
+        const [prevError, setPrevError] = useState(error);
         const inputRef = useRef<HTMLInputElement>(null);
         const calendarRef = useRef<HTMLDivElement>(null);
+
+        // Trigger shake animation when error changes
+        useEffect(() => {
+            if (error && error !== prevError) {
+                setShouldShake(true);
+                const timer = setTimeout(() => setShouldShake(false), 400);
+                return () => clearTimeout(timer);
+            }
+            setPrevError(error);
+        }, [error, prevError]);
 
         useEffect(() => {
             if (!showCalendar) return;
@@ -136,13 +149,22 @@ export const DatePicker2 = forwardRef<HTMLDivElement, DatePicker2Props>(
         return (
             <div ref={ref} className={cn('w-full', className)}>
                 {label && (
-                    <label className="mb-1.5 block text-sm font-medium text-neutral-700">
+                    <motion.label 
+                        className="mb-1.5 block text-sm font-medium text-neutral-700"
+                        initial={{ opacity: 0, y: -5 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.2, ease: 'easeOut' }}
+                    >
                         {label}
                         {required && <span className="ml-1 text-error-500">*</span>}
-                    </label>
+                    </motion.label>
                 )}
-                <div className="relative">
-                    <input
+                <motion.div 
+                    className="relative"
+                    animate={shouldShake ? 'shake' : 'default'}
+                    variants={shakeVariants}
+                >
+                    <motion.input
                         ref={inputRef}
                         type="text"
                         value={displayValue}
@@ -158,26 +180,51 @@ export const DatePicker2 = forwardRef<HTMLDivElement, DatePicker2Props>(
                             error && 'border-error-500 focus:border-error-500',
                         )}
                         placeholder={range ? 'Select date range' : 'Select date'}
+                        whileTap={!disabled ? { scale: 0.995 } : {}}
+                        transition={{ duration: 0.15 }}
                     />
-                    {displayValue && !disabled && (
-                        <button
-                            type="button"
-                            onClick={clearSelection}
-                            className="absolute right-8 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-600 transition-colors"
-                            tabIndex={-1}
-                        >
-                            <X className="h-4 w-4" />
-                        </button>
-                    )}
+                    <AnimatePresence>
+                        {displayValue && !disabled && (
+                            <motion.button
+                                type="button"
+                                onClick={clearSelection}
+                                className="absolute right-8 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-600 transition-colors"
+                                tabIndex={-1}
+                                initial={{ opacity: 0, scale: 0.8 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                exit={{ opacity: 0, scale: 0.8 }}
+                                whileHover={{ scale: 1.1 }}
+                                whileTap={{ scale: 0.9 }}
+                                transition={{ duration: 0.15 }}
+                            >
+                                <X className="h-4 w-4" />
+                            </motion.button>
+                        )}
+                    </AnimatePresence>
                     <CalendarIcon className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-neutral-400 pointer-events-none" />
 
                     {/* Calendar popover */}
-                    {showCalendar && (
-                        <div ref={calendarRef} className="absolute z-50 mt-2 w-full bg-white border border-neutral-200 rounded-lg shadow-lg p-4">
+                    <AnimatePresence>
+                        {showCalendar && (
+                            <motion.div 
+                                ref={calendarRef} 
+                                className="absolute z-50 mt-2 w-full bg-white border border-neutral-200 rounded-lg shadow-lg p-4"
+                                initial={{ opacity: 0, y: -10, scale: 0.95 }}
+                                animate={{ opacity: 1, y: 0, scale: 1 }}
+                                exit={{ opacity: 0, y: -10, scale: 0.95 }}
+                                transition={{ duration: 0.15, ease: 'easeOut' }}
+                            >
                             <div className="flex items-center justify-between mb-2">
                                 <button
                                     type="button"
-                                    onClick={() => setCurrentMonth(m => (m === 0 ? 11 : m - 1)) || setCurrentYear(y => (currentMonth === 0 ? y - 1 : y))}
+                                    onClick={() => {
+                                        if (currentMonth === 0) {
+                                            setCurrentMonth(11);
+                                            setCurrentYear(y => y - 1);
+                                        } else {
+                                            setCurrentMonth(m => m - 1);
+                                        }
+                                    }}
                                     className="p-1 rounded hover:bg-neutral-100"
                                 >
                                     <ChevronLeft className="h-4 w-4" />
@@ -187,7 +234,14 @@ export const DatePicker2 = forwardRef<HTMLDivElement, DatePicker2Props>(
                                 </span>
                                 <button
                                     type="button"
-                                    onClick={() => setCurrentMonth(m => (m === 11 ? 0 : m + 1)) || setCurrentYear(y => (currentMonth === 11 ? y + 1 : y))}
+                                    onClick={() => {
+                                        if (currentMonth === 11) {
+                                            setCurrentMonth(0);
+                                            setCurrentYear(y => y + 1);
+                                        } else {
+                                            setCurrentMonth(m => m + 1);
+                                        }
+                                    }}
                                     className="p-1 rounded hover:bg-neutral-100"
                                 >
                                     <ChevronRight className="h-4 w-4" />
@@ -217,13 +271,11 @@ export const DatePicker2 = forwardRef<HTMLDivElement, DatePicker2Props>(
                                         (maxDate && dateObj > maxDate) ||
                                         disabled;
                                     return (
-                                        <button
+                                        <motion.button
                                             key={day}
                                             type="button"
                                             disabled={isDisabled}
                                             onClick={() => selectDate(day)}
-                                            onMouseEnter={() => setHoveredDate(dateObj)}
-                                            onMouseLeave={() => setHoveredDate(null)}
                                             className={cn(
                                                 'w-8 h-8 rounded-full flex items-center justify-center',
                                                 isToday && 'border border-primary-500',
@@ -232,16 +284,33 @@ export const DatePicker2 = forwardRef<HTMLDivElement, DatePicker2Props>(
                                                 isDisabled && 'opacity-30 cursor-not-allowed',
                                                 !isDisabled && 'hover:bg-primary-50',
                                             )}
+                                            whileHover={!isDisabled ? { scale: 1.1 } : {}}
+                                            whileTap={!isDisabled ? { scale: 0.95 } : {}}
+                                            transition={{ duration: 0.15 }}
                                         >
                                             {day}
-                                        </button>
+                                        </motion.button>
                                     );
                                 })}
                             </div>
-                        </div>
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
+                </motion.div>
+                <AnimatePresence mode="wait">
+                    {message && (
+                        <motion.p 
+                            key={message}
+                            className={cn('mt-1.5 text-sm overflow-hidden', messageColor)}
+                            initial="hidden"
+                            animate="visible"
+                            exit="hidden"
+                            variants={errorMessageVariants}
+                        >
+                            {message}
+                        </motion.p>
                     )}
-                </div>
-                {message && <p className={cn('mt-1.5 text-sm', messageColor)}>{message}</p>}
+                </AnimatePresence>
             </div>
         );
     },
