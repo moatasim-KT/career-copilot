@@ -424,7 +424,25 @@ export const rotateVariants: Variants = {
     transition: {
       duration: 1,
       ease: 'linear',
-      repeat: Infinity
-    }
-  }
+      repeat: Infinity,
+    },
+  },
+};
+
+/**
+ * Fade in up animation (commonly used for cards and content)
+ */
+export const fadeInUp: Variants = {
+  hidden: {
+    opacity: 0,
+    y: 20,
+  },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: {
+      duration: 0.3,
+      ease: 'easeOut',
+    },
+  },
 };
