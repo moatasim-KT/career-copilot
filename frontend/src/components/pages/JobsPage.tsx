@@ -7,6 +7,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 'use client';
 
+import { AnimatePresence } from 'framer-motion';
 import {
   Plus,
   Search,
@@ -28,7 +29,7 @@ import {
   StarOff,
   RefreshCw,
 } from 'lucide-react';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 
 import { QuickFilterChips } from '@/components/filters/QuickFilterChips';
 import { SavedFilters } from '@/components/filters/SavedFilters';
@@ -318,54 +319,63 @@ export default function JobsPage() {
     resetForm();
   };
 
-  const filteredAndSortedJobs = jobs
-    .filter(job => {
-      const matchesSearch =
-        job.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        job.company.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (job.location && job.location.toLowerCase().includes(searchTerm.toLowerCase())) ||
-        (job.tech_stack && job.tech_stack.some(tech =>
-          tech.toLowerCase().includes(searchTerm.toLowerCase()),
-        ));
+  // Memoize filtered and sorted jobs to prevent unnecessary recalculations
+  const filteredAndSortedJobs = useMemo(() => {
+    return jobs
+      .filter(job => {
+        const matchesSearch =
+          job.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          job.company.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          (job.location && job.location.toLowerCase().includes(searchTerm.toLowerCase())) ||
+          (job.tech_stack && job.tech_stack.some(tech =>
+            tech.toLowerCase().includes(searchTerm.toLowerCase()),
+          ));
 
-      const matchesSource = sourceFilter === 'all' || (job.source && job.source === sourceFilter);
-      const matchesType = typeFilter === 'all' || (job.job_type && job.job_type === typeFilter);
+        const matchesSource = sourceFilter === 'all' || (job.source && job.source === sourceFilter);
+        const matchesType = typeFilter === 'all' || (job.job_type && job.job_type === typeFilter);
 
-      const matchesQuickFilters = activeQuickFilters.every(filter => {
-        switch (filter) {
-          case 'remote':
-            return job.remote || false;
-          case 'full-time':
-            return job.job_type === 'full-time';
-          case 'react':
-            return job.tech_stack?.includes('React');
+        const matchesQuickFilters = activeQuickFilters.every(filter => {
+          switch (filter) {
+            case 'remote':
+              return job.remote || false;
+            case 'full-time':
+              return job.job_type === 'full-time';
+            case 'react':
+              return job.tech_stack?.includes('React');
+            default:
+              return true;
+          }
+        });
+
+        return matchesSearch && matchesSource && matchesType && matchesQuickFilters;
+      })
+      .sort((a, b) => {
+        switch (sortBy) {
+          case 'created_at_desc':
+            return new Date(b.created_at || '').getTime() - new Date(a.created_at || '').getTime();
+          case 'created_at_asc':
+            return new Date(a.created_at || '').getTime() - new Date(b.created_at || '').getTime();
+          case 'company_asc':
+            return a.company.localeCompare(b.company);
+          case 'company_desc':
+            return b.company.localeCompare(a.company);
+          case 'title_asc':
+            return a.title.localeCompare(b.title);
+          case 'title_desc':
+            return b.title.localeCompare(a.title);
+          case 'match_score_desc':
+            return (b.match_score || 0) - (a.match_score || 0);
           default:
-            return true;
+            return 0;
         }
       });
+  }, [jobs, searchTerm, sourceFilter, typeFilter, sortBy, activeQuickFilters]);
 
-      return matchesSearch && matchesSource && matchesType && matchesQuickFilters;
-    })
-    .sort((a, b) => {
-      switch (sortBy) {
-        case 'created_at_desc':
-          return new Date(b.created_at || '').getTime() - new Date(a.created_at || '').getTime();
-        case 'created_at_asc':
-          return new Date(a.created_at || '').getTime() - new Date(b.created_at || '').getTime();
-        case 'company_asc':
-          return a.company.localeCompare(b.company);
-        case 'company_desc':
-          return b.company.localeCompare(a.company);
-        case 'title_asc':
-          return a.title.localeCompare(b.title);
-        case 'title_desc':
-          return b.title.localeCompare(a.title);
-        case 'match_score_desc':
-          return (b.match_score || 0) - (a.match_score || 0);
-        default:
-          return 0;
-      }
-    });
+  // Create a unique key that changes when filters or sort changes
+  // This triggers re-animation of the list
+  const listKey = useMemo(() => {
+    return `${searchTerm}-${sourceFilter}-${typeFilter}-${sortBy}-${activeQuickFilters.join(',')}`;
+  }, [searchTerm, sourceFilter, typeFilter, sortBy, activeQuickFilters]);
 
   const getSourceBadgeColor = (source: string) => {
     switch (source.toLowerCase()) {
@@ -724,20 +734,26 @@ export default function JobsPage() {
             </Card>
           ))}
         </div>
-      ) : currentView === 'list' ? (
-        <JobListView
-          jobs={filteredAndSortedJobs}
-          onJobClick={(jobId) => console.log('View job:', jobId)}
-          selectedJobIds={selectedJobIds}
-          onSelectJob={handleSelectJob}
-        />
       ) : (
-        <JobTableView
-          jobs={filteredAndSortedJobs}
-          onJobClick={(jobId) => console.log('View job:', jobId)}
-          selectedJobIds={selectedJobIds}
-          onSelectJob={handleSelectJob}
-        />
+        <AnimatePresence mode="wait">
+          {currentView === 'list' ? (
+            <JobListView
+              key={listKey}
+              jobs={filteredAndSortedJobs}
+              onJobClick={(jobId) => console.log('View job:', jobId)}
+              selectedJobIds={selectedJobIds}
+              onSelectJob={handleSelectJob}
+            />
+          ) : (
+            <JobTableView
+              key={listKey}
+              jobs={filteredAndSortedJobs}
+              onJobClick={(jobId) => console.log('View job:', jobId)}
+              selectedJobIds={selectedJobIds}
+              onSelectJob={handleSelectJob}
+            />
+          )}
+        </AnimatePresence>
       )}
     </div>
   );

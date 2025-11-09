@@ -1,9 +1,11 @@
 import { ColumnDef } from '@tanstack/react-table';
+import { motion } from 'framer-motion';
 import React from 'react';
 
 import { Button } from '@/components/ui/Button2';
 import { Checkbox } from '@/components/ui/Checkbox';
 import { DataTable } from '@/components/ui/DataTable';
+import { fadeVariants } from '@/lib/animations';
 import { Job } from '@/lib/api';
 
 interface JobTableViewProps {
@@ -63,16 +65,23 @@ export function JobTableView({ jobs, onJobClick }: JobTableViewProps) {
   ];
 
   return (
-    <DataTable
-      columns={columns}
-      data={jobs}
-      renderSubComponent={(row) => (
-        <div className="p-4 bg-gray-100">
-          <p>
-            <strong>Description:</strong> {row.description}
-          </p>
-        </div>
-      )}
-    />
+    <motion.div
+      variants={fadeVariants}
+      initial="hidden"
+      animate="visible"
+      exit="exit"
+    >
+      <DataTable
+        columns={columns}
+        data={jobs}
+        renderSubComponent={(row) => (
+          <div className="p-4 bg-gray-100">
+            <p>
+              <strong>Description:</strong> {row.description}
+            </p>
+          </div>
+        )}
+      />
+    </motion.div>
   );
 }

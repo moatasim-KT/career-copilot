@@ -2,7 +2,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import React from 'react';
 
 import JobCard from '@/components/ui/JobCard';
-import { staggerContainer, staggerItem } from '@/lib/animations';
+import { staggerContainer, staggerItem, fadeVariants } from '@/lib/animations';
 // use a loose type here to accommodate shapes from API and the UI JobCard
 type AnyJob = any;
 
@@ -16,9 +16,15 @@ interface JobListViewProps {
 export function JobListView({ jobs, onJobClick, selectedJobIds, onSelectJob }: JobListViewProps) {
   if (jobs.length === 0) {
     return (
-      <div className="text-center py-8 text-gray-500">
+      <motion.div 
+        className="text-center py-8 text-gray-500"
+        variants={fadeVariants}
+        initial="hidden"
+        animate="visible"
+        exit="exit"
+      >
         No jobs found. Adjust your filters or search criteria.
-      </div>
+      </motion.div>
     );
   }
 
@@ -28,10 +34,17 @@ export function JobListView({ jobs, onJobClick, selectedJobIds, onSelectJob }: J
       variants={staggerContainer}
       initial="hidden"
       animate="visible"
+      exit="hidden"
     >
-      <AnimatePresence>
+      <AnimatePresence mode="popLayout">
         {jobs.map((job) => (
-          <motion.div key={job.id} variants={staggerItem} layout onClick={() => onJobClick(job.id)}>
+          <motion.div 
+            key={job.id} 
+            variants={staggerItem}
+            layout
+            exit={{ opacity: 0, scale: 0.95, transition: { duration: 0.2 } }}
+            onClick={() => onJobClick(job.id)}
+          >
             <JobCard
               job={job}
               isSelected={selectedJobIds.includes(job.id)}
