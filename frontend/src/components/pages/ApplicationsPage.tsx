@@ -1,6 +1,6 @@
 'use client';
 
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
   FileText,
   Calendar,
@@ -25,7 +25,7 @@ import Modal, { ModalFooter } from '@/components/ui/Modal';
 import Select from '@/components/ui/Select';
 import Textarea from '@/components/ui/Textarea';
 import { useWebSocket } from '@/hooks/useWebSocket';
-import { staggerContainer, staggerItem } from '@/lib/animations';
+import { staggerContainer, staggerItem, fadeVariants, springConfigs } from '@/lib/animations';
 import { apiClient, type Application } from '@/lib/api';
 import { logger } from '@/lib/logger';
 import { handleApplicationStatusUpdate } from '@/lib/websocket/applications';
@@ -292,83 +292,158 @@ export default function ApplicationsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <motion.div 
+        className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4"
+        initial={{ opacity: 0, y: -10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3 }}
+      >
         <div>
-          <h1 className="text-3xl font-bold text-neutral-900">Applications</h1>
-          <p className="text-neutral-600 mt-1">
+          <motion.h1 
+            className="text-3xl font-bold text-neutral-900"
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.1 }}
+          >
+            Applications
+          </motion.h1>
+          <motion.p 
+            className="text-neutral-600 mt-1"
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.2 }}
+          >
             Track your job applications and their progress
-          </p>
+          </motion.p>
           {lastUpdated && (
-            <p className="text-sm text-neutral-500 mt-1">
+            <motion.p 
+              className="text-sm text-neutral-500 mt-1"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.3 }}
+              key={lastUpdated.toISOString()}
+            >
               Last updated: {lastUpdated.toLocaleTimeString()}
-            </p>
+            </motion.p>
           )}
         </div>
-        <div className="flex items-center space-x-3">
-          <Button2
-            variant="outline"
-            onClick={loadApplications}
-            disabled={isLoading}
-            className="flex items-center space-x-2"
-          >
-            <FileText className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
-            <span>{isLoading ? 'Loading...' : 'Refresh'}</span>
-          </Button2>
-          <Button2 onClick={openAddModal} className="flex items-center space-x-2">
-            <Plus className="h-4 w-4" />
-            <span>Add Application</span>
-          </Button2>
-        </div>
-      </div>
+        <motion.div 
+          className="flex items-center space-x-3"
+          initial={{ opacity: 0, x: 20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ delay: 0.2 }}
+        >
+          <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+            <Button2
+              variant="outline"
+              onClick={loadApplications}
+              disabled={isLoading}
+              className="flex items-center space-x-2"
+            >
+              <FileText className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
+              <span>{isLoading ? 'Loading...' : 'Refresh'}</span>
+            </Button2>
+          </motion.div>
+          <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+            <Button2 onClick={openAddModal} className="flex items-center space-x-2">
+              <Plus className="h-4 w-4" />
+              <span>Add Application</span>
+            </Button2>
+          </motion.div>
+        </motion.div>
+      </motion.div>
 
-      {error && (
-        <Card className="border-red-200 bg-red-50">
-          <CardContent className="flex items-center p-4">
-            <AlertCircle className="h-5 w-5 text-red-400 flex-shrink-0" />
-            <p className="text-sm text-red-800 ml-3">{error}</p>
-          </CardContent>
-        </Card>
-      )}
+      <AnimatePresence>
+        {error && (
+          <motion.div
+            initial={{ opacity: 0, y: -10, height: 0 }}
+            animate={{ opacity: 1, y: 0, height: 'auto' }}
+            exit={{ opacity: 0, y: -10, height: 0 }}
+            transition={{ duration: 0.2 }}
+          >
+            <Card className="border-red-200 bg-red-50">
+              <CardContent className="flex items-center p-4">
+                <AlertCircle className="h-5 w-5 text-red-400 flex-shrink-0" />
+                <p className="text-sm text-red-800 ml-3">{error}</p>
+              </CardContent>
+            </Card>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Search and Filters */}
-      <Card>
-        <CardContent className="p-4">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-neutral-400" />
-              <Input
-                type="text"
-                placeholder="Search applications..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
-              />
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.2 }}
+      >
+        <Card>
+          <CardContent className="p-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <motion.div 
+                className="relative"
+                initial={{ opacity: 0, x: -10 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.3 }}
+              >
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-neutral-400" />
+                <Input
+                  type="text"
+                  placeholder="Search applications..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10"
+                />
+              </motion.div>
+
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.35 }}
+              >
+                <Select
+                  value={statusFilter}
+                  onChange={(e) => setStatusFilter(e.target.value)}
+                  options={[
+                    { value: 'all', label: 'All Status' },
+                    ...STATUS_OPTIONS,
+                  ]}
+                />
+              </motion.div>
+
+              <motion.div
+                initial={{ opacity: 0, x: 10 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.4 }}
+              >
+                <Select
+                  value={sortBy}
+                  onChange={(e) => setSortBy(e.target.value)}
+                  options={SORT_OPTIONS}
+                />
+              </motion.div>
             </div>
 
-            <Select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-              options={[
-                { value: 'all', label: 'All Status' },
-                ...STATUS_OPTIONS,
-              ]}
-            />
-
-            <Select
-              value={sortBy}
-              onChange={(e) => setSortBy(e.target.value)}
-              options={SORT_OPTIONS}
-            />
-          </div>
-
-          <div className="mt-4 pt-4 border-t border-neutral-200">
-            <div className="text-sm text-neutral-600">
-              Showing {filteredAndSortedApplications.length} of {applications.length} applications
-              {statusFilter !== 'all' && ` with status: ${statusFilter}`}
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+            <motion.div 
+              className="mt-4 pt-4 border-t border-neutral-200"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.5 }}
+            >
+              <motion.div 
+                className="text-sm text-neutral-600"
+                key={`${filteredAndSortedApplications.length}-${statusFilter}`}
+                initial={{ opacity: 0, y: 5 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.2 }}
+              >
+                Showing {filteredAndSortedApplications.length} of {applications.length} applications
+                {statusFilter !== 'all' && ` with status: ${statusFilter}`}
+              </motion.div>
+            </motion.div>
+          </CardContent>
+        </Card>
+      </motion.div>
 
       {/* Application Form Modal */}
       <Modal
@@ -446,30 +521,59 @@ export default function ApplicationsPage() {
       </Modal>
 
       {filteredAndSortedApplications.length > 0 ? (
-        <motion.div className="space-y-4" variants={staggerContainer} initial="hidden" animate="visible">
-          {filteredAndSortedApplications.map((application) => (
-            <motion.div key={application.id} variants={staggerItem} initial="hidden" animate="visible" exit={{ opacity: 0, y: 8 }} layout>
-              <Card hover className="transition-all duration-200">
-                <CardContent className="p-6">
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <div className="flex items-center space-x-3 mb-2">
-                        <h3 className="text-lg font-semibold text-neutral-900">
-                          {application.job?.title || 'Unknown Position'}
-                        </h3>
-                        <div className="flex items-center space-x-1">
-                          {getStatusIcon(application.status)}
-                          <motion.span
-                            key={application.status}
-                            initial={{ opacity: 0, scale: 0.9 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            transition={{ type: 'spring', stiffness: 300, damping: 18 }}
-                            className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(application.status)}`}
-                          >
-                            {application.status.charAt(0).toUpperCase() + application.status.slice(1)}
-                          </motion.span>
+        <motion.div 
+          className="space-y-4" 
+          variants={staggerContainer} 
+          initial="hidden" 
+          animate="visible"
+        >
+          <AnimatePresence mode="popLayout">
+            {filteredAndSortedApplications.map((application) => (
+              <motion.div 
+                key={application.id} 
+                variants={staggerItem}
+                layout
+                initial="hidden"
+                animate="visible"
+                exit={{ 
+                  opacity: 0, 
+                  y: -10,
+                  scale: 0.95,
+                  transition: { 
+                    duration: 0.2,
+                    ease: 'easeIn',
+                  }, 
+                }}
+                transition={springConfigs.smooth}
+              >
+                <Card hover className="transition-all duration-200">
+                  <CardContent className="p-6">
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <div className="flex items-center space-x-3 mb-2">
+                          <h3 className="text-lg font-semibold text-neutral-900">
+                            {application.job?.title || 'Unknown Position'}
+                          </h3>
+                          <div className="flex items-center space-x-1">
+                            <motion.div
+                              key={`icon-${application.status}`}
+                              initial={{ scale: 0.8, opacity: 0 }}
+                              animate={{ scale: 1, opacity: 1 }}
+                              transition={springConfigs.bouncy}
+                            >
+                              {getStatusIcon(application.status)}
+                            </motion.div>
+                            <motion.span
+                              key={`badge-${application.status}`}
+                              initial={{ opacity: 0, scale: 0.9, y: -5 }}
+                              animate={{ opacity: 1, scale: 1, y: 0 }}
+                              transition={springConfigs.bouncy}
+                              className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(application.status)}`}
+                            >
+                              {application.status.charAt(0).toUpperCase() + application.status.slice(1)}
+                            </motion.span>
+                          </div>
                         </div>
-                      </div>
 
                       <div className="flex flex-wrap items-center gap-4 text-sm text-neutral-600 mb-3">
                         <div className="flex items-center space-x-1">
@@ -507,110 +611,199 @@ export default function ApplicationsPage() {
                     </div>
 
                     <div className="flex items-center space-x-2 ml-4">
-                      <Button2
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => startEdit(application)}
-                        title="Edit Application"
+                      <motion.div
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
                       >
-                        <Edit className="h-4 w-4" />
-                      </Button2>
+                        <Button2
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => startEdit(application)}
+                          title="Edit Application"
+                        >
+                          <Edit className="h-4 w-4" />
+                        </Button2>
+                      </motion.div>
 
-                      <Select
-                        value={application.status}
-                        onChange={(e) => updateApplicationStatus(application.id, e.target.value)}
-                        options={STATUS_OPTIONS}
-                        className="w-32"
-                      />
+                      <motion.div
+                        initial={{ opacity: 0, x: 10 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: 0.1 }}
+                      >
+                        <Select
+                          value={application.status}
+                          onChange={(e) => updateApplicationStatus(application.id, e.target.value)}
+                          options={STATUS_OPTIONS}
+                          className="w-32"
+                        />
+                      </motion.div>
                     </div>
                   </div>
 
                   {/* Interview Feedback Section */}
                   {application.interview_feedback && (
-                    <div className="mt-4 pt-4 border-t border-neutral-200">
+                    <motion.div 
+                      className="mt-4 pt-4 border-t border-neutral-200"
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: 'auto' }}
+                      transition={{ delay: 0.1, duration: 0.3 }}
+                    >
                       <h4 className="text-sm font-medium text-neutral-900 mb-2">Interview Feedback</h4>
 
                       {application.interview_feedback.questions && application.interview_feedback.questions.length > 0 && (
-                        <div className="mb-2">
+                        <motion.div 
+                          className="mb-2"
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: 0.15 }}
+                        >
                           <p className="text-xs font-medium text-neutral-700">Questions Asked:</p>
                           <div className="flex flex-wrap gap-1 mt-1">
                             {application.interview_feedback.questions.map((question, idx) => (
-                              <span key={idx} className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">
+                              <motion.span 
+                                key={idx} 
+                                className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full"
+                                initial={{ opacity: 0, scale: 0.8 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                transition={{ delay: 0.2 + idx * 0.05 }}
+                              >
                                 {question}
-                              </span>
+                              </motion.span>
                             ))}
                           </div>
-                        </div>
+                        </motion.div>
                       )}
 
                       {application.interview_feedback.skill_areas && application.interview_feedback.skill_areas.length > 0 && (
-                        <div className="mb-2">
+                        <motion.div 
+                          className="mb-2"
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: 0.2 }}
+                        >
                           <p className="text-xs font-medium text-neutral-700">Skill Areas Discussed:</p>
                           <div className="flex flex-wrap gap-1 mt-1">
                             {application.interview_feedback.skill_areas.map((skill, idx) => (
-                              <span key={idx} className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full">
+                              <motion.span 
+                                key={idx} 
+                                className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full"
+                                initial={{ opacity: 0, scale: 0.8 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                transition={{ delay: 0.25 + idx * 0.05 }}
+                              >
                                 {skill}
-                              </span>
+                              </motion.span>
                             ))}
                           </div>
-                        </div>
+                        </motion.div>
                       )}
 
                       {application.interview_feedback.notes && (
-                        <div>
+                        <motion.div
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: 0.25 }}
+                        >
                           <p className="text-xs font-medium text-neutral-700">Notes:</p>
                           <p className="text-sm text-neutral-600 mt-1">{application.interview_feedback.notes}</p>
-                        </div>
+                        </motion.div>
                       )}
-                    </div>
+                    </motion.div>
                   )}
 
                   {/* Job Tech Stack */}
                   {application.job?.tech_stack && application.job.tech_stack.length > 0 && (
-                    <div className="mt-4 pt-4 border-t border-neutral-200">
+                    <motion.div 
+                      className="mt-4 pt-4 border-t border-neutral-200"
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: 'auto' }}
+                      transition={{ delay: 0.15, duration: 0.3 }}
+                    >
                       <p className="text-xs font-medium text-neutral-700 mb-2">Required Tech Stack:</p>
                       <div className="flex flex-wrap gap-1">
-                        {application.job.tech_stack.slice(0, 10).map((tech) => (
-                          <span key={tech} className="px-2 py-1 bg-neutral-100 text-neutral-700 text-xs rounded-full">
+                        {application.job.tech_stack.slice(0, 10).map((tech, idx) => (
+                          <motion.span 
+                            key={tech} 
+                            className="px-2 py-1 bg-neutral-100 text-neutral-700 text-xs rounded-full"
+                            initial={{ opacity: 0, scale: 0.8 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            transition={{ delay: 0.2 + idx * 0.03 }}
+                            whileHover={{ scale: 1.05 }}
+                          >
                             {tech}
-                          </span>
+                          </motion.span>
                         ))}
                         {application.job.tech_stack.length > 10 && (
-                          <span className="px-2 py-1 bg-neutral-100 text-neutral-600 text-xs rounded-full">
+                          <motion.span 
+                            className="px-2 py-1 bg-neutral-100 text-neutral-600 text-xs rounded-full"
+                            initial={{ opacity: 0, scale: 0.8 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            transition={{ delay: 0.5 }}
+                          >
                             +{application.job.tech_stack.length - 10} more
-                          </span>
+                          </motion.span>
                         )}
                       </div>
-                    </div>
+                    </motion.div>
                   )}
                 </CardContent>
               </Card>
             </motion.div>
           ))}
+          </AnimatePresence>
         </motion.div>
       ) : (
-        <Card>
-          <CardContent className="text-center py-12">
-            <FileText className="h-12 w-12 text-neutral-400 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-neutral-900 mb-2">
-              {searchTerm || statusFilter !== 'all'
-                ? 'No applications found'
-                : 'No applications yet'
-              }
-            </h3>
-            <p className="text-neutral-600 mb-4">
-              {searchTerm || statusFilter !== 'all'
-                ? 'Try adjusting your search terms or filters'
-                : 'Start by adding jobs and creating applications to track your progress'
-              }
-            </p>
-            {!searchTerm && statusFilter === 'all' && (
-              <Button2 onClick={openAddModal}>
-                Add Your First Application
-              </Button2>
-            )}
-          </CardContent>
-        </Card>
+        <motion.div
+          variants={fadeVariants}
+          initial="hidden"
+          animate="visible"
+          exit="exit"
+        >
+          <Card>
+            <CardContent className="text-center py-12">
+              <motion.div
+                initial={{ scale: 0.8, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{ delay: 0.1, ...springConfigs.gentle }}
+              >
+                <FileText className="h-12 w-12 text-neutral-400 mx-auto mb-4" />
+              </motion.div>
+              <motion.h3 
+                className="text-lg font-medium text-neutral-900 mb-2"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.2 }}
+              >
+                {searchTerm || statusFilter !== 'all'
+                  ? 'No applications found'
+                  : 'No applications yet'
+                }
+              </motion.h3>
+              <motion.p 
+                className="text-neutral-600 mb-4"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.3 }}
+              >
+                {searchTerm || statusFilter !== 'all'
+                  ? 'Try adjusting your search terms or filters'
+                  : 'Start by adding jobs and creating applications to track your progress'
+                }
+              </motion.p>
+              {!searchTerm && statusFilter === 'all' && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.4 }}
+                >
+                  <Button2 onClick={openAddModal}>
+                    Add Your First Application
+                  </Button2>
+                </motion.div>
+              )}
+            </CardContent>
+          </Card>
+        </motion.div>
       )}
     </div>
   );

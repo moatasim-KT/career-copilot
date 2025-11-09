@@ -11,7 +11,7 @@ This implementation plan converts the TODO.md remaining tasks into actionable co
   - Export springConfigs and duration constants
   - _Requirements: 1.1_
 
-- [ ] 1.2 Add page transitions
+- [x] 1.2 Add page transitions
   - Update `frontend/src/app/layout.tsx` with AnimatePresence
   - Implement route change transitions
   - _Requirements: 1.1_
@@ -26,13 +26,13 @@ This implementation plan converts the TODO.md remaining tasks into actionable co
   - Add entrance and stagger animations
   - _Requirements: 1.1_
 
-- [ ] 1.5 Add list animations to JobsPage
+- [x] 1.5 Add list animations to JobsPage
   - Update `frontend/src/components/pages/JobsPage.tsx`
   - Implement stagger animation for job list items
   - Animate filtering/sorting changes
   - _Requirements: 1.1_
 
-- [ ] 1.6 Add list animations to ApplicationsPage
+- [-] 1.6 Add list animations to ApplicationsPage
   - Update `frontend/src/components/pages/ApplicationsPage.tsx`
   - Implement stagger animation for application cards
   - Animate status changes with color transitions
