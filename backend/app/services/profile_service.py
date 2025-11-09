@@ -2,28 +2,29 @@
 Profile service for Career Co-Pilot system with Redis caching
 """
 
-from datetime import datetime, timedelta, timezone
-from typing import List, Optional, Dict, Any
-from sqlalchemy.orm import Session
-from sqlalchemy import and_, desc, func
 import logging
+from datetime import datetime, timedelta, timezone
+from typing import Any, Dict, List, Optional
 
-from app.models.user import User
-from app.models.job import Job
+from sqlalchemy import and_, desc, func
+from sqlalchemy.orm import Session
+
+from app.core.cache import cached, user_profile_cache
 from app.models.application import Application
 from app.models.document import Document
 from app.models.goal import Goal, Milestone
+from app.models.job import Job
+from app.models.user import User
 from app.schemas.profile import (
-	UserProfileUpdate,
-	UserSettingsUpdate,
-	UserProfileResponse,
 	ApplicationHistoryItem,
 	ApplicationHistoryResponse,
-	ProgressTrackingStats,
-	DocumentSummary,
 	DocumentManagementResponse,
+	DocumentSummary,
+	ProgressTrackingStats,
+	UserProfileResponse,
+	UserProfileUpdate,
+	UserSettingsUpdate,
 )
-from app.core.cache import user_profile_cache, cached
 
 logger = logging.getLogger(__name__)
 
@@ -329,7 +330,50 @@ class ProfileService:
 	def get_document_management_summary(self, user_id: int) -> DocumentManagementResponse:
 		"""Get document management summary and statistics"""
 
-		# Get all user documents
+		# If Document ORM is not available in this environment, try to build a
+		# document summary from the user's stored settings (if any). This keeps
+		# the endpoint functional in development setups without the Document model.
+		if Document is None:
+			user = self.db.query(User).filter(User.id == user_id).first()
+			if not user:
+				return DocumentManagementResponse(
+					documents=[], total_count=0, total_documents=0, documents_by_type={}, total_storage_used=0, most_used_document=None
+				)
+
+			settings_docs = (user.settings or {}).get("documents", [])
+			document_summaries = []
+			total_storage = 0
+			documents_by_type = {}
+			most_used_doc = None
+			max_usage = 0
+
+			for d in settings_docs:
+				summary = DocumentSummary(
+					id=d.get("document_id"),
+					filename=d.get("filename"),
+					document_type=d.get("type"),
+					file_size=d.get("file_size", 0),
+					usage_count=d.get("usage_count", 0),
+					last_used=d.get("last_used"),
+					created_at=d.get("created_at"),
+				)
+				document_summaries.append(summary)
+				total_storage += d.get("file_size", 0)
+				documents_by_type[d.get("type")] = documents_by_type.get(d.get("type"), 0) + 1
+				if d.get("usage_count", 0) > max_usage:
+					max_usage = d.get("usage_count", 0)
+					most_used_doc = summary
+
+			return DocumentManagementResponse(
+				documents=document_summaries,
+				total_count=len(document_summaries),
+				total_documents=len(document_summaries),
+				documents_by_type=documents_by_type,
+				total_storage_used=total_storage,
+				most_used_document=most_used_doc,
+			)
+
+		# Normal path when Document model exists
 		documents = self.db.query(Document).filter(Document.user_id == user_id).order_by(desc(Document.created_at)).all()
 
 		# Convert to summary format

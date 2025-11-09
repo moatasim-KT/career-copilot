@@ -44,7 +44,7 @@ export const slideVariants = {
       opacity: 1,
       transition: {
         duration: 0.3,
-        ease: 'easeOut',
+        ease: [0, 0, 0.2, 1] as const,
       },
     },
   },
@@ -58,7 +58,7 @@ export const slideVariants = {
       opacity: 1,
       transition: {
         duration: 0.3,
-        ease: 'easeOut',
+        ease: [0, 0, 0.2, 1] as const,
       },
     },
   },
@@ -72,7 +72,7 @@ export const slideVariants = {
       opacity: 1,
       transition: {
         duration: 0.3,
-        ease: 'easeOut',
+        ease: [0, 0, 0.2, 1] as const,
       },
     },
   },
@@ -86,11 +86,11 @@ export const slideVariants = {
       opacity: 1,
       transition: {
         duration: 0.3,
-        ease: 'easeOut',
+        ease: [0, 0, 0.2, 1] as const,
       },
     },
   },
-};
+} as const;
 
 /**
  * Scale animation variants
@@ -254,7 +254,7 @@ export const modalVariants: Variants = {
     y: 0,
     transition: {
       duration: 0.2,
-      ease: 'easeOut',
+      ease: [0, 0, 0.2, 1] as const,
     },
   },
   exit: { 
@@ -263,7 +263,7 @@ export const modalVariants: Variants = {
     y: 20,
     transition: {
       duration: 0.15,
-      ease: 'easeIn',
+      ease: [0.4, 0, 1, 1] as const,
     },
   },
 };
@@ -298,7 +298,7 @@ export const drawerVariants = {
     visible: { 
       x: 0,
       transition: {
-        type: 'spring',
+        type: 'spring' as const,
         stiffness: 300,
         damping: 30,
       },
@@ -307,7 +307,7 @@ export const drawerVariants = {
       x: '-100%',
       transition: {
         duration: 0.2,
-        ease: 'easeIn',
+        ease: [0.4, 0, 1, 1] as const,
       },
     },
   },
@@ -316,7 +316,7 @@ export const drawerVariants = {
     visible: { 
       x: 0,
       transition: {
-        type: 'spring',
+        type: 'spring' as const,
         stiffness: 300,
         damping: 30,
       },
@@ -325,7 +325,7 @@ export const drawerVariants = {
       x: '100%',
       transition: {
         duration: 0.2,
-        ease: 'easeIn',
+        ease: [0.4, 0, 1, 1] as const,
       },
     },
   },
@@ -334,7 +334,7 @@ export const drawerVariants = {
     visible: { 
       y: 0,
       transition: {
-        type: 'spring',
+        type: 'spring' as const,
         stiffness: 300,
         damping: 30,
       },
@@ -343,11 +343,11 @@ export const drawerVariants = {
       y: '100%',
       transition: {
         duration: 0.2,
-        ease: 'easeIn',
+        ease: [0.4, 0, 1, 1] as const,
       },
     },
   },
-};
+} as const;
 
 /**
  * Skeleton loading animation

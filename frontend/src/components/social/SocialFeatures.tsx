@@ -14,7 +14,6 @@ import {
     Linkedin,
     Twitter,
     Users,
-    MessageCircle,
     Award,
     TrendingUp,
     Copy,
@@ -329,9 +328,9 @@ export function SocialFeatures({ userId, achievements = [] }: SocialFeaturesProp
                     {mentors.length === 0 ? (
                         <div className="text-center py-8 text-neutral-600 dark:text-neutral-400">
                             <Users className="w-12 h-12 mx-auto mb-3 text-neutral-400" />
-                            <p>Click "Get Recommendations" to find mentors</p>
+                            <p>Click &quot;Get Recommendations&quot; to find mentors</p>
                             <p className="text-sm mt-1">
-                                We'll match you with professionals in your field
+                                We&apos;ll match you with professionals in your field
                             </p>
                         </div>
                     ) : (

@@ -24,12 +24,12 @@ export default function OfflinePage() {
 
                 {/* Title */}
                 <h1 className="text-3xl font-bold text-gray-900 mb-4">
-                    You're Offline
+                    You&apos;re Offline
                 </h1>
 
                 {/* Description */}
                 <p className="text-gray-600 mb-8">
-                    It looks like you've lost your internet connection. Please check your
+                    It looks like you&apos;ve lost your internet connection. Please check your
                     network settings and try again.
                 </p>
 
@@ -61,7 +61,7 @@ export default function OfflinePage() {
                 {/* Tips */}
                 <div className="mt-12 text-left bg-white rounded-lg p-6 shadow-sm">
                     <h2 className="text-lg font-semibold text-gray-900 mb-4">
-                        While you're offline:
+                        While you&apos;re offline:
                     </h2>
                     <ul className="space-y-2 text-sm text-gray-600">
                         <li className="flex items-start">
@@ -78,7 +78,7 @@ export default function OfflinePage() {
                         </li>
                         <li className="flex items-start">
                             <span className="text-blue-600 mr-2">•</span>
-                            <span>Your changes will sync when you're back online</span>
+                            <span>Your changes will sync when you&apos;re back online</span>
                         </li>
                     </ul>
                 </div>

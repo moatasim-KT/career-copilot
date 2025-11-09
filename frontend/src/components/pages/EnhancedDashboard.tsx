@@ -38,9 +38,10 @@ export default function EnhancedDashboard() {
         setLastUpdated(new Date());
     }, []);
 
-    const { connectionStatus } = useWebSocket('ws://localhost:8080/api/ws', handleDashboardUpdate);
+    // point the dashboard websocket to the local backend started on port 8002
+    const { connectionStatus } = useWebSocket('ws://localhost:8002/ws', handleDashboardUpdate);
 
-    const loadAnalytics = async () => {
+    const loadAnalytics = useCallback(async () => {
         try {
             const response = await apiClient.getAnalyticsSummary();
             if (response.error) {
@@ -53,7 +54,7 @@ export default function EnhancedDashboard() {
             setError('Failed to load analytics');
             logger.error('EnhancedDashboard: failed to load analytics', err);
         }
-    };
+    }, []);
 
     const loadDashboardData = useCallback(async () => {
         setIsLoading(true);
@@ -65,7 +66,7 @@ export default function EnhancedDashboard() {
         } finally {
             setIsLoading(false);
         }
-    }, []);
+    }, [loadAnalytics]);
 
     useEffect(() => {
         loadDashboardData();
@@ -94,7 +95,16 @@ export default function EnhancedDashboard() {
     }, [currentPreset, presets]);
 
     const onLayoutChange = (newLayout: any) => {
-        setLayout(newLayout);
+        try {
+            const prev = JSON.stringify(layout || []);
+            const next = JSON.stringify(newLayout || []);
+            if (prev !== next) {
+                setLayout(newLayout);
+            }
+        } catch {
+            // fallback: set layout if comparison fails
+            setLayout(newLayout);
+        }
     };
 
     const ResponsiveReactGridLayout = WidthProvider(Responsive);

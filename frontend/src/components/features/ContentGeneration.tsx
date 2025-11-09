@@ -106,7 +106,7 @@ export default function ContentGeneration({
         setEditedContent(response.data.generated_content);
         onContentGenerated?.(content);
       }
-    } catch (_err) {
+    } catch {
       setError('Failed to generate content. Please try again.');
     } finally {
       setGenerating(false);
@@ -129,7 +129,7 @@ export default function ContentGeneration({
 
       setGeneratedContent(updatedContent);
       // Show success message
-    } catch (_err) {
+    } catch {
       setError('Failed to save modifications');
     } finally {
       setSaving(false);

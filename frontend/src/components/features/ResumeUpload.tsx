@@ -129,7 +129,7 @@ export default function ResumeUpload({ onUploadComplete, onProfileUpdate }: Resu
         
         onUploadComplete?.(response.data as ParsedResumeData);
       }
-    } catch (err) {
+    } catch (_err) {
       setError('Failed to upload resume. Please try again.');
     } finally {
       setUploading(false);
@@ -169,7 +169,7 @@ export default function ResumeUpload({ onUploadComplete, onProfileUpdate }: Resu
           setError('Parsing is taking longer than expected. Please refresh to check status.');
           setParsing(false);
         }
-      } catch (err) {
+      } catch (_err) {
         setError('Error checking parsing status');
         setParsing(false);
       }
@@ -196,7 +196,7 @@ export default function ResumeUpload({ onUploadComplete, onProfileUpdate }: Resu
 
       onProfileUpdate?.(updates);
       // Show success message or update UI
-    } catch (err) {
+    } catch (_err) {
       setError('Failed to update profile');
     }
   };

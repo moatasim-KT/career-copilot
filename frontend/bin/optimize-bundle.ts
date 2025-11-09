@@ -122,7 +122,9 @@ async function parseBuildManifest(): Promise<BundleStats[]> {
  * Extract page name from bundle filename
  */
 function extractPageName(filename: string): string {
-    const match = filename.match(/pages[\/\\](.+?)(?:\.[a-f0-9]+)?\.js$/);
+    // Normalize path separators to forward slash for consistent matching
+    const normalized = filename.replace(/\\/g, '/');
+    const match = normalized.match(/pages\/([^./]+)(?:\.[a-f0-9]+)?\.js$/);
     return match ? match[1] : 'unknown';
 }
 
@@ -139,10 +141,9 @@ function analyzeBundles(bundles: BundleStats[]): AnalysisResult {
     const bundlesByPage = new Map<string, BundleStats[]>();
     bundles.forEach(bundle => {
         const page = bundle.page || 'shared';
-        if (!bundlesByPage.has(page)) {
-            bundlesByPage.set(page, []);
-        }
-        bundlesByPage.get(page)!.push(bundle);
+        const arr = bundlesByPage.get(page) ?? [];
+        arr.push(bundle);
+        bundlesByPage.set(page, arr);
         totalSize += bundle.size;
         totalGzipSize += bundle.gzipSize;
     });

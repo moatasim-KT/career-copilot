@@ -269,16 +269,18 @@ export function usePersonalization(userId: string) {
                 const jobs = response.data || [];
 
                 // Score and rank jobs
+                // preferences is guarded by the outer early return, but avoid `!` by narrowing
+                const prefs = preferences as UserPreferences;
                 const scored = jobs.map((job: any) => {
-                    const score = calculateMatchScore(job, preferences!, behavior);
-                    const reasons = generateMatchReasons(job, preferences!, score);
+                    const score = calculateMatchScore(job, prefs, behavior);
+                    const reasons = generateMatchReasons(job, prefs, score);
 
                     const jobSkills = job.requiredSkills || [];
                     const matchedSkills = jobSkills.filter((skill: string) =>
-                        preferences!.skills.some(ps => ps.toLowerCase() === skill.toLowerCase()),
+                        prefs.skills.some(ps => ps.toLowerCase() === skill.toLowerCase()),
                     );
                     const missingSkills = jobSkills.filter((skill: string) =>
-                        !preferences!.skills.some(ps => ps.toLowerCase() === skill.toLowerCase()),
+                        !prefs.skills.some(ps => ps.toLowerCase() === skill.toLowerCase()),
                     );
 
                     return {

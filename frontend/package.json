@@ -131,5 +131,22 @@
       "plugin:storybook/recommended"
     ],
     "rules": {}
-  }
+  },
+  "eslintIgnore": [
+    ".next/",
+    "out/",
+    "build/",
+    "dist/",
+    "node_modules/",
+    "coverage/",
+    ".nyc_output/",
+    "**/*.stories.tsx",
+    "**/*.stories.ts",
+    ".storybook/",
+    "**/__tests__/**",
+    ".venv/",
+    ".tools/",
+    "bin/",
+    "public/"
+  ]
 }

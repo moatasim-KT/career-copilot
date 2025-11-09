@@ -9,7 +9,7 @@
 
 'use client';
 
-import { useEffect, useCallback, useRef } from 'react';
+import { useEffect, useRef } from 'react';
 
 export interface KeyboardShortcut {
     key: string;
@@ -138,7 +138,12 @@ class KeyboardShortcutsManager {
             if (!categories.has(category)) {
                 categories.set(category, []);
             }
-            categories.get(category)!.push(shortcut);
+            let arr = categories.get(category);
+            if (!arr) {
+                arr = [];
+                categories.set(category, arr);
+            }
+            arr.push(shortcut);
         }
 
         return Array.from(categories.entries()).map(([name, shortcuts]) => ({

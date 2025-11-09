@@ -9,7 +9,7 @@
 
 'use client';
 
-import { useRef, useEffect, useCallback } from 'react';
+import { useRef, useEffect, useCallback, useMemo } from 'react';
 
 export type SwipeDirection = 'up' | 'down' | 'left' | 'right';
 
@@ -87,10 +87,10 @@ export function useTouchGestures<T extends HTMLElement = HTMLDivElement>(
 ) {
     const elementRef = useRef<T>(null);
     const startPoint = useRef<TouchPoint | null>(null);
-    const longPressTimer = useRef<NodeJS.Timeout | null>(null);
+    const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
     const initialDistance = useRef<number>(0);
 
-    const opts = { ...DEFAULT_OPTIONS, ...options };
+    const opts = useMemo(() => ({ ...DEFAULT_OPTIONS, ...options }), [options]);
 
     /**
      * Calculate distance between two touch points
@@ -127,7 +127,7 @@ export function useTouchGestures<T extends HTMLElement = HTMLDivElement>(
             if (handlers.onLongPress) {
                 longPressTimer.current = setTimeout(() => {
                     if (startPoint.current) {
-                        handlers.onLongPress!(startPoint.current.x, startPoint.current.y);
+                        handlers.onLongPress?.(startPoint.current.x, startPoint.current.y);
                     }
                 }, opts.longPressThreshold);
             }
@@ -154,7 +154,7 @@ export function useTouchGestures<T extends HTMLElement = HTMLDivElement>(
             // Handle pinch gesture
             if (event.touches.length === 2 && handlers.onPinch) {
                 const currentDistance = getTouchDistance(event.touches[0], event.touches[1]);
-                const scale = currentDistance / initialDistance.current;
+                const scale = currentDistance / (initialDistance.current || 1);
                 handlers.onPinch(scale);
             }
         },
@@ -224,7 +224,6 @@ export function useTouchGestures<T extends HTMLElement = HTMLDivElement>(
     useEffect(() => {
         const element = elementRef.current;
         if (!element) return;
-
         element.addEventListener('touchstart', handleTouchStart, { passive: !opts.preventDefault });
         element.addEventListener('touchmove', handleTouchMove, { passive: !opts.preventDefault });
         element.addEventListener('touchend', handleTouchEnd, { passive: !opts.preventDefault });
@@ -270,7 +269,6 @@ export function useSwipeableItem(handlers: {
     onSwipeRight?: () => void;
     threshold?: number;
 }) {
-    const ref = useRef<HTMLDivElement>(null);
     const swipeOffset = useRef(0);
     const isRevealed = useRef(false);
 

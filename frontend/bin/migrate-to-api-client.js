@@ -18,52 +18,52 @@ const COMPONENTS_TO_UPDATE = [
         replacements: [
             {
                 from: "const response = await fetch('/api/jobs/available');",
-                to: "const response = await apiClient.jobs.available({ limit: 100 });"
+                to: 'const response = await apiClient.jobs.available({ limit: 100 });',
             },
             {
-                from: "const jobs = await response.json();",
-                to: "const jobs = response.data || [];"
+                from: 'const jobs = await response.json();',
+                to: 'const jobs = response.data || [];',
             },
             {
-                from: "await fetch(`/api/users/${userId}/preferences`, {",
-                to: "await apiClient.personalization.updatePreferences(parseInt(userId), newPreferences);"
+                from: 'await fetch(`/api/users/${userId}/preferences`, {',
+                to: 'await apiClient.personalization.updatePreferences(parseInt(userId), newPreferences);',
             },
             {
-                from: "await fetch(`/api/users/${userId}/behavior`, {",
-                to: "await apiClient.personalization.trackBehavior(parseInt(userId), action, jobId);"
-            }
-        ]
+                from: 'await fetch(`/api/users/${userId}/behavior`, {',
+                to: 'await apiClient.personalization.trackBehavior(parseInt(userId), action, jobId);',
+            },
+        ],
     },
     {
         file: 'src/components/recommendations/SmartRecommendations.tsx',
         replacements: [
             {
-                from: "fetch(`/api/recommendations/${jobId}/feedback`, {",
-                to: "apiClient.recommendations.feedback(\n      jobId,\n      userId,\n      isPositive,\n      undefined  // optional reason\n    ).then(() => {"
+                from: 'fetch(`/api/recommendations/${jobId}/feedback`, {',
+                to: 'apiClient.recommendations.feedback(\n      jobId,\n      userId,\n      isPositive,\n      undefined  // optional reason\n    ).then(() => {',
             },
             {
                 from: "method: 'POST',\n        headers: { 'Content-Type': 'application/json' },\n        body: JSON.stringify({ userId, isPositive }),\n      });",
-                to: "});"
-            }
-        ]
+                to: '});',
+            },
+        ],
     },
     {
         file: 'src/components/social/SocialFeatures.tsx',
         replacements: [
             {
-                from: "const response = await fetch(`/api/users/${userId}/mentors`);",
-                to: "const response = await apiClient.social.getMentors(parseInt(userId), 10);"
+                from: 'const response = await fetch(`/api/users/${userId}/mentors`);',
+                to: 'const response = await apiClient.social.getMentors(parseInt(userId), 10);',
             },
             {
-                from: "const data = await response.json();\n          setMentors(data);",
-                to: "if (response.data) {\n            setMentors(response.data);\n          }"
+                from: 'const data = await response.json();\n          setMentors(data);',
+                to: 'if (response.data) {\n            setMentors(response.data);\n          }',
             },
             {
                 from: "await fetch(`/api/users/${userId}/connections`, {\n        method: 'POST',\n        headers: { 'Content-Type': 'application/json' },\n        body: JSON.stringify({ mentorId }),\n      });",
-                to: "await apiClient.social.createConnection(parseInt(userId), mentorId);"
-            }
-        ]
-    }
+                to: 'await apiClient.social.createConnection(parseInt(userId), mentorId);',
+            },
+        ],
+    },
 ];
 
 function updateFile(filePath, replacements) {
@@ -98,7 +98,7 @@ function updateFile(filePath, replacements) {
 function main() {
     console.log('🚀 Starting Frontend Component Migration\n');
     console.log('This script updates components to use the unified API client.\n');
-    console.log('='.repeat(60) + '\n');
+    console.log(`${'='.repeat(60)}\n`);
 
     let totalUpdated = 0;
 
@@ -108,7 +108,7 @@ function main() {
         if (updated) totalUpdated++;
     });
 
-    console.log('='.repeat(60) + '\n');
+    console.log(`${'='.repeat(60)}\n`);
     console.log(`✨ Migration complete! Updated ${totalUpdated} files.\n`);
     console.log('Next steps:');
     console.log('1. Review the changes with git diff');

@@ -1,5 +1,8 @@
+import { AnimatePresence, motion } from 'framer-motion';
 import { X } from 'lucide-react';
-import React from 'react';
+import React, { useEffect } from 'react';
+
+import { backdropVariants, drawerVariants } from '@/lib/animations';
 
 export interface DrawerProps {
     isOpen: boolean;
@@ -33,28 +36,67 @@ export default function Drawer({
     size = 'md',
     children,
 }: DrawerProps) {
-    if (!isOpen) return null;
+    // Prevent background scroll when drawer is open
+    useEffect(() => {
+        if (!isOpen) return;
+        document.body.style.overflow = 'hidden';
+        return () => {
+            document.body.style.overflow = '';
+        };
+    }, [isOpen]);
 
     const posClass = positionClasses[position];
     const sizeClass = position === 'top' || position === 'bottom' ? 'h-96' : sizeClasses[size];
 
+    // Get the appropriate drawer animation variant based on position
+    const getDrawerVariant = () => {
+        if (position === 'left') return drawerVariants.left;
+        if (position === 'bottom') return drawerVariants.bottom;
+        return drawerVariants.right; // default to right
+    };
+
     return (
-        <div className="fixed inset-0 z-50 flex">
-            <div className="fixed inset-0 bg-black bg-opacity-40" onClick={onClose} />
-            <div
-                className={`fixed bg-white shadow-xl transition-transform duration-300 ${posClass} ${sizeClass} rounded-lg`}
-                style={{
-                    transform: isOpen ? 'translateX(0)' : position === 'right' ? 'translateX(100%)' : 'translateX(-100%)',
-                }}
-            >
-                <div className="flex items-center justify-between p-4 border-b">
-                    {title && <h3 className="text-lg font-semibold text-gray-900">{title}</h3>}
-                    <button onClick={onClose} className="text-gray-500 hover:text-gray-700">
-                        <X className="w-5 h-5" />
-                    </button>
-                </div>
-                <div className="p-4">{children}</div>
-            </div>
-        </div>
+        <AnimatePresence mode="wait">
+            {isOpen && (
+                <motion.div
+                    className="fixed inset-0 z-50 flex"
+                    initial="hidden"
+                    animate="visible"
+                    exit="exit"
+                    variants={backdropVariants}
+                    onClick={onClose}
+                >
+                    {/* Backdrop */}
+                    <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
+                    
+                    {/* Drawer content */}
+                    <motion.div
+                        className={`fixed bg-white dark:bg-gray-900 shadow-xl overflow-y-auto ${posClass} ${sizeClass} ${
+                            position === 'left' ? 'rounded-r-lg' : 
+                            position === 'right' ? 'rounded-l-lg' : 
+                            position === 'top' ? 'rounded-b-lg' : 
+                            'rounded-t-lg'
+                        }`}
+                        initial="hidden"
+                        animate="visible"
+                        exit="exit"
+                        variants={getDrawerVariant()}
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <div className="flex items-center justify-between p-4 border-b dark:border-gray-700">
+                            {title && <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">{title}</h3>}
+                            <button 
+                                onClick={onClose} 
+                                className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors"
+                                aria-label="Close drawer"
+                            >
+                                <X className="w-5 h-5" />
+                            </button>
+                        </div>
+                        <div className="p-4">{children}</div>
+                    </motion.div>
+                </motion.div>
+            )}
+        </AnimatePresence>
     );
 }

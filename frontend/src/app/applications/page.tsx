@@ -70,7 +70,7 @@ export default function ApplicationsPage() {
           { id: 'rejected', title: 'Rejected', applicationIds: response.filter(a => a.status === 'Rejected').map(a => a.id) },
         ];
         setColumns(columns);
-      } catch (err) {
+      } catch {
         setError('Failed to load applications');
       } finally {
         setIsLoading(false);
@@ -89,7 +89,7 @@ export default function ApplicationsPage() {
     console.log('Uploading file:', file.name);
     // In a real app, you'd handle file upload to a backend here
     // For now, just add a dummy document
-    const newDoc = {
+    const _newDoc = {
       id: `doc${Math.random()}`,
       name: file.name,
       url: '#',

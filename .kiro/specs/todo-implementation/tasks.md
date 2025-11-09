@@ -44,7 +44,7 @@ This implementation plan converts the TODO.md remaining tasks into actionable co
   - Implement error message slide down with shake effect
   - _Requirements: 1.1_
 
-- [ ] 1.8 Enhance modal/dialog animations
+- [-] 1.8 Enhance modal/dialog animations
   - Update Modal2 component with backdrop fade and content scale
   - Add slide-in from bottom on mobile
   - Update Drawer component with slide animations

@@ -10,7 +10,7 @@
 'use client';
 
 import { X, CheckCircle, AlertCircle, Info, AlertTriangle } from 'lucide-react';
-import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
+import React, { createContext, useContext, useState, useCallback } from 'react';
 
 export type ToastType = 'success' | 'error' | 'info' | 'warning';
 export type ToastPosition = 'top-left' | 'top-center' | 'top-right' | 'bottom-left' | 'bottom-center' | 'bottom-right';
@@ -63,6 +63,16 @@ export function ToastProvider({
 }) {
     const [toasts, setToasts] = useState<Toast[]>([]);
 
+
+
+    const hideToast = useCallback((id: string) => {
+        setToasts((prev) => prev.filter((toast) => toast.id !== id));
+    }, []);
+
+    const clearAll = useCallback(() => {
+        setToasts([]);
+    }, []);
+
     const showToast = useCallback(
         (toast: Omit<Toast, 'id'>): string => {
             const id = `toast-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
@@ -87,16 +97,8 @@ export function ToastProvider({
 
             return id;
         },
-        [maxToasts],
+        [maxToasts, hideToast],
     );
-
-    const hideToast = useCallback((id: string) => {
-        setToasts((prev) => prev.filter((toast) => toast.id !== id));
-    }, []);
-
-    const clearAll = useCallback(() => {
-        setToasts([]);
-    }, []);
 
     const value: ToastContextValue = {
         toasts,
@@ -255,7 +257,7 @@ function ToastItem({ toast, onClose }: { toast: Toast; onClose: (id: string) => 
                     {toast.action && (
                         <button
                             onClick={() => {
-                                toast.action!.onClick();
+                                toast.action?.onClick();
                                 handleClose();
                             }}
                             className="mt-2 text-sm font-medium underline hover:no-underline"

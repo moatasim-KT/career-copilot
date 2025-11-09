@@ -4,11 +4,16 @@ Application service for Career Co-Pilot system
 
 from datetime import datetime, timezone
 from typing import List, Optional
-from sqlalchemy.orm import Session
+
 from sqlalchemy import and_
+from sqlalchemy.orm import Session
 
 from app.models.application import Application
-from app.models.document import Document
+
+try:
+	from app.models.document import Document
+except Exception:  # pragma: no cover - fallback for environments without the model
+	Document = None
 from app.schemas.document import DocumentAssociation
 
 
@@ -56,11 +61,11 @@ class ApplicationService:
 		application.documents = updated_documents
 		application.updated_at = datetime.now(timezone.utc)
 
-		# Update document usage count
-		document = self.db.query(Document).filter(and_(Document.id == document_id, Document.user_id == user_id)).first()
-
-		if document and document.usage_count > 0:
-			document.usage_count -= 1
+		# If a Document ORM model exists, decrement its usage_count. Otherwise skip.
+		if Document is not None:
+			document = self.db.query(Document).filter(and_(Document.id == document_id, Document.user_id == user_id)).first()
+			if document and getattr(document, "usage_count", 0) > 0:
+				document.usage_count -= 1
 
 		self.db.commit()
 

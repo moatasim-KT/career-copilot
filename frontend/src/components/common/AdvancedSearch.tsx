@@ -397,7 +397,7 @@ export function AdvancedSearch<T>({
                                 </div>
                             ) : (
                                 <div className="py-8 text-center text-neutral-500">
-                                    <p>No results found for "{query}"</p>
+                                    <p>No results found for &quot;{query}&quot;</p>
                                     <p className="text-sm mt-1">Try a different search term</p>
                                 </div>
                             )}

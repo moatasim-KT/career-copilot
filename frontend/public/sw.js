@@ -45,7 +45,7 @@ self.addEventListener('install', (event) => {
             .then(() => {
                 // Force the waiting service worker to become the active service worker
                 return self.skipWaiting();
-            })
+            }),
     );
 });
 
@@ -74,13 +74,13 @@ self.addEventListener('activate', (event) => {
                         .map((cacheName) => {
                             console.log('[SW] Deleting old cache:', cacheName);
                             return caches.delete(cacheName);
-                        })
+                        }),
                 );
             })
             .then(() => {
                 // Take control of all pages immediately
                 return self.clients.claim();
-            })
+            }),
     );
 });
 
@@ -170,7 +170,7 @@ async function networkFirstStrategy(request, cacheName) {
             {
                 status: 503,
                 headers: { 'Content-Type': 'application/json' },
-            }
+            },
         );
     }
 }
@@ -298,7 +298,7 @@ self.addEventListener('push', (event) => {
     };
 
     event.waitUntil(
-        self.registration.showNotification(title, options)
+        self.registration.showNotification(title, options),
     );
 });
 
@@ -326,6 +326,6 @@ self.addEventListener('notificationclick', (event) => {
                 if (self.clients.openWindow) {
                     return self.clients.openWindow(urlToOpen);
                 }
-            })
+            }),
     );
 });

@@ -92,7 +92,7 @@ export default function AnalyticsPage() {
 
   useWebSocket('ws://localhost:8080/api/ws', () => { }, () => { }, handleUpdate);
 
-  const loadAnalyticsData = async () => {
+  const loadAnalyticsData = useCallback(async () => {
     setLoading(true);
     setError(null);
 
@@ -113,16 +113,16 @@ export default function AnalyticsPage() {
       }
 
       setLastUpdated(new Date());
-    } catch (err) {
+    } catch {
       setError('Failed to load analytics data');
     } finally {
       setLoading(false);
     }
-  };
+  }, [timeframe]);
 
   useEffect(() => {
     loadAnalyticsData();
-  }, [timeframe]);
+  }, [loadAnalyticsData]);
 
   if (loading) {
     return (

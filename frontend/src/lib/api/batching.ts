@@ -1,5 +1,4 @@
 
-import { cacheFn } from './cache';
 
 type BatchedRequest<T> = {
   resolve: (value: T | PromiseLike<T>) => void;
@@ -14,10 +13,12 @@ class Batcher<T, R> {
 
   async request(req: T): Promise<R> {
     return new Promise((resolve, reject) => {
-      if (!this.queue.has(req)) {
-        this.queue.set(req, []);
+      let bucket = this.queue.get(req);
+      if (!bucket) {
+        bucket = [];
+        this.queue.set(req, bucket);
       }
-      this.queue.get(req)!.push({ resolve, reject });
+      bucket.push({ resolve, reject });
 
       if (this.queue.size >= this.maxBatchSize) {
         this.flush();

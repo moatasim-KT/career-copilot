@@ -61,7 +61,7 @@ import { exportToCSV } from '@/lib/export';
 
 import { ColumnFilter } from './ColumnFilter';
 
-const DraggableHeader = ({ header, table }) => {
+const DraggableHeader = ({ header }: { header: any }) => {
   const { attributes, listeners, setNodeRef, transform, transition } =
     useSortable({ id: header.id });
 
@@ -85,9 +85,9 @@ const DraggableHeader = ({ header, table }) => {
         {header.isPlaceholder
           ? null
           : flexRender(
-              header.column.columnDef.header,
-              header.getContext(),
-            )}
+            header.column.columnDef.header,
+            header.getContext(),
+          )}
         {{
           asc: <ArrowUpDown className="ml-2 h-4 w-4" />,
           desc: <ArrowUpDown className="ml-2 h-4 w-4" />,
@@ -138,7 +138,9 @@ export function DataTable<TData, TValue>({
   const [columnVisibility, setColumnVisibility] =
     React.useState<VisibilityState>({});
   const [columnOrder, setColumnOrder] = React.useState<string[]>(
-    columns.map((c) => c.id!),
+    columns.map((c, idx) =>
+      c.id ?? (typeof c.accessorKey === 'string' ? c.accessorKey : `col-${idx}`),
+    ),
   );
 
   const debouncedGlobalFilter = useDebounce(globalFilter, 300);
@@ -306,55 +308,55 @@ export function DataTable<TData, TValue>({
             )}
           </div>
           <div className="flex items-center space-x-2">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" className="ml-auto">
-                Columns
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              {tableWithSelection
-                .getAllColumns()
-                .filter(
-                  (column) => column.getCanHide(),
-                )
-                .map((column) => {
-                  return (
-                    <DropdownMenuCheckboxItem
-                      key={column.id}
-                      className="capitalize"
-                      checked={column.getIsVisible()}
-                      onCheckedChange={(value) =>
-                        column.toggleVisibility(!!value)
-                      }
-                    >
-                      {column.id}
-                    </DropdownMenuCheckboxItem>
-                  );
-                })}
-            </DropdownMenuContent>
-          </DropdownMenu>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" className="ml-auto">
-                Export
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => handleExport('all')}>
-                Export All
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => handleExport('current')}>
-                Export Current View
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => handleExport('selected')}>
-                Export Selected
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-          <div className="text-sm text-muted-foreground">
-            Showing {table.getFilteredRowModel().rows.length} of {data.length} results
-          </div>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" className="ml-auto">
+                  Columns
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                {tableWithSelection
+                  .getAllColumns()
+                  .filter(
+                    (column) => column.getCanHide(),
+                  )
+                  .map((column) => {
+                    return (
+                      <DropdownMenuCheckboxItem
+                        key={column.id}
+                        className="capitalize"
+                        checked={column.getIsVisible()}
+                        onCheckedChange={(value) =>
+                          column.toggleVisibility(!!value)
+                        }
+                      >
+                        {column.id}
+                      </DropdownMenuCheckboxItem>
+                    );
+                  })}
+              </DropdownMenuContent>
+            </DropdownMenu>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" className="ml-auto">
+                  Export
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => handleExport('all')}>
+                  Export All
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleExport('current')}>
+                  Export Current View
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleExport('selected')}>
+                  Export Selected
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+            <div className="text-sm text-muted-foreground">
+              Showing {table.getFilteredRowModel().rows.length} of {data.length} results
+            </div>
           </div>
         </div>
         <div className="rounded-md border">
@@ -428,7 +430,7 @@ export function DataTable<TData, TValue>({
             <p className="text-sm font-medium">Rows per page</p>
             <Select
               value={`${tableWithSelection.getState().pagination.pageSize}`}
-              onValueChange={(value) => {
+              onChange={(value) => {
                 tableWithSelection.setPageSize(Number(value));
               }}
             >

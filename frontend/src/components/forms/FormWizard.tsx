@@ -12,7 +12,7 @@ import React, { useState, createContext, useContext, ReactNode } from 'react';
 // Types
 // ============================================================================
 
-export interface WizardStep {
+export interface WizardStepDef {
     id: string;
     title: string;
     description?: string;
@@ -28,7 +28,7 @@ interface WizardContextValue {
     canGoNext: boolean;
     canGoPrevious: boolean;
     formData: Record<string, any>;
-    steps: WizardStep[];
+    steps: WizardStepDef[];
     goToStep: (step: number) => void;
     nextStep: () => Promise<void>;
     previousStep: () => void;
@@ -57,7 +57,7 @@ export function useWizard() {
 
 interface FormWizardProps {
     children: ReactNode;
-    steps: WizardStep[];
+    steps: WizardStepDef[];
     initialData?: Record<string, any>;
     onComplete: (data: Record<string, any>) => void | Promise<void>;
     onStepChange?: (step: number) => void;
@@ -77,9 +77,9 @@ export function FormWizard({
     const [visitedSteps, setVisitedSteps] = useState<Set<number>>(new Set([0]));
     const [isLoading, setIsLoading] = useState(false);
 
-    const totalSteps = steps.length;
-    const isFirstStep = currentStep === 0;
-    const isLastStep = currentStep === totalSteps - 1;
+    const _totalSteps = steps.length;
+    const _isFirstStep = currentStep === 0;
+    const isLastStep = currentStep === _totalSteps - 1;
 
     const updateFormData = (data: Record<string, any>) => {
         setFormData(prev => ({ ...prev, ...data }));
@@ -95,7 +95,7 @@ export function FormWizard({
     };
 
     const goToStep = (step: number) => {
-        if (step >= 0 && step < totalSteps) {
+        if (step >= 0 && step < _totalSteps) {
             setCurrentStep(step);
             setVisitedSteps(prev => new Set(prev).add(step));
             onStepChange?.(step);
@@ -138,18 +138,18 @@ export function FormWizard({
     };
 
     const previousStep = () => {
-        if (!isFirstStep) {
+        if (!_isFirstStep) {
             goToStep(currentStep - 1);
         }
     };
 
     const canGoNext = !isLoading && (steps[currentStep]?.optional || isStepValid(currentStep));
-    const canGoPrevious = !isLoading && !isFirstStep;
+    const canGoPrevious = !isLoading && !_isFirstStep;
 
     const value: WizardContextValue = {
         currentStep,
-        totalSteps,
-        isFirstStep,
+        totalSteps: _totalSteps,
+        isFirstStep: _isFirstStep,
         isLastStep,
         canGoNext,
         canGoPrevious,
@@ -180,7 +180,7 @@ export function FormWizard({
  * Progress indicator showing current step
  */
 export function WizardProgress({ className = '' }: { className?: string }) {
-    const { currentStep, totalSteps, steps, goToStep, isStepValid } = useWizard();
+    const { currentStep, steps, goToStep, isStepValid } = useWizard();
 
     return (
         <div className={`wizard-progress ${className}`}>
@@ -285,7 +285,6 @@ export function WizardStep({ children, className = '' }: WizardStepProps) {
  */
 export function WizardNavigation({ className = '' }: { className?: string }) {
     const {
-        isFirstStep,
         isLastStep,
         canGoNext,
         canGoPrevious,

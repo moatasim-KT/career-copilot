@@ -45,6 +45,7 @@
     "**/*.stories.tsx",
     "**/*.stories.ts",
     ".storybook",
-    "vitest.config.ts"
+    "vitest.config.ts",
+    "frontend/.venv"
   ]
 }

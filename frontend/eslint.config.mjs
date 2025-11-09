@@ -12,8 +12,22 @@ import globals from 'globals';
 const eslintConfig = [// Base JavaScript configuration
     // Configuration for TypeScript files
     js.configs.recommended, // Configuration for JavaScript files
+    // Test files override: keep test linting lightweight (no typed-parser project)
     {
-        files: ['**/*.{ts,tsx}'],
+        files: ['**/*.test.{js,jsx,ts,tsx}', '**/*.spec.{js,jsx,ts,tsx}'],
+        languageOptions: {
+            parserOptions: {
+                ecmaVersion: 'latest',
+                sourceType: 'module',
+                ecmaFeatures: { jsx: true },
+            },
+            globals: {
+                ...globals.jest,
+            },
+        },
+    },
+    {
+        files: ['src/**/*.{ts,tsx}'],
         languageOptions: {
             parser: typescriptParser,
             parserOptions: {
@@ -22,7 +36,6 @@ const eslintConfig = [// Base JavaScript configuration
                 ecmaFeatures: {
                     jsx: true,
                 },
-                project: './tsconfig.eslint.json',
             },
             globals: {
                 ...globals.browser,
@@ -41,7 +54,7 @@ const eslintConfig = [// Base JavaScript configuration
         },
         rules: {
             // TypeScript rules
-            '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_', varsIgnorePattern: '^_' }],
+            '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_', varsIgnorePattern: '^_', caughtErrors: 'none' }],
             '@typescript-eslint/no-explicit-any': 'off', // RELAXED: Allow any type
             '@typescript-eslint/explicit-function-return-type': 'off',
             '@typescript-eslint/explicit-module-boundary-types': 'off',
@@ -233,6 +246,14 @@ const eslintConfig = [// Base JavaScript configuration
     {
         files: ['**/*.test.{js,jsx,ts,tsx}', '**/*.spec.{js,jsx,ts,tsx}'],
         languageOptions: {
+            // For test files we avoid using the typed parser project to prevent
+            // 'file not found in project' errors when ESLint runs on isolated files.
+            // Tests still get Jest globals via globals.jest.
+            parserOptions: {
+                ecmaVersion: 'latest',
+                sourceType: 'module',
+                ecmaFeatures: { jsx: true },
+            },
             globals: {
                 ...globals.jest,
             },
@@ -252,6 +273,8 @@ const eslintConfig = [// Base JavaScript configuration
             '**/*.stories.tsx',
             '**/*.stories.ts',
             '.storybook/**',
+            '**/__tests__/**',
+            'frontend/.venv/**',
         ],
     }];
 

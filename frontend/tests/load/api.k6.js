@@ -14,8 +14,8 @@
 /* global __ENV */
 
 
-import http from 'k6/http';
 import { check, sleep } from 'k6';
+import http from 'k6/http';
 import { Rate, Trend, Counter } from 'k6/metrics';
 
 // Custom metrics
@@ -111,7 +111,7 @@ export default function () {
         {
             headers,
             tags: { name: 'CreateApplication' },
-        }
+        },
     );
 
     const createSuccess = check(createResponse, {
@@ -166,7 +166,7 @@ export default function () {
         {
             headers,
             tags: { name: 'UpdateApplication' },
-        }
+        },
     );
 
     const updateSuccess = check(updateResponse, {
@@ -186,7 +186,7 @@ export default function () {
         {
             headers,
             tags: { name: 'SearchApplications' },
-        }
+        },
     );
 
     check(searchResponse, {
