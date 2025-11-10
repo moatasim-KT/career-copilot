@@ -5,6 +5,8 @@
 
 'use client';
 
+import { formatDistanceToNow } from 'date-fns';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
   Bell,
   X,
@@ -15,16 +17,15 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { useState, useRef, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
 
-import type { Notification, NotificationCategory } from '@/types/notification';
+import { useRoutePrefetch } from '@/hooks/useRoutePrefetch';
 import {
   getCategoryIcon,
   getCategoryColor,
   getCategoryLabel,
 } from '@/lib/notificationTemplates';
 import { cn } from '@/lib/utils';
-import { formatDistanceToNow } from 'date-fns';
+import type { Notification } from '@/types/notification';
 
 interface NotificationCenterProps {
   className?: string;
@@ -109,6 +110,12 @@ function NotificationItem({
 }: NotificationItemProps) {
   const CategoryIcon = getCategoryIcon(notification.category);
   const categoryColor = getCategoryColor(notification.category);
+  
+  // Prefetch the action URL on hover
+  const prefetchHandlers = useRoutePrefetch(
+    notification.actionUrl || '',
+    { enabled: !!notification.actionUrl },
+  );
 
   const handleAction = () => {
     if (!notification.read) {
@@ -124,7 +131,7 @@ function NotificationItem({
       exit={{ opacity: 0, x: 20 }}
       className={cn(
         'group relative p-4 border-b border-neutral-200 dark:border-neutral-700 hover:bg-neutral-50 dark:hover:bg-neutral-800/50 transition-colors',
-        !notification.read && 'bg-primary-50/30 dark:bg-primary-900/10'
+        !notification.read && 'bg-primary-50/30 dark:bg-primary-900/10',
       )}
     >
       {/* Unread indicator */}
@@ -136,7 +143,7 @@ function NotificationItem({
         {/* Category Icon */}
         <div className={cn(
           'flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center',
-          categoryColor
+          categoryColor,
         )}>
           <CategoryIcon className="w-5 h-5" />
         </div>
@@ -150,7 +157,7 @@ function NotificationItem({
             </h4>
             <span className={cn(
               'flex-shrink-0 text-xs px-2 py-0.5 rounded-full font-medium',
-              categoryColor
+              categoryColor,
             )}>
               {getCategoryLabel(notification.category)}
             </span>
@@ -202,6 +209,9 @@ function NotificationItem({
             <Link
               href={notification.actionUrl}
               onClick={handleAction}
+              onMouseEnter={prefetchHandlers.onMouseEnter}
+              onMouseLeave={prefetchHandlers.onMouseLeave}
+              onTouchStart={prefetchHandlers.onTouchStart}
               className="inline-flex items-center gap-1 mt-2 text-xs font-medium text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 transition-colors"
             >
               {notification.actionLabel}
@@ -221,6 +231,9 @@ export default function NotificationCenter({ className }: NotificationCenterProp
   const buttonRef = useRef<HTMLButtonElement>(null);
 
   const unreadCount = notifications.filter(n => !n.read).length;
+  
+  // Prefetch notifications page
+  const notificationsPrefetch = useRoutePrefetch('/notifications');
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -258,7 +271,7 @@ export default function NotificationCenter({ className }: NotificationCenterProp
 
   const handleMarkAsRead = (id: string) => {
     setNotifications(prev =>
-      prev.map(n => (n.id === id ? { ...n, read: true } : n))
+      prev.map(n => (n.id === id ? { ...n, read: true } : n)),
     );
   };
 
@@ -372,6 +385,9 @@ export default function NotificationCenter({ className }: NotificationCenterProp
                 <Link
                   href="/notifications"
                   onClick={() => setIsOpen(false)}
+                  onMouseEnter={notificationsPrefetch.onMouseEnter}
+                  onMouseLeave={notificationsPrefetch.onMouseLeave}
+                  onTouchStart={notificationsPrefetch.onTouchStart}
                   className="block text-center text-sm font-medium text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 transition-colors"
                 >
                   View all notifications

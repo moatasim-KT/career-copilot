@@ -16,6 +16,7 @@ import { useState, useEffect } from 'react';
 import { ThemeToggle } from '@/components/ui/ThemeToggle';
 import { LazyNotificationCenter } from '@/components/lazy';
 import { cn } from '@/lib/utils';
+import { useRoutePrefetch } from '@/hooks/useRoutePrefetch';
 
 const navigationItems = [
   { href: '/dashboard', label: 'Dashboard', icon: BarChart3 },
@@ -26,6 +27,82 @@ const navigationItems = [
   { href: '/advanced-features', label: 'AI Tools', icon: Sparkles },
 ];
 
+/**
+ * Navigation link with prefetching support
+ */
+interface NavigationLinkProps {
+  href: string;
+  label: string;
+  icon: React.ComponentType<{ className?: string }>;
+  isActive: boolean;
+  onClick?: () => void;
+  className?: string;
+}
+
+function NavigationLink({ href, label, icon: Icon, isActive, onClick, className }: NavigationLinkProps) {
+  const prefetchHandlers = useRoutePrefetch(href);
+
+  return (
+    <Link
+      href={href}
+      onClick={onClick}
+      onMouseEnter={prefetchHandlers.onMouseEnter}
+      onMouseLeave={prefetchHandlers.onMouseLeave}
+      onTouchStart={prefetchHandlers.onTouchStart}
+      className={cn(
+        'flex items-center space-x-2 px-3 py-2 rounded-md text-sm font-medium accent-transition relative',
+        isActive
+          ? 'bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300'
+          : 'text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-neutral-100 hover:bg-neutral-100 dark:hover:bg-neutral-800',
+        className
+      )}
+    >
+      <Icon className="h-4 w-4" />
+      <span>{label}</span>
+      {/* Accent border for active item */}
+      {isActive && (
+        <span 
+          className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary-600 dark:bg-primary-400 rounded-full"
+          aria-hidden="true"
+        />
+      )}
+    </Link>
+  );
+}
+
+/**
+ * Mobile navigation link with prefetching support
+ */
+function MobileNavigationLink({ href, label, icon: Icon, isActive, onClick }: NavigationLinkProps) {
+  const prefetchHandlers = useRoutePrefetch(href);
+
+  return (
+    <Link
+      href={href}
+      onClick={onClick}
+      onMouseEnter={prefetchHandlers.onMouseEnter}
+      onMouseLeave={prefetchHandlers.onMouseLeave}
+      onTouchStart={prefetchHandlers.onTouchStart}
+      className={cn(
+        'flex items-center space-x-3 w-full px-3 py-3 rounded-md text-base font-medium accent-transition relative',
+        isActive
+          ? 'bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300'
+          : 'text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-neutral-100 hover:bg-neutral-100 dark:hover:bg-neutral-800'
+      )}
+      style={{ minWidth: 44 }}
+    >
+      <Icon className="h-5 w-5 flex-shrink-0" />
+      <span>{label}</span>
+      {/* Accent border for active item on mobile */}
+      {isActive && (
+        <span 
+          className="absolute left-0 top-0 bottom-0 w-1 bg-primary-600 dark:bg-primary-400 rounded-r-full"
+          aria-hidden="true"
+        />
+      )}
+    </Link>
+  );
+}
 
 export default function Navigation() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -64,30 +141,16 @@ export default function Navigation() {
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-1">
             {navigationItems.map((item) => {
-              const Icon = item.icon;
               const isActive = pathname === item.href;
 
               return (
-                <Link
+                <NavigationLink
                   key={item.href}
                   href={item.href}
-                  className={cn(
-                    'flex items-center space-x-2 px-3 py-2 rounded-md text-sm font-medium accent-transition relative',
-                    isActive
-                      ? 'bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300'
-                      : 'text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-neutral-100 hover:bg-neutral-100 dark:hover:bg-neutral-800'
-                  )}
-                >
-                  <Icon className="h-4 w-4" />
-                  <span>{item.label}</span>
-                  {/* Accent border for active item */}
-                  {isActive && (
-                    <span 
-                      className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary-600 dark:bg-primary-400 rounded-full"
-                      aria-hidden="true"
-                    />
-                  )}
-                </Link>
+                  label={item.label}
+                  icon={item.icon}
+                  isActive={isActive}
+                />
               );
             })}
 
@@ -143,31 +206,16 @@ export default function Navigation() {
               </div>
               <div className="px-2 pt-2 pb-3 space-y-1">
                 {navigationItems.map((item) => {
-                  const Icon = item.icon;
                   const isActive = pathname === item.href;
                   return (
-                    <Link
+                    <MobileNavigationLink
                       key={item.href}
                       href={item.href}
+                      label={item.label}
+                      icon={item.icon}
+                      isActive={isActive}
                       onClick={() => setIsMobileMenuOpen(false)}
-                      className={cn(
-                        'flex items-center space-x-3 w-full px-3 py-3 rounded-md text-base font-medium accent-transition relative',
-                        isActive
-                          ? 'bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300'
-                          : 'text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-neutral-100 hover:bg-neutral-100 dark:hover:bg-neutral-800'
-                      )}
-                      style={{ minWidth: 44 }}
-                    >
-                      <Icon className="h-5 w-5 flex-shrink-0" />
-                      <span>{item.label}</span>
-                      {/* Accent border for active item on mobile */}
-                      {isActive && (
-                        <span 
-                          className="absolute left-0 top-0 bottom-0 w-1 bg-primary-600 dark:bg-primary-400 rounded-r-full"
-                          aria-hidden="true"
-                        />
-                      )}
-                    </Link>
+                    />
                   );
                 })}
               </div>

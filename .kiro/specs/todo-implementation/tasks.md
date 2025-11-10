@@ -536,7 +536,7 @@ This implementation plan converts the TODO.md remaining tasks into actionable co
   - Test all features still work
   - _Requirements: 6.4_
 
-- [ ] 9.4 Add preload for critical routes
+- [x] 9.4 Add preload for critical routes
   - Identify critical user paths (dashboard, jobs, applications)
   - Add router.prefetch() on link hover
   - Test preloading behavior
