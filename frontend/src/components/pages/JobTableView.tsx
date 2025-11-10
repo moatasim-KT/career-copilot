@@ -75,7 +75,7 @@ export function JobTableView({ jobs, onJobClick }: JobTableViewProps) {
         columns={columns}
         data={jobs}
         renderSubComponent={(row) => (
-          <div className="p-4 bg-gray-100">
+          <div className="p-4 bg-gray-100 dark:bg-neutral-800">
             <p>
               <strong>Description:</strong> {row.description}
             </p>

@@ -74,7 +74,7 @@ const DraggableHeader = ({ header }: { header: any }) => {
     <th
       ref={setNodeRef}
       style={style}
-      className="h-12 px-4 text-left align-middle font-medium text-muted-foreground"
+      className="h-12 px-4 text-left align-middle font-medium text-muted-foreground dark:bg-neutral-800"
     >
       <div
         className={clsx('flex items-center', {
@@ -267,7 +267,7 @@ export function DataTable<TData, TValue>({
     return (
       <div>
         {table.getRowModel().rows.map((row) => (
-          <div key={row.id} className="border-b p-4">
+          <div key={row.id} className="border-b dark:border-neutral-700 p-4">
             {row.getVisibleCells().map((cell) => (
               <div key={cell.id} className="flex justify-between">
                 <span className="font-medium">
@@ -359,7 +359,7 @@ export function DataTable<TData, TValue>({
             </div>
           </div>
         </div>
-        <div className="rounded-md border">
+        <div className="rounded-md border dark:border-neutral-700">
           <table className="w-full text-sm" style={{ width: table.getCenterTotalSize() }}>
             <thead>
               {tableWithSelection.getHeaderGroups().map((headerGroup) => (
@@ -391,7 +391,7 @@ export function DataTable<TData, TValue>({
                   <React.Fragment key={row.id}>
                     <tr
                       data-state={row.getIsSelected() && 'selected'}
-                      className="border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted"
+                      className="border-b dark:border-neutral-700 transition-colors hover:bg-muted/50 dark:hover:bg-neutral-700 data-[state=selected]:bg-muted"
                     >
                       {row.getVisibleCells().map((cell) => (
                         <td key={cell.id} className="p-4 align-middle">
