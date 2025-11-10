@@ -9,5 +9,6 @@ export { default as MetricCard } from './MetricCard';
 export { default as Modal } from './Modal';
 export { default as QuickActionCard } from './QuickActionCard';
 export { default as Select } from './Select';
+export { default as StatusIndicator } from './StatusIndicator';
 export { default as Textarea } from './Textarea';
 export { default as FileUpload } from './FileUpload';

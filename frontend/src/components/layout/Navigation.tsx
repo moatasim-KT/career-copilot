@@ -14,6 +14,7 @@ import { usePathname } from 'next/navigation';
 import { useState, useEffect } from 'react';
 
 import { ThemeToggle } from '@/components/ui/ThemeToggle';
+import { cn } from '@/lib/utils';
 
 const navigationItems = [
   { href: '/dashboard', label: 'Dashboard', icon: BarChart3 },
@@ -69,13 +70,22 @@ export default function Navigation() {
                 <Link
                   key={item.href}
                   href={item.href}
-                  className={`flex items-center space-x-2 px-3 py-2 rounded-md text-sm font-medium transition-colors ${isActive
-                    ? 'bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300 border-b-2 border-primary-600 dark:border-primary-400'
-                    : 'text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-neutral-100 hover:bg-neutral-100 dark:hover:bg-neutral-800'
-                    }`}
+                  className={cn(
+                    'flex items-center space-x-2 px-3 py-2 rounded-md text-sm font-medium accent-transition relative',
+                    isActive
+                      ? 'bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300'
+                      : 'text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-neutral-100 hover:bg-neutral-100 dark:hover:bg-neutral-800'
+                  )}
                 >
                   <Icon className="h-4 w-4" />
                   <span>{item.label}</span>
+                  {/* Accent border for active item */}
+                  {isActive && (
+                    <span 
+                      className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary-600 dark:bg-primary-400 rounded-full"
+                      aria-hidden="true"
+                    />
+                  )}
                 </Link>
               );
             })}
@@ -137,14 +147,23 @@ export default function Navigation() {
                       key={item.href}
                       href={item.href}
                       onClick={() => setIsMobileMenuOpen(false)}
-                      className={`flex items-center space-x-3 w-full px-3 py-3 rounded-md text-base font-medium transition-colors ${isActive
-                        ? 'bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300'
-                        : 'text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-neutral-100 hover:bg-neutral-100 dark:hover:bg-neutral-800'
-                        }`}
+                      className={cn(
+                        'flex items-center space-x-3 w-full px-3 py-3 rounded-md text-base font-medium accent-transition relative',
+                        isActive
+                          ? 'bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300'
+                          : 'text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-neutral-100 hover:bg-neutral-100 dark:hover:bg-neutral-800'
+                      )}
                       style={{ minWidth: 44 }}
                     >
                       <Icon className="h-5 w-5 flex-shrink-0" />
                       <span>{item.label}</span>
+                      {/* Accent border for active item on mobile */}
+                      {isActive && (
+                        <span 
+                          className="absolute left-0 top-0 bottom-0 w-1 bg-primary-600 dark:bg-primary-400 rounded-r-full"
+                          aria-hidden="true"
+                        />
+                      )}
                     </Link>
                   );
                 })}
