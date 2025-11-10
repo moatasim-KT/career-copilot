@@ -14,6 +14,10 @@ export interface CardProps extends HTMLAttributes<HTMLDivElement> {
   hover?: boolean;
   interactive?: boolean;
   gradient?: boolean;
+  // New props for enhanced hover effects
+  featured?: boolean; // Adds glow effect for featured/premium cards
+  gradientBorder?: boolean; // Adds animated gradient border using pseudo-element
+  glowColor?: 'primary' | 'success' | 'warning' | 'error'; // Color of the glow effect
   // Animation controls
   animateOnMount?: boolean; // whether to play entrance animation on mount
   entrance?: 'fade' | 'slideUp' | 'scale';
@@ -37,6 +41,14 @@ const paddings = {
   xl: 'p-10',
 };
 
+// Glow colors for featured cards
+const glowColors = {
+  primary: 'shadow-primary-500/50 dark:shadow-primary-400/50',
+  success: 'shadow-success-500/50 dark:shadow-success-400/50',
+  warning: 'shadow-warning-500/50 dark:shadow-warning-400/50',
+  error: 'shadow-error-500/50 dark:shadow-error-400/50',
+};
+
 export const Card = forwardRef<HTMLDivElement, CardProps>(
   (
     {
@@ -46,6 +58,9 @@ export const Card = forwardRef<HTMLDivElement, CardProps>(
       hover = false,
       interactive = false,
       gradient = false,
+      featured = false,
+      gradientBorder = false,
+      glowColor = 'primary',
       animateOnMount = true,
       entrance = 'fade',
       index = 0,
@@ -63,31 +78,68 @@ export const Card = forwardRef<HTMLDivElement, CardProps>(
 
     const transition = animateOnMount ? { duration: 0.28, delay: index ? index * 0.06 : 0 } : undefined;
 
+    // Enhanced hover animation with smooth shadow expansion
+    const hoverAnimation = hover
+      ? {
+        y: -6,
+        scale: 1.02,
+        transition: {
+          duration: 0.2,
+          ease: 'easeOut',
+        },
+      }
+      : undefined;
+
     return (
-      <motion.div
-        ref={ref}
-        className={cn(
-          'bg-white dark:bg-neutral-800 rounded-xl border border-neutral-200 dark:border-neutral-700',
-          'transition-all duration-200',
-          elevations[elevation],
-          paddings[padding],
-          hover && 'hover:shadow-lg hover:-translate-y-0.5',
-          interactive && 'cursor-pointer',
-          gradient && 'relative overflow-hidden',
-          className,
+      <div className={cn(gradientBorder && 'relative p-[2px] rounded-xl group')}>
+        {/* Gradient border background - only visible on hover */}
+        {gradientBorder && (
+          <div
+            className="absolute inset-0 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+            style={{
+              background:
+                'linear-gradient(135deg, rgb(59 130 246) 0%, rgb(147 197 253) 50%, rgb(59 130 246) 100%)',
+              backgroundSize: '200% 200%',
+              animation: 'gradient-shift 3s ease infinite',
+            }}
+          />
         )}
-        variants={variants || staggerItem}
-        initial={animateOnMount ? 'hidden' : undefined}
-        animate={animateOnMount ? 'visible' : undefined}
-        transition={transition}
-        whileHover={hover ? { y: -4, scale: 1.01 } : undefined}
-        {...(props as any)}
-      >
-        {gradient && (
-          <div className="absolute inset-0 bg-gradient-to-br from-primary-50 to-transparent opacity-50 pointer-events-none" />
-        )}
-        <div className="relative">{children}</div>
-      </motion.div>
+
+        <motion.div
+          ref={ref}
+          className={cn(
+            'bg-white dark:bg-neutral-800 rounded-xl border border-neutral-200 dark:border-neutral-700',
+            'transition-all duration-200',
+            elevations[elevation],
+            paddings[padding],
+            // Enhanced hover effects with smooth shadow expansion
+            hover && ['hover:shadow-xl dark:hover:shadow-2xl', 'hover:-translate-y-1'],
+            // Glow effect for featured/premium cards
+            featured && [
+              'shadow-lg',
+              `hover:shadow-2xl hover:${glowColors[glowColor]}`,
+              'ring-1 ring-primary-200 dark:ring-primary-800',
+            ],
+            interactive && 'cursor-pointer',
+            gradient && 'relative overflow-hidden',
+            // For gradient border, ensure the card is positioned relative to the wrapper
+            gradientBorder && 'relative',
+            className,
+          )}
+          variants={variants || staggerItem}
+          initial={animateOnMount ? 'hidden' : undefined}
+          animate={animateOnMount ? 'visible' : undefined}
+          transition={transition}
+          whileHover={hoverAnimation}
+          {...(props as any)}
+        >
+          {gradient && (
+            <div className="absolute inset-0 bg-gradient-to-br from-primary-50 to-transparent opacity-50 pointer-events-none dark:from-primary-950 dark:opacity-30" />
+          )}
+
+          <div className="relative">{children}</div>
+        </motion.div>
+      </div>
     );
   },
 );
@@ -99,7 +151,7 @@ export const CardHeader = ({ children, className }: { children: ReactNode; class
 );
 
 export const CardTitle = ({ children, className }: { children: ReactNode; className?: string }) => (
-  <h3 className={cn('text-xl font-semibold text-neutral-900 dark:text-neutral-100', className)}>
+  <h3 className={cn('text-lg md:text-2xl font-semibold text-neutral-900 dark:text-neutral-100', className)}>
     {children}
   </h3>
 );
