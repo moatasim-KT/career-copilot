@@ -112,8 +112,8 @@ export const Drawer2 = forwardRef<HTMLDivElement, Drawer2Props>(
                         role="dialog"
                         tabIndex={-1}
                     >
-                        {/* Backdrop */}
-                        <div className="absolute inset-0 bg-black/30 backdrop-blur-sm" />
+                        {/* Backdrop with glass morphism */}
+                        <div className="absolute inset-0 glass" />
                         
                         {/* Drawer content */}
                         <motion.div

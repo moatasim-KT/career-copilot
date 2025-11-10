@@ -77,7 +77,7 @@ export function BulkActionsBar({
                     animate={{ y: 0, opacity: 1 }}
                     exit={{ y: 100, opacity: 0 }}
                     className={`
-            fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-lg z-40
+            fixed bottom-0 left-0 right-0 glass border-t border-gray-200 dark:border-neutral-700 shadow-lg z-40
             ${className}
           `}
                 >

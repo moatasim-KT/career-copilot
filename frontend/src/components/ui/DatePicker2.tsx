@@ -205,12 +205,12 @@ export const DatePicker2 = forwardRef<HTMLDivElement, DatePicker2Props>(
                     </AnimatePresence>
                     <CalendarIcon className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-neutral-400 dark:text-neutral-500 pointer-events-none" />
 
-                    {/* Calendar popover */}
+                    {/* Calendar popover with glass morphism */}
                     <AnimatePresence>
                         {showCalendar && (
                             <motion.div 
                                 ref={calendarRef} 
-                                className="absolute z-50 mt-2 w-full bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-lg shadow-lg p-4"
+                                className="absolute z-50 mt-2 w-full glass rounded-lg shadow-lg p-4"
                                 initial={{ opacity: 0, y: -10, scale: 0.95 }}
                                 animate={{ opacity: 1, y: 0, scale: 1 }}
                                 exit={{ opacity: 0, y: -10, scale: 0.95 }}

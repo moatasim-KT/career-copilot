@@ -32,7 +32,7 @@ export function PopoverContent({ children, className }: { children: React.ReactN
     >
       <HeadlessPopover.Panel
         className={cn(
-          'absolute z-50 mt-2 w-56 rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none',
+          'absolute z-50 mt-2 w-56 rounded-md glass shadow-lg focus:outline-none dark:bg-neutral-800/70 dark:border-neutral-700/20',
           className,
         )}
       >

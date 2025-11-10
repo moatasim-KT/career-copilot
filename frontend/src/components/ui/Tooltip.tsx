@@ -40,12 +40,12 @@ export default function Tooltip({ content, children, position = 'top', delay = 1
       {children}
       {visible && (
         <div
-          className={`absolute z-10 px-3 py-2 text-sm font-medium text-white bg-neutral-900 rounded-lg shadow-lg ${positionClasses[position]}`}
+          className={`absolute z-10 px-3 py-2 text-sm font-medium text-white glass rounded-lg shadow-lg ${positionClasses[position]}`}
           style={{ maxWidth }}
         >
           {content}
           <span
-            className={`absolute w-3 h-3 bg-neutral-900 rotate-45 ${arrowPosition[position]}`}
+            className={`absolute w-3 h-3 glass rotate-45 ${arrowPosition[position]}`}
             style={{ boxShadow: '0 1px 2px 0 rgb(0 0 0 / 0.05)' }}
           />
         </div>

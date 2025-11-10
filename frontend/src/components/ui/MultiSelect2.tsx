@@ -181,11 +181,11 @@ export const MultiSelect2 = forwardRef<HTMLDivElement, MultiSelect2Props>(
                         )}
                     </motion.div>
 
-                    {/* Dropdown */}
+                    {/* Dropdown with glass morphism */}
                     <AnimatePresence>
                         {isOpen && !disabled && (
                             <motion.div 
-                                className="absolute z-50 w-full mt-2 bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-lg shadow-lg max-h-60 overflow-hidden"
+                                className="absolute z-50 w-full mt-2 glass rounded-lg shadow-lg max-h-60 overflow-hidden"
                                 initial={{ opacity: 0, y: -10, scale: 0.95 }}
                                 animate={{ opacity: 1, y: 0, scale: 1 }}
                                 exit={{ opacity: 0, y: -10, scale: 0.95 }}

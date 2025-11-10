@@ -68,17 +68,17 @@ export default function Notification({
 
   return (
     <div
-      className={`fixed bottom-4 right-4 z-50 p-4 rounded-lg shadow-lg flex items-center space-x-3 ${colors.bg} ${colors.border} border`}
+      className={`fixed bottom-4 right-4 z-50 p-4 rounded-lg shadow-lg flex items-center space-x-3 glass ${colors.border} border`}
       role="alert"
     >
       <Icon className={`h-6 w-6 flex-shrink-0 ${colors.icon}`} aria-hidden="true" />
-      <p className={`text-sm font-medium ${colors.text}`}>{message}</p>
+      <p className={`text-sm font-medium ${colors.text} dark:text-neutral-100`}>{message}</p>
       <button
         onClick={() => {
           setIsVisible(false);
           if (onClose) onClose();
         }}
-        className={`ml-auto -mx-1.5 -my-1.5 ${colors.text} rounded-lg focus:ring-2 focus:ring-offset-2 focus:ring-offset-white p-1.5 hover:${colors.bg} inline-flex h-8 w-8`}
+        className={`ml-auto -mx-1.5 -my-1.5 ${colors.text} dark:text-neutral-300 rounded-lg focus:ring-2 focus:ring-offset-2 focus:ring-offset-white dark:focus:ring-offset-neutral-900 p-1.5 hover:bg-neutral-100 dark:hover:bg-neutral-800 inline-flex h-8 w-8`}
       >
         <span className="sr-only">Dismiss</span>
         <XCircle className="h-5 w-5" />

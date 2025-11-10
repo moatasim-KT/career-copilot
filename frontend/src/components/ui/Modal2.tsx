@@ -99,8 +99,8 @@ export const Modal2 = forwardRef<HTMLDivElement, Modal2Props>(
                         role="dialog"
                         tabIndex={-1}
                     >
-                        {/* Backdrop with blur */}
-                        <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
+                        {/* Backdrop with glass morphism */}
+                        <div className="absolute inset-0 glass" />
                         
                         {/* Modal content */}
                         <motion.div
