@@ -75,10 +75,10 @@ export interface Input2Props extends Omit<InputHTMLAttributes<HTMLInputElement>,
 }
 
 const variants = {
-    default: 'border border-neutral-300 bg-white focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20',
-    filled: 'border-0 bg-neutral-100 focus:bg-white focus:ring-2 focus:ring-primary-500/20',
-    outlined: 'border-2 border-neutral-300 bg-transparent focus:border-primary-500',
-    ghost: 'border-0 bg-transparent hover:bg-neutral-50 focus:bg-neutral-50',
+    default: 'border border-neutral-300 bg-white focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 dark:bg-neutral-800 dark:border-neutral-700 dark:focus:border-primary-400 dark:focus:ring-primary-400/20',
+    filled: 'border-0 bg-neutral-100 focus:bg-white focus:ring-2 focus:ring-primary-500/20 dark:bg-neutral-700 dark:focus:bg-neutral-800 dark:focus:ring-primary-400/20',
+    outlined: 'border-2 border-neutral-300 bg-transparent focus:border-primary-500 dark:border-neutral-700 dark:focus:border-primary-400',
+    ghost: 'border-0 bg-transparent hover:bg-neutral-50 focus:bg-neutral-50 dark:hover:bg-neutral-800 dark:focus:bg-neutral-800',
 };
 
 const sizes = {
@@ -184,7 +184,7 @@ export const Input2 = forwardRef<HTMLInputElement, Input2Props>(
                     {/* Prefix icon */}
                     {prefixIcon && (
                         <motion.div 
-                            className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400"
+                            className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400 dark:text-neutral-500"
                             initial={{ opacity: 0, scale: 0.8 }}
                             animate={{ opacity: 1, scale: 1 }}
                             transition={{ duration: 0.2, ease: 'easeOut' }}
@@ -200,7 +200,8 @@ export const Input2 = forwardRef<HTMLInputElement, Input2Props>(
                         disabled={disabled || loading}
                         className={cn(
                             'w-full rounded-lg transition-all duration-200',
-                            'placeholder:text-neutral-400',
+                            'placeholder:text-neutral-400 dark:placeholder-neutral-500',
+                            'text-neutral-900 dark:text-neutral-100',
                             'focus:outline-none',
                             'disabled:cursor-not-allowed disabled:opacity-50',
                             variants[variant],
@@ -232,7 +233,7 @@ export const Input2 = forwardRef<HTMLInputElement, Input2Props>(
                                     exit={{ opacity: 0, scale: 0.8 }}
                                     transition={{ duration: 0.15 }}
                                 >
-                                    <Loader2 className="h-4 w-4 animate-spin text-neutral-400" />
+                                    <Loader2 className="h-4 w-4 animate-spin text-neutral-400 dark:text-neutral-500" />
                                 </motion.div>
                             )}
 
@@ -241,7 +242,7 @@ export const Input2 = forwardRef<HTMLInputElement, Input2Props>(
                                     key="clear"
                                     type="button"
                                     onClick={handleClear}
-                                    className="text-neutral-400 hover:text-neutral-600 transition-colors"
+                                    className="text-neutral-400 hover:text-neutral-600 dark:text-neutral-500 dark:hover:text-neutral-300 transition-colors"
                                     tabIndex={-1}
                                     initial={{ opacity: 0, scale: 0.8 }}
                                     animate={{ opacity: 1, scale: 1 }}
@@ -257,7 +258,7 @@ export const Input2 = forwardRef<HTMLInputElement, Input2Props>(
                             {!loading && suffixIcon && (
                                 <motion.div 
                                     key="suffix"
-                                    className="text-neutral-400"
+                                    className="text-neutral-400 dark:text-neutral-500"
                                     initial={{ opacity: 0, scale: 0.8 }}
                                     animate={{ opacity: 1, scale: 1 }}
                                     transition={{ duration: 0.2, ease: 'easeOut' }}

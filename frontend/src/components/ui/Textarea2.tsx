@@ -18,9 +18,9 @@ export interface Textarea2Props extends TextareaHTMLAttributes<HTMLTextAreaEleme
 }
 
 const variants = {
-    default: 'border border-neutral-300 bg-white focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20',
-    filled: 'border-0 bg-neutral-100 focus:bg-white focus:ring-2 focus:ring-primary-500/20',
-    outlined: 'border-2 border-neutral-300 bg-transparent focus:border-primary-500',
+    default: 'border border-neutral-300 bg-white focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 dark:bg-neutral-800 dark:border-neutral-700 dark:focus:border-primary-400 dark:focus:ring-primary-400/20',
+    filled: 'border-0 bg-neutral-100 focus:bg-white focus:ring-2 focus:ring-primary-500/20 dark:bg-neutral-700 dark:focus:bg-neutral-800 dark:focus:ring-primary-400/20',
+    outlined: 'border-2 border-neutral-300 bg-transparent focus:border-primary-500 dark:border-neutral-700 dark:focus:border-primary-400',
 };
 
 const resizeClasses = {
@@ -100,7 +100,7 @@ export const Textarea2 = forwardRef<HTMLTextAreaElement, Textarea2Props>(
 
                     {showCount && maxLength && (
                         <motion.span 
-                            className="text-xs text-neutral-500"
+                            className="text-xs text-neutral-500 dark:text-neutral-400"
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
                             transition={{ duration: 0.2, delay: 0.1 }}
@@ -122,7 +122,8 @@ export const Textarea2 = forwardRef<HTMLTextAreaElement, Textarea2Props>(
                         onChange={handleChange}
                         className={cn(
                             'w-full rounded-lg px-4 py-2.5 text-sm transition-all duration-200',
-                            'placeholder:text-neutral-400',
+                            'placeholder:text-neutral-400 dark:placeholder-neutral-500',
+                            'text-neutral-900 dark:text-neutral-100',
                             'focus:outline-none',
                             'disabled:cursor-not-allowed disabled:opacity-50',
                             'min-h-[80px]',

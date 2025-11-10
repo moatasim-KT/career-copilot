@@ -174,7 +174,11 @@ export const DatePicker2 = forwardRef<HTMLDivElement, DatePicker2Props>(
                         className={cn(
                             'w-full h-10 px-4 pr-10 rounded-lg border transition-all duration-200',
                             'border-neutral-300 bg-white',
+                            'dark:bg-neutral-800 dark:border-neutral-700',
+                            'text-neutral-900 dark:text-neutral-100',
+                            'placeholder:text-neutral-400 dark:placeholder-neutral-500',
                             'focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20',
+                            'dark:focus:border-primary-400 dark:focus:ring-primary-400/20',
                             'focus:outline-none',
                             'disabled:cursor-not-allowed disabled:opacity-50',
                             error && 'border-error-500 focus:border-error-500',
@@ -186,7 +190,7 @@ export const DatePicker2 = forwardRef<HTMLDivElement, DatePicker2Props>(
                             <motion.button
                                 type="button"
                                 onClick={clearSelection}
-                                className="absolute right-8 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-600 transition-colors"
+                                className="absolute right-8 top-1/2 -translate-y-1/2 text-neutral-400 dark:text-neutral-500 hover:text-neutral-600 dark:hover:text-neutral-300 transition-colors"
                                 tabIndex={-1}
                                 initial={{ opacity: 0, scale: 0.8 }}
                                 animate={{ opacity: 1, scale: 1 }}
@@ -199,14 +203,14 @@ export const DatePicker2 = forwardRef<HTMLDivElement, DatePicker2Props>(
                             </motion.button>
                         )}
                     </AnimatePresence>
-                    <CalendarIcon className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-neutral-400 pointer-events-none" />
+                    <CalendarIcon className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-neutral-400 dark:text-neutral-500 pointer-events-none" />
 
                     {/* Calendar popover */}
                     <AnimatePresence>
                         {showCalendar && (
                             <motion.div 
                                 ref={calendarRef} 
-                                className="absolute z-50 mt-2 w-full bg-white border border-neutral-200 rounded-lg shadow-lg p-4"
+                                className="absolute z-50 mt-2 w-full bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-lg shadow-lg p-4"
                                 initial={{ opacity: 0, y: -10, scale: 0.95 }}
                                 animate={{ opacity: 1, y: 0, scale: 1 }}
                                 exit={{ opacity: 0, y: -10, scale: 0.95 }}
@@ -223,11 +227,11 @@ export const DatePicker2 = forwardRef<HTMLDivElement, DatePicker2Props>(
                                             setCurrentMonth(m => m - 1);
                                         }
                                     }}
-                                    className="p-1 rounded hover:bg-neutral-100"
+                                    className="p-1 rounded hover:bg-neutral-100 dark:hover:bg-neutral-700 text-neutral-700 dark:text-neutral-300"
                                 >
                                     <ChevronLeft className="h-4 w-4" />
                                 </button>
-                                <span className="font-medium text-neutral-700">
+                                <span className="font-medium text-neutral-700 dark:text-neutral-300">
                                     {new Date(currentYear, currentMonth).toLocaleString('default', { month: 'long', year: 'numeric' })}
                                 </span>
                                 <button
@@ -240,12 +244,12 @@ export const DatePicker2 = forwardRef<HTMLDivElement, DatePicker2Props>(
                                             setCurrentMonth(m => m + 1);
                                         }
                                     }}
-                                    className="p-1 rounded hover:bg-neutral-100"
+                                    className="p-1 rounded hover:bg-neutral-100 dark:hover:bg-neutral-700 text-neutral-700 dark:text-neutral-300"
                                 >
                                     <ChevronRight className="h-4 w-4" />
                                 </button>
                             </div>
-                            <div className="grid grid-cols-7 gap-1 mb-1 text-xs text-neutral-500">
+                            <div className="grid grid-cols-7 gap-1 mb-1 text-xs text-neutral-500 dark:text-neutral-400">
                                 {['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'].map(d => (
                                     <div key={d} className="text-center font-medium">
                                         {d}
@@ -275,12 +279,12 @@ export const DatePicker2 = forwardRef<HTMLDivElement, DatePicker2Props>(
                                             disabled={isDisabled}
                                             onClick={() => selectDate(day)}
                                             className={cn(
-                                                'w-8 h-8 rounded-full flex items-center justify-center',
-                                                isToday && 'border border-primary-500',
-                                                isSelected && 'bg-primary-500 text-white',
-                                                inRange && 'bg-primary-100',
+                                                'w-8 h-8 rounded-full flex items-center justify-center text-neutral-700 dark:text-neutral-300',
+                                                isToday && 'border border-primary-500 dark:border-primary-400',
+                                                isSelected && 'bg-primary-500 dark:bg-primary-600 text-white',
+                                                inRange && 'bg-primary-100 dark:bg-primary-900/30',
                                                 isDisabled && 'opacity-30 cursor-not-allowed',
-                                                !isDisabled && 'hover:bg-primary-50',
+                                                !isDisabled && 'hover:bg-primary-50 dark:hover:bg-primary-900/20',
                                             )}
                                             whileHover={!isDisabled ? { scale: 1.1 } : {}}
                                             whileTap={!isDisabled ? { scale: 0.95 } : {}}

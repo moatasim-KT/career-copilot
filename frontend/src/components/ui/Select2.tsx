@@ -19,9 +19,9 @@ export interface Select2Props extends Omit<SelectHTMLAttributes<HTMLSelectElemen
 }
 
 const variants = {
-    default: 'border border-neutral-300 bg-white focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20',
-    filled: 'border-0 bg-neutral-100 focus:bg-white focus:ring-2 focus:ring-primary-500/20',
-    outlined: 'border-2 border-neutral-300 bg-transparent focus:border-primary-500',
+    default: 'border border-neutral-300 bg-white focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 dark:bg-neutral-800 dark:border-neutral-700 dark:focus:border-primary-400 dark:focus:ring-primary-400/20',
+    filled: 'border-0 bg-neutral-100 focus:bg-white focus:ring-2 focus:ring-primary-500/20 dark:bg-neutral-700 dark:focus:bg-neutral-800 dark:focus:ring-primary-400/20',
+    outlined: 'border-2 border-neutral-300 bg-transparent focus:border-primary-500 dark:border-neutral-700 dark:focus:border-primary-400',
 };
 
 const sizes = {
@@ -89,7 +89,7 @@ export const Select2 = forwardRef<HTMLSelectElement, Select2Props>(
                 >
                     {prefixIcon && (
                         <motion.div 
-                            className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400"
+                            className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400 dark:text-neutral-500"
                             initial={{ opacity: 0, scale: 0.8 }}
                             animate={{ opacity: 1, scale: 1 }}
                             transition={{ duration: 0.2, ease: 'easeOut' }}
@@ -103,6 +103,7 @@ export const Select2 = forwardRef<HTMLSelectElement, Select2Props>(
                         disabled={disabled}
                         className={cn(
                             'w-full rounded-lg transition-all duration-200 appearance-none',
+                            'text-neutral-900 dark:text-neutral-100',
                             'focus:outline-none cursor-pointer',
                             'disabled:cursor-not-allowed disabled:opacity-50',
                             variants[variant],
@@ -130,7 +131,7 @@ export const Select2 = forwardRef<HTMLSelectElement, Select2Props>(
                         animate={{ rotate: isFocused ? 180 : 0 }}
                         transition={{ duration: 0.2, ease: 'easeOut' }}
                     >
-                        <ChevronDown className="h-4 w-4 text-neutral-400" />
+                        <ChevronDown className="h-4 w-4 text-neutral-400 dark:text-neutral-500" />
                     </motion.div>
                 </motion.div>
 
