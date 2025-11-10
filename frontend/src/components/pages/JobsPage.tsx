@@ -39,6 +39,10 @@ import { QuickFilterChips } from '@/components/filters/QuickFilterChips';
 import { SavedFilters } from '@/components/filters/SavedFilters';
 import { StickyFilterPanel } from '@/components/filters/StickyFilterPanel';
 import Button2 from '@/components/ui/Button2';
+import { BulkActionBar } from '@/components/ui/BulkActionBar';
+import { ConfirmBulkAction } from '@/components/ui/ConfirmBulkAction';
+import { BulkOperationProgress } from '@/components/ui/BulkOperationProgress';
+import { UndoToast } from '@/components/ui/UndoToast';
 import Card, { CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import Input from '@/components/ui/Input';
 import Modal, { ModalFooter } from '@/components/ui/Modal';
@@ -46,7 +50,9 @@ import Select from '@/components/ui/Select';
 import Textarea from '@/components/ui/Textarea';
 import { useLocalStorage } from '@/hooks/useLocalStorage';
 import { useRecentSearches } from '@/hooks/useRecentSearches';
+import { useBulkUndo } from '@/hooks/useBulkUndo';
 import { ApplicationsService, JobsService, type JobCreate, type JobResponse } from '@/lib/api/client';
+import { createJobBulkActions } from '@/lib/bulkActions/jobActions';
 import { JOB_SEARCH_FIELDS } from '@/lib/searchFields';
 import { applySearchQuery, countSearchResults, createEmptyQuery, hasSearchCriteria, queryToSearchParams, searchParamsToQuery } from '@/lib/searchUtils';
 import type { SearchGroup, SavedSearch } from '@/types/search';
@@ -113,6 +119,46 @@ export default function JobsPage() {
   const { saveSearch } = useSavedSearches('jobs');
   const { addRecentSearch } = useRecentSearches('jobs');
 
+  // Bulk operations state
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+  const [confirmAction, setConfirmAction] = useState<any>(null);
+  const [showProgress, setShowProgress] = useState(false);
+  const [progressData, setProgressData] = useState({
+    totalItems: 0,
+    processedItems: 0,
+    successCount: 0,
+    failureCount: 0,
+    errors: [] as any[],
+    isComplete: false,
+  });
+  const [successMessage, setSuccessMessage] = useState('');
+  const [errorMessage, setErrorMessage] = useState('');
+
+  // Undo functionality
+  const { undoState, isUndoing, storeUndo, undo, clearUndo, canUndo } = useBulkUndo({
+    timeout: 5000,
+    onUndo: async (state) => {
+      // Restore previous state
+      const { previousState, affectedIds } = state;
+      
+      // Restore jobs to their previous state
+      await Promise.all(
+        affectedIds.map((jobId) => {
+          const prevJob = previousState.find((j: JobResponse) => j.id === jobId);
+          if (prevJob) {
+            return JobsService.updateJobApiV1JobsJobIdPut({
+              jobId: jobId as number,
+              requestBody: prevJob as any,
+            });
+          }
+        })
+      );
+
+      setSuccessMessage('Action undone successfully');
+      loadJobs();
+    },
+  });
+
   const handleSaveFilter = (filterName: string) => {
     const currentFilters = {
       searchTerm,
@@ -142,17 +188,52 @@ export default function JobsPage() {
     );
   };
 
-  const handleBulkDelete = async () => {
-    if (!confirm(`Are you sure you want to delete ${selectedJobIds.length} selected jobs?`)) return;
+  // Create bulk actions
+  const bulkActions = createJobBulkActions({
+    jobs,
+    onSuccess: (message) => {
+      setSuccessMessage(message);
+      setSelectedJobIds([]);
+      setTimeout(() => setSuccessMessage(''), 3000);
+    },
+    onError: (message) => {
+      setErrorMessage(message);
+      setTimeout(() => setErrorMessage(''), 5000);
+    },
+    onRefresh: loadJobs,
+  });
+
+  // Handle bulk action with confirmation
+  const handleBulkAction = async (action: any) => {
+    if (action.requiresConfirmation) {
+      setConfirmAction(action);
+      setShowConfirmDialog(true);
+    } else {
+      await executeBulkAction(action);
+    }
+  };
+
+  // Execute bulk action
+  const executeBulkAction = async (action: any) => {
+    // Store previous state for undo (only for non-destructive actions)
+    if (!action.requiresConfirmation) {
+      const affectedJobs = jobs.filter(job => job.id && selectedJobIds.includes(job.id));
+      storeUndo(action.id, action.label, affectedJobs, selectedJobIds);
+    }
 
     try {
-      for (const jobId of selectedJobIds) {
-        await JobsService.deleteJobApiV1JobsJobIdDelete({ jobId });
-      }
-      setSelectedJobIds([]);
-      loadJobs();
-    } catch (err) {
-      setError('Failed to delete selected jobs');
+      await action.action(selectedJobIds);
+    } catch (error) {
+      console.error('Bulk action failed:', error);
+    }
+  };
+
+  // Confirm and execute action
+  const handleConfirmAction = async () => {
+    if (confirmAction) {
+      setShowConfirmDialog(false);
+      await executeBulkAction(confirmAction);
+      setConfirmAction(null);
     }
   };
 
@@ -886,6 +967,82 @@ export default function JobsPage() {
         onSave={saveSearch}
         resultCount={filteredAndSortedJobs.length}
       />
+
+      {/* Bulk Action Bar */}
+      <BulkActionBar
+        selectedCount={selectedJobIds.length}
+        selectedIds={selectedJobIds}
+        actions={bulkActions.map(action => ({
+          ...action,
+          action: () => handleBulkAction(action),
+        }))}
+        onClearSelection={() => setSelectedJobIds([])}
+      />
+
+      {/* Confirmation Dialog */}
+      <ConfirmBulkAction
+        isOpen={showConfirmDialog}
+        onClose={() => {
+          setShowConfirmDialog(false);
+          setConfirmAction(null);
+        }}
+        onConfirm={handleConfirmAction}
+        title={`Confirm ${confirmAction?.label}`}
+        message={`Are you sure you want to ${confirmAction?.label.toLowerCase()} ${selectedJobIds.length} job${selectedJobIds.length > 1 ? 's' : ''}?`}
+        itemCount={selectedJobIds.length}
+        itemNames={jobs
+          .filter(job => job.id && selectedJobIds.includes(job.id))
+          .map(job => `${job.title} at ${job.company}`)
+        }
+        confirmLabel={confirmAction?.label || 'Confirm'}
+        isDestructive={confirmAction?.variant === 'destructive'}
+        showDontAskAgain={false}
+      />
+
+      {/* Progress Dialog */}
+      <BulkOperationProgress
+        isOpen={showProgress}
+        onClose={() => setShowProgress(false)}
+        title="Processing Bulk Operation"
+        totalItems={progressData.totalItems}
+        processedItems={progressData.processedItems}
+        successCount={progressData.successCount}
+        failureCount={progressData.failureCount}
+        errors={progressData.errors}
+        isComplete={progressData.isComplete}
+      />
+
+      {/* Undo Toast */}
+      <UndoToast
+        isVisible={canUndo}
+        message={`${undoState?.actionName || 'Action'} applied to ${undoState?.affectedIds.length || 0} job${(undoState?.affectedIds.length || 0) > 1 ? 's' : ''}`}
+        onUndo={undo}
+        onDismiss={clearUndo}
+        isUndoing={isUndoing}
+      />
+
+      {/* Success/Error Messages */}
+      {successMessage && (
+        <div className="fixed top-4 right-4 z-50">
+          <Card className="border-green-200 bg-green-50">
+            <CardContent className="flex items-center p-4">
+              <CheckCircle className="h-5 w-5 text-green-400 flex-shrink-0" />
+              <p className="text-sm text-green-800 ml-3">{successMessage}</p>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      {errorMessage && (
+        <div className="fixed top-4 right-4 z-50">
+          <Card className="border-red-200 bg-red-50">
+            <CardContent className="flex items-center p-4">
+              <AlertCircle className="h-5 w-5 text-red-400 flex-shrink-0" />
+              <p className="text-sm text-red-800 ml-3">{errorMessage}</p>
+            </CardContent>
+          </Card>
+        </div>
+      )}
     </div>
   );
 }

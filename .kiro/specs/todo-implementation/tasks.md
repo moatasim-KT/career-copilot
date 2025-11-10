@@ -295,7 +295,7 @@ This implementation plan converts the TODO.md remaining tasks into actionable co
   - Test accessibility with screen readers
   - _Requirements: 3.1, 3.2_
 
-- [-] 6. Implement Advanced Search System
+- [x] 6. Implement Advanced Search System
 - [x] 6.1 Create SearchRule and SearchGroup interfaces
   - Create `frontend/src/types/search.ts`
   - Define SearchRule interface (id, field, operator, value)
@@ -377,8 +377,8 @@ This implementation plan converts the TODO.md remaining tasks into actionable co
   - Test search functionality
   - _Requirements: 3.3_
 
-- [ ] 7. Implement Bulk Operations
-- [ ] 7.1 Create BulkActionBar component
+- [-] 7. Implement Bulk Operations
+- [x] 7.1 Create BulkActionBar component
   - Create `frontend/src/components/ui/BulkActionBar.tsx`
   - Implement fixed position bar at bottom of screen
   - Add slide up animation when items selected
@@ -388,7 +388,7 @@ This implementation plan converts the TODO.md remaining tasks into actionable co
   - Style with backdrop blur and shadow
   - _Requirements: 3.4_
 
-- [ ] 7.2 Define bulk actions for jobs
+- [x] 7.2 Define bulk actions for jobs
   - Create bulk action definitions for job listings
   - Archive selected jobs
   - Add to wishlist/saved
@@ -398,7 +398,7 @@ This implementation plan converts the TODO.md remaining tasks into actionable co
   - Add optimistic UI updates
   - _Requirements: 3.4_
 
-- [ ] 7.3 Define bulk actions for applications
+- [x] 7.3 Define bulk actions for applications
   - Create bulk action definitions for applications
   - Change status (dropdown: Applied, Interviewing, Offer, Rejected, Accepted)
   - Delete selected applications
@@ -407,7 +407,7 @@ This implementation plan converts the TODO.md remaining tasks into actionable co
   - Implement action handlers
   - _Requirements: 3.4_
 
-- [ ] 7.4 Create confirmation dialogs for destructive actions
+- [x] 7.4 Create confirmation dialogs for destructive actions
   - Create ConfirmBulkAction component
   - Show "Delete X applications?" with warning
   - List items to be affected (first 5, then "and X more")
@@ -416,7 +416,7 @@ This implementation plan converts the TODO.md remaining tasks into actionable co
   - Add "Don't ask again" checkbox (store preference)
   - _Requirements: 3.4_
 
-- [ ] 7.5 Implement bulk operation progress
+- [x] 7.5 Implement bulk operation progress
   - Create progress indicator for long-running operations
   - Show progress bar or circular spinner
   - Display status text: "Processing X of Y items..."
@@ -425,7 +425,7 @@ This implementation plan converts the TODO.md remaining tasks into actionable co
   - Show errors for failed items with retry button
   - _Requirements: 3.4_
 
-- [ ] 7.6 Implement undo functionality
+- [x] 7.6 Implement undo functionality
   - Add undo for non-destructive bulk actions
   - Show toast notification with "Undo" button
   - Set undo timeout to 5 seconds
@@ -433,7 +433,7 @@ This implementation plan converts the TODO.md remaining tasks into actionable co
   - Test undo for status changes, archive, etc.
   - _Requirements: 3.4_
 
-- [ ] 7.7 Integrate bulk operations with DataTable
+- [x] 7.7 Integrate bulk operations with DataTable
   - Ensure DataTable row selection works (already implemented in Phase 3)
   - Add BulkActionBar when items selected
   - Pass selected IDs to bulk actions

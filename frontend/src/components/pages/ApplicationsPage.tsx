@@ -24,15 +24,21 @@ import { FilterChips, removeRuleFromQuery } from '@/components/features/FilterCh
 import { RecentSearches } from '@/components/features/RecentSearches';
 import { SavedSearches, useSavedSearches } from '@/components/features/SavedSearches';
 import Button2 from '@/components/ui/Button2';
+import { BulkActionBar } from '@/components/ui/BulkActionBar';
+import { ConfirmBulkAction } from '@/components/ui/ConfirmBulkAction';
+import { BulkOperationProgress } from '@/components/ui/BulkOperationProgress';
+import { UndoToast } from '@/components/ui/UndoToast';
 import Card, { CardContent } from '@/components/ui/Card';
 import Input from '@/components/ui/Input';
 import Modal, { ModalFooter } from '@/components/ui/Modal';
 import Select from '@/components/ui/Select';
 import Textarea from '@/components/ui/Textarea';
 import { useRecentSearches } from '@/hooks/useRecentSearches';
+import { useBulkUndo } from '@/hooks/useBulkUndo';
 import { useWebSocket } from '@/hooks/useWebSocket';
 import { staggerContainer, staggerItem, fadeVariants, springConfigs } from '@/lib/animations';
 import { apiClient, type Application } from '@/lib/api';
+import { createApplicationBulkActions } from '@/lib/bulkActions/applicationActions';
 import { logger } from '@/lib/logger';
 import { APPLICATION_SEARCH_FIELDS } from '@/lib/searchFields';
 import { applySearchQuery, countSearchResults, createEmptyQuery, hasSearchCriteria, queryToSearchParams } from '@/lib/searchUtils';
@@ -75,6 +81,44 @@ export default function ApplicationsPage() {
   const [advancedSearchQuery, setAdvancedSearchQuery] = useState<SearchGroup>(createEmptyQuery());
   const { saveSearch } = useSavedSearches('applications');
   const { addRecentSearch } = useRecentSearches('applications');
+
+  // Bulk operations state
+  const [selectedApplicationIds, setSelectedApplicationIds] = useState<number[]>([]);
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+  const [confirmAction, setConfirmAction] = useState<any>(null);
+  const [showProgress, setShowProgress] = useState(false);
+  const [progressData, _setProgressData] = useState({
+    totalItems: 0,
+    processedItems: 0,
+    successCount: 0,
+    failureCount: 0,
+    errors: [] as any[],
+    isComplete: false,
+  });
+  const [successMessage, setSuccessMessage] = useState('');
+  const [errorMessage, setErrorMessage] = useState('');
+
+  // Undo functionality
+  const { undoState, isUndoing, storeUndo, undo, clearUndo, canUndo } = useBulkUndo({
+    timeout: 5000,
+    onUndo: async (state) => {
+      // Restore previous state
+      const { previousState, affectedIds } = state;
+      
+      // Restore applications to their previous state
+      await Promise.all(
+        affectedIds.map((appId) => {
+          const prevApp = previousState.find((a: Application) => a.id === appId);
+          if (prevApp) {
+            return apiClient.updateApplication(appId as number, prevApp);
+          }
+        }),
+      );
+
+      setSuccessMessage('Action undone successfully');
+      loadApplications();
+    },
+  });
 
   const handleApplicationUpdate = useCallback((data: any) => {
     logger.log('Application update received:', data);
@@ -300,6 +344,71 @@ export default function ApplicationsPage() {
 
   const handlePreviewSearch = async (query: SearchGroup): Promise<number> => {
     return countSearchResults(applications, query);
+  };
+
+  // Create bulk actions
+  const bulkActions = createApplicationBulkActions({
+    applications,
+    onSuccess: (message) => {
+      setSuccessMessage(message);
+      setSelectedApplicationIds([]);
+      setTimeout(() => setSuccessMessage(''), 3000);
+    },
+    onError: (message) => {
+      setErrorMessage(message);
+      setTimeout(() => setErrorMessage(''), 5000);
+    },
+    onRefresh: loadApplications,
+  });
+
+  // Handle bulk action with confirmation
+  const handleBulkAction = async (action: any) => {
+    if (action.requiresConfirmation) {
+      setConfirmAction(action);
+      setShowConfirmDialog(true);
+    } else {
+      await executeBulkAction(action);
+    }
+  };
+
+  // Execute bulk action
+  const executeBulkAction = async (action: any) => {
+    // Store previous state for undo (only for non-destructive actions)
+    if (!action.requiresConfirmation) {
+      const affectedApps = applications.filter(app => selectedApplicationIds.includes(app.id));
+      storeUndo(action.id, action.label, affectedApps, selectedApplicationIds);
+    }
+
+    try {
+      await action.action(selectedApplicationIds);
+    } catch (error) {
+      console.error('Bulk action failed:', error);
+    }
+  };
+
+  // Confirm and execute action
+  const handleConfirmAction = async () => {
+    if (confirmAction) {
+      setShowConfirmDialog(false);
+      await executeBulkAction(confirmAction);
+      setConfirmAction(null);
+    }
+  };
+
+  // Handle selection toggle
+  const handleSelectApplication = (appId: number) => {
+    setSelectedApplicationIds(prev =>
+      prev.includes(appId) ? prev.filter(id => id !== appId) : [...prev, appId],
+    );
+  };
+
+  // Handle select all
+  const handleSelectAll = () => {
+    if (selectedApplicationIds.length === filteredAndSortedApplications.length) {
+      setSelectedApplicationIds([]);
+    } else {
+      setSelectedApplicationIds(filteredAndSortedApplications.map(app => app.id));
+    }
   };
 
   const filteredAndSortedApplications = useMemo(() => {
@@ -556,16 +665,34 @@ export default function ApplicationsPage() {
               animate={{ opacity: 1 }}
               transition={{ delay: 0.5 }}
             >
-              <motion.div
-                className="text-sm text-neutral-600"
-                key={`${filteredAndSortedApplications.length}-${statusFilter}`}
-                initial={{ opacity: 0, y: 5 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.2 }}
-              >
-                Showing {filteredAndSortedApplications.length} of {applications.length} applications
-                {statusFilter !== 'all' && ` with status: ${statusFilter}`}
-              </motion.div>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-4">
+                  <label className="flex items-center space-x-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      className="rounded border-neutral-300 text-blue-600 focus:ring-blue-500"
+                      checked={selectedApplicationIds.length === filteredAndSortedApplications.length && filteredAndSortedApplications.length > 0}
+                      onChange={handleSelectAll}
+                    />
+                    <span className="text-sm font-medium text-neutral-700">Select All</span>
+                  </label>
+                  {selectedApplicationIds.length > 0 && (
+                    <span className="text-sm text-neutral-600">
+                      {selectedApplicationIds.length} selected
+                    </span>
+                  )}
+                </div>
+                <motion.div
+                  className="text-sm text-neutral-600"
+                  key={`${filteredAndSortedApplications.length}-${statusFilter}`}
+                  initial={{ opacity: 0, y: 5 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  Showing {filteredAndSortedApplications.length} of {applications.length} applications
+                  {statusFilter !== 'all' && ` with status: ${statusFilter}`}
+                </motion.div>
+              </div>
             </motion.div>
           </CardContent>
         </Card>
@@ -678,8 +805,15 @@ export default function ApplicationsPage() {
                 <Card hover className="transition-all duration-200">
                   <CardContent className="p-6">
                     <div className="flex items-start justify-between">
-                      <div className="flex-1">
-                        <div className="flex items-center space-x-3 mb-2">
+                      <div className="flex items-start space-x-3 flex-1">
+                        <input
+                          type="checkbox"
+                          className="mt-1 rounded border-neutral-300 text-blue-600 focus:ring-blue-500"
+                          checked={selectedApplicationIds.includes(application.id)}
+                          onChange={() => handleSelectApplication(application.id)}
+                        />
+                        <div className="flex-1">
+                          <div className="flex items-center space-x-3 mb-2">
                           <h3 className="text-lg font-semibold text-neutral-900">
                             {application.job?.title || 'Unknown Position'}
                           </h3>
@@ -766,6 +900,7 @@ export default function ApplicationsPage() {
                             className="w-32"
                           />
                         </motion.div>
+                      </div>
                       </div>
                     </div>
 
@@ -946,6 +1081,82 @@ export default function ApplicationsPage() {
         onSave={saveSearch}
         resultCount={filteredAndSortedApplications.length}
       />
+
+      {/* Bulk Action Bar */}
+      <BulkActionBar
+        selectedCount={selectedApplicationIds.length}
+        selectedIds={selectedApplicationIds}
+        actions={bulkActions.map(action => ({
+          ...action,
+          action: () => handleBulkAction(action),
+        }))}
+        onClearSelection={() => setSelectedApplicationIds([])}
+      />
+
+      {/* Confirmation Dialog */}
+      <ConfirmBulkAction
+        isOpen={showConfirmDialog}
+        onClose={() => {
+          setShowConfirmDialog(false);
+          setConfirmAction(null);
+        }}
+        onConfirm={handleConfirmAction}
+        title={`Confirm ${confirmAction?.label}`}
+        message={`Are you sure you want to ${confirmAction?.label.toLowerCase()} ${selectedApplicationIds.length} application${selectedApplicationIds.length > 1 ? 's' : ''}?`}
+        itemCount={selectedApplicationIds.length}
+        itemNames={applications
+          .filter(app => selectedApplicationIds.includes(app.id))
+          .map(app => `${app.job?.title || 'Unknown'} at ${app.job?.company || 'Unknown'}`)
+        }
+        confirmLabel={confirmAction?.label || 'Confirm'}
+        isDestructive={confirmAction?.variant === 'destructive'}
+        showDontAskAgain={false}
+      />
+
+      {/* Progress Dialog */}
+      <BulkOperationProgress
+        isOpen={showProgress}
+        onClose={() => setShowProgress(false)}
+        title="Processing Bulk Operation"
+        totalItems={progressData.totalItems}
+        processedItems={progressData.processedItems}
+        successCount={progressData.successCount}
+        failureCount={progressData.failureCount}
+        errors={progressData.errors}
+        isComplete={progressData.isComplete}
+      />
+
+      {/* Undo Toast */}
+      <UndoToast
+        isVisible={canUndo}
+        message={`${undoState?.actionName || 'Action'} applied to ${undoState?.affectedIds.length || 0} application${(undoState?.affectedIds.length || 0) > 1 ? 's' : ''}`}
+        onUndo={undo}
+        onDismiss={clearUndo}
+        isUndoing={isUndoing}
+      />
+
+      {/* Success/Error Messages */}
+      {successMessage && (
+        <div className="fixed top-4 right-4 z-50">
+          <Card className="border-green-200 bg-green-50">
+            <CardContent className="flex items-center p-4">
+              <CheckCircle className="h-5 w-5 text-green-400 flex-shrink-0" />
+              <p className="text-sm text-green-800 ml-3">{successMessage}</p>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      {errorMessage && (
+        <div className="fixed top-4 right-4 z-50">
+          <Card className="border-red-200 bg-red-50">
+            <CardContent className="flex items-center p-4">
+              <AlertCircle className="h-5 w-5 text-red-400 flex-shrink-0" />
+              <p className="text-sm text-red-800 ml-3">{errorMessage}</p>
+            </CardContent>
+          </Card>
+        </div>
+      )}
     </div>
   );
 }
