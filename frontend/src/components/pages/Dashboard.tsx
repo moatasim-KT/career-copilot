@@ -140,25 +140,35 @@ export default function Dashboard() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-4">
-          <h1 className="text-3xl font-bold text-neutral-900 dark:text-neutral-100">Dashboard</h1>
-        </div>
+      {/* Hero Section with Gradient */}
+      <div className="gradient-mesh rounded-2xl p-4 sm:p-6 md:p-12 relative overflow-hidden">
+        <div className="relative z-10">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+            <div className="flex-1">
+              <h1 className="text-4xl md:text-5xl font-bold text-neutral-900 dark:text-white mb-3">
+                Welcome Back
+              </h1>
+              <p className="text-lg text-neutral-700 dark:text-neutral-200 max-w-2xl">
+                Track your job applications, monitor your progress, and stay on top of your career goals.
+              </p>
+            </div>
 
-        <div className="flex items-center space-x-3">
-          {lastUpdated && (
-            <span className="text-sm text-neutral-500 dark:text-neutral-400">
-              Updated: {lastUpdated.toLocaleTimeString()}
-            </span>
-          )}
-          <button
-            onClick={refreshDashboard}
-            disabled={isLoading}
-            className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            <TrendingUp className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
-            <span>{isLoading ? 'Loading...' : 'Refresh'}</span>
-          </button>
+            <div className="flex items-center space-x-3">
+              {lastUpdated && (
+                <span className="text-sm text-neutral-700 dark:text-neutral-200 font-medium">
+                  Updated: {lastUpdated.toLocaleTimeString()}
+                </span>
+              )}
+              <button
+                onClick={refreshDashboard}
+                disabled={isLoading}
+                className="flex items-center space-x-2 px-6 py-3 bg-white dark:bg-neutral-800 text-neutral-900 dark:text-white rounded-lg hover:bg-neutral-50 dark:hover:bg-neutral-700 transition-colors shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed font-medium"
+              >
+                <TrendingUp className={`h-5 w-5 ${isLoading ? 'animate-spin' : ''}`} />
+                <span>{isLoading ? 'Loading...' : 'Refresh'}</span>
+              </button>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -174,8 +184,8 @@ export default function Dashboard() {
       )}
 
       {/* Key Metrics */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <div className="bg-white dark:bg-neutral-800 p-6 rounded-lg shadow-sm border border-neutral-200 dark:border-neutral-700">
+      <div className="grid grid-cols-1 gap-4 sm:gap-6 md:grid-cols-2 lg:grid-cols-4">
+        <div className="bg-white dark:bg-neutral-800 p-4 sm:p-6 rounded-lg shadow-sm border border-neutral-200 dark:border-neutral-700">
           <div className="flex items-center">
             <Briefcase className="h-8 w-8 text-blue-600 dark:text-blue-400" />
             <div className="ml-4">
@@ -187,7 +197,7 @@ export default function Dashboard() {
           </div>
         </div>
 
-        <div className="bg-white dark:bg-neutral-800 p-6 rounded-lg shadow-sm border border-neutral-200 dark:border-neutral-700">
+        <div className="bg-white dark:bg-neutral-800 p-4 sm:p-6 rounded-lg shadow-sm border border-neutral-200 dark:border-neutral-700">
           <div className="flex items-center">
             <FileText className="h-8 w-8 text-green-600 dark:text-green-400" />
             <div className="ml-4">
@@ -199,7 +209,7 @@ export default function Dashboard() {
           </div>
         </div>
 
-        <div className="bg-white dark:bg-neutral-800 p-6 rounded-lg shadow-sm border border-neutral-200 dark:border-neutral-700">
+        <div className="bg-white dark:bg-neutral-800 p-4 sm:p-6 rounded-lg shadow-sm border border-neutral-200 dark:border-neutral-700">
           <div className="flex items-center">
             <Calendar className="h-8 w-8 text-purple-600 dark:text-purple-400" />
             <div className="ml-4">
@@ -211,7 +221,7 @@ export default function Dashboard() {
           </div>
         </div>
 
-        <div className="bg-white dark:bg-neutral-800 p-6 rounded-lg shadow-sm border border-neutral-200 dark:border-neutral-700">
+        <div className="bg-white dark:bg-neutral-800 p-4 sm:p-6 rounded-lg shadow-sm border border-neutral-200 dark:border-neutral-700">
           <div className="flex items-center">
             <Trophy className="h-8 w-8 text-yellow-600 dark:text-yellow-400" />
             <div className="ml-4">
@@ -226,7 +236,7 @@ export default function Dashboard() {
 
       {/* Daily Goal */}
       {analytics && (
-        <div className="bg-white dark:bg-neutral-800 p-6 rounded-lg shadow-sm border border-neutral-200 dark:border-neutral-700">
+        <div className="bg-white dark:bg-neutral-800 p-4 sm:p-6 rounded-lg shadow-sm border border-neutral-200 dark:border-neutral-700">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-semibold text-neutral-900 dark:text-neutral-100 flex items-center">
               <Target className="h-5 w-5 text-blue-600 dark:text-blue-400 mr-2" />
@@ -259,10 +269,10 @@ export default function Dashboard() {
 
       {/* Recent Activity */}
       <div className="bg-white dark:bg-neutral-800 rounded-lg shadow-sm border border-neutral-200 dark:border-neutral-700">
-        <div className="p-6 border-b border-neutral-200 dark:border-neutral-700">
+        <div className="p-4 sm:p-6 border-b border-neutral-200 dark:border-neutral-700">
           <h2 className="text-lg font-semibold text-neutral-900 dark:text-neutral-100">Recent Activity</h2>
         </div>
-        <div className="p-6">
+        <div className="p-4 sm:p-6">
           {recentApplications.length > 0 ? (
             <div className="space-y-4">
               {recentApplications.map((application) => (
@@ -307,7 +317,7 @@ export default function Dashboard() {
 
       {/* Status Breakdown */}
       {analytics?.application_status_breakdown && Object.keys(analytics.application_status_breakdown).length > 0 && (
-        <div className="bg-white dark:bg-neutral-800 p-6 rounded-lg shadow-sm border border-neutral-200 dark:border-neutral-700">
+        <div className="bg-white dark:bg-neutral-800 p-4 sm:p-6 rounded-lg shadow-sm border border-neutral-200 dark:border-neutral-700">
           <h2 className="text-lg font-semibold text-neutral-900 dark:text-neutral-100 mb-4">Application Status Breakdown</h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {Object.entries(analytics.application_status_breakdown).map(([status, count]) => (
