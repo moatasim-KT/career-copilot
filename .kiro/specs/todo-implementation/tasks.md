@@ -139,7 +139,7 @@ This implementation plan converts the TODO.md remaining tasks into actionable co
   - Document variations in Storybook design tokens
   - _Requirements: 1.5_
 
-- [ ] 3.3 Apply glass morphism effects
+- [x] 3.3 Apply glass morphism effects
   - Apply .glass utility to modal backdrops
   - Apply to popover backgrounds
   - Apply to floating action buttons
@@ -154,7 +154,7 @@ This implementation plan converts the TODO.md remaining tasks into actionable co
   - Test all card variants
   - _Requirements: 1.5_
 
-- [ ] 3.5 Add button glow effects
+- [-] 3.5 Add button glow effects
   - Add glow effect to primary CTAs (box-shadow with primary color)
   - Increase glow on hover
   - Add pulse animation for critical actions

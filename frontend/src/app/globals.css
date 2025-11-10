@@ -323,4 +323,69 @@
       background-position: 0% 50%;
     }
   }
+
+  @keyframes pulse-glow {
+    0%, 100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.5;
+    }
+  }
+
+  /* ============================================
+     BUTTON GLOW EFFECTS
+     ============================================ */
+  .glow-primary {
+    box-shadow: 0 0 20px rgba(59, 130, 246, 0.4), 0 0 40px rgba(59, 130, 246, 0.2);
+  }
+
+  .glow-primary-hover {
+    box-shadow: 0 0 30px rgba(59, 130, 246, 0.6), 0 0 60px rgba(59, 130, 246, 0.3);
+  }
+
+  .glow-success {
+    box-shadow: 0 0 20px rgba(34, 197, 94, 0.4), 0 0 40px rgba(34, 197, 94, 0.2);
+  }
+
+  .glow-success-hover {
+    box-shadow: 0 0 30px rgba(34, 197, 94, 0.6), 0 0 60px rgba(34, 197, 94, 0.3);
+  }
+
+  .glow-error {
+    box-shadow: 0 0 20px rgba(239, 68, 68, 0.4), 0 0 40px rgba(239, 68, 68, 0.2);
+  }
+
+  .glow-error-hover {
+    box-shadow: 0 0 30px rgba(239, 68, 68, 0.6), 0 0 60px rgba(239, 68, 68, 0.3);
+  }
+
+  .pulse-glow {
+    animation: pulse-glow 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+
+  /* Dark mode adjustments for glows */
+  .dark .glow-primary {
+    box-shadow: 0 0 25px rgba(96, 165, 250, 0.5), 0 0 50px rgba(96, 165, 250, 0.25);
+  }
+
+  .dark .glow-primary-hover {
+    box-shadow: 0 0 35px rgba(96, 165, 250, 0.7), 0 0 70px rgba(96, 165, 250, 0.35);
+  }
+
+  .dark .glow-success {
+    box-shadow: 0 0 25px rgba(74, 222, 128, 0.5), 0 0 50px rgba(74, 222, 128, 0.25);
+  }
+
+  .dark .glow-success-hover {
+    box-shadow: 0 0 35px rgba(74, 222, 128, 0.7), 0 0 70px rgba(74, 222, 128, 0.35);
+  }
+
+  .dark .glow-error {
+    box-shadow: 0 0 25px rgba(248, 113, 113, 0.5), 0 0 50px rgba(248, 113, 113, 0.25);
+  }
+
+  .dark .glow-error-hover {
+    box-shadow: 0 0 35px rgba(248, 113, 113, 0.7), 0 0 70px rgba(248, 113, 113, 0.35);
+  }
 }
