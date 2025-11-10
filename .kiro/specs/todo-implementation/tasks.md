@@ -147,7 +147,7 @@ This implementation plan converts the TODO.md remaining tasks into actionable co
   - Test readability with backdrop-blur
   - _Requirements: 1.5_
 
-- [-] 3.4 Enhance Card2 with hover effects
+- [x] 3.4 Enhance Card2 with hover effects
   - Add smooth shadow expansion on hover
   - Add glow effect for featured/premium cards
   - Add gradientBorder prop option using before pseudo-element
