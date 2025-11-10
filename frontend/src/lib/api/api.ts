@@ -1064,6 +1064,122 @@ export class APIClient {
       false, // Don't retry health checks
     );
   }
+
+  // Notifications
+  async getNotifications(skip: number = 0, limit: number = 50): Promise<ApiResponse<any[]>> {
+    return this.makeRequest(
+      `getNotifications-${skip}-${limit}`,
+      `${this.baseUrl}/api/v1/notifications?skip=${skip}&limit=${limit}`,
+      {
+        headers: this.getHeaders(),
+      },
+    );
+  }
+
+  async markNotificationAsRead(notificationId: string): Promise<ApiResponse<void>> {
+    return this.makeRequest(
+      `markNotificationAsRead-${notificationId}`,
+      `${this.baseUrl}/api/v1/notifications/${notificationId}/read`,
+      {
+        method: 'PUT',
+        headers: this.getHeaders(),
+      },
+    );
+  }
+
+  async markNotificationAsUnread(notificationId: string): Promise<ApiResponse<void>> {
+    return this.makeRequest(
+      `markNotificationAsUnread-${notificationId}`,
+      `${this.baseUrl}/api/v1/notifications/${notificationId}/unread`,
+      {
+        method: 'PUT',
+        headers: this.getHeaders(),
+      },
+    );
+  }
+
+  async markAllNotificationsAsRead(): Promise<ApiResponse<void>> {
+    return this.makeRequest(
+      'markAllNotificationsAsRead',
+      `${this.baseUrl}/api/v1/notifications/read-all`,
+      {
+        method: 'PUT',
+        headers: this.getHeaders(),
+      },
+    );
+  }
+
+  async deleteNotification(notificationId: string): Promise<ApiResponse<void>> {
+    return this.makeRequest(
+      `deleteNotification-${notificationId}`,
+      `${this.baseUrl}/api/v1/notifications/${notificationId}`,
+      {
+        method: 'DELETE',
+        headers: this.getHeaders(),
+      },
+      false, // Don't retry deletes
+    );
+  }
+
+  async deleteNotifications(notificationIds: string[]): Promise<ApiResponse<void>> {
+    return this.makeRequest(
+      'deleteNotifications',
+      `${this.baseUrl}/api/v1/notifications/bulk-delete`,
+      {
+        method: 'POST',
+        headers: this.getHeaders(),
+        body: JSON.stringify({ notification_ids: notificationIds }),
+      },
+      false, // Don't retry deletes
+    );
+  }
+
+  async getNotificationPreferences(): Promise<ApiResponse<any>> {
+    return this.makeRequest(
+      'getNotificationPreferences',
+      `${this.baseUrl}/api/v1/notifications/preferences`,
+      {
+        headers: this.getHeaders(),
+      },
+    );
+  }
+
+  async updateNotificationPreferences(preferences: any): Promise<ApiResponse<any>> {
+    return this.makeRequest(
+      'updateNotificationPreferences',
+      `${this.baseUrl}/api/v1/notifications/preferences`,
+      {
+        method: 'PUT',
+        headers: this.getHeaders(),
+        body: JSON.stringify(preferences),
+      },
+    );
+  }
+
+  async subscribeToPushNotifications(subscription: any): Promise<ApiResponse<void>> {
+    return this.makeRequest(
+      'subscribeToPushNotifications',
+      `${this.baseUrl}/api/v1/notifications/push/subscribe`,
+      {
+        method: 'POST',
+        headers: this.getHeaders(),
+        body: JSON.stringify(subscription),
+      },
+      false, // Don't retry subscriptions
+    );
+  }
+
+  async unsubscribeFromPushNotifications(): Promise<ApiResponse<void>> {
+    return this.makeRequest(
+      'unsubscribeFromPushNotifications',
+      `${this.baseUrl}/api/v1/notifications/push/unsubscribe`,
+      {
+        method: 'POST',
+        headers: this.getHeaders(),
+      },
+      false, // Don't retry unsubscriptions
+    );
+  }
 }
 
 // Export singleton instance
