@@ -44,13 +44,13 @@ This implementation plan converts the TODO.md remaining tasks into actionable co
   - Implement error message slide down with shake effect
   - _Requirements: 1.1_
 
-- [-] 1.8 Enhance modal/dialog animations
+- [x] 1.8 Enhance modal/dialog animations
   - Update Modal2 component with backdrop fade and content scale
   - Add slide-in from bottom on mobile
   - Update Drawer component with slide animations
   - _Requirements: 1.1_
 
-- [ ] 1.9 Add loading state transitions
+- [x] 1.9 Add loading state transitions
   - Implement skeleton to content crossfade
   - Add stagger reveal for multiple items
   - Create smooth spinner with easing curves
@@ -97,7 +97,7 @@ This implementation plan converts the TODO.md remaining tasks into actionable co
   - Test active states in both themes
   - _Requirements: 1.3, 1.4_
 
-- [ ] 2.6 Update Dashboard for dark mode
+- [x] 2.6 Update Dashboard for dark mode
   - Update `frontend/src/components/pages/Dashboard.tsx`
   - Add dark:bg-neutral-800 to card backgrounds
   - Update stat cards with proper dark contrast
