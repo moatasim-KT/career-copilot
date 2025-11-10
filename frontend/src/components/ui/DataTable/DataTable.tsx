@@ -38,7 +38,7 @@ import { clsx } from 'clsx';
 import { ArrowUpDown, Search, X, ChevronDown, ChevronRight } from 'lucide-react';
 import React from 'react';
 
-import { Button2 as Button } from '@/components/ui/Button2';
+import Button from '@/components/ui/Button';
 import { Checkbox } from '@/components/ui/Checkbox';
 import {
   DropdownMenu,
@@ -47,14 +47,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/DropdownMenu';
-import { Input2 as Input } from '@/components/ui/Input2';
-import {
-  Select2 as Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/Select2';
+import Input from '@/components/ui/Input';
+import Select from '@/components/ui/Select';
 import { useDebounce } from '@/hooks/use-debounce';
 import { useMediaQuery } from '@/hooks/use-media-query';
 import { exportToCSV } from '@/lib/export';
@@ -359,9 +353,12 @@ export function DataTable<TData, TValue>({
             </div>
           </div>
         </div>
-        <div className="rounded-md border dark:border-neutral-700">
-          <table className="w-full text-sm" style={{ width: table.getCenterTotalSize() }}>
-            <thead>
+        <div className="rounded-md border dark:border-neutral-700 overflow-x-auto">
+          <table
+            className="w-full text-sm min-w-[600px] md:min-w-full"
+            style={{ width: table.getCenterTotalSize() }}
+          >
+            <thead className="bg-neutral-50 dark:bg-neutral-900">
               {tableWithSelection.getHeaderGroups().map((headerGroup) => (
                 <tr key={headerGroup.id}>
                   <SortableContext
@@ -369,11 +366,16 @@ export function DataTable<TData, TValue>({
                     strategy={horizontalListSortingStrategy}
                   >
                     {headerGroup.headers.map((header) => (
-                      <DraggableHeader
+                      <th
                         key={header.id}
-                        header={header}
-                        table={tableWithSelection}
-                      />
+                        className="h-12 px-4 text-left align-middle font-medium text-muted-foreground dark:bg-neutral-800 sticky top-0 z-10 bg-neutral-50 dark:bg-neutral-900"
+                        style={{ position: 'sticky', top: 0, zIndex: 10 }}
+                      >
+                        <DraggableHeader
+                          header={header}
+                          table={tableWithSelection}
+                        />
+                      </th>
                     ))}
                   </SortableContext>
                 </tr>
@@ -430,21 +432,17 @@ export function DataTable<TData, TValue>({
             <p className="text-sm font-medium">Rows per page</p>
             <Select
               value={`${tableWithSelection.getState().pagination.pageSize}`}
-              onChange={(value) => {
-                tableWithSelection.setPageSize(Number(value));
+              onChange={(e) => {
+                tableWithSelection.setPageSize(Number(e.target.value));
               }}
-            >
-              <SelectTrigger className="h-8 w-[70px]">
-                <SelectValue placeholder={tableWithSelection.getState().pagination.pageSize} />
-              </SelectTrigger>
-              <SelectContent side="top">
-                {[10, 20, 30, 40, 50].map((pageSize) => (
-                  <SelectItem key={pageSize} value={`${pageSize}`}>
-                    {pageSize}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+              options={[
+                { value: '10', label: '10' },
+                { value: '20', label: '20' },
+                { value: '30', label: '30' },
+                { value: '40', label: '40' },
+                { value: '50', label: '50' },
+              ]}
+            />
           </div>
           <div className="flex w-[100px] items-center justify-center text-sm font-medium">
             Page {tableWithSelection.getState().pagination.pageIndex + 1} of{' '}

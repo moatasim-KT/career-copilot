@@ -145,7 +145,7 @@ export default function Dashboard() {
         <div className="relative z-10">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
             <div className="flex-1">
-              <h1 className="text-4xl md:text-5xl font-bold text-neutral-900 dark:text-white mb-3">
+              <h1 className="text-2xl md:text-4xl font-bold text-neutral-900 dark:text-white mb-3">
                 Welcome Back
               </h1>
               <p className="text-lg text-neutral-700 dark:text-neutral-200 max-w-2xl">
@@ -238,7 +238,7 @@ export default function Dashboard() {
       {analytics && (
         <div className="bg-white dark:bg-neutral-800 p-4 sm:p-6 rounded-lg shadow-sm border border-neutral-200 dark:border-neutral-700">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold text-neutral-900 dark:text-neutral-100 flex items-center">
+            <h2 className="text-xl md:text-3xl font-semibold text-neutral-900 dark:text-neutral-100 flex items-center">
               <Target className="h-5 w-5 text-blue-600 dark:text-blue-400 mr-2" />
               Daily Application Goal
             </h2>
@@ -270,7 +270,7 @@ export default function Dashboard() {
       {/* Recent Activity */}
       <div className="bg-white dark:bg-neutral-800 rounded-lg shadow-sm border border-neutral-200 dark:border-neutral-700">
         <div className="p-4 sm:p-6 border-b border-neutral-200 dark:border-neutral-700">
-          <h2 className="text-lg font-semibold text-neutral-900 dark:text-neutral-100">Recent Activity</h2>
+          <h2 className="text-xl md:text-3xl font-semibold text-neutral-900 dark:text-neutral-100">Recent Activity</h2>
         </div>
         <div className="p-4 sm:p-6">
           {recentApplications.length > 0 ? (
@@ -318,7 +318,7 @@ export default function Dashboard() {
       {/* Status Breakdown */}
       {analytics?.application_status_breakdown && Object.keys(analytics.application_status_breakdown).length > 0 && (
         <div className="bg-white dark:bg-neutral-800 p-4 sm:p-6 rounded-lg shadow-sm border border-neutral-200 dark:border-neutral-700">
-          <h2 className="text-lg font-semibold text-neutral-900 dark:text-neutral-100 mb-4">Application Status Breakdown</h2>
+          <h2 className="text-xl md:text-3xl font-semibold text-neutral-900 dark:text-neutral-100 mb-4">Application Status Breakdown</h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {Object.entries(analytics.application_status_breakdown).map(([status, count]) => (
               <div key={status} className="text-center">

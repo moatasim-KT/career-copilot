@@ -1,0 +1,58 @@
+# Phase 4: Performance Optimization Research
+
+This document outlines the research for the performance optimization tasks.
+
+## 9. Implement Code Splitting
+
+### 9.1 Audit current bundle size
+
+**Status:** Blocked
+
+The `npm run build` command is currently failing, which prevents us from auditing the bundle size. This task will be revisited after the build errors are resolved.
+
+### 9.2 Implement component-level code splitting
+
+**Objective:** Identify heavy components that can be lazy-loaded to improve initial page load times.
+
+**Findings:**
+The following component has been identified as a good candidate for lazy loading due to its potential size and complexity:
+- `frontend/src/components/forms/RichTextEditor.tsx`
+
+**Strategy:**
+1.  Wrap the `RichTextEditor` component with `React.lazy()` and `Suspense`.
+2.  Create a loading fallback component to be displayed while the editor is loading.
+3.  Test the functionality of the rich text editor after implementing lazy loading.
+
+### 9.3 Implement dynamic imports for conditional features
+
+**Objective:** Identify features that are used conditionally and can be loaded on demand.
+
+**Findings:**
+The following components have been identified as good candidates for dynamic imports as they are likely to be rendered conditionally (e.g., in response to user actions):
+- `frontend/src/components/ui/Modal.tsx`
+- `frontend/src/components/ui/Modal2.tsx`
+- `frontend/src/components/ui/Dialog2.tsx`
+- `frontend/src/components/ui/AlertDialog2.tsx`
+- `frontend/src/components/ui/ConfirmDialog.tsx`
+
+**Strategy:**
+1.  Convert the static imports of these components to dynamic imports using `next/dynamic`.
+2.  Test all features that use these components to ensure they still work as expected.
+
+### 9.4 Add preload for critical routes
+
+**Objective:** Improve navigation speed to critical parts of the application by preloading them.
+
+**Strategy:**
+1.  Identify the critical user paths, such as the dashboard, jobs list, and applications list.
+2.  Locate the links to these routes in the codebase.
+3.  Propose adding `router.prefetch()` to these links to preload the routes on hover.
+
+### 9.5 Set bundle size budget alerts
+
+**Objective:** Prevent the bundle size from growing unintentionally by setting up budget alerts.
+
+**Strategy:**
+1.  Review the `next.config.js` file for any existing bundle size configuration.
+2.  Propose a configuration for bundle size budgets with warning and error thresholds.
+3.  Outline the steps to integrate this into the CI/CD pipeline.

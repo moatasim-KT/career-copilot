@@ -664,6 +664,22 @@ export class APIClient {
     );
   }
 
+  async searchJobs(query: string, limit: number = 10): Promise<ApiResponse<Job[]>> {
+    const params = new URLSearchParams();
+    if (query) params.append('query', query);
+    params.append('limit', limit.toString());
+
+    return this.makeRequest(
+      `searchJobs-${query}-${limit}`,
+      `${this.baseUrl}/api/v1/jobs/search?${params.toString()}`,
+      {
+        headers: this.getHeaders(),
+      },
+      true, // Enable retry
+      5000, // 5 second timeout for search
+    );
+  }
+
   async createJob(jobData: Partial<Job>): Promise<ApiResponse<Job>> {
     return this.makeRequest(
       'createJob',
@@ -709,6 +725,30 @@ export class APIClient {
       {
         headers: this.getHeaders(),
       },
+    );
+  }
+
+  async searchApplications(query: string, limit: number = 10): Promise<ApiResponse<Application[]>> {
+    // Applications endpoint doesn't have a dedicated search, but we can filter by fetching all
+    // and filtering client-side, or use the status filter if query matches a status
+    const params = new URLSearchParams();
+    params.append('limit', limit.toString());
+    
+    // Check if query matches a status
+    const statuses = ['interested', 'applied', 'interview', 'offer', 'rejected', 'accepted', 'declined'];
+    const matchedStatus = statuses.find(s => s.toLowerCase().includes(query.toLowerCase()));
+    if (matchedStatus) {
+      params.append('status', matchedStatus);
+    }
+
+    return this.makeRequest(
+      `searchApplications-${query}-${limit}`,
+      `${this.baseUrl}/api/v1/applications?${params.toString()}`,
+      {
+        headers: this.getHeaders(),
+      },
+      true, // Enable retry
+      5000, // 5 second timeout for search
     );
   }
 

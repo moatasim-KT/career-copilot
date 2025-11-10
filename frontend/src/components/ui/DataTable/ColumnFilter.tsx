@@ -2,7 +2,7 @@
 import { Column } from '@tanstack/react-table';
 import React from 'react';
 
-import { Input } from '@/components/ui/Input2';
+import Input from '@/components/ui/Input';
 
 interface ColumnFilterProps<TData, TValue> {
   column: Column<TData, TValue>;

@@ -3,7 +3,7 @@
 import { motion } from 'framer-motion';
 import { ReactNode, ButtonHTMLAttributes, memo } from 'react';
 
-import { buttonHover, buttonTap } from '@/lib/animations';
+
 import { cn } from '@/lib/utils';
 
 /**
@@ -81,8 +81,7 @@ function Button({
       onClick={onClick}
       type={type}
       title={title}
-      whileHover={!disabled && !loading ? buttonHover : undefined}
-      whileTap={!disabled && !loading ? buttonTap : undefined}
+      
     >
       {loading && (
         <svg

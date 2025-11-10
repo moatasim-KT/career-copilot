@@ -9,10 +9,15 @@
 
 import { Command } from 'cmdk';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, Clock, X } from 'lucide-react';
+import { Search, Clock, X, Briefcase, FileText, Loader2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState, useCallback } from 'react';
 
+import { useDebouncedValue } from '@/hooks/useDebouncedSearch';
+import { useSearchApplications } from '@/hooks/useSearchApplications';
+import { useSearchJobs } from '@/hooks/useSearchJobs';
+import { backdropVariants, modalVariants } from '@/lib/animations';
+import type { Job, Application } from '@/lib/api/api';
 import {
   createCommandRegistry,
   searchCommands,
@@ -23,7 +28,6 @@ import {
   clearRecentCommands,
   type Command as CommandType,
 } from '@/lib/commands';
-import { backdropVariants, modalVariants } from '@/lib/animations';
 
 interface CommandPaletteProps {
   isOpen: boolean;
@@ -35,6 +39,21 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
   const [search, setSearch] = useState('');
   const [commands] = useState(() => createCommandRegistry(router));
   const [recentCommandIds, setRecentCommandIds] = useState<string[]>([]);
+
+  // Debounce search for API calls (300ms delay)
+  const debouncedSearch = useDebouncedValue(search, 300);
+
+  // Dynamic search for jobs and applications
+  const { data: searchedJobs = [], isLoading: isLoadingJobs } = useSearchJobs(
+    debouncedSearch,
+    isOpen && debouncedSearch.length >= 2,
+  );
+  const { data: searchedApplications = [], isLoading: isLoadingApplications } = useSearchApplications(
+    debouncedSearch,
+    isOpen && debouncedSearch.length >= 2,
+  );
+
+  const isSearching = isLoadingJobs || isLoadingApplications;
 
   // Load recent commands on mount
   useEffect(() => {
@@ -68,6 +87,24 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
       onClose();
     },
     [onClose],
+  );
+
+  // Navigate to job detail
+  const navigateToJob = useCallback(
+    (jobId: number) => {
+      router.push(`/jobs/${jobId}`);
+      onClose();
+    },
+    [router, onClose],
+  );
+
+  // Navigate to application detail
+  const navigateToApplication = useCallback(
+    (appId: number) => {
+      router.push(`/applications/${appId}`);
+      onClose();
+    },
+    [router, onClose],
   );
 
   // Handle keyboard shortcuts
@@ -139,7 +176,14 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
                 {/* Command List */}
                 <Command.List className="max-h-[400px] overflow-y-auto p-2">
                   <Command.Empty className="py-12 text-center text-sm text-neutral-500">
-                    No results found.
+                    {isSearching ? (
+                      <div className="flex items-center justify-center gap-2">
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        <span>Searching...</span>
+                      </div>
+                    ) : (
+                      'No results found.'
+                    )}
                   </Command.Empty>
 
                   {/* Recent Commands */}
@@ -169,6 +213,48 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
                           key={command.id}
                           command={command}
                           onSelect={() => executeCommand(command)}
+                        />
+                      ))}
+                    </Command.Group>
+                  )}
+
+                  {/* Dynamic Search Results - Jobs */}
+                  {debouncedSearch.length >= 2 && searchedJobs.length > 0 && (
+                    <Command.Group
+                      heading={
+                        <div className="px-2 py-1.5 text-xs font-medium text-neutral-500 dark:text-neutral-400 flex items-center gap-2">
+                          <Briefcase className="w-3.5 h-3.5" />
+                          Jobs
+                        </div>
+                      }
+                      className="mb-2"
+                    >
+                      {searchedJobs.map((job) => (
+                        <JobSearchItem
+                          key={`job-${job.id}`}
+                          job={job}
+                          onSelect={() => navigateToJob(job.id)}
+                        />
+                      ))}
+                    </Command.Group>
+                  )}
+
+                  {/* Dynamic Search Results - Applications */}
+                  {debouncedSearch.length >= 2 && searchedApplications.length > 0 && (
+                    <Command.Group
+                      heading={
+                        <div className="px-2 py-1.5 text-xs font-medium text-neutral-500 dark:text-neutral-400 flex items-center gap-2">
+                          <FileText className="w-3.5 h-3.5" />
+                          Applications
+                        </div>
+                      }
+                      className="mb-2"
+                    >
+                      {searchedApplications.map((app) => (
+                        <ApplicationSearchItem
+                          key={`app-${app.id}`}
+                          application={app}
+                          onSelect={() => navigateToApplication(app.id)}
                         />
                       ))}
                     </Command.Group>
@@ -255,6 +341,92 @@ function CommandItem({ command, onSelect }: CommandItemProps) {
           ))}
         </kbd>
       )}
+    </Command.Item>
+  );
+}
+
+/**
+ * Job Search Item Component
+ */
+interface JobSearchItemProps {
+  job: Job;
+  onSelect: () => void;
+}
+
+function JobSearchItem({ job, onSelect }: JobSearchItemProps) {
+  return (
+    <Command.Item
+      value={`job-${job.id}`}
+      onSelect={onSelect}
+      className="flex items-start gap-3 px-3 py-2.5 rounded-lg cursor-pointer
+        text-neutral-700 dark:text-neutral-300
+        hover:bg-neutral-100 dark:hover:bg-neutral-800
+        data-[selected=true]:bg-primary-50 dark:data-[selected=true]:bg-primary-900/20
+        data-[selected=true]:text-primary-700 dark:data-[selected=true]:text-primary-300
+        transition-colors"
+    >
+      <Briefcase className="w-4 h-4 flex-shrink-0 mt-0.5" />
+      <div className="flex-1 min-w-0">
+        <div className="text-sm font-medium truncate">{job.title}</div>
+        <div className="text-xs text-neutral-500 dark:text-neutral-400 truncate">
+          {job.company}
+          {job.location && ` • ${job.location}`}
+          {job.remote && ' • Remote'}
+        </div>
+      </div>
+      {job.match_score !== undefined && job.match_score > 0 && (
+        <div className="flex-shrink-0 text-xs font-medium text-primary-600 dark:text-primary-400">
+          {Math.round(job.match_score)}% match
+        </div>
+      )}
+    </Command.Item>
+  );
+}
+
+/**
+ * Application Search Item Component
+ */
+interface ApplicationSearchItemProps {
+  application: Application;
+  onSelect: () => void;
+}
+
+function ApplicationSearchItem({ application, onSelect }: ApplicationSearchItemProps) {
+  const statusColors: Record<string, string> = {
+    interested: 'text-neutral-600 dark:text-neutral-400',
+    applied: 'text-blue-600 dark:text-blue-400',
+    interview: 'text-purple-600 dark:text-purple-400',
+    offer: 'text-green-600 dark:text-green-400',
+    rejected: 'text-red-600 dark:text-red-400',
+    accepted: 'text-emerald-600 dark:text-emerald-400',
+    declined: 'text-orange-600 dark:text-orange-400',
+  };
+
+  const statusColor = statusColors[application.status] || statusColors.interested;
+
+  return (
+    <Command.Item
+      value={`app-${application.id}`}
+      onSelect={onSelect}
+      className="flex items-start gap-3 px-3 py-2.5 rounded-lg cursor-pointer
+        text-neutral-700 dark:text-neutral-300
+        hover:bg-neutral-100 dark:hover:bg-neutral-800
+        data-[selected=true]:bg-primary-50 dark:data-[selected=true]:bg-primary-900/20
+        data-[selected=true]:text-primary-700 dark:data-[selected=true]:text-primary-300
+        transition-colors"
+    >
+      <FileText className="w-4 h-4 flex-shrink-0 mt-0.5" />
+      <div className="flex-1 min-w-0">
+        <div className="text-sm font-medium truncate">
+          {application.job?.title || 'Application'}
+        </div>
+        <div className="text-xs text-neutral-500 dark:text-neutral-400 truncate">
+          {application.job?.company || 'Unknown Company'}
+        </div>
+      </div>
+      <div className={`flex-shrink-0 text-xs font-medium capitalize ${statusColor}`}>
+        {application.status}
+      </div>
     </Command.Item>
   );
 }

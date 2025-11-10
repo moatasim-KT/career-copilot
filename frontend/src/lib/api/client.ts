@@ -318,4 +318,14 @@ export const apiClient = {
 /**
  * Type-safe API client hooks
  */
+export const ApplicationsService = apiClient.applications;
+export const JobsService = apiClient.jobs;
+export const AuthServices = apiClient.auth;
+export const RecommendationsService = apiClient.recommendations;
+export const PersonalizationService = apiClient.personalization;
+export const SocialService = apiClient.social;
+export const AnalyticsService = apiClient.analytics;
+export const UserService = apiClient.user;
+export const HealthService = apiClient.health;
+
 export default apiClient;

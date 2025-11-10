@@ -3,7 +3,7 @@
 import { motion } from 'framer-motion';
 import { ReactNode, memo } from 'react';
 
-import { cardHover } from '@/lib/animations';
+
 import { cn } from '@/lib/utils';
 
 interface CardProps {
@@ -33,7 +33,7 @@ const Card = memo(({
         paddingClasses[padding],
         className,
       )}
-      whileHover={hover ? cardHover : undefined}
+      
       {...rest}
     >      {children}
     </motion.div>

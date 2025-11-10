@@ -240,7 +240,7 @@ const darkModeColorPairs: ColorPair[] = [
 ];
 
 // Special cases that don't need 4.5:1 contrast
-const specialCases = {
+const specialCases: { [key: string]: number } = {
   'Input placeholder': 3.0, // Placeholders are non-essential, 3:1 is acceptable
   'Border on dark background': 3.0, // Decorative borders only need 3:1
 };

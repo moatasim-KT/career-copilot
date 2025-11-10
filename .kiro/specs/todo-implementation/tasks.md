@@ -295,8 +295,8 @@ This implementation plan converts the TODO.md remaining tasks into actionable co
   - Test accessibility with screen readers
   - _Requirements: 3.1, 3.2_
 
-- [ ] 6. Implement Advanced Search System
-- [ ] 6.1 Create SearchRule and SearchGroup interfaces
+- [-] 6. Implement Advanced Search System
+- [x] 6.1 Create SearchRule and SearchGroup interfaces
   - Create `frontend/src/types/search.ts`
   - Define SearchRule interface (id, field, operator, value)
   - Define SearchGroup interface (id, logic AND/OR, rules, nested groups)
@@ -304,7 +304,7 @@ This implementation plan converts the TODO.md remaining tasks into actionable co
   - Export types
   - _Requirements: 3.3_
 
-- [ ] 6.2 Create QueryBuilder component
+- [x] 6.2 Create QueryBuilder component
   - Create `frontend/src/components/features/QueryBuilder.tsx`
   - Implement visual tree structure for rules and groups
   - Add rule button with field selector
@@ -314,7 +314,7 @@ This implementation plan converts the TODO.md remaining tasks into actionable co
   - Support nested groups (recursive rendering)
   - _Requirements: 3.3_
 
-- [ ] 6.3 Create field-specific operator and value inputs
+- [x] 6.3 Create field-specific operator and value inputs
   - Create operator selector based on field type
   - Text fields: contains, equals, starts with, ends with
   - Number fields: equals, gt, lt, between
@@ -324,7 +324,7 @@ This implementation plan converts the TODO.md remaining tasks into actionable co
   - Add validation for value inputs
   - _Requirements: 3.3_
 
-- [ ] 6.4 Create AdvancedSearch component
+- [x] 6.4 Create AdvancedSearch component
   - Create `frontend/src/components/features/AdvancedSearch.tsx`
   - Implement slide-out panel or modal
   - Integrate QueryBuilder component
@@ -334,7 +334,7 @@ This implementation plan converts the TODO.md remaining tasks into actionable co
   - Add "Save search" button
   - _Requirements: 3.3_
 
-- [ ] 6.5 Implement saved searches
+- [x] 6.5 Implement saved searches
   - Create SavedSearches component
   - Implement save search dialog (prompt for name)
   - Save to backend API and localStorage
@@ -343,14 +343,14 @@ This implementation plan converts the TODO.md remaining tasks into actionable co
   - Add "Saved searches" section in sidebar
   - _Requirements: 3.3_
 
-- [ ] 6.6 Implement recent searches
+- [x] 6.6 Implement recent searches
   - Track recent searches in localStorage (last 10)
   - Include search criteria and result count
   - Show in dropdown
   - Add clear history button
   - _Requirements: 3.3_
 
-- [ ] 6.7 Create filter chips display
+- [x] 6.7 Create filter chips display
   - Show active filters as chips above results
   - Format: "Field: value"
   - Add X button to remove filter
@@ -359,7 +359,7 @@ This implementation plan converts the TODO.md remaining tasks into actionable co
   - Show filter count badge
   - _Requirements: 3.3_
 
-- [ ] 6.8 Integrate AdvancedSearch with JobsPage
+- [x] 6.8 Integrate AdvancedSearch with JobsPage
   - Add AdvancedSearch to `frontend/src/components/pages/JobsPage.tsx`
   - Add "Advanced Search" button
   - Apply search to job list query
@@ -368,7 +368,7 @@ This implementation plan converts the TODO.md remaining tasks into actionable co
   - Test various search combinations
   - _Requirements: 3.3_
 
-- [ ] 6.9 Integrate AdvancedSearch with ApplicationsPage
+- [x] 6.9 Integrate AdvancedSearch with ApplicationsPage
   - Add AdvancedSearch to `frontend/src/components/pages/ApplicationsPage.tsx`
   - Add "Advanced Search" button
   - Apply search to applications query

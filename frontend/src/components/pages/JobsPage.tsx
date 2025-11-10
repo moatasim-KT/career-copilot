@@ -31,6 +31,10 @@ import {
 } from 'lucide-react';
 import { useState, useEffect, useMemo } from 'react';
 
+import { AdvancedSearch } from '@/components/features/AdvancedSearch';
+import { FilterChips, removeRuleFromQuery } from '@/components/features/FilterChips';
+import { RecentSearches } from '@/components/features/RecentSearches';
+import { SavedSearches, useSavedSearches } from '@/components/features/SavedSearches';
 import { QuickFilterChips } from '@/components/filters/QuickFilterChips';
 import { SavedFilters } from '@/components/filters/SavedFilters';
 import { StickyFilterPanel } from '@/components/filters/StickyFilterPanel';
@@ -41,7 +45,11 @@ import Modal, { ModalFooter } from '@/components/ui/Modal';
 import Select from '@/components/ui/Select';
 import Textarea from '@/components/ui/Textarea';
 import { useLocalStorage } from '@/hooks/useLocalStorage';
+import { useRecentSearches } from '@/hooks/useRecentSearches';
 import { ApplicationsService, JobsService, type JobCreate, type JobResponse } from '@/lib/api/client';
+import { JOB_SEARCH_FIELDS } from '@/lib/searchFields';
+import { applySearchQuery, countSearchResults, createEmptyQuery, hasSearchCriteria, queryToSearchParams, searchParamsToQuery } from '@/lib/searchUtils';
+import type { SearchGroup, SavedSearch } from '@/types/search';
 
 import { JobComparisonView } from './JobComparisonView';
 import { JobListView } from './JobListView';
@@ -98,6 +106,12 @@ export default function JobsPage() {
   const [selectedJobIds, setSelectedJobIds] = useState<number[]>([]);
   const [showComparisonView, setShowComparisonView] = useState(false);
   const [savedFilters, setSavedFilters] = useLocalStorage<any[]>('savedJobFilters', []);
+  
+  // Advanced Search state
+  const [showAdvancedSearch, setShowAdvancedSearch] = useState(false);
+  const [advancedSearchQuery, setAdvancedSearchQuery] = useState<SearchGroup>(createEmptyQuery());
+  const { saveSearch } = useSavedSearches('jobs');
+  const { addRecentSearch } = useRecentSearches('jobs');
 
   const handleSaveFilter = (filterName: string) => {
     const currentFilters = {
@@ -319,10 +333,63 @@ export default function JobsPage() {
     resetForm();
   };
 
+  // Apply advanced search if active
+  const handleApplyAdvancedSearch = (query: SearchGroup) => {
+    setAdvancedSearchQuery(query);
+    
+    // Add to recent searches
+    const resultCount = countSearchResults(jobs, query);
+    addRecentSearch(query, resultCount);
+    
+    // Update URL with search params
+    const params = queryToSearchParams(query);
+    window.history.pushState({}, '', `?${params.toString()}`);
+  };
+
+  const handleClearAdvancedSearch = () => {
+    setAdvancedSearchQuery(createEmptyQuery());
+    window.history.pushState({}, '', window.location.pathname);
+  };
+
+  const handleRemoveFilter = (ruleId: string) => {
+    const updatedQuery = removeRuleFromQuery(advancedSearchQuery, ruleId);
+    setAdvancedSearchQuery(updatedQuery);
+    
+    // Update URL
+    if (hasSearchCriteria(updatedQuery)) {
+      const params = queryToSearchParams(updatedQuery);
+      window.history.pushState({}, '', `?${params.toString()}`);
+    } else {
+      window.history.pushState({}, '', window.location.pathname);
+    }
+  };
+
+  const handleLoadSavedSearch = (search: SavedSearch) => {
+    setAdvancedSearchQuery(search.query);
+    const params = queryToSearchParams(search.query);
+    window.history.pushState({}, '', `?${params.toString()}`);
+  };
+
+  const handleLoadRecentSearch = (query: SearchGroup) => {
+    setAdvancedSearchQuery(query);
+    const params = queryToSearchParams(query);
+    window.history.pushState({}, '', `?${params.toString()}`);
+  };
+
+  const handlePreviewSearch = async (query: SearchGroup): Promise<number> => {
+    return countSearchResults(jobs, query);
+  };
+
   // Memoize filtered and sorted jobs to prevent unnecessary recalculations
   const filteredAndSortedJobs = useMemo(() => {
-    return jobs
-      .filter(job => {
+    let filtered = jobs;
+
+    // Apply advanced search first if active
+    if (hasSearchCriteria(advancedSearchQuery)) {
+      filtered = applySearchQuery(filtered, advancedSearchQuery);
+    } else {
+      // Apply basic filters only if no advanced search
+      filtered = jobs.filter(job => {
         const matchesSearch =
           job.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
           job.company.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -348,28 +415,31 @@ export default function JobsPage() {
         });
 
         return matchesSearch && matchesSource && matchesType && matchesQuickFilters;
-      })
-      .sort((a, b) => {
-        switch (sortBy) {
-          case 'created_at_desc':
-            return new Date(b.created_at || '').getTime() - new Date(a.created_at || '').getTime();
-          case 'created_at_asc':
-            return new Date(a.created_at || '').getTime() - new Date(b.created_at || '').getTime();
-          case 'company_asc':
-            return a.company.localeCompare(b.company);
-          case 'company_desc':
-            return b.company.localeCompare(a.company);
-          case 'title_asc':
-            return a.title.localeCompare(b.title);
-          case 'title_desc':
-            return b.title.localeCompare(a.title);
-          case 'match_score_desc':
-            return (b.match_score || 0) - (a.match_score || 0);
-          default:
-            return 0;
-        }
       });
-  }, [jobs, searchTerm, sourceFilter, typeFilter, sortBy, activeQuickFilters]);
+    }
+
+    // Sort the filtered results
+    return filtered.sort((a, b) => {
+      switch (sortBy) {
+        case 'created_at_desc':
+          return new Date(b.created_at || '').getTime() - new Date(a.created_at || '').getTime();
+        case 'created_at_asc':
+          return new Date(a.created_at || '').getTime() - new Date(b.created_at || '').getTime();
+        case 'company_asc':
+          return a.company.localeCompare(b.company);
+        case 'company_desc':
+          return b.company.localeCompare(a.company);
+        case 'title_asc':
+          return a.title.localeCompare(b.title);
+        case 'title_desc':
+          return b.title.localeCompare(a.title);
+        case 'match_score_desc':
+          return (b.match_score || 0) - (a.match_score || 0);
+        default:
+          return 0;
+      }
+    });
+  }, [jobs, searchTerm, sourceFilter, typeFilter, sortBy, activeQuickFilters, advancedSearchQuery]);
 
   // Create a unique key that changes when filters or sort changes
   // This triggers re-animation of the list
@@ -444,6 +514,7 @@ export default function JobsPage() {
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     className="pl-10"
+                    disabled={hasSearchCriteria(advancedSearchQuery)}
                   />
                 </div>
               </div>
@@ -455,6 +526,7 @@ export default function JobsPage() {
                   { value: 'all', label: 'All Sources' },
                   ...JOB_SOURCES,
                 ]}
+                disabled={hasSearchCriteria(advancedSearchQuery)}
               />
 
               <Select
@@ -464,8 +536,44 @@ export default function JobsPage() {
                   { value: 'all', label: 'All Types' },
                   ...JOB_TYPES,
                 ]}
+                disabled={hasSearchCriteria(advancedSearchQuery)}
               />
             </div>
+
+            {/* Advanced Search Controls */}
+            <div className="mt-4 flex items-center space-x-2">
+              <Button2
+                type="button"
+                variant="outline"
+                onClick={() => setShowAdvancedSearch(true)}
+                className="flex items-center space-x-2"
+              >
+                <Filter className="h-4 w-4" />
+                <span>Advanced Search</span>
+              </Button2>
+
+              <SavedSearches
+                onLoad={handleLoadSavedSearch}
+                onSave={saveSearch}
+                context="jobs"
+              />
+
+              <RecentSearches
+                onLoad={handleLoadRecentSearch}
+                context="jobs"
+              />
+            </div>
+
+            {/* Active Filter Chips */}
+            {hasSearchCriteria(advancedSearchQuery) && (
+              <div className="mt-4 pt-4 border-t border-neutral-200 dark:border-neutral-700">
+                <FilterChips
+                  query={advancedSearchQuery}
+                  onRemoveFilter={handleRemoveFilter}
+                  onClearAll={handleClearAdvancedSearch}
+                />
+              </div>
+            )}
 
             <div className="mt-4">
               <QuickFilterChips
@@ -593,13 +701,15 @@ export default function JobsPage() {
         size="xl"
       >
         <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-1 md:grid-cols-2">
             <Input
               label="Company *"
               value={formData.company}
               onChange={(e) => setFormData(prev => ({ ...prev, company: e.target.value }))}
               error={formErrors.company}
               placeholder="Enter company name"
+              className="min-h-[44px]"
+              autoComplete="organization"
             />
 
             <Input
@@ -608,6 +718,8 @@ export default function JobsPage() {
               onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
               error={formErrors.title}
               placeholder="Enter job title"
+              className="min-h-[44px]"
+              autoComplete="job-title"
             />
 
             <Input
@@ -615,6 +727,8 @@ export default function JobsPage() {
               value={formData.location}
               onChange={(e) => setFormData(prev => ({ ...prev, location: e.target.value }))}
               placeholder="e.g., San Francisco, CA or Remote"
+              className="min-h-[44px]"
+              autoComplete="address-level2"
             />
 
             <Select
@@ -629,6 +743,9 @@ export default function JobsPage() {
               value={formData.salary_range}
               onChange={(e) => setFormData(prev => ({ ...prev, salary_range: e.target.value }))}
               placeholder="e.g., $80k-$120k"
+              className="min-h-[44px]"
+              inputMode="numeric"
+              pattern="[0-9]*"
             />
 
             <Input
@@ -638,6 +755,8 @@ export default function JobsPage() {
               onChange={(e) => setFormData(prev => ({ ...prev, url: e.target.value }))}
               error={formErrors.url}
               placeholder="https://..."
+              className="min-h-[44px]"
+              inputMode="url"
             />
           </div>
 
@@ -755,6 +874,18 @@ export default function JobsPage() {
           )}
         </AnimatePresence>
       )}
+
+      {/* Advanced Search Panel */}
+      <AdvancedSearch
+        isOpen={showAdvancedSearch}
+        onClose={() => setShowAdvancedSearch(false)}
+        onSearch={handleApplyAdvancedSearch}
+        fields={JOB_SEARCH_FIELDS}
+        initialQuery={advancedSearchQuery}
+        onPreview={handlePreviewSearch}
+        onSave={saveSearch}
+        resultCount={filteredAndSortedJobs.length}
+      />
     </div>
   );
 }

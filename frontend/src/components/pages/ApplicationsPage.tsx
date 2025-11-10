@@ -15,20 +15,29 @@ import {
   Plus,
   Edit,
   Search,
+  Filter,
 } from 'lucide-react';
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 
+import { AdvancedSearch } from '@/components/features/AdvancedSearch';
+import { FilterChips, removeRuleFromQuery } from '@/components/features/FilterChips';
+import { RecentSearches } from '@/components/features/RecentSearches';
+import { SavedSearches, useSavedSearches } from '@/components/features/SavedSearches';
 import Button2 from '@/components/ui/Button2';
 import Card, { CardContent } from '@/components/ui/Card';
 import Input from '@/components/ui/Input';
 import Modal, { ModalFooter } from '@/components/ui/Modal';
 import Select from '@/components/ui/Select';
 import Textarea from '@/components/ui/Textarea';
+import { useRecentSearches } from '@/hooks/useRecentSearches';
 import { useWebSocket } from '@/hooks/useWebSocket';
 import { staggerContainer, staggerItem, fadeVariants, springConfigs } from '@/lib/animations';
 import { apiClient, type Application } from '@/lib/api';
 import { logger } from '@/lib/logger';
+import { APPLICATION_SEARCH_FIELDS } from '@/lib/searchFields';
+import { applySearchQuery, countSearchResults, createEmptyQuery, hasSearchCriteria, queryToSearchParams } from '@/lib/searchUtils';
 import { handleApplicationStatusUpdate } from '@/lib/websocket/applications';
+import type { SearchGroup, SavedSearch } from '@/types/search';
 
 const STATUS_OPTIONS = [
   { value: 'interested', label: 'Interested' },
@@ -60,6 +69,12 @@ export default function ApplicationsPage() {
   const [editingApplication, setEditingApplication] = useState<Application | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
+  
+  // Advanced Search state
+  const [showAdvancedSearch, setShowAdvancedSearch] = useState(false);
+  const [advancedSearchQuery, setAdvancedSearchQuery] = useState<SearchGroup>(createEmptyQuery());
+  const { saveSearch } = useSavedSearches('applications');
+  const { addRecentSearch } = useRecentSearches('applications');
 
   const handleApplicationUpdate = useCallback((data: any) => {
     logger.log('Application update received:', data);
@@ -240,17 +255,80 @@ export default function ApplicationsPage() {
     }
   };
 
-  const filteredAndSortedApplications = applications
-    .filter(app => {
-      const matchesStatus = statusFilter === 'all' || app.status === statusFilter;
-      const matchesSearch =
-        (app.job?.title || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (app.job?.company || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (app.notes || '').toLowerCase().includes(searchTerm.toLowerCase());
+  // Apply advanced search if active
+  const handleApplyAdvancedSearch = (query: SearchGroup) => {
+    setAdvancedSearchQuery(query);
+    
+    // Add to recent searches
+    const resultCount = countSearchResults(applications, query);
+    addRecentSearch(query, resultCount);
+    
+    // Update URL with search params
+    const params = queryToSearchParams(query);
+    window.history.pushState({}, '', `?${params.toString()}`);
+  };
 
-      return matchesStatus && matchesSearch;
-    })
-    .sort((a, b) => {
+  const handleClearAdvancedSearch = () => {
+    setAdvancedSearchQuery(createEmptyQuery());
+    window.history.pushState({}, '', window.location.pathname);
+  };
+
+  const handleRemoveFilter = (ruleId: string) => {
+    const updatedQuery = removeRuleFromQuery(advancedSearchQuery, ruleId);
+    setAdvancedSearchQuery(updatedQuery);
+    
+    // Update URL
+    if (hasSearchCriteria(updatedQuery)) {
+      const params = queryToSearchParams(updatedQuery);
+      window.history.pushState({}, '', `?${params.toString()}`);
+    } else {
+      window.history.pushState({}, '', window.location.pathname);
+    }
+  };
+
+  const handleLoadSavedSearch = (search: SavedSearch) => {
+    setAdvancedSearchQuery(search.query);
+    const params = queryToSearchParams(search.query);
+    window.history.pushState({}, '', `?${params.toString()}`);
+  };
+
+  const handleLoadRecentSearch = (query: SearchGroup) => {
+    setAdvancedSearchQuery(query);
+    const params = queryToSearchParams(query);
+    window.history.pushState({}, '', `?${params.toString()}`);
+  };
+
+  const handlePreviewSearch = async (query: SearchGroup): Promise<number> => {
+    return countSearchResults(applications, query);
+  };
+
+  const filteredAndSortedApplications = useMemo(() => {
+    let filtered = applications;
+
+    // Apply advanced search first if active
+    if (hasSearchCriteria(advancedSearchQuery)) {
+      // Map application fields for search
+      const searchableApps = applications.map(app => ({
+        ...app,
+        job_title: app.job?.title || '',
+        company: app.job?.company || '',
+      }));
+      filtered = applySearchQuery(searchableApps, advancedSearchQuery);
+    } else {
+      // Apply basic filters only if no advanced search
+      filtered = applications.filter(app => {
+        const matchesStatus = statusFilter === 'all' || app.status === statusFilter;
+        const matchesSearch =
+          (app.job?.title || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+          (app.job?.company || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+          (app.notes || '').toLowerCase().includes(searchTerm.toLowerCase());
+
+        return matchesStatus && matchesSearch;
+      });
+    }
+
+    // Sort the filtered results
+    return filtered.sort((a, b) => {
       switch (sortBy) {
         case 'created_at_desc':
           return new Date(b.applied_date || '').getTime() - new Date(a.applied_date || '').getTime();
@@ -268,6 +346,7 @@ export default function ApplicationsPage() {
           return 0;
       }
     });
+  }, [applications, searchTerm, statusFilter, sortBy, advancedSearchQuery]);
 
   if (isLoading) {
     return (
@@ -292,14 +371,14 @@ export default function ApplicationsPage() {
 
   return (
     <div className="space-y-6">
-      <motion.div 
+      <motion.div
         className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4"
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3 }}
       >
         <div>
-          <motion.h1 
+          <motion.h1
             className="text-3xl font-bold text-neutral-900"
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
@@ -307,7 +386,7 @@ export default function ApplicationsPage() {
           >
             Applications
           </motion.h1>
-          <motion.p 
+          <motion.p
             className="text-neutral-600 mt-1"
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
@@ -316,7 +395,7 @@ export default function ApplicationsPage() {
             Track your job applications and their progress
           </motion.p>
           {lastUpdated && (
-            <motion.p 
+            <motion.p
               className="text-sm text-neutral-500 mt-1"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -327,7 +406,7 @@ export default function ApplicationsPage() {
             </motion.p>
           )}
         </div>
-        <motion.div 
+        <motion.div
           className="flex items-center space-x-3"
           initial={{ opacity: 0, x: 20 }}
           animate={{ opacity: 1, x: 0 }}
@@ -380,7 +459,7 @@ export default function ApplicationsPage() {
         <Card>
           <CardContent className="p-4">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <motion.div 
+              <motion.div
                 className="relative"
                 initial={{ opacity: 0, x: -10 }}
                 animate={{ opacity: 1, x: 0 }}
@@ -393,6 +472,7 @@ export default function ApplicationsPage() {
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="pl-10"
+                  disabled={hasSearchCriteria(advancedSearchQuery)}
                 />
               </motion.div>
 
@@ -408,6 +488,7 @@ export default function ApplicationsPage() {
                     { value: 'all', label: 'All Status' },
                     ...STATUS_OPTIONS,
                   ]}
+                  disabled={hasSearchCriteria(advancedSearchQuery)}
                 />
               </motion.div>
 
@@ -424,13 +505,58 @@ export default function ApplicationsPage() {
               </motion.div>
             </div>
 
-            <motion.div 
+            {/* Advanced Search Controls */}
+            <motion.div
+              className="mt-4 flex items-center space-x-2"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.45 }}
+            >
+              <Button2
+                type="button"
+                variant="outline"
+                onClick={() => setShowAdvancedSearch(true)}
+                className="flex items-center space-x-2"
+              >
+                <Filter className="h-4 w-4" />
+                <span>Advanced Search</span>
+              </Button2>
+
+              <SavedSearches
+                onLoad={handleLoadSavedSearch}
+                onSave={saveSearch}
+                context="applications"
+              />
+
+              <RecentSearches
+                onLoad={handleLoadRecentSearch}
+                context="applications"
+              />
+            </motion.div>
+
+            {/* Active Filter Chips */}
+            {hasSearchCriteria(advancedSearchQuery) && (
+              <motion.div
+                className="mt-4 pt-4 border-t border-neutral-200 dark:border-neutral-700"
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                transition={{ delay: 0.5 }}
+              >
+                <FilterChips
+                  query={advancedSearchQuery}
+                  onRemoveFilter={handleRemoveFilter}
+                  onClearAll={handleClearAdvancedSearch}
+                />
+              </motion.div>
+            )}
+
+            <motion.div
               className="mt-4 pt-4 border-t border-neutral-200"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.5 }}
             >
-              <motion.div 
+              <motion.div
                 className="text-sm text-neutral-600"
                 key={`${filteredAndSortedApplications.length}-${statusFilter}`}
                 initial={{ opacity: 0, y: 5 }}
@@ -453,53 +579,56 @@ export default function ApplicationsPage() {
         size="lg"
       >
         <form onSubmit={handleSubmit} className="space-y-6">
-          <Select
-            label="Job *"
-            value={formData.job_id.toString()}
-            onChange={(e) => setFormData(prev => ({ ...prev, job_id: parseInt(e.target.value) || 0 }))}
-            options={[
-              { value: '0', label: 'Select a job...' },
-              // Note: In a real implementation, you'd fetch available jobs
-              // For now, this is a placeholder
-            ]}
-          />
-
-          <Select
-            label="Status"
-            value={formData.status}
-            onChange={(e) => setFormData(prev => ({ ...prev, status: e.target.value as Application['status'] }))}
-            options={STATUS_OPTIONS}
-          />
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-1 md:grid-cols-2">
+            <Select
+              label="Job *"
+              value={formData.job_id.toString()}
+              onChange={(e) => setFormData(prev => ({ ...prev, job_id: parseInt(e.target.value) || 0 }))}
+              options={[
+                { value: '0', label: 'Select a job...' },
+                // Note: In a real implementation, you'd fetch available jobs
+                // For now, this is a placeholder
+              ]}
+              className="min-h-[44px]"
+            />
+            <Select
+              label="Status"
+              value={formData.status}
+              onChange={(e) => setFormData(prev => ({ ...prev, status: e.target.value as Application['status'] }))}
+              options={STATUS_OPTIONS}
+              className="min-h-[44px]"
+            />
+          </div>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-1 md:grid-cols-3">
             <Input
               label="Applied Date"
               type="date"
               value={formData.applied_date}
               onChange={(e) => setFormData(prev => ({ ...prev, applied_date: e.target.value }))}
+              className="min-h-[44px]"
             />
-
             <Input
               label="Interview Date"
               type="date"
               value={formData.interview_date}
               onChange={(e) => setFormData(prev => ({ ...prev, interview_date: e.target.value }))}
+              className="min-h-[44px]"
             />
-
             <Input
               label="Response Date"
               type="date"
               value={formData.response_date}
               onChange={(e) => setFormData(prev => ({ ...prev, response_date: e.target.value }))}
+              className="min-h-[44px]"
             />
           </div>
-
           <Textarea
             label="Notes"
             rows={4}
             value={formData.notes}
             onChange={(e) => setFormData(prev => ({ ...prev, notes: e.target.value }))}
             placeholder="Add any notes about this application..."
+            className="min-h-[44px]"
           />
 
           <ModalFooter>
@@ -521,28 +650,28 @@ export default function ApplicationsPage() {
       </Modal>
 
       {filteredAndSortedApplications.length > 0 ? (
-        <motion.div 
-          className="space-y-4" 
-          variants={staggerContainer} 
-          initial="hidden" 
+        <motion.div
+          className="space-y-4"
+          variants={staggerContainer}
+          initial="hidden"
           animate="visible"
         >
           <AnimatePresence mode="popLayout">
             {filteredAndSortedApplications.map((application) => (
-              <motion.div 
-                key={application.id} 
+              <motion.div
+                key={application.id}
                 variants={staggerItem}
                 layout
                 initial="hidden"
                 animate="visible"
-                exit={{ 
-                  opacity: 0, 
+                exit={{
+                  opacity: 0,
                   y: -10,
                   scale: 0.95,
-                  transition: { 
+                  transition: {
                     duration: 0.2,
                     ease: 'easeIn',
-                  }, 
+                  },
                 }}
                 transition={springConfigs.smooth}
               >
@@ -575,181 +704,181 @@ export default function ApplicationsPage() {
                           </div>
                         </div>
 
-                      <div className="flex flex-wrap items-center gap-4 text-sm text-neutral-600 mb-3">
-                        <div className="flex items-center space-x-1">
-                          <Building className="h-4 w-4" />
-                          <span>{application.job?.company || 'Unknown Company'}</span>
+                        <div className="flex flex-wrap items-center gap-4 text-sm text-neutral-600 mb-3">
+                          <div className="flex items-center space-x-1">
+                            <Building className="h-4 w-4" />
+                            <span>{application.job?.company || 'Unknown Company'}</span>
+                          </div>
+                          {application.job?.location && (
+                            <div className="flex items-center space-x-1">
+                              <MapPin className="h-4 w-4" />
+                              <span>{application.job.location}</span>
+                            </div>
+                          )}
+                          {application.applied_date && (
+                            <div className="flex items-center space-x-1">
+                              <Clock className="h-4 w-4" />
+                              <span>Applied {new Date(application.applied_date).toLocaleDateString()}</span>
+                            </div>
+                          )}
                         </div>
-                        {application.job?.location && (
-                          <div className="flex items-center space-x-1">
-                            <MapPin className="h-4 w-4" />
-                            <span>{application.job.location}</span>
-                          </div>
+
+                        {application.notes && (
+                          <p className="text-sm text-neutral-600 mb-3">
+                            <strong>Notes:</strong> {application.notes}
+                          </p>
                         )}
-                        {application.applied_date && (
-                          <div className="flex items-center space-x-1">
-                            <Clock className="h-4 w-4" />
-                            <span>Applied {new Date(application.applied_date).toLocaleDateString()}</span>
-                          </div>
-                        )}
+
+                        <div className="flex flex-wrap items-center gap-4 text-sm text-neutral-500">
+                          {application.interview_date && (
+                            <span>Interview: {new Date(application.interview_date).toLocaleDateString()}</span>
+                          )}
+                          {application.response_date && (
+                            <span>Response: {new Date(application.response_date).toLocaleDateString()}</span>
+                          )}
+                        </div>
                       </div>
 
-                      {application.notes && (
-                        <p className="text-sm text-neutral-600 mb-3">
-                          <strong>Notes:</strong> {application.notes}
-                        </p>
-                      )}
-
-                      <div className="flex flex-wrap items-center gap-4 text-sm text-neutral-500">
-                        {application.interview_date && (
-                          <span>Interview: {new Date(application.interview_date).toLocaleDateString()}</span>
-                        )}
-                        {application.response_date && (
-                          <span>Response: {new Date(application.response_date).toLocaleDateString()}</span>
-                        )}
-                      </div>
-                    </div>
-
-                    <div className="flex items-center space-x-2 ml-4">
-                      <motion.div
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
-                      >
-                        <Button2
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => startEdit(application)}
-                          title="Edit Application"
-                        >
-                          <Edit className="h-4 w-4" />
-                        </Button2>
-                      </motion.div>
-
-                      <motion.div
-                        initial={{ opacity: 0, x: 10 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: 0.1 }}
-                      >
-                        <Select
-                          value={application.status}
-                          onChange={(e) => updateApplicationStatus(application.id, e.target.value)}
-                          options={STATUS_OPTIONS}
-                          className="w-32"
-                        />
-                      </motion.div>
-                    </div>
-                  </div>
-
-                  {/* Interview Feedback Section */}
-                  {application.interview_feedback && (
-                    <motion.div 
-                      className="mt-4 pt-4 border-t border-neutral-200"
-                      initial={{ opacity: 0, height: 0 }}
-                      animate={{ opacity: 1, height: 'auto' }}
-                      transition={{ delay: 0.1, duration: 0.3 }}
-                    >
-                      <h4 className="text-sm font-medium text-neutral-900 mb-2">Interview Feedback</h4>
-
-                      {application.interview_feedback.questions && application.interview_feedback.questions.length > 0 && (
-                        <motion.div 
-                          className="mb-2"
-                          initial={{ opacity: 0, y: 10 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          transition={{ delay: 0.15 }}
-                        >
-                          <p className="text-xs font-medium text-neutral-700">Questions Asked:</p>
-                          <div className="flex flex-wrap gap-1 mt-1">
-                            {application.interview_feedback.questions.map((question, idx) => (
-                              <motion.span 
-                                key={idx} 
-                                className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full"
-                                initial={{ opacity: 0, scale: 0.8 }}
-                                animate={{ opacity: 1, scale: 1 }}
-                                transition={{ delay: 0.2 + idx * 0.05 }}
-                              >
-                                {question}
-                              </motion.span>
-                            ))}
-                          </div>
-                        </motion.div>
-                      )}
-
-                      {application.interview_feedback.skill_areas && application.interview_feedback.skill_areas.length > 0 && (
-                        <motion.div 
-                          className="mb-2"
-                          initial={{ opacity: 0, y: 10 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          transition={{ delay: 0.2 }}
-                        >
-                          <p className="text-xs font-medium text-neutral-700">Skill Areas Discussed:</p>
-                          <div className="flex flex-wrap gap-1 mt-1">
-                            {application.interview_feedback.skill_areas.map((skill, idx) => (
-                              <motion.span 
-                                key={idx} 
-                                className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full"
-                                initial={{ opacity: 0, scale: 0.8 }}
-                                animate={{ opacity: 1, scale: 1 }}
-                                transition={{ delay: 0.25 + idx * 0.05 }}
-                              >
-                                {skill}
-                              </motion.span>
-                            ))}
-                          </div>
-                        </motion.div>
-                      )}
-
-                      {application.interview_feedback.notes && (
+                      <div className="flex items-center space-x-2 ml-4">
                         <motion.div
-                          initial={{ opacity: 0, y: 10 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          transition={{ delay: 0.25 }}
+                          whileHover={{ scale: 1.05 }}
+                          whileTap={{ scale: 0.95 }}
                         >
-                          <p className="text-xs font-medium text-neutral-700">Notes:</p>
-                          <p className="text-sm text-neutral-600 mt-1">{application.interview_feedback.notes}</p>
+                          <Button2
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => startEdit(application)}
+                            title="Edit Application"
+                          >
+                            <Edit className="h-4 w-4" />
+                          </Button2>
                         </motion.div>
-                      )}
-                    </motion.div>
-                  )}
 
-                  {/* Job Tech Stack */}
-                  {application.job?.tech_stack && application.job.tech_stack.length > 0 && (
-                    <motion.div 
-                      className="mt-4 pt-4 border-t border-neutral-200"
-                      initial={{ opacity: 0, height: 0 }}
-                      animate={{ opacity: 1, height: 'auto' }}
-                      transition={{ delay: 0.15, duration: 0.3 }}
-                    >
-                      <p className="text-xs font-medium text-neutral-700 mb-2">Required Tech Stack:</p>
-                      <div className="flex flex-wrap gap-1">
-                        {application.job.tech_stack.slice(0, 10).map((tech, idx) => (
-                          <motion.span 
-                            key={tech} 
-                            className="px-2 py-1 bg-neutral-100 text-neutral-700 text-xs rounded-full"
-                            initial={{ opacity: 0, scale: 0.8 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            transition={{ delay: 0.2 + idx * 0.03 }}
-                            whileHover={{ scale: 1.05 }}
-                          >
-                            {tech}
-                          </motion.span>
-                        ))}
-                        {application.job.tech_stack.length > 10 && (
-                          <motion.span 
-                            className="px-2 py-1 bg-neutral-100 text-neutral-600 text-xs rounded-full"
-                            initial={{ opacity: 0, scale: 0.8 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            transition={{ delay: 0.5 }}
-                          >
-                            +{application.job.tech_stack.length - 10} more
-                          </motion.span>
-                        )}
+                        <motion.div
+                          initial={{ opacity: 0, x: 10 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ delay: 0.1 }}
+                        >
+                          <Select
+                            value={application.status}
+                            onChange={(e) => updateApplicationStatus(application.id, e.target.value)}
+                            options={STATUS_OPTIONS}
+                            className="w-32"
+                          />
+                        </motion.div>
                       </div>
-                    </motion.div>
-                  )}
-                </CardContent>
-              </Card>
-            </motion.div>
-          ))}
+                    </div>
+
+                    {/* Interview Feedback Section */}
+                    {application.interview_feedback && (
+                      <motion.div
+                        className="mt-4 pt-4 border-t border-neutral-200"
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: 'auto' }}
+                        transition={{ delay: 0.1, duration: 0.3 }}
+                      >
+                        <h4 className="text-sm font-medium text-neutral-900 mb-2">Interview Feedback</h4>
+
+                        {application.interview_feedback.questions && application.interview_feedback.questions.length > 0 && (
+                          <motion.div
+                            className="mb-2"
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.15 }}
+                          >
+                            <p className="text-xs font-medium text-neutral-700">Questions Asked:</p>
+                            <div className="flex flex-wrap gap-1 mt-1">
+                              {application.interview_feedback.questions.map((question, idx) => (
+                                <motion.span
+                                  key={idx}
+                                  className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full"
+                                  initial={{ opacity: 0, scale: 0.8 }}
+                                  animate={{ opacity: 1, scale: 1 }}
+                                  transition={{ delay: 0.2 + idx * 0.05 }}
+                                >
+                                  {question}
+                                </motion.span>
+                              ))}
+                            </div>
+                          </motion.div>
+                        )}
+
+                        {application.interview_feedback.skill_areas && application.interview_feedback.skill_areas.length > 0 && (
+                          <motion.div
+                            className="mb-2"
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.2 }}
+                          >
+                            <p className="text-xs font-medium text-neutral-700">Skill Areas Discussed:</p>
+                            <div className="flex flex-wrap gap-1 mt-1">
+                              {application.interview_feedback.skill_areas.map((skill, idx) => (
+                                <motion.span
+                                  key={idx}
+                                  className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full"
+                                  initial={{ opacity: 0, scale: 0.8 }}
+                                  animate={{ opacity: 1, scale: 1 }}
+                                  transition={{ delay: 0.25 + idx * 0.05 }}
+                                >
+                                  {skill}
+                                </motion.span>
+                              ))}
+                            </div>
+                          </motion.div>
+                        )}
+
+                        {application.interview_feedback.notes && (
+                          <motion.div
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.25 }}
+                          >
+                            <p className="text-xs font-medium text-neutral-700">Notes:</p>
+                            <p className="text-sm text-neutral-600 mt-1">{application.interview_feedback.notes}</p>
+                          </motion.div>
+                        )}
+                      </motion.div>
+                    )}
+
+                    {/* Job Tech Stack */}
+                    {application.job?.tech_stack && application.job.tech_stack.length > 0 && (
+                      <motion.div
+                        className="mt-4 pt-4 border-t border-neutral-200"
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: 'auto' }}
+                        transition={{ delay: 0.15, duration: 0.3 }}
+                      >
+                        <p className="text-xs font-medium text-neutral-700 mb-2">Required Tech Stack:</p>
+                        <div className="flex flex-wrap gap-1">
+                          {application.job.tech_stack.slice(0, 10).map((tech, idx) => (
+                            <motion.span
+                              key={tech}
+                              className="px-2 py-1 bg-neutral-100 text-neutral-700 text-xs rounded-full"
+                              initial={{ opacity: 0, scale: 0.8 }}
+                              animate={{ opacity: 1, scale: 1 }}
+                              transition={{ delay: 0.2 + idx * 0.03 }}
+                              whileHover={{ scale: 1.05 }}
+                            >
+                              {tech}
+                            </motion.span>
+                          ))}
+                          {application.job.tech_stack.length > 10 && (
+                            <motion.span
+                              className="px-2 py-1 bg-neutral-100 text-neutral-600 text-xs rounded-full"
+                              initial={{ opacity: 0, scale: 0.8 }}
+                              animate={{ opacity: 1, scale: 1 }}
+                              transition={{ delay: 0.5 }}
+                            >
+                              +{application.job.tech_stack.length - 10} more
+                            </motion.span>
+                          )}
+                        </div>
+                      </motion.div>
+                    )}
+                  </CardContent>
+                </Card>
+              </motion.div>
+            ))}
           </AnimatePresence>
         </motion.div>
       ) : (
@@ -768,7 +897,7 @@ export default function ApplicationsPage() {
               >
                 <FileText className="h-12 w-12 text-neutral-400 mx-auto mb-4" />
               </motion.div>
-              <motion.h3 
+              <motion.h3
                 className="text-lg font-medium text-neutral-900 mb-2"
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -779,7 +908,7 @@ export default function ApplicationsPage() {
                   : 'No applications yet'
                 }
               </motion.h3>
-              <motion.p 
+              <motion.p
                 className="text-neutral-600 mb-4"
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -805,6 +934,18 @@ export default function ApplicationsPage() {
           </Card>
         </motion.div>
       )}
+
+      {/* Advanced Search Panel */}
+      <AdvancedSearch
+        isOpen={showAdvancedSearch}
+        onClose={() => setShowAdvancedSearch(false)}
+        onSearch={handleApplyAdvancedSearch}
+        fields={APPLICATION_SEARCH_FIELDS}
+        initialQuery={advancedSearchQuery}
+        onPreview={handlePreviewSearch}
+        onSave={saveSearch}
+        resultCount={filteredAndSortedApplications.length}
+      />
     </div>
   );
 }
