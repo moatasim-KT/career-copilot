@@ -58,3 +58,20 @@ jobs:
       run: npm install
     - name: Build
       run: npm run build
+    - name: Check bundle size budgets
+      run: |
+        npm run bundle:check || EXIT_CODE=$?
+        if [ "${EXIT_CODE:-0}" -eq 1 ]; then
+          echo "::error::Bundle size budget violations detected!"
+          exit 1
+        elif [ "${EXIT_CODE:-0}" -eq 2 ]; then
+          echo "::warning::Bundle size warnings detected."
+          exit 0
+        fi
+    - name: Upload bundle report
+      if: always()
+      uses: actions/upload-artifact@v3
+      with:
+        name: bundle-size-report
+        path: frontend/reports/bundle-size-report.json
+        retention-days: 7

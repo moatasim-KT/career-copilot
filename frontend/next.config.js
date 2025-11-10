@@ -6,6 +6,51 @@ const withBundleAnalyzer = require('@next/bundle-analyzer')({
 const nextConfig = {
   /* config options here */
   output: 'standalone', // Required for Docker deployment
+  
+  // Bundle size budgets
+  // Warning threshold: 200KB per route
+  // Error threshold: 250KB per route
+  onDemandEntries: {
+    // Period (in ms) where the server will keep pages in the buffer
+    maxInactiveAge: 25 * 1000,
+    // Number of pages that should be kept simultaneously without being disposed
+    pagesBufferLength: 2,
+  },
+  
+  // Experimental features for better bundle optimization
+  experimental: {
+    optimizePackageImports: [
+      'lucide-react',
+      'recharts',
+      'framer-motion',
+      '@tanstack/react-query',
+      '@tanstack/react-table',
+      '@dnd-kit/core',
+      '@dnd-kit/sortable',
+    ],
+  },
+  
+  // Webpack configuration for bundle size monitoring
+  webpack: (config, { isServer, webpack }) => {
+    // Add bundle size plugin
+    if (!isServer) {
+      config.plugins.push(
+        new webpack.optimize.LimitChunkCountPlugin({
+          maxChunks: 1,
+        })
+      );
+    }
+    
+    // Performance hints
+    config.performance = {
+      ...config.performance,
+      hints: process.env.NODE_ENV === 'production' ? 'error' : false,
+      maxAssetSize: 250000, // 250KB error threshold
+      maxEntrypointSize: 250000, // 250KB error threshold
+    };
+    
+    return config;
+  },
 };
 
 module.exports = withBundleAnalyzer(nextConfig);

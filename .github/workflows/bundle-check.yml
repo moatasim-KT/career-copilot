@@ -45,7 +45,7 @@ jobs:
         id: analyze
         run: |
           npm run build
-          node scripts/optimizeBundle.ts > bundle-report.txt
+          npm run bundle:check > bundle-report.txt || echo "Bundle check completed with warnings/errors"
         continue-on-error: true
 
       - name: Upload bundle analysis
@@ -53,13 +53,16 @@ jobs:
         with:
           name: bundle-analysis
           path: |
-            frontend/reports/bundle-analysis.json
+            frontend/reports/bundle-size-report.json
             frontend/bundle-report.txt
           retention-days: 30
 
       - name: Compare with base branch
         if: github.event_name == 'pull_request'
         run: |
+          # Save PR report
+          cp reports/bundle-size-report.json pr-bundle-report.json
+          
           # Checkout base branch
           git fetch origin ${{ github.base_ref }}
           git checkout origin/${{ github.base_ref }}
@@ -67,21 +70,76 @@ jobs:
           # Build base branch
           npm ci
           npm run build
-          node scripts/optimizeBundle.ts > base-bundle-report.txt || true
+          npm run bundle:check > base-bundle-report.txt || true
           
           # Compare sizes
-          echo "## Bundle Size Comparison" > bundle-comment.md
+          echo "## 📦 Bundle Size Comparison" > bundle-comment.md
           echo "" >> bundle-comment.md
-          echo "Comparing bundle sizes between base and PR..." >> bundle-comment.md
+          echo "Comparing bundle sizes between \`${{ github.base_ref }}\` and this PR..." >> bundle-comment.md
+          echo "" >> bundle-comment.md
           
-          # Extract total sizes
-          BASE_SIZE=$(grep "Total Bundle Size:" base-bundle-report.txt | awk '{print $4}' || echo "N/A")
-          PR_SIZE=$(grep "Total Bundle Size:" ../bundle-report.txt | awk '{print $4}' || echo "N/A")
-          
-          echo "| Branch | Total Size |" >> bundle-comment.md
-          echo "|--------|------------|" >> bundle-comment.md
-          echo "| Base (${{ github.base_ref }}) | $BASE_SIZE |" >> bundle-comment.md
-          echo "| PR | $PR_SIZE |" >> bundle-comment.md
+          # Extract total sizes from JSON reports
+          if [ -f reports/bundle-size-report.json ] && [ -f ../pr-bundle-report.json ]; then
+            BASE_SIZE=$(jq -r '.totalSize' reports/bundle-size-report.json)
+            PR_SIZE=$(jq -r '.totalSize' ../pr-bundle-report.json)
+            
+            # Calculate difference
+            DIFF=$((PR_SIZE - BASE_SIZE))
+            DIFF_PERCENT=$(echo "scale=2; ($DIFF * 100) / $BASE_SIZE" | bc)
+            
+            # Format sizes
+            BASE_SIZE_KB=$(echo "scale=2; $BASE_SIZE / 1024" | bc)
+            PR_SIZE_KB=$(echo "scale=2; $PR_SIZE / 1024" | bc)
+            DIFF_KB=$(echo "scale=2; $DIFF / 1024" | bc)
+            
+            echo "### Summary" >> bundle-comment.md
+            echo "" >> bundle-comment.md
+            echo "| Branch | Total Size | Change |" >> bundle-comment.md
+            echo "|--------|------------|--------|" >> bundle-comment.md
+            echo "| Base (\`${{ github.base_ref }}\`) | ${BASE_SIZE_KB} KB | - |" >> bundle-comment.md
+            
+            if [ $DIFF -gt 0 ]; then
+              echo "| PR | ${PR_SIZE_KB} KB | 🔴 +${DIFF_KB} KB (+${DIFF_PERCENT}%) |" >> bundle-comment.md
+            elif [ $DIFF -lt 0 ]; then
+              echo "| PR | ${PR_SIZE_KB} KB | 🟢 ${DIFF_KB} KB (${DIFF_PERCENT}%) |" >> bundle-comment.md
+            else
+              echo "| PR | ${PR_SIZE_KB} KB | ⚪ No change |" >> bundle-comment.md
+            fi
+            
+            echo "" >> bundle-comment.md
+            echo "### Budget Status" >> bundle-comment.md
+            echo "" >> bundle-comment.md
+            
+            # Check for violations
+            ERRORS=$(jq -r '.violations.errors | length' ../pr-bundle-report.json)
+            WARNINGS=$(jq -r '.violations.warnings | length' ../pr-bundle-report.json)
+            
+            if [ "$ERRORS" -gt 0 ]; then
+              echo "❌ **${ERRORS} route(s) exceed error threshold (250KB)**" >> bundle-comment.md
+              echo "" >> bundle-comment.md
+              jq -r '.violations.errors[] | "- \(.route): \(.size / 1024 | floor) KB"' ../pr-bundle-report.json >> bundle-comment.md
+            fi
+            
+            if [ "$WARNINGS" -gt 0 ]; then
+              echo "" >> bundle-comment.md
+              echo "⚠️ **${WARNINGS} route(s) exceed warning threshold (200KB)**" >> bundle-comment.md
+              echo "" >> bundle-comment.md
+              jq -r '.violations.warnings[] | "- \(.route): \(.size / 1024 | floor) KB"' ../pr-bundle-report.json >> bundle-comment.md
+            fi
+            
+            if [ "$ERRORS" -eq 0 ] && [ "$WARNINGS" -eq 0 ]; then
+              echo "✅ All bundles are within budget limits!" >> bundle-comment.md
+            fi
+            
+            echo "" >> bundle-comment.md
+            echo "---" >> bundle-comment.md
+            echo "" >> bundle-comment.md
+            echo "**Budget Thresholds:**" >> bundle-comment.md
+            echo "- ⚠️ Warning: 200 KB per route" >> bundle-comment.md
+            echo "- ❌ Error: 250 KB per route" >> bundle-comment.md
+          else
+            echo "⚠️ Could not compare bundle sizes. Reports not found." >> bundle-comment.md
+          fi
 
       - name: Comment on PR
         if: github.event_name == 'pull_request'
@@ -100,13 +158,24 @@ jobs:
 
       - name: Check bundle size budget
         run: |
-          if [ -f reports/bundle-analysis.json ]; then
-            VIOLATIONS=$(jq '.violations | length' reports/bundle-analysis.json)
-            if [ "$VIOLATIONS" -gt 0 ]; then
-              echo "::error::Bundle size budget violations detected!"
-              cat bundle-report.txt
-              exit 1
-            fi
+          # Run bundle size check
+          npm run bundle:check || EXIT_CODE=$?
+          
+          # Exit code 1 = errors (fail build)
+          # Exit code 2 = warnings (pass but notify)
+          # Exit code 0 = success
+          
+          if [ "${EXIT_CODE:-0}" -eq 1 ]; then
+            echo "::error::Bundle size budget violations detected! One or more routes exceed 250KB."
+            cat reports/bundle-size-report.json
+            exit 1
+          elif [ "${EXIT_CODE:-0}" -eq 2 ]; then
+            echo "::warning::Bundle size warnings detected. Some routes exceed 200KB but are under 250KB."
+            cat reports/bundle-size-report.json
+            exit 0
+          else
+            echo "::notice::All bundles are within budget limits."
+            exit 0
           fi
 
       - name: Generate bundle visualizer

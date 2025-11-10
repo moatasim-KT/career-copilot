@@ -17,6 +17,9 @@
     "quality:check": "npm run lint:check && npm run format:check && npm run type-check",
     "quality:fix": "npm run lint && npm run format",
     "analyze": "ANALYZE=true npm run build",
+    "bundle:check": "node scripts/check-bundle-size.js",
+    "bundle:analyze": "npm run analyze && npm run bundle:check",
+    "size-limit": "size-limit",
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build"
   },

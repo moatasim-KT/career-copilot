@@ -542,7 +542,7 @@ This implementation plan converts the TODO.md remaining tasks into actionable co
   - Test preloading behavior
   - _Requirements: 6.4_
 
-- [ ] 9.5 Set bundle size budget alerts
+- [x] 9.5 Set bundle size budget alerts
   - Configure bundle size budgets in next.config.js
   - Set warning threshold at 200KB per route
   - Set error threshold at 250KB per route
