@@ -127,7 +127,7 @@ This implementation plan converts the TODO.md remaining tasks into actionable co
   - _Requirements: 1.3, 1.4_
 
 - [ ] 3. Add Gradient & Visual Enhancements
-- [-] 3.1 Update dashboard hero with gradient
+- [x] 3.1 Update dashboard hero with gradient
   - Update dashboard header section
   - Apply gradient-mesh background from globals.css
   - Ensure text contrast on gradient (min 4.5:1)
