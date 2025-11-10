@@ -18,6 +18,18 @@ export { default as LazyNotificationCenter } from './LazyNotificationCenter';
 export { default as LazyDataTable } from './LazyDataTable';
 export { default as LazyRichTextEditor } from './LazyRichTextEditor';
 
+// Modal and Dialog components (conditionally rendered)
+export { default as LazyModal, LazyModalFooter } from './LazyModal';
+export { default as LazyModal2 } from './LazyModal2';
+export { default as LazyDrawer2 } from './LazyDrawer2';
+export { default as LazyConfirmDialog } from './LazyConfirmDialog';
+
+// Bulk operation components (conditionally rendered)
+export { LazyBulkActionBar } from './LazyBulkActionBar';
+export { default as LazyConfirmBulkAction } from './LazyConfirmBulkAction';
+export { default as LazyBulkOperationProgress } from './LazyBulkOperationProgress';
+export { default as LazyUndoToast } from './LazyUndoToast';
+
 // Chart components
 export {
   LazyPieChart,

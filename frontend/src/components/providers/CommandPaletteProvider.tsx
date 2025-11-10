@@ -8,7 +8,8 @@
 
 import { createContext, useContext, ReactNode } from 'react';
 
-import { CommandPalette, useCommandPalette } from '@/components/ui/CommandPalette';
+import { LazyCommandPalette } from '@/components/lazy';
+import { useCommandPalette } from '@/components/ui/CommandPalette';
 import { useKeyboardShortcut } from '@/hooks/useKeyboardShortcut';
 
 interface CommandPaletteContextValue {
@@ -41,7 +42,7 @@ export function CommandPaletteProvider({ children }: CommandPaletteProviderProps
   return (
     <CommandPaletteContext.Provider value={{ isOpen, open, close, toggle }}>
       {children}
-      <CommandPalette isOpen={isOpen} onClose={close} />
+      <LazyCommandPalette isOpen={isOpen} onClose={close} />
     </CommandPaletteContext.Provider>
   );
 }

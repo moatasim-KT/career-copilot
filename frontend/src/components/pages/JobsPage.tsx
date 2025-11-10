@@ -31,21 +31,24 @@ import {
 } from 'lucide-react';
 import { useState, useEffect, useMemo } from 'react';
 
-import { AdvancedSearch } from '@/components/features/AdvancedSearch';
 import { FilterChips, removeRuleFromQuery } from '@/components/features/FilterChips';
 import { RecentSearches } from '@/components/features/RecentSearches';
 import { SavedSearches, useSavedSearches } from '@/components/features/SavedSearches';
 import { QuickFilterChips } from '@/components/filters/QuickFilterChips';
 import { SavedFilters } from '@/components/filters/SavedFilters';
 import { StickyFilterPanel } from '@/components/filters/StickyFilterPanel';
+import { 
+  LazyAdvancedSearch,
+  LazyModal,
+  LazyModalFooter,
+  LazyBulkActionBar,
+  LazyConfirmBulkAction,
+  LazyBulkOperationProgress,
+  LazyUndoToast,
+} from '@/components/lazy';
 import Button2 from '@/components/ui/Button2';
-import { BulkActionBar } from '@/components/ui/BulkActionBar';
-import { ConfirmBulkAction } from '@/components/ui/ConfirmBulkAction';
-import { BulkOperationProgress } from '@/components/ui/BulkOperationProgress';
-import { UndoToast } from '@/components/ui/UndoToast';
 import Card, { CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import Input from '@/components/ui/Input';
-import Modal, { ModalFooter } from '@/components/ui/Modal';
 import Select from '@/components/ui/Select';
 import Textarea from '@/components/ui/Textarea';
 import { useLocalStorage } from '@/hooks/useLocalStorage';
@@ -234,6 +237,14 @@ export default function JobsPage() {
       setShowConfirmDialog(false);
       await executeBulkAction(confirmAction);
       setConfirmAction(null);
+    }
+  };
+
+  // Handle bulk delete
+  const handleBulkDelete = async () => {
+    const deleteAction = bulkActions.find(action => action.id === 'delete');
+    if (deleteAction) {
+      await handleBulkAction(deleteAction);
     }
   };
 
@@ -775,7 +786,7 @@ export default function JobsPage() {
       )}
 
       {/* Job Form Modal */}
-      <Modal
+      <LazyModal
         isOpen={showJobModal}
         onClose={closeModal}
         title={editingJob ? 'Edit Job' : 'Add New Job'}
@@ -903,7 +914,7 @@ export default function JobsPage() {
             placeholder="Full job description..."
           />
 
-          <ModalFooter>
+          <LazyModalFooter>
             <Button2
               type="button"
               variant="outline"
@@ -917,9 +928,9 @@ export default function JobsPage() {
             >
               {editingJob ? 'Update Job' : 'Add Job'}
             </Button2>
-          </ModalFooter>
+          </LazyModalFooter>
         </form>
-      </Modal>
+      </LazyModal>
 
       {/* Jobs List */}
       {isLoading ? (
@@ -969,18 +980,20 @@ export default function JobsPage() {
       />
 
       {/* Bulk Action Bar */}
-      <BulkActionBar
-        selectedCount={selectedJobIds.length}
-        selectedIds={selectedJobIds}
-        actions={bulkActions.map(action => ({
-          ...action,
-          action: () => handleBulkAction(action),
-        }))}
-        onClearSelection={() => setSelectedJobIds([])}
-      />
+      {selectedJobIds.length > 0 && (
+        <LazyBulkActionBar
+          selectedCount={selectedJobIds.length}
+          selectedIds={selectedJobIds}
+          actions={bulkActions.map(action => ({
+            ...action,
+            action: () => handleBulkAction(action),
+          }))}
+          onClearSelection={() => setSelectedJobIds([])}
+        />
+      )}
 
       {/* Confirmation Dialog */}
-      <ConfirmBulkAction
+      <LazyConfirmBulkAction
         isOpen={showConfirmDialog}
         onClose={() => {
           setShowConfirmDialog(false);
@@ -1000,7 +1013,7 @@ export default function JobsPage() {
       />
 
       {/* Progress Dialog */}
-      <BulkOperationProgress
+      <LazyBulkOperationProgress
         isOpen={showProgress}
         onClose={() => setShowProgress(false)}
         title="Processing Bulk Operation"
@@ -1013,7 +1026,7 @@ export default function JobsPage() {
       />
 
       {/* Undo Toast */}
-      <UndoToast
+      <LazyUndoToast
         isVisible={canUndo}
         message={`${undoState?.actionName || 'Action'} applied to ${undoState?.affectedIds.length || 0} job${(undoState?.affectedIds.length || 0) > 1 ? 's' : ''}`}
         onUndo={undo}

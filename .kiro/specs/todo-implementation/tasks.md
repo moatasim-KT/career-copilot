@@ -530,7 +530,7 @@ This implementation plan converts the TODO.md remaining tasks into actionable co
   - Test functionality after splitting
   - _Requirements: 6.4_
 
-- [ ] 9.3 Implement dynamic imports for conditional features
+- [x] 9.3 Implement dynamic imports for conditional features
   - Identify conditionally used features (modals, dialogs, etc.)
   - Convert to dynamic imports
   - Test all features still work

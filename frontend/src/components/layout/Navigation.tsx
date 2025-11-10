@@ -14,7 +14,7 @@ import { usePathname } from 'next/navigation';
 import { useState, useEffect } from 'react';
 
 import { ThemeToggle } from '@/components/ui/ThemeToggle';
-import NotificationCenter from '@/components/ui/NotificationCenter';
+import { LazyNotificationCenter } from '@/components/lazy';
 import { cn } from '@/lib/utils';
 
 const navigationItems = [
@@ -93,14 +93,14 @@ export default function Navigation() {
 
             {/* Notification Center and Theme Toggle */}
             <div className="ml-2 pl-2 border-l border-neutral-200 dark:border-neutral-700 flex items-center gap-2">
-              <NotificationCenter />
+              <LazyNotificationCenter />
               <ThemeToggle />
             </div>
           </div>
 
           {/* Mobile menu button, notification center, and theme toggle */}
           <div className="md:hidden flex items-center gap-2">
-            <NotificationCenter />
+            <LazyNotificationCenter />
             <ThemeToggle />
             <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}

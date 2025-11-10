@@ -19,20 +19,23 @@ import {
 } from 'lucide-react';
 import { useState, useEffect, useCallback, useMemo } from 'react';
 
-import { AdvancedSearch } from '@/components/features/AdvancedSearch';
 import { FilterChips, removeRuleFromQuery } from '@/components/features/FilterChips';
 import { RecentSearches } from '@/components/features/RecentSearches';
 import { SavedSearches, useSavedSearches } from '@/components/features/SavedSearches';
-import { BulkActionBar } from '@/components/ui/BulkActionBar';
-import { ConfirmBulkAction } from '@/components/ui/ConfirmBulkAction';
-import { BulkOperationProgress } from '@/components/ui/BulkOperationProgress';
+import { 
+  LazyAdvancedSearch,
+  LazyModal,
+  LazyModalFooter,
+  LazyBulkActionBar,
+  LazyConfirmBulkAction,
+  LazyBulkOperationProgress,
+  LazyUndoToast,
+} from '@/components/lazy';
 import Button2 from '@/components/ui/Button2';
 import Card, { CardContent } from '@/components/ui/Card';
 import Input from '@/components/ui/Input';
-import Modal, { ModalFooter } from '@/components/ui/Modal';
 import Select from '@/components/ui/Select';
 import Textarea from '@/components/ui/Textarea';
-import { UndoToast } from '@/components/ui/UndoToast';
 import { useBulkUndo } from '@/hooks/useBulkUndo';
 import { useRecentSearches } from '@/hooks/useRecentSearches';
 import { useWebSocket } from '@/hooks/useWebSocket';
@@ -699,7 +702,7 @@ export default function ApplicationsPage() {
       </motion.div>
 
       {/* Application Form Modal */}
-      <Modal
+      <LazyModal
         isOpen={showApplicationModal}
         onClose={closeModal}
         title={editingApplication ? 'Edit Application' : 'Add New Application'}
@@ -758,7 +761,7 @@ export default function ApplicationsPage() {
             className="min-h-[44px]"
           />
 
-          <ModalFooter>
+          <LazyModalFooter>
             <Button2
               type="button"
               variant="outline"
@@ -772,9 +775,9 @@ export default function ApplicationsPage() {
             >
               {editingApplication ? 'Update Application' : 'Add Application'}
             </Button2>
-          </ModalFooter>
+          </LazyModalFooter>
         </form>
-      </Modal>
+      </LazyModal>
 
       {filteredAndSortedApplications.length > 0 ? (
         <motion.div
@@ -1071,7 +1074,7 @@ export default function ApplicationsPage() {
       )}
 
       {/* Advanced Search Panel */}
-      <AdvancedSearch
+      <LazyAdvancedSearch
         isOpen={showAdvancedSearch}
         onClose={() => setShowAdvancedSearch(false)}
         onSearch={handleApplyAdvancedSearch}
@@ -1083,18 +1086,20 @@ export default function ApplicationsPage() {
       />
 
       {/* Bulk Action Bar */}
-      <BulkActionBar
-        selectedCount={selectedApplicationIds.length}
-        selectedIds={selectedApplicationIds}
-        actions={bulkActions.map(action => ({
-          ...action,
-          action: () => handleBulkAction(action),
-        }))}
-        onClearSelection={() => setSelectedApplicationIds([])}
-      />
+      {selectedApplicationIds.length > 0 && (
+        <LazyBulkActionBar
+          selectedCount={selectedApplicationIds.length}
+          selectedIds={selectedApplicationIds}
+          actions={bulkActions.map(action => ({
+            ...action,
+            action: () => handleBulkAction(action),
+          }))}
+          onClearSelection={() => setSelectedApplicationIds([])}
+        />
+      )}
 
       {/* Confirmation Dialog */}
-      <ConfirmBulkAction
+      <LazyConfirmBulkAction
         isOpen={showConfirmDialog}
         onClose={() => {
           setShowConfirmDialog(false);
@@ -1114,7 +1119,7 @@ export default function ApplicationsPage() {
       />
 
       {/* Progress Dialog */}
-      <BulkOperationProgress
+      <LazyBulkOperationProgress
         isOpen={showProgress}
         onClose={() => setShowProgress(false)}
         title="Processing Bulk Operation"
@@ -1127,7 +1132,7 @@ export default function ApplicationsPage() {
       />
 
       {/* Undo Toast */}
-      <UndoToast
+      <LazyUndoToast
         isVisible={canUndo}
         message={`${undoState?.actionName || 'Action'} applied to ${undoState?.affectedIds.length || 0} application${(undoState?.affectedIds.length || 0) > 1 ? 's' : ''}`}
         onUndo={undo}

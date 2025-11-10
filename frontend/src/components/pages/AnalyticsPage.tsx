@@ -11,23 +11,14 @@ import {
   BarChart3,
 } from 'lucide-react';
 import { useState, useEffect, useCallback } from 'react';
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-  PieChart,
-  Pie,
-  Cell,
-  LineChart,
-  Line,
-  Legend,
-  ComposedChart,
-} from 'recharts';
 
+import {
+  LazyPieChart,
+  LazyBarChart,
+  LazyLineChart,
+  LazyComposedChart,
+  LazyChartComponents,
+} from '@/components/lazy';
 import { useWebSocket } from '@/hooks/useWebSocket';
 import { apiClient, AnalyticsSummary } from '@/lib/api';
 import { logger } from '@/lib/logger';
@@ -341,9 +332,9 @@ export default function AnalyticsPage() {
         <Card className="p-6">
           <h3 className="text-lg font-semibold text-neutral-900 mb-4">Application Status Breakdown</h3>
           {statusBreakdownData.length > 0 ? (
-            <ResponsiveContainer width="100%" height={300}>
-              <PieChart>
-                <Pie
+            <LazyChartComponents.ResponsiveContainer width="100%" height={300}>
+              <LazyPieChart>
+                <LazyChartComponents.Pie
                   data={statusBreakdownData as any}
                   cx="50%"
                   cy="50%"
@@ -354,12 +345,12 @@ export default function AnalyticsPage() {
                   dataKey="count"
                 >
                   {statusBreakdownData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.color} />
+                    <LazyChartComponents.Cell key={`cell-${index}`} fill={entry.color} />
                   ))}
-                </Pie>
-                <Tooltip />
-              </PieChart>
-            </ResponsiveContainer>
+                </LazyChartComponents.Pie>
+                <LazyChartComponents.Tooltip />
+              </LazyPieChart>
+            </LazyChartComponents.ResponsiveContainer>
           ) : (
             <div className="flex items-center justify-center h-64 text-neutral-500">
               No application data available
@@ -370,15 +361,15 @@ export default function AnalyticsPage() {
         {/* Application Trends */}
         <Card className="p-6">
           <h3 className="text-lg font-semibold text-neutral-900 mb-4">Application Trends</h3>
-          <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={applicationTrendData}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="period" />
-              <YAxis />
-              <Tooltip />
-              <Bar dataKey="applications" fill="#3B82F6" />
-            </BarChart>
-          </ResponsiveContainer>
+          <LazyChartComponents.ResponsiveContainer width="100%" height={300}>
+            <LazyBarChart data={applicationTrendData}>
+              <LazyChartComponents.CartesianGrid strokeDasharray="3 3" />
+              <LazyChartComponents.XAxis dataKey="period" />
+              <LazyChartComponents.YAxis />
+              <LazyChartComponents.Tooltip />
+              <LazyChartComponents.Bar dataKey="applications" fill="#3B82F6" />
+            </LazyBarChart>
+          </LazyChartComponents.ResponsiveContainer>
         </Card>
       </div>
 
@@ -389,26 +380,26 @@ export default function AnalyticsPage() {
           <Card className="p-6">
             <h3 className="text-lg font-semibold text-neutral-900 mb-4">Application Timeline</h3>
             {comprehensiveData.application_trends && comprehensiveData.application_trends.length > 0 ? (
-              <ResponsiveContainer width="100%" height={300}>
-                <LineChart data={comprehensiveData.application_trends}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis
+              <LazyChartComponents.ResponsiveContainer width="100%" height={300}>
+                <LazyLineChart data={comprehensiveData.application_trends}>
+                  <LazyChartComponents.CartesianGrid strokeDasharray="3 3" />
+                  <LazyChartComponents.XAxis
                     dataKey="date"
                     tickFormatter={(date) => new Date(date).toLocaleDateString()}
                   />
-                  <YAxis />
-                  <Tooltip
+                  <LazyChartComponents.YAxis />
+                  <LazyChartComponents.Tooltip
                     labelFormatter={(date) => new Date(date).toLocaleDateString()}
                   />
-                  <Line
+                  <LazyChartComponents.Line
                     type="monotone"
                     dataKey="applications"
                     stroke="#3B82F6"
                     strokeWidth={2}
                     dot={{ fill: '#3B82F6', strokeWidth: 2, r: 4 }}
                   />
-                </LineChart>
-              </ResponsiveContainer>
+                </LazyLineChart>
+              </LazyChartComponents.ResponsiveContainer>
             ) : (
               <div className="flex items-center justify-center h-64 text-neutral-500">
                 No timeline data available
@@ -420,25 +411,25 @@ export default function AnalyticsPage() {
           <Card className="p-6">
             <h3 className="text-lg font-semibold text-neutral-900 mb-4">Weekly Performance Trends</h3>
             {comprehensiveData.weekly_performance && comprehensiveData.weekly_performance.length > 0 ? (
-              <ResponsiveContainer width="100%" height={400}>
-                <ComposedChart data={comprehensiveData.weekly_performance.reverse()}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis
+              <LazyChartComponents.ResponsiveContainer width="100%" height={400}>
+                <LazyComposedChart data={comprehensiveData.weekly_performance.reverse()}>
+                  <LazyChartComponents.CartesianGrid strokeDasharray="3 3" />
+                  <LazyChartComponents.XAxis
                     dataKey="week_start"
                     tickFormatter={(date) => new Date(date).toLocaleDateString()}
                   />
-                  <YAxis yAxisId="left" />
-                  <YAxis yAxisId="right" orientation="right" />
-                  <Tooltip
+                  <LazyChartComponents.YAxis yAxisId="left" />
+                  <LazyChartComponents.YAxis yAxisId="right" orientation="right" />
+                  <LazyChartComponents.Tooltip
                     labelFormatter={(date) => `Week of ${new Date(date).toLocaleDateString()}`}
                     formatter={(value, name) => [
                       typeof name === 'string' && name.includes('rate') ? `${(value as number).toFixed(1)}%` : value,
                       name,
                     ]}
                   />
-                  <Legend />
-                  <Bar yAxisId="left" dataKey="applications" fill="#3B82F6" name="Applications" />
-                  <Line
+                  <LazyChartComponents.Legend />
+                  <LazyChartComponents.Bar yAxisId="left" dataKey="applications" fill="#3B82F6" name="Applications" />
+                  <LazyChartComponents.Line
                     yAxisId="right"
                     type="monotone"
                     dataKey="interview_rate"
@@ -446,7 +437,7 @@ export default function AnalyticsPage() {
                     strokeWidth={2}
                     name="Interview Rate (%)"
                   />
-                  <Line
+                  <LazyChartComponents.Line
                     yAxisId="right"
                     type="monotone"
                     dataKey="offer_rate"
@@ -454,8 +445,8 @@ export default function AnalyticsPage() {
                     strokeWidth={2}
                     name="Offer Rate (%)"
                   />
-                </ComposedChart>
-              </ResponsiveContainer>
+                </LazyComposedChart>
+              </LazyChartComponents.ResponsiveContainer>
             ) : (
               <div className="flex items-center justify-center h-64 text-neutral-500">
                 No performance trend data available
@@ -471,15 +462,15 @@ export default function AnalyticsPage() {
         <Card className="p-6">
           <h3 className="text-lg font-semibold text-neutral-900 mb-4">Top Skills in Jobs</h3>
           {skillsData.length > 0 ? (
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={skillsData} layout="horizontal">
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis type="number" />
-                <YAxis dataKey="skill" type="category" width={80} />
-                <Tooltip />
-                <Bar dataKey="count" fill="#10B981" />
-              </BarChart>
-            </ResponsiveContainer>
+            <LazyChartComponents.ResponsiveContainer width="100%" height={300}>
+              <LazyBarChart data={skillsData} layout="horizontal">
+                <LazyChartComponents.CartesianGrid strokeDasharray="3 3" />
+                <LazyChartComponents.XAxis type="number" />
+                <LazyChartComponents.YAxis dataKey="skill" type="category" width={80} />
+                <LazyChartComponents.Tooltip />
+                <LazyChartComponents.Bar dataKey="count" fill="#10B981" />
+              </LazyBarChart>
+            </LazyChartComponents.ResponsiveContainer>
           ) : (
             <div className="flex items-center justify-center h-64 text-neutral-500">
               No skills data available
@@ -491,15 +482,15 @@ export default function AnalyticsPage() {
         <Card className="p-6">
           <h3 className="text-lg font-semibold text-neutral-900 mb-4">Top Companies Applied</h3>
           {companiesData.length > 0 ? (
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={companiesData} layout="horizontal">
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis type="number" />
-                <YAxis dataKey="company" type="category" width={100} />
-                <Tooltip />
-                <Bar dataKey="count" fill="#8B5CF6" />
-              </BarChart>
-            </ResponsiveContainer>
+            <LazyChartComponents.ResponsiveContainer width="100%" height={300}>
+              <LazyBarChart data={companiesData} layout="horizontal">
+                <LazyChartComponents.CartesianGrid strokeDasharray="3 3" />
+                <LazyChartComponents.XAxis type="number" />
+                <LazyChartComponents.YAxis dataKey="company" type="category" width={100} />
+                <LazyChartComponents.Tooltip />
+                <LazyChartComponents.Bar dataKey="count" fill="#8B5CF6" />
+              </LazyBarChart>
+            </LazyChartComponents.ResponsiveContainer>
           ) : (
             <div className="flex items-center justify-center h-64 text-neutral-500">
               No company data available
