@@ -104,21 +104,21 @@ This implementation plan converts the TODO.md remaining tasks into actionable co
   - Ensure chart colors work in dark theme
   - _Requirements: 1.3, 1.4_
 
-- [ ] 2.7 Update all form components for dark mode
+- [x] 2.7 Update all form components for dark mode
   - Update Input2, Select2, MultiSelect2, Textarea2, DatePicker2
   - Add dark:bg-neutral-800, dark:border-neutral-700
   - Add dark:placeholder-neutral-500
   - Test focus rings in dark mode
   - _Requirements: 1.3, 1.4_
 
-- [ ] 2.8 Update table components for dark mode
+- [-] 2.8 Update table components for dark mode
   - Update JobTableView and DataTable components
   - Add dark:bg-neutral-800 to headers
   - Add dark:hover:bg-neutral-700 to rows
   - Add dark:border-neutral-700 to borders
   - _Requirements: 1.3, 1.4_
 
-- [ ] 2.9 Test dark mode across all pages
+- [x] 2.9 Test dark mode across all pages
   - Test Dashboard, Jobs, Applications, Recommendations, Analytics
   - Test all modals and popovers
   - Test forms and inputs
