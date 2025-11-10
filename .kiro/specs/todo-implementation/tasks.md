@@ -169,7 +169,7 @@ This implementation plan converts the TODO.md remaining tasks into actionable co
   - Apply to empty state components at 5-10% opacity
   - _Requirements: 1.5_
 
-- [ ] 3.7 Add accent color highlights
+- [x] 3.7 Add accent color highlights
   - Add colored left/bottom border to active navigation items
   - Add smooth transition
   - Create colored status indicators with glow (success, warning, error)
@@ -260,7 +260,7 @@ This implementation plan converts the TODO.md remaining tasks into actionable co
   - Style to match Linear/Raycast/Spotlight
   - _Requirements: 3.1, 3.2_
 
-- [ ] 5.4 Add dynamic search for jobs and applications
+- [x] 5.4 Add dynamic search for jobs and applications
   - Implement debounced API search (300ms delay)
   - Query jobs from API when user types
   - Query applications from API
