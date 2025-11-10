@@ -154,7 +154,7 @@ This implementation plan converts the TODO.md remaining tasks into actionable co
   - Test all card variants
   - _Requirements: 1.5_
 
-- [-] 3.5 Add button glow effects
+- [x] 3.5 Add button glow effects
   - Add glow effect to primary CTAs (box-shadow with primary color)
   - Increase glow on hover
   - Add pulse animation for critical actions
