@@ -89,15 +89,15 @@
   - Generate compressed archive (ZIP)
   - _Requirements: 4.1, 4.2_
 
-- [ ] 5. Implement data import functionality
-- [ ] 5.1 Create import router and validation
+- [x] 5. Implement data import functionality
+- [x] 5.1 Create import router and validation
   - Create new router file for import endpoints
   - Implement file upload handling
   - Add CSV parsing and validation
   - Add import router to main API router
   - _Requirements: 4.3, 4.4_
 
-- [ ] 5.2 Implement job import
+- [x] 5.2 Implement job import
   - Parse CSV files with job data
   - Validate required fields and data types
   - Handle tech_stack array parsing
@@ -105,7 +105,7 @@
   - Return import summary with success/failure counts
   - _Requirements: 4.3, 4.4_
 
-- [ ] 5.3 Implement application import
+- [x] 5.3 Implement application import
   - Parse CSV files with application data
   - Validate status values and dates
   - Link applications to existing jobs

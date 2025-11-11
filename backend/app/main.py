@@ -205,6 +205,7 @@ def create_app() -> FastAPI:
 		feedback_analysis,
 		groq,
 		health,
+		import_data,
 		integrations_admin,
 		interview,
 		job_recommendation_feedback,
@@ -251,6 +252,7 @@ def create_app() -> FastAPI:
 	
 	# Data Export & Import
 	app.include_router(export.router)
+	app.include_router(import_data.router)
 
 	# Analytics & Reporting
 	app.include_router(analytics.router)
