@@ -7,6 +7,14 @@
  * @module lib/api/client
  */
 
+import {
+    classifyError,
+    getErrorMessage,
+    handleError,
+    retryWithBackoff,
+    shouldRetry,
+} from '../errorHandling';
+
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8002';
 const API_VERSION = '/api/v1';
 
@@ -47,7 +55,7 @@ function buildUrl(endpoint: string, params?: Record<string, any>): string {
 }
 
 /**
- * Base fetch wrapper with error handling
+ * Base fetch wrapper with error handling and retry logic
  */
 async function fetchApi<T = any>(
     endpoint: string,
@@ -70,34 +78,108 @@ async function fetchApi<T = any>(
 
     const url = buildUrl(endpoint, params);
 
+    // Wrap fetch in retry logic
     try {
-        const response = await fetch(url, {
-            ...fetchOptions,
-            headers,
-        });
+        return await retryWithBackoff(
+            async () => {
+                try {
+                    const response = await fetch(url, {
+                        ...fetchOptions,
+                        headers,
+                    });
 
-        let data: T | undefined;
-        const contentType = response.headers.get('content-type');
+                    let data: T | undefined;
+                    const contentType = response.headers.get('content-type');
 
-        if (contentType?.includes('application/json')) {
-            data = await response.json();
-        }
+                    if (contentType?.includes('application/json')) {
+                        data = await response.json();
+                    }
 
-        if (!response.ok) {
-            return {
-                error: (data as any)?.detail || `HTTP ${response.status}: ${response.statusText}`,
-                status: response.status,
-            };
-        }
+                    if (!response.ok) {
+                        const error: any = new Error(
+                            (data as any)?.detail || `HTTP ${response.status}: ${response.statusText}`
+                        );
+                        error.status = response.status;
+                        error.response = { status: response.status, data };
 
+                        // Intercept and handle specific errors
+                        const errorType = classifyError(error);
+                        const errorMessage = getErrorMessage(error);
+
+                        // Handle authentication errors
+                        if (response.status === 401) {
+                            handleError(error, {
+                                component: 'API Client',
+                                action: `${fetchOptions.method || 'GET'} ${endpoint}`,
+                            });
+                            // Optionally redirect to login
+                            if (typeof window !== 'undefined') {
+                                // Store current URL for redirect after login
+                                sessionStorage.setItem('redirectAfterLogin', window.location.pathname);
+                            }
+                        }
+                        // Handle forbidden errors
+                        else if (response.status === 403) {
+                            handleError(error, {
+                                component: 'API Client',
+                                action: `${fetchOptions.method || 'GET'} ${endpoint}`,
+                            });
+                        }
+                        // Handle not found errors
+                        else if (response.status === 404) {
+                            handleError(error, {
+                                component: 'API Client',
+                                action: `${fetchOptions.method || 'GET'} ${endpoint}`,
+                            });
+                        }
+                        // Handle server errors
+                        else if (response.status >= 500) {
+                            handleError(error, {
+                                component: 'API Client',
+                                action: `${fetchOptions.method || 'GET'} ${endpoint}`,
+                            });
+                        }
+
+                        // Throw error to trigger retry if applicable
+                        throw error;
+                    }
+
+                    return {
+                        data,
+                        status: response.status,
+                    };
+                } catch (error: any) {
+                    // Handle network errors
+                    if (error instanceof TypeError || error.message === 'Failed to fetch') {
+                        const networkError: any = new Error('Network error');
+                        networkError.status = 0;
+                        networkError.originalError = error;
+
+                        handleError(networkError, {
+                            component: 'API Client',
+                            action: `${fetchOptions.method || 'GET'} ${endpoint}`,
+                        });
+
+                        throw networkError;
+                    }
+
+                    // Re-throw other errors
+                    throw error;
+                }
+            },
+            undefined, // Use default retry config
+            (attemptNumber, error) => {
+                // Log retry attempts in development
+                if (process.env.NODE_ENV === 'development') {
+                    console.log(`Retry attempt ${attemptNumber} for ${endpoint}`, error);
+                }
+            }
+        );
+    } catch (error: any) {
+        // Final error after all retries
         return {
-            data,
-            status: response.status,
-        };
-    } catch (error) {
-        return {
-            error: error instanceof Error ? error.message : 'Network error',
-            status: 0,
+            error: error.message || 'Request failed',
+            status: error.status || 0,
         };
     }
 }
