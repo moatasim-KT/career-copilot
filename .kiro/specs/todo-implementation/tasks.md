@@ -967,15 +967,15 @@ This implementation plan converts the TODO.md remaining tasks into actionable co
   - Test error reporting
   - _Requirements: 8.5_
 
-- [ ] 19. Implement Help & Documentation System
-- [ ] 19.1 Create useFirstTimeHint hook
+- [x] 19. Implement Help & Documentation System
+- [x] 19.1 Create useFirstTimeHint hook
   - Create `frontend/src/hooks/useFirstTimeHint.ts`
   - Track which features user has seen (localStorage)
   - Show tooltip on first interaction
   - Add "Got it" button to dismiss permanently
   - _Requirements: 4.3, 4.4_
 
-- [ ] 19.2 Create HelpIcon component
+- [x] 19.2 Create HelpIcon component
   - Create `frontend/src/components/ui/HelpIcon.tsx`
   - Small "?" icon next to complex features
   - Popover with explanation on hover/click
@@ -983,7 +983,7 @@ This implementation plan converts the TODO.md remaining tasks into actionable co
   - Consistent styling
   - _Requirements: 4.3, 4.4_
 
-- [ ] 19.3 Create FeatureTour modal
+- [x] 19.3 Create FeatureTour modal
   - Create `frontend/src/components/help/FeatureTour.tsx`
   - Multi-step modal explaining key features
   - Add screenshots or GIFs
@@ -991,7 +991,7 @@ This implementation plan converts the TODO.md remaining tasks into actionable co
   - Accessible via Help menu
   - _Requirements: 4.3, 4.4_
 
-- [ ] 19.4 Create Help Center page
+- [x] 19.4 Create Help Center page
   - Create `frontend/src/app/help/page.tsx`
   - Organize by categories: Getting Started, Features, Troubleshooting
   - Implement searchable FAQ
@@ -999,14 +999,14 @@ This implementation plan converts the TODO.md remaining tasks into actionable co
   - Add links to video tutorials
   - _Requirements: 4.3, 4.4_
 
-- [ ] 19.5 Add contextual help to features
+- [x] 19.5 Add contextual help to features
   - Add help text to complex forms
   - Add tooltips to unclear buttons/icons
   - Add "Learn more" links to documentation
   - Add examples/placeholders in inputs
   - _Requirements: 4.3, 4.4_
 
-- [ ] 19.6 Create feedback widget
+- [x] 19.6 Create feedback widget
   - Add feedback button in footer or settings
   - Simple form: Rating, Comment, Screenshot option
   - Send to backend for review
