@@ -15,8 +15,11 @@ import { useState, useEffect } from 'react';
 
 import { ThemeToggle } from '@/components/ui/ThemeToggle';
 import { LazyNotificationCenter } from '@/components/lazy';
+import { ConnectionStatusCompact } from '@/components/ui/ConnectionStatus';
+import { NotificationBadge } from '@/components/ui/Badge';
 import { cn } from '@/lib/utils';
 import { useRoutePrefetch } from '@/hooks/useRoutePrefetch';
+import { useRealtimeJobs } from '@/hooks/useRealtimeJobs';
 
 const navigationItems = [
   { href: '/dashboard', label: 'Dashboard', icon: BarChart3 },
@@ -57,7 +60,9 @@ function NavigationLink({ href, label, icon: Icon, isActive, onClick, className 
         className
       )}
     >
-      <Icon className="h-4 w-4" />
+      <div className="relative">
+        <Icon className="h-4 w-4" />
+      </div>
       <span>{label}</span>
       {/* Accent border for active item */}
       {isActive && (
@@ -108,6 +113,7 @@ export default function Navigation() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const pathname = usePathname();
+  const { newJobsCount, clearNewJobs } = useRealtimeJobs();
 
   // Detect scroll to apply glass morphism effect
   useEffect(() => {
@@ -142,27 +148,39 @@ export default function Navigation() {
           <div className="hidden md:flex items-center space-x-1">
             {navigationItems.map((item) => {
               const isActive = pathname === item.href;
+              const showBadge = item.href === '/jobs' && newJobsCount > 0;
 
               return (
-                <NavigationLink
-                  key={item.href}
-                  href={item.href}
-                  label={item.label}
-                  icon={item.icon}
-                  isActive={isActive}
-                />
+                <div key={item.href} className="relative">
+                  <NavigationLink
+                    href={item.href}
+                    label={item.label}
+                    icon={item.icon}
+                    isActive={isActive}
+                    onClick={() => {
+                      if (item.href === '/jobs') {
+                        clearNewJobs();
+                      }
+                    }}
+                  />
+                  {showBadge && (
+                    <NotificationBadge count={newJobsCount} className="absolute -top-1 -right-1" />
+                  )}
+                </div>
               );
             })}
 
-            {/* Notification Center and Theme Toggle */}
+            {/* Connection Status, Notification Center and Theme Toggle */}
             <div className="ml-2 pl-2 border-l border-neutral-200 dark:border-neutral-700 flex items-center gap-2">
+              <ConnectionStatusCompact />
               <LazyNotificationCenter />
               <ThemeToggle />
             </div>
           </div>
 
-          {/* Mobile menu button, notification center, and theme toggle */}
+          {/* Mobile menu button, connection status, notification center, and theme toggle */}
           <div className="md:hidden flex items-center gap-2">
+            <ConnectionStatusCompact />
             <LazyNotificationCenter />
             <ThemeToggle />
             <button
@@ -207,15 +225,26 @@ export default function Navigation() {
               <div className="px-2 pt-2 pb-3 space-y-1">
                 {navigationItems.map((item) => {
                   const isActive = pathname === item.href;
+                  const showBadge = item.href === '/jobs' && newJobsCount > 0;
+                  
                   return (
-                    <MobileNavigationLink
-                      key={item.href}
-                      href={item.href}
-                      label={item.label}
-                      icon={item.icon}
-                      isActive={isActive}
-                      onClick={() => setIsMobileMenuOpen(false)}
-                    />
+                    <div key={item.href} className="relative">
+                      <MobileNavigationLink
+                        href={item.href}
+                        label={item.label}
+                        icon={item.icon}
+                        isActive={isActive}
+                        onClick={() => {
+                          setIsMobileMenuOpen(false);
+                          if (item.href === '/jobs') {
+                            clearNewJobs();
+                          }
+                        }}
+                      />
+                      {showBadge && (
+                        <NotificationBadge count={newJobsCount} className="absolute top-2 right-4" />
+                      )}
+                    </div>
                   );
                 })}
               </div>

@@ -737,7 +737,7 @@ This implementation plan converts the TODO.md remaining tasks into actionable co
   - Show onboarding progress in profile
   - _Requirements: 4.1, 4.2_
 
-- [-] 15. Implement Data Visualization Charts
+- [x] 15. Implement Data Visualization Charts
 - [x] 15.1 Create ChartWrapper component
   - Create `frontend/src/components/charts/ChartWrapper.tsx`
   - Add consistent styling with design tokens
@@ -802,15 +802,15 @@ This implementation plan converts the TODO.md remaining tasks into actionable co
   - Ensure responsive charts (adapt to mobile)
   - _Requirements: 7.1, 7.2, 7.3, 7.4, 7.5_
 
-- [-] 15.8 Integrate charts into Dashboard
+- [x] 15.8 Integrate charts into Dashboard
   - Add charts to `frontend/src/components/pages/Dashboard.tsx`
   - Create chart grid layout (responsive)
   - Add chart loading skeletons
   - Test with real data
   - _Requirements: 7.1, 7.2, 7.3, 7.4, 7.5_
 
-- [ ] 16. Implement WebSocket Real-time Updates
-- [ ] 16.1 Create WebSocket client
+- [x] 16. Implement WebSocket Real-time Updates
+- [x] 16.1 Create WebSocket client
   - Create `frontend/src/lib/websocket.ts`
   - Implement WebSocketClient class
   - Connect to backend WebSocket server
@@ -820,7 +820,7 @@ This implementation plan converts the TODO.md remaining tasks into actionable co
   - Implement message queue for offline mode
   - _Requirements: 5.1, 5.2, 5.3, 5.4_
 
-- [ ] 16.2 Create ConnectionStatus component
+- [x] 16.2 Create ConnectionStatus component
   - Create `frontend/src/components/ui/ConnectionStatus.tsx`
   - Show small indicator in Navigation header
   - States: Connected (green), Connecting (yellow), Disconnected (red)
@@ -828,7 +828,7 @@ This implementation plan converts the TODO.md remaining tasks into actionable co
   - Add manual reconnect button
   - _Requirements: 5.1, 5.4_
 
-- [ ] 16.3 Implement real-time job recommendations
+- [x] 16.3 Implement real-time job recommendations
   - Listen for `job:recommendation` WebSocket events
   - Show toast notification when new job matches
   - Update jobs list in real-time without page refresh
@@ -836,7 +836,7 @@ This implementation plan converts the TODO.md remaining tasks into actionable co
   - Add smooth animation for new items appearing
   - _Requirements: 5.1, 5.2_
 
-- [ ] 16.4 Implement real-time application status updates
+- [x] 16.4 Implement real-time application status updates
   - Listen for `application:status_change` events
   - Update application status in UI instantly
   - Show toast notification: "Application status changed to {status}"
@@ -844,7 +844,7 @@ This implementation plan converts the TODO.md remaining tasks into actionable co
   - Add badge animation for status change
   - _Requirements: 5.1, 5.3_
 
-- [ ] 16.5 Implement real-time notifications
+- [x] 16.5 Implement real-time notifications
   - Listen for `notification:new` events
   - Display toast notification
   - Update notification bell badge count
@@ -852,7 +852,7 @@ This implementation plan converts the TODO.md remaining tasks into actionable co
   - Play sound (with user preference)
   - _Requirements: 5.1, 5.2_
 
-- [ ] 16.6 Handle reconnection and offline mode
+- [x] 16.6 Handle reconnection and offline mode
   - Detect network offline/online events
   - Show reconnecting toast
   - Retry connection with exponential backoff
@@ -860,7 +860,7 @@ This implementation plan converts the TODO.md remaining tasks into actionable co
   - Handle message queue for missed events
   - _Requirements: 5.1, 5.4_
 
-- [ ] 16.7 Test WebSocket functionality
+- [x] 16.7 Test WebSocket functionality
   - Test real-time updates in multiple browser tabs
   - Test reconnection after network disruption
   - Test on mobile devices
