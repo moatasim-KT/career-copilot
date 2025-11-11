@@ -1,100 +1,177 @@
 """
-Data export API endpoints
+Data export API endpoints - Comprehensive export functionality
+Supports JSON, CSV, and PDF formats for jobs and applications
 """
+
+from datetime import datetime
+from typing import Any, Dict, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Response
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
 
 from app.core.database import get_db
-from app.core.dependencies import get_current_user
+from app.dependencies import get_current_user
 from app.models.user import User
-from app.services.export_service import export_service
+from app.schemas.export import ExportFormat, ExportType
+from app.services.export_service_v2 import export_service_v2
 
-# NOTE: This file has been converted to use AsyncSession.
-# Database queries need to be converted to async: await db.execute(select(...)) instead of db.query(...)
-
-router = APIRouter()
+router = APIRouter(prefix="/api/v1/export", tags=["export"])
 
 
-@router.get("/user-data")
-async def export_user_data(
-	format: str = Query("json", regex="^(json|csv)$"), current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)
+@router.get("/jobs")
+async def export_jobs(
+    format: ExportFormat = Query(ExportFormat.JSON, description="Export format (json, csv, pdf)"),
+    status: Optional[str] = Query(None, description="Filter by job status"),
+    company: Optional[str] = Query(None, description="Filter by company name"),
+    location: Optional[str] = Query(None, description="Filter by location"),
+    job_type: Optional[str] = Query(None, description="Filter by job type"),
+    remote_option: Optional[str] = Query(None, description="Filter by remote option"),
+    date_from: Optional[datetime] = Query(None, description="Filter jobs created after this date"),
+    date_to: Optional[datetime] = Query(None, description="Filter jobs created before this date"),
+    page: int = Query(1, ge=1, description="Page number for pagination (JSON only)"),
+    page_size: int = Query(100, ge=1, le=1000, description="Records per page (JSON only)"),
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
 ):
-	"""Export all user data in specified format"""
-	result = export_service.export_user_data(db, current_user.id, format)
+    """
+    Export jobs in specified format with optional filtering and pagination.
+    
+    Supports:
+    - JSON: Paginated, structured data with metadata
+    - CSV: Flat file format suitable for spreadsheets
+    - PDF: Professional formatted report with charts
+    """
+    try:
+        # Build filters
+        filters = {}
+        if status:
+            filters["status"] = status
+        if company:
+            filters["company"] = company
+        if location:
+            filters["location"] = location
+        if job_type:
+            filters["job_type"] = job_type
+        if remote_option:
+            filters["remote_option"] = remote_option
+        if date_from:
+            filters["date_from"] = date_from
+        if date_to:
+            filters["date_to"] = date_to
 
-	if "error" in result:
-		raise HTTPException(status_code=400, detail=result["error"])
+        if format == ExportFormat.JSON:
+            result = await export_service_v2.export_jobs_json(
+                db, current_user.id, filters, page=page, page_size=page_size
+            )
+            if not result.get("success"):
+                raise HTTPException(status_code=500, detail=result.get("error"))
+            return result
 
-	return result
+        elif format == ExportFormat.CSV:
+            csv_content = await export_service_v2.export_jobs_csv(db, current_user.id, filters)
+            filename = f"jobs_export_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}.csv"
+            return Response(
+                content=csv_content,
+                media_type="text/csv",
+                headers={"Content-Disposition": f"attachment; filename={filename}"},
+            )
 
+        elif format == ExportFormat.PDF:
+            pdf_content = await export_service_v2.export_jobs_pdf(db, current_user.id, filters)
+            filename = f"jobs_export_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}.pdf"
+            return Response(
+                content=pdf_content,
+                media_type="application/pdf",
+                headers={"Content-Disposition": f"attachment; filename={filename}"},
+            )
 
-@router.get("/jobs/csv")
-async def export_jobs_csv(current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
-	"""Export jobs as CSV file"""
-	csv_content = export_service.export_jobs_to_csv(db, current_user.id)
-
-	if not csv_content:
-		raise HTTPException(status_code=404, detail="No jobs found to export")
-
-	return Response(content=csv_content, media_type="text/csv", headers={"Content-Disposition": f"attachment; filename=jobs_export.csv"})
-
-
-@router.post("/import")
-async def import_user_data(data: dict, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
-	"""Import user data from export"""
-	result = export_service.import_user_data(db, current_user.id, data)
-
-	if not result.get("success"):
-		raise HTTPException(status_code=400, detail=result.get("error", "Import failed"))
-
-	return result
-
-
-@router.get("/backup")
-async def create_backup_archive(current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
-	"""Create complete backup archive"""
-	result = export_service.create_backup_archive(db, current_user.id)
-
-	if not result.get("success"):
-		raise HTTPException(status_code=500, detail=result.get("error", "Backup creation failed"))
-
-	return result
-
-
-@router.get("/migration")
-async def export_for_migration(current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
-	"""Export data in migration-friendly format"""
-	result = export_service.export_for_migration(db, current_user.id)
-
-	if not result.get("success"):
-		raise HTTPException(status_code=500, detail=result.get("error", "Migration export failed"))
-
-	return result
-
-
-@router.get("/offline-package")
-async def prepare_offline_package(current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
-	"""Prepare comprehensive offline data package"""
-	result = export_service.prepare_offline_export(db, current_user.id)
-
-	if not result.get("success"):
-		raise HTTPException(status_code=500, detail=result.get("error", "Offline package preparation failed"))
-
-	return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Export failed: {str(e)}")
 
 
-@router.get("/with-offline-support")
-async def export_with_offline_support(
-	include_offline_data: bool = Query(True, description="Include offline functionality data"),
-	current_user: User = Depends(get_current_user),
-	db: AsyncSession = Depends(get_db),
+@router.get("/applications")
+async def export_applications(
+    format: ExportFormat = Query(ExportFormat.JSON, description="Export format (json, csv, pdf)"),
+    status: Optional[str] = Query(None, description="Filter by application status"),
+    date_from: Optional[datetime] = Query(None, description="Filter applications created after this date"),
+    date_to: Optional[datetime] = Query(None, description="Filter applications created before this date"),
+    page: int = Query(1, ge=1, description="Page number for pagination (JSON only)"),
+    page_size: int = Query(100, ge=1, le=1000, description="Records per page (JSON only)"),
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
 ):
-	"""Export data with offline functionality support"""
-	result = export_service.export_with_offline_support(db, current_user.id, include_offline_data)
+    """
+    Export applications in specified format with optional filtering and pagination.
+    
+    Supports:
+    - JSON: Paginated, structured data with job details
+    - CSV: Flat file format with interview feedback as JSON string
+    - PDF: Professional formatted report with status summary
+    """
+    try:
+        # Build filters
+        filters = {}
+        if status:
+            filters["status"] = status
+        if date_from:
+            filters["date_from"] = date_from
+        if date_to:
+            filters["date_to"] = date_to
 
-	if not result.get("success"):
-		raise HTTPException(status_code=500, detail=result.get("error", "Export with offline support failed"))
+        if format == ExportFormat.JSON:
+            result = await export_service_v2.export_applications_json(
+                db, current_user.id, filters, page=page, page_size=page_size
+            )
+            if not result.get("success"):
+                raise HTTPException(status_code=500, detail=result.get("error"))
+            return result
 
-	return result
+        elif format == ExportFormat.CSV:
+            csv_content = await export_service_v2.export_applications_csv(db, current_user.id, filters)
+            filename = f"applications_export_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}.csv"
+            return Response(
+                content=csv_content,
+                media_type="text/csv",
+                headers={"Content-Disposition": f"attachment; filename={filename}"},
+            )
+
+        elif format == ExportFormat.PDF:
+            pdf_content = await export_service_v2.export_applications_pdf(db, current_user.id, filters)
+            filename = f"applications_export_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}.pdf"
+            return Response(
+                content=pdf_content,
+                media_type="application/pdf",
+                headers={"Content-Disposition": f"attachment; filename={filename}"},
+            )
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Export failed: {str(e)}")
+
+
+@router.get("/full-backup")
+async def create_full_backup(
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """
+    Create a complete backup archive containing all user data.
+    
+    The backup includes:
+    - User profile and settings (JSON)
+    - All jobs (JSON and CSV)
+    - All applications (JSON and CSV)
+    - Export metadata
+    - README with instructions
+    
+    Returns a ZIP archive for download.
+    """
+    try:
+        zip_content = await export_service_v2.create_full_backup(db, current_user.id)
+        filename = f"career_copilot_backup_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}.zip"
+        return Response(
+            content=zip_content,
+            media_type="application/zip",
+            headers={"Content-Disposition": f"attachment; filename={filename}"},
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Backup creation failed: {str(e)}")

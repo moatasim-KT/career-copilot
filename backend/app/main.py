@@ -200,6 +200,7 @@ def create_app() -> FastAPI:
 		database_admin,
 		database_performance,
 		email_admin,
+		export,
 		feedback,
 		feedback_analysis,
 		groq,
@@ -247,6 +248,9 @@ def create_app() -> FastAPI:
 	app.include_router(job_sources.router)
 	app.include_router(applications.router)
 	app.include_router(resume.router, prefix="/api/v1/resume", tags=["resume", "parsing"])
+	
+	# Data Export & Import
+	app.include_router(export.router)
 
 	# Analytics & Reporting
 	app.include_router(analytics.router)
