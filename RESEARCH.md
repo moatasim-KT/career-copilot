@@ -1,88 +1,100 @@
-# Research Findings for Onboarding Wizard and Data Visualization Charts
+# Research Findings: Backend-Frontend Integration for Career Copilot
 
-This document outlines the research and plan for implementing the Onboarding Wizard and Data Visualization Charts features.
+## Overview
+This research synthesizes information from `design.md`, `requirements.md`, and `tasks.md` to provide a comprehensive understanding of the backend-frontend integration strategy for the Career Copilot application. The primary goal is to ensure seamless communication, verify endpoint accessibility, and implement missing functionalities.
 
-## 1. Onboarding Wizard
+## Key Areas of Focus
 
-The onboarding wizard will be a new feature to guide users through the initial setup of their profile and preferences.
+### 1. Architecture
+The system is designed with three main components:
+- **Testing & Analysis System**: Responsible for endpoint discovery, testing, gap detection, and implementation tracking.
+- **Backend System**: A FastAPI application utilizing API Endpoints and a PostgreSQL database.
+- **Frontend System**: A Next.js application with React components and an API client.
 
-### 1.1. Component Structure
+### 2. Core Components and Interfaces
 
-The main component will be `frontend/src/components/onboarding/OnboardingWizard.tsx`. It will manage the state of the wizard, including the current step and the user's progress. The wizard will consist of the following steps:
+#### a. Endpoint Discovery System
+- **Purpose**: Automatically identifies all registered FastAPI routes.
+- **Functionality**: Discovers, categorizes, and generates a map of endpoints, including details like path, method, parameters, response models, and authentication requirements.
 
-*   **Welcome & Profile Setup**: `frontend/src/components/onboarding/steps/WelcomeStep.tsx`
-*   **Skills & Expertise**: `frontend/src/components/onboarding/steps/SkillsStep.tsx`
-*   **Resume Upload**: `frontend/src/components/onboarding/steps/ResumeStep.tsx`
-*   **Job Preferences**: `frontend/src/components/onboarding/steps/PreferencesStep.tsx`
-*   **Feature Tour**: `frontend/src/components/onboarding/steps/FeatureTourStep.tsx`
-*   **Completion**: `frontend/src/components/onboarding/steps/CompletionStep.tsx`
+#### b. Endpoint Testing Framework
+- **Purpose**: Systematically tests all backend endpoints.
+- **Functionality**: Tests endpoints with valid, invalid, and edge-case inputs; validates responses against schemas; and generates detailed test reports. Test categories include health checks, CRUD, search, analytics, file operations, and WebSockets.
 
-### 1.2. UI Components
+#### c. Frontend Analysis System
+- **Purpose**: Scans frontend code to identify API calls and required endpoints.
+- **Functionality**: Extracts endpoint paths, methods, parameters, and response formats from frontend API calls, mapping them to specific frontend components and identifying feature requirements.
 
-The wizard will be built using the existing UI components from `frontend/src/components/ui/` to ensure a consistent look and feel. The following components will be used:
+#### d. Gap Detection Module
+- **Purpose**: Identifies discrepancies between frontend requirements and backend implementations.
+- **Functionality**: Compares frontend API calls with backend endpoints to detect missing endpoints, parameter mismatches, and response format issues. Gaps are categorized by severity and prioritized.
 
-*   `Button`: For Next, Back, and Skip buttons.
-*   `ProgressBar`: To show the user's progress through the wizard.
-*   `Input`: For text inputs like name, email, and job title.
-*   `Select`: For dropdowns like years of experience.
-*   `Checkbox`: For multi-select options.
-*   `FileUpload`: For resume uploads.
-*   `Modal`: To host the wizard.
+#### e. Dependency Consolidation
+- **Issue**: Conflicting `get_current_user` implementations (`app/dependencies.py` vs. `app/core/dependencies.py`).
+- **Resolution**: Standardize on the database-backed implementation from `app/dependencies.py` as the canonical version. This involves auditing and updating all imports and removing the duplicate implementation.
 
-### 1.3. State Management
+#### f. Missing Backend Implementations
+Based on frontend analysis, the following functionalities are identified as missing and require implementation:
+- **Data Export Endpoints**: For jobs, applications, and full user data in JSON, CSV, and PDF formats.
+- **Data Import Endpoints**: For jobs and applications from CSV files.
+- **Bulk Operations Endpoints**: For creating, updating, and deleting multiple jobs and applications.
+- **Enhanced Search Endpoints**: Advanced filtering and search capabilities for jobs and applications.
+- **Notification Management Endpoints**: CRUD operations for notifications, including preferences.
+- **WebSocket Real-time Updates**: For delivering real-time notifications.
+- **Analytics Enhancements**: Summary statistics, trend data, and skill analysis for job search progress.
 
-The state of the wizard will be managed using a combination of `useState` and `useReducer` hooks. The progress will be saved to the backend after each step using the `apiClient.user.updateProfile()` method.
+### 3. Data Models
+Specific data models are defined for:
+- `TestResult`, `ValidationResult` (for testing outcomes).
+- `Gap` (for identified integration discrepancies).
+- `ExportFormat`, `ExportRequest`, `ImportResult` (for data export/import).
+- `BulkOperationResult` (for bulk operations).
 
-### 1.4. Skip and Resume Logic
+### 4. Error Handling
+- **Categories**: Validation (400, 422), Not Found (404), Server Errors (500).
+- **Standardization**: A consistent `ErrorResponse` format is specified, including `request_id`, `timestamp`, and `field_errors`.
+- **Strategy**: Emphasizes catching all exceptions, logging with full context, returning structured error responses, sanitizing sensitive data, and providing actionable error messages.
 
-The wizard will allow users to skip individual steps or the entire onboarding process. The progress will be saved to the backend, so users can resume from where they left off.
+### 5. Testing Strategy
+A multi-faceted testing approach is outlined:
+- **Unit Tests**: For individual components (e.g., endpoint discovery, test data generation).
+- **Integration Tests**: For component interactions (e.g., frontend-backend communication, WebSocket connections).
+- **End-to-End Tests**: For complete user workflows.
+- **Performance Tests**: To assess system behavior under load (e.g., concurrent requests, large datasets).
+- **Test Data**: Creation of comprehensive datasets for various test scenarios.
 
-## 2. Data Visualization Charts
+### 6. Implementation Phases (from `tasks.md`)
+The `tasks.md` document details a phased implementation plan, with many tasks already marked as complete. The remaining tasks primarily focus on:
+- Implementing the missing backend functionalities (export, import, bulk operations, enhanced search, notifications, WebSockets, analytics).
+- Enhancing error handling and performance optimizations.
+- Comprehensive testing (unit, integration, end-to-end, performance).
+- Documentation and deployment updates.
 
-The data visualization charts will provide users with insights into their job applications and the job market.
+### 7. Monitoring and Logging
+- **Logging**: Strategies for request, error, and performance logging, including request IDs for tracing and structured logging.
+- **Metrics**: Tracking key metrics such as request count, response times, error rates, and database performance.
 
-### 2.1. Charting Library
+### 8. Security Considerations
+- **Measures**: Input validation, data sanitization, rate limiting, and data privacy (e.g., not logging sensitive data, GDPR compliance).
 
-The project already uses `recharts`, so we will use it to create the new charts.
+### 9. Performance Optimization
+- **Database**: Indexing, connection pooling, async operations, query result caching.
+- **API**: Response caching, pagination, field selection, response compression, async/await.
+- **Caching**: Utilizing Redis for distributed caching of analytics, user profiles, and job listings with appropriate TTLs and invalidation strategies.
 
-### 2.2. Chart Components
+### 10. Deployment Considerations
+- **Configuration**: Separate configurations for different environments, environment variables for sensitive data, feature flags.
+- **Database Migrations**: Versioned schema changes, testing migrations, rollback procedures, backups.
+- **Monitoring**: Health checks, metrics collection, error tracking, APM, log aggregation.
 
-The following chart components will be created in `frontend/src/components/charts/`:
+### 11. Success Criteria
+Clear metrics for project success are defined, including:
+- 100% endpoint accessibility with valid responses.
+- Zero authentication errors when disabled.
+- Full frontend-backend feature parity.
+- Response times under 500ms for 95% of requests.
+- >80% code coverage.
+- Zero critical bugs in production.
+- Complete and updated documentation.
 
-*   `ApplicationStatusChart.tsx`: A pie or donut chart showing the distribution of application statuses.
-*   `ApplicationTimelineChart.tsx`: A line chart showing the number of applications over time.
-*   `SalaryDistributionChart.tsx`: A bar chart or histogram showing the distribution of salary ranges.
-*   `SkillsDemandChart.tsx`: A bar chart showing the top skills in job postings.
-*   `SuccessRateChart.tsx`: A funnel chart showing the conversion rates at each stage of the application process.
-
-Each chart component will be wrapped in a `ChartWrapper.tsx` component that provides consistent styling, loading skeletons, error states, and export/full-screen functionality.
-
-### 2.3. Data Fetching
-
-The data for the charts will be fetched from the backend using the `apiClient.analytics` methods.
-
-## 3. WebSocket Real-time Updates
-
-The application will use WebSockets to provide real-time updates for job recommendations and application status.
-
-### 3.1. WebSocket Client
-
-The `frontend/src/lib/api/websocket.ts` file already contains a `WebSocketService` class that handles the WebSocket connection. We will use this service to subscribe to the relevant channels and receive real-time updates.
-
-### 3.2. Real-time Features
-
-*   **Job Recommendations**: The application will listen for `job:recommendation` events and show a toast notification when a new job matches the user's profile.
-*   **Application Status Updates**: The application will listen for `application:status_change` events and update the application status in the UI instantly.
-*   **Notifications**: The application will listen for `notification:new` events and display a toast notification and update the notification bell badge.
-
-## 4. Drag & Drop Features
-
-The application will use the `@dnd-kit` library to implement drag and drop features.
-
-### 4.1. Draggable Dashboard Widgets
-
-The dashboard widgets will be made draggable using the `@dnd-kit/sortable` package. The layout of the widgets will be saved to the user's preferences.
-
-### 4.2. Kanban Board for Applications
-
-A Kanban board will be created to manage job applications. The application cards will be draggable between columns, and the status will be updated on drop.
+This research provides a solid foundation for planning the remaining implementation and testing efforts for the Career Copilot backend-frontend integration.
