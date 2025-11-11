@@ -113,22 +113,22 @@
   - Return import summary with error details
   - _Requirements: 4.3, 4.4_
 
-- [ ] 6. Implement bulk operations
-- [ ] 6.1 Add bulk create operations
+- [x] 6. Implement bulk operations
+- [x] 6.1 Add bulk create operations
   - Implement bulk job creation endpoint
   - Implement bulk application creation endpoint
   - Use database transactions for atomicity
   - Return detailed results with created IDs
   - _Requirements: 4.4_
 
-- [ ] 6.2 Add bulk update operations
+- [x] 6.2 Add bulk update operations
   - Implement bulk job update endpoint
   - Implement bulk application update endpoint
   - Validate all updates before applying
   - Return updated IDs and error details
   - _Requirements: 4.4_
 
-- [ ] 6.3 Add bulk delete operations
+- [x] 6.3 Add bulk delete operations
   - Implement bulk job deletion endpoint
   - Implement bulk application deletion endpoint
   - Add soft delete option

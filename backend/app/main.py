@@ -194,6 +194,7 @@ def create_app() -> FastAPI:
 		analytics_extended,
 		applications,
 		auth,
+		bulk_operations,
 		cache_admin,
 		content,
 		dashboard,
@@ -253,6 +254,9 @@ def create_app() -> FastAPI:
 	# Data Export & Import
 	app.include_router(export.router)
 	app.include_router(import_data.router)
+	
+	# Bulk Operations
+	app.include_router(bulk_operations.router)
 
 	# Analytics & Reporting
 	app.include_router(analytics.router)
