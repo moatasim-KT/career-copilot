@@ -21,10 +21,6 @@ const nextConfig = {
     // Used for images that don't need full device width
     imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
     
-    // Default quality for optimized images (1-100)
-    // 85 provides good balance between quality and file size
-    quality: 85,
-    
     // Enable image optimization in development for testing
     unoptimized: false,
     
