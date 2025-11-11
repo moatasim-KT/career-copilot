@@ -428,7 +428,7 @@ const SkillsStep: React.FC<StepProps> = ({ data, onChange }) => {
       {/* Add custom skill */}
       <motion.div variants={staggerItem} className="pt-6 border-t border-neutral-200 dark:border-neutral-700">
         <h4 className="text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-3">
-          Don't see your skill? Add it manually
+          Don&apos;t see your skill? Add it manually
         </h4>
         <div className="flex gap-2">
           <Input2

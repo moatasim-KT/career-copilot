@@ -21,6 +21,10 @@
     "bundle:analyze": "npm run analyze && npm run bundle:check",
     "size-limit": "size-limit",
     "compress-images": "node scripts/compress-images.js",
+    "lighthouse": "lhci autorun",
+    "lighthouse:collect": "lhci collect",
+    "lighthouse:assert": "lhci assert",
+    "lighthouse:upload": "lhci upload",
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build"
   },
@@ -64,6 +68,7 @@
     "sonner": "^2.0.7",
     "tailwind-merge": "^3.3.1",
     "tanstack": "^1.0.3",
+    "web-vitals": "^5.1.0",
     "zod": "^4.1.12",
     "zustand": "^5.0.8"
   },
@@ -72,6 +77,7 @@
     "@babel/preset-react": "^7.28.5",
     "@babel/preset-typescript": "^7.28.5",
     "@chromatic-com/storybook": "^4.1.2",
+    "@lhci/cli": "^0.15.1",
     "@next/bundle-analyzer": "^16.0.1",
     "@playwright/test": "^1.56.1",
     "@storybook/addon-a11y": "^10.0.6",

@@ -58,11 +58,6 @@ const nextConfig = {
     // Loader configuration for custom image optimization
     // Using default Next.js loader
     loader: 'default',
-    
-    // Quality settings for image optimization
-    // 75 is a good balance between quality and file size
-    // For WebP/AVIF, this produces excellent quality at small file sizes
-    quality: 75,
   },
   
   // Bundle size budgets

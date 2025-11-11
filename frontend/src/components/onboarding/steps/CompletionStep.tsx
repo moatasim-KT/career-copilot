@@ -249,7 +249,7 @@ const CompletionStep: React.FC<StepProps> = ({ data }) => {
       <motion.div variants={staggerItem} className="space-y-4">
         <div className="flex items-center justify-between">
           <h4 className="text-lg font-semibold text-neutral-900 dark:text-neutral-100">
-            Jobs we think you'll love
+            Jobs we think you&apos;ll love
           </h4>
           {recommendedJobs.length > 0 && (
             <button
