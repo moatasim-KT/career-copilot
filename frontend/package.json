@@ -25,6 +25,8 @@
     "lighthouse:collect": "lhci collect",
     "lighthouse:assert": "lhci assert",
     "lighthouse:upload": "lhci upload",
+    "performance:audit": "node scripts/performance-audit.js",
+    "security:audit": "node scripts/security-audit.js",
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build"
   },
