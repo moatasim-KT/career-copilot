@@ -10,7 +10,9 @@ const nextConfig = {
   // Image optimization configuration
   images: {
     // Supported image formats - Next.js will automatically serve WebP/AVIF when supported
-    formats: ['image/webp', 'image/avif'],
+    // WebP: ~30% smaller than JPEG, excellent browser support
+    // AVIF: ~50% smaller than JPEG, growing browser support
+    formats: ['image/avif', 'image/webp'],
     
     // Device sizes for responsive images
     // These correspond to common device breakpoints and are used when you specify sizes prop
@@ -45,8 +47,8 @@ const nextConfig = {
       },
     ],
     
-    // Cache optimized images for 60 seconds
-    minimumCacheTTL: 60,
+    // Cache optimized images for 60 days in production
+    minimumCacheTTL: 60 * 60 * 24 * 60,
     
     // Allow SVG images (with security restrictions)
     dangerouslyAllowSVG: true,
@@ -56,6 +58,11 @@ const nextConfig = {
     // Loader configuration for custom image optimization
     // Using default Next.js loader
     loader: 'default',
+    
+    // Quality settings for image optimization
+    // 75 is a good balance between quality and file size
+    // For WebP/AVIF, this produces excellent quality at small file sizes
+    quality: 75,
   },
   
   // Bundle size budgets

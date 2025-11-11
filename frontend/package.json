@@ -20,6 +20,7 @@
     "bundle:check": "node scripts/check-bundle-size.js",
     "bundle:analyze": "npm run analyze && npm run bundle:check",
     "size-limit": "size-limit",
+    "compress-images": "node scripts/compress-images.js",
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build"
   },
