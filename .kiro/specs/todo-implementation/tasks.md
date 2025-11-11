@@ -867,8 +867,8 @@ This implementation plan converts the TODO.md remaining tasks into actionable co
   - Test with slow network
   - _Requirements: 5.1, 5.2, 5.3, 5.4_
 
-- [ ] 17. Implement Drag & Drop Features
-- [ ] 17.1 Create draggable dashboard widgets
+- [x] 17. Implement Drag & Drop Features
+- [x] 17.1 Create draggable dashboard widgets
   - Update Dashboard component to use @dnd-kit
   - Make dashboard cards/widgets draggable
   - Allow reordering widgets
@@ -877,7 +877,7 @@ This implementation plan converts the TODO.md remaining tasks into actionable co
   - Add visual feedback during drag (ghost element, drop zones)
   - _Requirements: 4.1_
 
-- [ ] 17.2 Create Kanban board for applications
+- [x] 17.2 Create Kanban board for applications
   - Create `frontend/src/components/pages/ApplicationKanban.tsx`
   - Create columns: Applied, Interviewing, Offer, Rejected
   - Make application cards draggable between columns
@@ -886,21 +886,21 @@ This implementation plan converts the TODO.md remaining tasks into actionable co
   - Add smooth animations
   - _Requirements: 4.1_
 
-- [ ] 17.3 Add drag-to-reorder for lists
+- [x] 17.3 Add drag-to-reorder for lists
   - Add drag-to-reorder for custom job lists
   - Add drag-to-reorder for saved searches
   - Save order to backend
   - Add visual feedback (drag handle, drop indicator)
   - _Requirements: 4.1_
 
-- [ ] 17.4 Add keyboard support for drag & drop
+- [x] 17.4 Add keyboard support for drag & drop
   - Implement keyboard navigation for drag & drop
   - Space to pick up, arrow keys to move, Enter to drop
   - Announce drag/drop actions to screen readers
   - Add ARIA live regions for status updates
   - _Requirements: 4.1_
 
-- [ ] 17.5 Test drag & drop functionality
+- [x] 17.5 Test drag & drop functionality
   - Test on desktop browsers
   - Test touch drag on mobile/tablet
   - Test keyboard navigation
