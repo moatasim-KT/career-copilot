@@ -598,7 +598,7 @@ This implementation plan converts the TODO.md remaining tasks into actionable co
   - Measure FPS (target: 60fps)
   - _Requirements: 6.4_
 
-- [-] 11.4 Performance testing
+- [x] 11.4 Performance testing
   - Benchmark rendering time before/after virtualization
   - Measure FPS during scrolling
   - Test on lower-end devices
