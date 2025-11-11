@@ -737,8 +737,8 @@ This implementation plan converts the TODO.md remaining tasks into actionable co
   - Show onboarding progress in profile
   - _Requirements: 4.1, 4.2_
 
-- [ ] 15. Implement Data Visualization Charts
-- [ ] 15.1 Create ChartWrapper component
+- [-] 15. Implement Data Visualization Charts
+- [x] 15.1 Create ChartWrapper component
   - Create `frontend/src/components/charts/ChartWrapper.tsx`
   - Add consistent styling with design tokens
   - Add loading skeleton state
@@ -747,7 +747,7 @@ This implementation plan converts the TODO.md remaining tasks into actionable co
   - Add full-screen mode toggle
   - _Requirements: 7.1, 7.2, 7.3, 7.4, 7.5_
 
-- [ ] 15.2 Create ApplicationStatusChart
+- [x] 15.2 Create ApplicationStatusChart
   - Create `frontend/src/components/charts/ApplicationStatusChart.tsx`
   - Implement pie or donut chart using Recharts
   - Show status distribution (Applied, Interviewing, Offer, Rejected)
@@ -757,7 +757,7 @@ This implementation plan converts the TODO.md remaining tasks into actionable co
   - Support dark mode
   - _Requirements: 7.1, 7.2, 7.3, 7.4, 7.5_
 
-- [ ] 15.3 Create ApplicationTimelineChart
+- [x] 15.3 Create ApplicationTimelineChart
   - Create `frontend/src/components/charts/ApplicationTimelineChart.tsx`
   - Implement line chart showing applications over time
   - X-axis: dates, Y-axis: application count
@@ -767,7 +767,7 @@ This implementation plan converts the TODO.md remaining tasks into actionable co
   - Support dark mode
   - _Requirements: 7.1, 7.2, 7.3, 7.4, 7.5_
 
-- [ ] 15.4 Create SalaryDistributionChart
+- [x] 15.4 Create SalaryDistributionChart
   - Create `frontend/src/components/charts/SalaryDistributionChart.tsx`
   - Implement bar chart or histogram showing salary ranges
   - X-axis: salary buckets, Y-axis: job count
@@ -776,7 +776,7 @@ This implementation plan converts the TODO.md remaining tasks into actionable co
   - Support dark mode
   - _Requirements: 7.1, 7.2, 7.3, 7.4, 7.5_
 
-- [ ] 15.5 Create SkillsDemandChart
+- [x] 15.5 Create SkillsDemandChart
   - Create `frontend/src/components/charts/SkillsDemandChart.tsx`
   - Implement bar chart showing top skills in job postings
   - Compare with user's skills (overlay)
@@ -785,7 +785,7 @@ This implementation plan converts the TODO.md remaining tasks into actionable co
   - Support dark mode
   - _Requirements: 7.1, 7.2, 7.3, 7.4, 7.5_
 
-- [ ] 15.6 Create SuccessRateChart
+- [x] 15.6 Create SuccessRateChart
   - Create `frontend/src/components/charts/SuccessRateChart.tsx`
   - Implement funnel chart: Applied → Interviewed → Offer → Accepted
   - Show conversion rates at each stage
@@ -794,7 +794,7 @@ This implementation plan converts the TODO.md remaining tasks into actionable co
   - Support dark mode
   - _Requirements: 7.1, 7.2, 7.3, 7.4, 7.5_
 
-- [ ] 15.7 Add chart interactivity
+- [x] 15.7 Add chart interactivity
   - Add zoom/pan controls to time-series charts
   - Add legend toggle to show/hide datasets
   - Add data export button (CSV, PNG)
@@ -802,7 +802,7 @@ This implementation plan converts the TODO.md remaining tasks into actionable co
   - Ensure responsive charts (adapt to mobile)
   - _Requirements: 7.1, 7.2, 7.3, 7.4, 7.5_
 
-- [ ] 15.8 Integrate charts into Dashboard
+- [-] 15.8 Integrate charts into Dashboard
   - Add charts to `frontend/src/components/pages/Dashboard.tsx`
   - Create chart grid layout (responsive)
   - Add chart loading skeletons

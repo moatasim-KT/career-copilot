@@ -16,11 +16,13 @@ import { useState, useEffect } from 'react';
 
 import { apiClient } from '@/lib/api';
 import { logger } from '@/lib/logger';
-import ApplicationStatusChart from '../charts/ApplicationStatusChart';
-import ApplicationTimelineChart from '../charts/ApplicationTimelineChart';
-import SalaryDistributionChart from '../charts/SalaryDistributionChart';
-import SkillsDemandChart from '../charts/SkillsDemandChart';
-import SuccessRateChart from '../charts/SuccessRateChart';
+import {
+  ApplicationStatusChart,
+  ApplicationTimelineChart,
+  SalaryDistributionChart,
+  SkillsDemandChart,
+  SuccessRateChart,
+} from '../charts';
 
 export default function Dashboard() {
   const [analytics, setAnalytics] = useState<any | null>(null);
@@ -240,12 +242,38 @@ export default function Dashboard() {
       </div>
 
       {/* Charts Section */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <ApplicationStatusChart />
-        <ApplicationTimelineChart />
-        <SalaryDistributionChart userTargetSalary={analytics?.target_salary} />
-        <SkillsDemandChart />
-        <SuccessRateChart />
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <h2 className="text-2xl font-semibold text-neutral-900 dark:text-neutral-100">
+            Analytics & Insights
+          </h2>
+        </div>
+
+        {/* Chart Grid - Responsive Layout */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Application Status Distribution */}
+          <ApplicationStatusChart className="lg:col-span-1" />
+
+          {/* Application Timeline */}
+          <ApplicationTimelineChart className="lg:col-span-1" />
+
+          {/* Salary Distribution */}
+          <SalaryDistributionChart
+            userTargetSalary={analytics?.target_salary}
+            className="lg:col-span-1"
+          />
+
+          {/* Skills Demand */}
+          <SkillsDemandChart
+            userSkills={analytics?.user_skills || []}
+            className="lg:col-span-1"
+          />
+
+          {/* Success Rate Funnel - Full Width */}
+          <div className="lg:col-span-2">
+            <SuccessRateChart showBenchmark={true} />
+          </div>
+        </div>
       </div>
 
       {/* Daily Goal */}
