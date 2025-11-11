@@ -605,8 +605,8 @@ This implementation plan converts the TODO.md remaining tasks into actionable co
   - Document performance improvements
   - _Requirements: 6.4_
 
-- [ ] 12. Optimize Caching & State Management
-- [ ] 12.1 Review and optimize React Query configuration
+- [x] 12. Optimize Caching & State Management
+- [x] 12.1 Review and optimize React Query configuration
   - Review current queryClient configuration
   - Optimize staleTime and cacheTime per query type
   - Jobs list: staleTime 5 min, refetch on mount
@@ -616,20 +616,20 @@ This implementation plan converts the TODO.md remaining tasks into actionable co
   - Notifications: staleTime 30 sec, refetch on focus
   - _Requirements: 6.4, 6.5_
 
-- [ ] 12.2 Implement stale-while-revalidate pattern
+- [x] 12.2 Implement stale-while-revalidate pattern
   - Configure SWR for key data endpoints
   - Show cached data immediately while fetching fresh data
   - Test instant cached data display
   - _Requirements: 6.4, 6.5_
 
-- [ ] 12.3 Implement optimistic updates
+- [x] 12.3 Implement optimistic updates
   - Add optimistic updates for application status changes
   - Add optimistic updates for job saves/unsaves
   - Implement rollback on error
   - Test error scenarios
   - _Requirements: 6.4, 6.5_
 
-- [ ] 12.4 Implement prefetching
+- [x] 12.4 Implement prefetching
   - Add prefetch on hover for job/application cards
   - Prefetch next pagination page when near end
   - Test prefetching behavior

@@ -7,15 +7,20 @@
 import { useQuery } from '@tanstack/react-query';
 
 import { apiClient } from '@/lib/api/api';
+import { queryKeys, getCacheConfig } from '@/lib/queryClient';
 
 export function useSearchApplications(query: string, enabled: boolean = true) {
   return useQuery({
-    queryKey: ['applications', 'search', query],
+    queryKey: queryKeys.applications.search(query),
     queryFn: async () => {
       if (!query || query.trim().length === 0) {
         return [];
       }
       const response = await apiClient.searchApplications(query.trim(), 10);
+      
+      if (response.error) {
+        throw new Error(response.error);
+      }
       
       // Client-side filtering for applications since backend doesn't have full search
       const applications = response.data || [];
@@ -37,7 +42,6 @@ export function useSearchApplications(query: string, enabled: boolean = true) {
       });
     },
     enabled: enabled && query.trim().length > 0,
-    staleTime: 30000, // 30 seconds
-    gcTime: 5 * 60 * 1000, // 5 minutes (formerly cacheTime)
+    ...getCacheConfig('SEARCH'),
   });
 }

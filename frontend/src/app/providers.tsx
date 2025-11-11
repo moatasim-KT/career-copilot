@@ -1,10 +1,11 @@
 'use client';
 
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { QueryClientProvider } from '@tantml:react-query';
 import React, { ReactNode, useState, useEffect } from 'react';
 import * as ReactDOM from 'react-dom';
 
 import { CommandPaletteProvider } from '@/components/providers/CommandPaletteProvider';
+import { createQueryClient } from '@/lib/queryClient';
 
 // Accessibility audit (axe-core/react)
 if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
@@ -14,7 +15,7 @@ if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
 }
 
 export default function Providers({ children }: { children: ReactNode }) {
-  const [queryClient] = useState(() => new QueryClient());
+  const [queryClient] = useState(() => createQueryClient());
 
   useEffect(() => {
     if (process.env.NODE_ENV === 'development' && typeof window !== 'undefined') {
