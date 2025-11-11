@@ -635,29 +635,29 @@ This implementation plan converts the TODO.md remaining tasks into actionable co
   - Test prefetching behavior
   - _Requirements: 6.4, 6.5_
 
-- [ ] 13. Setup Performance Monitoring
-- [ ] 13.1 Install and configure Lighthouse CI
+- [x] 13. Setup Performance Monitoring
+- [x] 13.1 Install and configure Lighthouse CI
   - Install @lhci/cli
   - Create lighthouserc.json configuration
   - Add npm script: "lighthouse": "lhci autorun"
   - Run initial audit
   - _Requirements: 6.4_
 
-- [ ] 13.2 Implement Web Vitals reporting
+- [x] 13.2 Implement Web Vitals reporting
   - Create `frontend/src/lib/vitals.ts`
   - Implement reportWebVitals function
   - Send metrics to analytics (console.log for now)
   - Track FCP, LCP, FID, CLS, TTFB
   - _Requirements: 6.4_
 
-- [ ] 13.3 Define performance budgets
+- [x] 13.3 Define performance budgets
   - Document performance budgets
   - FCP < 1.5s, LCP < 2.5s, FID < 100ms, CLS < 0.1
   - Bundle size < 250KB gzipped
   - Lighthouse Performance score > 95
   - _Requirements: 6.4_
 
-- [ ] 13.4 Add Lighthouse to CI/CD
+- [x] 13.4 Add Lighthouse to CI/CD
   - Create GitHub Actions workflow for Lighthouse
   - Run on every PR
   - Fail build if Performance score < 90

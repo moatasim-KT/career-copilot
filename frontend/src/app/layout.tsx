@@ -5,6 +5,7 @@ import { Toaster } from 'sonner';
 
 import Layout from '@/components/layout/Layout';
 import PageTransition from '@/components/layout/PageTransition';
+import WebVitalsReporter from '@/components/WebVitalsReporter';
 import { getThemeInitScript } from '@/hooks/useDarkMode';
 
 import Providers from './providers';
@@ -41,6 +42,9 @@ export default function RootLayout({
         className={`${inter.variable} font-sans antialiased bg-neutral-50 dark:bg-neutral-900 min-h-screen`}
       >
         <Providers>
+          {/* Web Vitals tracking */}
+          <WebVitalsReporter />
+          
           {/* 
             PageTransition wraps the app with AnimatePresence to provide smooth
             transitions between routes. It automatically detects route changes
