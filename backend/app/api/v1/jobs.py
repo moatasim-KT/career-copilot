@@ -3,8 +3,8 @@
 from datetime import datetime, timezone
 from typing import List
 
-from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy import select
+from fastapi import APIRouter, Depends, HTTPException, Query
+from sqlalchemy import select, String
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ...core.database import get_db
@@ -29,40 +29,157 @@ async def search_jobs(
 	query: str = "",
 	location: str = "",
 	remote_only: bool = False,
+	job_type: str | None = None,
+	min_salary: int | None = None,
+	max_salary: int | None = None,
+	tech_stack: List[str] = Query(default=[]),
 	skip: int = 0,
 	limit: int = 100,
+	use_cache: bool = True,
 	current_user: User = Depends(get_current_user),
 	db: AsyncSession = Depends(get_db),
 ):
 	"""
-	Search jobs with filters.
+	Advanced job search with comprehensive filtering and caching.
 
-	- **query**: Search term for job title, company, or description
-	- **location**: Filter by location
-	- **remote_only**: Only show remote jobs
+	- **query**: Search term for job title, company, description, or tech stack
+	- **location**: Filter by location (partial match)
+	- **remote_only**: Only show remote jobs (remote_option = 'remote' or 'yes')
+	- **job_type**: Filter by job type (full-time, part-time, contract, etc.)
+	- **min_salary**: Minimum salary filter (uses salary_min field)
+	- **max_salary**: Maximum salary filter (uses salary_max field)
+	- **tech_stack**: Filter by technologies (comma-separated or multiple params)
 	- **skip**: Number of records to skip (default: 0)
 	- **limit**: Maximum number of records to return (default: 100)
+	- **use_cache**: Enable result caching (default: True, 15-minute TTL)
 	"""
 	try:
+		from sqlalchemy import and_, or_, func
+		import hashlib
+		import json
+		
+		# Generate cache key from search parameters
+		cache_params = {
+			"user_id": current_user.id,
+			"query": query,
+			"location": location,
+			"remote_only": remote_only,
+			"job_type": job_type,
+			"min_salary": min_salary,
+			"max_salary": max_salary,
+			"tech_stack": sorted(tech_stack) if tech_stack else [],
+			"skip": skip,
+			"limit": limit
+		}
+		cache_key = f"job_search:{hashlib.md5(json.dumps(cache_params, sort_keys=True).encode()).hexdigest()}"
+		
+		# Try to get from cache
+		if use_cache:
+			cached_result = await cache_service.aget(cache_key)
+			if cached_result is not None:
+				# Convert cached dicts back to Job objects for response model
+				return cached_result
+		
 		# Build base query
 		stmt = select(Job).where(Job.user_id == current_user.id)
 
-		# Apply filters
+		# Multi-field search: title, company, description, tech_stack
 		if query:
 			search_term = f"%{query}%"
-			stmt = stmt.where((Job.title.ilike(search_term)) | (Job.company.ilike(search_term)) | (Job.description.ilike(search_term)))
+			# Search in title, company, description
+			text_search = or_(
+				Job.title.ilike(search_term),
+				Job.company.ilike(search_term),
+				Job.description.ilike(search_term)
+			)
+			
+			# Also search in tech_stack JSON array
+			# For PostgreSQL: tech_stack @> '["query"]'
+			# For SQLite: we'll use a workaround with LIKE on JSON text
+			tech_search = func.lower(func.cast(Job.tech_stack, String)).like(f"%{query.lower()}%")
+			
+			stmt = stmt.where(or_(text_search, tech_search))
 
+		# Location filtering
 		if location:
 			stmt = stmt.where(Job.location.ilike(f"%{location}%"))
 
+		# Remote status filtering
 		if remote_only:
-			stmt = stmt.where(Job.remote_option == "yes")
+			stmt = stmt.where(or_(Job.remote_option == "remote", Job.remote_option == "yes"))
+
+		# Job type filtering
+		if job_type:
+			stmt = stmt.where(Job.job_type.ilike(f"%{job_type}%"))
+
+		# Salary range filtering
+		if min_salary is not None:
+			# Job's max salary should be >= min_salary filter
+			stmt = stmt.where(
+				or_(
+					Job.salary_max >= min_salary,
+					and_(Job.salary_max.is_(None), Job.salary_min >= min_salary)
+				)
+			)
+
+		if max_salary is not None:
+			# Job's min salary should be <= max_salary filter
+			stmt = stmt.where(
+				or_(
+					Job.salary_min <= max_salary,
+					and_(Job.salary_min.is_(None), Job.salary_max <= max_salary)
+				)
+			)
+
+		# Tech stack filtering with multiple values
+		if tech_stack:
+			# Filter jobs that contain ANY of the specified technologies
+			tech_conditions = []
+			for tech in tech_stack:
+				tech_conditions.append(
+					func.lower(func.cast(Job.tech_stack, String)).like(f"%{tech.lower()}%")
+				)
+			if tech_conditions:
+				stmt = stmt.where(or_(*tech_conditions))
 
 		# Apply pagination and ordering
 		stmt = stmt.order_by(Job.created_at.desc()).offset(skip).limit(limit)
 
 		result = await db.execute(stmt)
 		jobs = result.scalars().all()
+		
+		# Cache the results (15-minute TTL for job listings)
+		if use_cache and jobs:
+			# Convert to dict for caching
+			jobs_dict = [
+				{
+					"id": job.id,
+					"user_id": job.user_id,
+					"company": job.company,
+					"title": job.title,
+					"location": job.location,
+					"description": job.description,
+					"requirements": job.requirements,
+					"responsibilities": job.responsibilities,
+					"salary_min": job.salary_min,
+					"salary_max": job.salary_max,
+					"job_type": job.job_type,
+					"remote_option": job.remote_option,
+					"tech_stack": job.tech_stack,
+					"documents_required": job.documents_required,
+					"application_url": job.application_url,
+					"source": job.source,
+					"status": job.status,
+					"date_applied": job.date_applied.isoformat() if job.date_applied else None,
+					"notes": job.notes,
+					"created_at": job.created_at.isoformat() if job.created_at else None,
+					"updated_at": job.updated_at.isoformat() if job.updated_at else None,
+					"currency": job.currency
+				}
+				for job in jobs
+			]
+			await cache_service.aset(cache_key, jobs_dict, ttl=900)  # 15 minutes
+		
 		return jobs
 	except Exception as e:
 		raise HTTPException(status_code=500, detail=f"Error searching jobs: {e!s}")
@@ -220,9 +337,11 @@ async def create_job(job_data: JobCreate, current_user: User = Depends(get_curre
 	await db.commit()
 	await db.refresh(job)
 
-	# Invalidate user cache for this user since new job affects recommendations
+	# Invalidate user cache for this user since new job affects recommendations and search results
 	try:
 		cache_service.invalidate_user_cache(current_user.id)
+		# Also invalidate job search cache
+		await cache_service.adelete_pattern(f"job_search:*")
 	except Exception:
 		pass  # Don't fail job creation if cache invalidation fails
 
@@ -312,6 +431,11 @@ async def update_job(job_id: int, job_data: JobUpdate, current_user: User = Depe
 
 	# Invalidate recommendations cache for this user since job details changed
 	cache_service.invalidate_user_cache(current_user.id)
+	# Also invalidate job search cache
+	try:
+		await cache_service.adelete_pattern(f"job_search:*")
+	except Exception:
+		pass
 
 	# Trigger dashboard update
 	try:
@@ -353,6 +477,11 @@ async def delete_job(job_id: int, current_user: User = Depends(get_current_user)
 
 		# Invalidate recommendations cache for this user since job was deleted
 		cache_service.invalidate_user_cache(current_user.id)
+		# Also invalidate job search cache
+		try:
+			await cache_service.adelete_pattern(f"job_search:*")
+		except Exception:
+			pass
 
 		return {"message": "Job deleted successfully", "job_id": job_id, "applications_deleted": app_count}
 	except Exception as e:

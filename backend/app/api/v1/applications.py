@@ -117,6 +117,149 @@ async def get_applications_stats(
 		raise HTTPException(status_code=500, detail=f"Error getting application stats: {e!s}")
 
 
+@router.get("/api/v1/applications/search", response_model=List[ApplicationResponse])
+async def search_applications(
+	query: str = "",
+	status: str | None = None,
+	start_date: str | None = None,
+	end_date: str | None = None,
+	sort_by: str = "created_at",
+	sort_order: str = "desc",
+	skip: int = 0,
+	limit: int = 100,
+	use_cache: bool = True,
+	current_user: User = Depends(get_current_user),
+	db: AsyncSession = Depends(get_db),
+):
+	"""
+	Advanced application search with comprehensive filtering, sorting, and caching.
+
+	- **query**: Search term for job title, company, or notes (searches across job details)
+	- **status**: Filter by application status (interested, applied, interview, offer, rejected, accepted, declined)
+	- **start_date**: Filter applications created on or after this date (YYYY-MM-DD)
+	- **end_date**: Filter applications created on or before this date (YYYY-MM-DD)
+	- **sort_by**: Field to sort by (created_at, updated_at, applied_date, status) - default: created_at
+	- **sort_order**: Sort order (asc, desc) - default: desc
+	- **skip**: Number of records to skip (default: 0)
+	- **limit**: Maximum number of records to return (default: 100)
+	- **use_cache**: Enable result caching (default: True, 5-minute TTL)
+	"""
+	try:
+		from sqlalchemy import and_, or_, desc, asc
+		from datetime import datetime
+		import hashlib
+		import json
+		from ...services.cache_service import cache_service
+		
+		# Generate cache key from search parameters
+		cache_params = {
+			"user_id": current_user.id,
+			"query": query,
+			"status": status,
+			"start_date": start_date,
+			"end_date": end_date,
+			"sort_by": sort_by,
+			"sort_order": sort_order,
+			"skip": skip,
+			"limit": limit
+		}
+		cache_key = f"app_search:{hashlib.md5(json.dumps(cache_params, sort_keys=True).encode()).hexdigest()}"
+		
+		# Try to get from cache
+		if use_cache:
+			cached_result = await cache_service.aget(cache_key)
+			if cached_result is not None:
+				return cached_result
+		
+		# Build base query with job join for searching job details
+		stmt = select(Application).join(Job, Application.job_id == Job.id).where(Application.user_id == current_user.id)
+
+		# Search across job details (title, company) and application notes
+		if query:
+			search_term = f"%{query}%"
+			stmt = stmt.where(
+				or_(
+					Job.title.ilike(search_term),
+					Job.company.ilike(search_term),
+					Application.notes.ilike(search_term)
+				)
+			)
+
+		# Status filtering
+		if status:
+			stmt = stmt.where(Application.status == status)
+
+		# Date range filtering
+		if start_date:
+			try:
+				start_dt = datetime.strptime(start_date, "%Y-%m-%d")
+				stmt = stmt.where(Application.created_at >= start_dt)
+			except ValueError:
+				raise HTTPException(status_code=400, detail="Invalid start_date format. Use YYYY-MM-DD")
+
+		if end_date:
+			try:
+				end_dt = datetime.strptime(end_date, "%Y-%m-%d")
+				# Add one day to include the entire end date
+				from datetime import timedelta
+				end_dt = end_dt + timedelta(days=1)
+				stmt = stmt.where(Application.created_at < end_dt)
+			except ValueError:
+				raise HTTPException(status_code=400, detail="Invalid end_date format. Use YYYY-MM-DD")
+
+		# Sorting by multiple fields
+		valid_sort_fields = ["created_at", "updated_at", "applied_date", "status"]
+		if sort_by not in valid_sort_fields:
+			raise HTTPException(
+				status_code=400,
+				detail=f"Invalid sort_by field. Must be one of: {', '.join(valid_sort_fields)}"
+			)
+
+		# Get the sort column from Application model
+		sort_column = getattr(Application, sort_by)
+		
+		# Apply sort order
+		if sort_order.lower() == "asc":
+			stmt = stmt.order_by(asc(sort_column))
+		else:
+			stmt = stmt.order_by(desc(sort_column))
+
+		# Apply pagination
+		stmt = stmt.offset(skip).limit(limit)
+
+		result = await db.execute(stmt)
+		applications = result.scalars().all()
+		
+		# Cache the results (5-minute TTL for applications)
+		if use_cache and applications:
+			# Convert to dict for caching
+			apps_dict = [
+				{
+					"id": app.id,
+					"user_id": app.user_id,
+					"job_id": app.job_id,
+					"status": app.status,
+					"applied_date": app.applied_date.isoformat() if app.applied_date else None,
+					"response_date": app.response_date.isoformat() if app.response_date else None,
+					"interview_date": app.interview_date.isoformat() if app.interview_date else None,
+					"offer_date": app.offer_date.isoformat() if app.offer_date else None,
+					"notes": app.notes,
+					"interview_feedback": app.interview_feedback,
+					"follow_up_date": app.follow_up_date.isoformat() if app.follow_up_date else None,
+					"created_at": app.created_at.isoformat() if app.created_at else None,
+					"updated_at": app.updated_at.isoformat() if app.updated_at else None
+				}
+				for app in applications
+			]
+			await cache_service.aset(cache_key, apps_dict, ttl=300)  # 5 minutes
+		
+		return applications
+	except HTTPException:
+		raise
+	except Exception as e:
+		raise HTTPException(status_code=500, detail=f"Error searching applications: {e!s}")
+
+
 @router.get("/api/v1/applications", response_model=List[ApplicationResponse])
 async def list_applications(
 	skip: int = 0, limit: int = 100, status: str | None = None, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)
@@ -185,6 +328,13 @@ async def create_application(app_data: ApplicationCreate, current_user: User = D
 
 		logger = get_logger(__name__)
 		logger.error(f"Error sending application creation notification: {e}")
+
+	# Invalidate application search cache
+	try:
+		from ...services.cache_service import cache_service
+		await cache_service.adelete_pattern(f"app_search:*")
+	except Exception:
+		pass
 
 	return application
 
@@ -284,6 +434,13 @@ async def update_application(
 		logger = get_logger(__name__)
 		logger.error(f"Error sending analytics update for user {current_user.id}: {e}")
 
+	# Invalidate application search cache
+	try:
+		from ...services.cache_service import cache_service
+		await cache_service.adelete_pattern(f"app_search:*")
+	except Exception:
+		pass
+
 	return app
 
 
@@ -301,4 +458,12 @@ async def delete_application(app_id: int, current_user: User = Depends(get_curre
 
 	db.delete(app)
 	await db.commit()
+	
+	# Invalidate application search cache
+	try:
+		from ...services.cache_service import cache_service
+		await cache_service.adelete_pattern(f"app_search:*")
+	except Exception:
+		pass
+	
 	return {"message": "Application deleted successfully"}
