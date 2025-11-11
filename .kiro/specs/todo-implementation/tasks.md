@@ -909,7 +909,7 @@ This implementation plan converts the TODO.md remaining tasks into actionable co
 
 ## Phase 6: Production Readiness
 
-- [-] 18. Enhance Error Handling
+- [x] 18. Enhance Error Handling
 - [x] 18.1 Create error handling utility
   - Create `frontend/src/lib/errorHandling.ts`
   - Implement classifyError function (network, auth, server, client, unknown)
@@ -1013,15 +1013,15 @@ This implementation plan converts the TODO.md remaining tasks into actionable co
   - Show thank you message after submission
   - _Requirements: 4.3, 4.4_
 
-- [ ] 20. Implement Export & Import Features
-- [ ] 20.1 Create CSV export utility
+- [-] 20. Implement Export & Import Features
+- [x] 20.1 Create CSV export utility
   - Create `frontend/src/lib/export/exportToCSV.ts`
   - Implement data to CSV conversion
   - Escape special characters (commas, quotes)
   - Trigger download with proper filename
   - _Requirements: 9.1, 9.2_
 
-- [ ] 20.2 Create PDF export utility
+- [x] 20.2 Create PDF export utility
   - Install jspdf and jspdf-autotable
   - Create `frontend/src/lib/export/exportToPDF.ts`
   - Generate PDF with table layout
@@ -1030,27 +1030,27 @@ This implementation plan converts the TODO.md remaining tasks into actionable co
   - Trigger download
   - _Requirements: 9.1, 9.2_
 
-- [ ] 20.3 Add export to applications page
+- [x] 20.3 Add export to applications page
   - Add "Export" dropdown button to ApplicationsPage
   - Options: Current view (CSV), All data (CSV), Selected rows (CSV), PDF
   - Show export progress for large datasets
   - Show success toast
   - _Requirements: 9.1, 9.2_
 
-- [ ] 20.4 Add export to jobs page
+- [x] 20.4 Add export to jobs page
   - Add "Export" dropdown button to JobsPage
   - Options: Current view, All data, Selected rows, PDF
   - Include relevant job data
   - _Requirements: 9.1, 9.2_
 
-- [ ] 20.5 Create full data backup feature
+- [x] 20.5 Create full data backup feature
   - Add "Export all data" in settings
   - Generate JSON file with all user data (profile, applications, saved jobs, preferences)
   - Compressed zip file if large
   - Encrypt sensitive data (optional)
   - _Requirements: 9.1, 9.5_
 
-- [ ] 20.6 Create data import component
+- [-] 20.6 Create data import component
   - Create `frontend/src/components/features/DataImport.tsx`
   - Upload CSV file
   - Parse and validate CSV
@@ -1076,15 +1076,15 @@ This implementation plan converts the TODO.md remaining tasks into actionable co
   - Show restore progress and summary
   - _Requirements: 9.5, 9.6_
 
-- [ ] 21. Create Settings System
-- [ ] 21.1 Create settings layout
+- [x] 21. Create Settings System
+- [x] 21.1 Create settings layout
   - Create `frontend/src/app/settings/layout.tsx`
   - Implement sidebar navigation
   - Categories: Profile, Appearance, Notifications, Privacy, Account, Data
   - Responsive: drawer on mobile
   - _Requirements: 10.1, 10.2_
 
-- [ ] 21.2 Create Profile settings page
+- [x] 21.2 Create Profile settings page
   - Create `frontend/src/app/settings/profile/page.tsx`
   - Edit profile info: name, email, photo
   - Edit job title, experience
@@ -1093,7 +1093,7 @@ This implementation plan converts the TODO.md remaining tasks into actionable co
   - Save button with success message
   - _Requirements: 10.1, 10.2_
 
-- [ ] 21.3 Create Appearance settings page
+- [x] 21.3 Create Appearance settings page
   - Create `frontend/src/app/settings/appearance/page.tsx`
   - Theme selector: Light, Dark, System
   - UI density: Comfortable, Compact
@@ -1101,7 +1101,7 @@ This implementation plan converts the TODO.md remaining tasks into actionable co
   - Font size adjustment (accessibility)
   - _Requirements: 10.1, 10.2_
 
-- [ ] 21.4 Create Notifications settings page
+- [x] 21.4 Create Notifications settings page
   - Create `frontend/src/app/settings/notifications/page.tsx`
   - Integrate NotificationPreferences component (from task 8.4)
   - Toggle per category
@@ -1111,7 +1111,7 @@ This implementation plan converts the TODO.md remaining tasks into actionable co
   - Do Not Disturb schedule
   - _Requirements: 10.1, 10.3_
 
-- [ ] 21.5 Create Privacy settings page
+- [x] 21.5 Create Privacy settings page
   - Create `frontend/src/app/settings/privacy/page.tsx`
   - Profile visibility (future multi-user)
   - Search indexing opt-out
@@ -1119,7 +1119,7 @@ This implementation plan converts the TODO.md remaining tasks into actionable co
   - Cookie preferences
   - _Requirements: 10.1_
 
-- [ ] 21.6 Create Account settings page
+- [x] 21.6 Create Account settings page
   - Create `frontend/src/app/settings/account/page.tsx`
   - Change password form
   - Two-factor authentication (future)
@@ -1128,7 +1128,7 @@ This implementation plan converts the TODO.md remaining tasks into actionable co
   - Log out all devices button
   - _Requirements: 10.1_
 
-- [ ] 21.7 Create Data settings page
+- [x] 21.7 Create Data settings page
   - Create `frontend/src/app/settings/data/page.tsx`
   - Link to export data (from task 20.5)
   - Delete specific data types (applications, jobs)
@@ -1138,7 +1138,7 @@ This implementation plan converts the TODO.md remaining tasks into actionable co
   - 30-day grace period before permanent deletion
   - _Requirements: 10.1, 10.4_
 
-- [ ] 21.8 Create keyboard shortcuts reference
+- [x] 21.8 Create keyboard shortcuts reference
   - Create `frontend/src/app/settings/shortcuts/page.tsx`
   - Display all keyboard shortcuts
   - Searchable shortcut list

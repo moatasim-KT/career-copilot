@@ -33,6 +33,7 @@ import {
 } from '@/components/lazy';
 import Button2 from '@/components/ui/Button2';
 import Card, { CardContent } from '@/components/ui/Card';
+import { ExportDropdown } from '@/components/ui/ExportDropdown';
 import Input from '@/components/ui/Input';
 import Select from '@/components/ui/Select';
 import Textarea from '@/components/ui/Textarea';
@@ -524,6 +525,58 @@ export default function ApplicationsPage() {
           animate={{ opacity: 1, x: 0 }}
           transition={{ delay: 0.2 }}
         >
+          <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+            <ExportDropdown
+              data={filteredAndSortedApplications}
+              selectedIds={selectedApplicationIds}
+              filename="applications"
+              csvColumns={[
+                { key: 'id', header: 'ID' },
+                { key: 'job_id', header: 'Job ID' },
+                { key: 'status', header: 'Status' },
+                { key: 'applied_date', header: 'Applied Date' },
+                { key: 'interview_date', header: 'Interview Date' },
+                { key: 'response_date', header: 'Response Date' },
+                { key: 'notes', header: 'Notes' },
+              ]}
+              pdfColumns={[
+                { key: 'id', header: 'ID', width: 30 },
+                {
+                  key: 'job',
+                  header: 'Job Title',
+                  formatter: (job) => job?.title || 'N/A',
+                },
+                {
+                  key: 'job',
+                  header: 'Company',
+                  formatter: (job) => job?.company || 'N/A',
+                },
+                { key: 'status', header: 'Status' },
+                {
+                  key: 'applied_date',
+                  header: 'Applied',
+                  formatter: (date) => date ? new Date(date).toLocaleDateString() : 'N/A',
+                },
+              ]}
+              pdfOptions={{
+                title: 'Job Applications',
+                subtitle: `Export of ${filteredAndSortedApplications.length} applications`,
+                theme: 'striped',
+              }}
+              variant="outline"
+              onExportStart={(type) => {
+                logger.log('Export started', { type });
+              }}
+              onExportComplete={(type) => {
+                setSuccessMessage(`Export completed successfully (${type})`);
+                setTimeout(() => setSuccessMessage(''), 3000);
+              }}
+              onExportError={(error) => {
+                setErrorMessage(`Export failed: ${error.message}`);
+                setTimeout(() => setErrorMessage(''), 5000);
+              }}
+            />
+          </motion.div>
           <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
             <Button2
               variant="outline"

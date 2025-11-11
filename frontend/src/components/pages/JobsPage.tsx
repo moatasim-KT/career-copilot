@@ -48,6 +48,7 @@ import {
 } from '@/components/lazy';
 import Button2 from '@/components/ui/Button2';
 import Card, { CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
+import { ExportDropdown } from '@/components/ui/ExportDropdown';
 import Input from '@/components/ui/Input';
 import Select from '@/components/ui/Select';
 import Textarea from '@/components/ui/Textarea';
@@ -567,6 +568,56 @@ export default function JobsPage() {
           </p>
         </div>
         <div className="flex gap-2">
+          <ExportDropdown
+            data={filteredAndSortedJobs}
+            selectedIds={selectedJobIds}
+            filename="jobs"
+            csvColumns={[
+              { key: 'id', header: 'ID' },
+              { key: 'title', header: 'Job Title' },
+              { key: 'company', header: 'Company' },
+              { key: 'location', header: 'Location' },
+              { key: 'job_type', header: 'Job Type' },
+              { key: 'salary_min', header: 'Min Salary' },
+              { key: 'salary_max', header: 'Max Salary' },
+              { key: 'source', header: 'Source' },
+              { key: 'url', header: 'URL' },
+            ]}
+            pdfColumns={[
+              { key: 'id', header: 'ID', width: 30 },
+              { key: 'title', header: 'Job Title' },
+              { key: 'company', header: 'Company' },
+              { key: 'location', header: 'Location' },
+              { key: 'job_type', header: 'Type' },
+              {
+                key: 'salary_min',
+                header: 'Salary Range',
+                formatter: (min: any) => {
+                  if (min) {
+                    return `$${min.toLocaleString()}+`;
+                  }
+                  return 'Not specified';
+                },
+              },
+            ]}
+            pdfOptions={{
+              title: 'Job Opportunities',
+              subtitle: `Export of ${filteredAndSortedJobs.length} jobs`,
+              theme: 'striped',
+            }}
+            variant="outline"
+            onExportStart={(type) => {
+              console.log('Export started', { type });
+            }}
+            onExportComplete={(type) => {
+              setSuccessMessage(`Export completed successfully (${type})`);
+              setTimeout(() => setSuccessMessage(''), 3000);
+            }}
+            onExportError={(error) => {
+              setErrorMessage(`Export failed: ${error.message}`);
+              setTimeout(() => setErrorMessage(''), 5000);
+            }}
+          />
           <Button2
             onClick={handleScrapeJobs}
             disabled={isScraping}
