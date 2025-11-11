@@ -2,6 +2,12 @@
 
 This document outlines the detailed tasks for implementing the backend-frontend integration, derived from `PLAN.md`.
 
+## General Implementation Guidelines
+
+- [ ] Before starting any implementation task, review existing code to avoid reimplementation. Leverage existing functionalities where possible.
+- [ ] When working with existing implementations, prioritize enhancement and improvement. Avoid unnecessary overhauls if the current implementation is functional.
+- [ ] Before modifying any file, check `git status` to ensure it is not actively being changed by another agent. If a file is actively changing, defer modifications until it stabilizes.
+
 ## Phase 1: Dependency Consolidation (Critical)
 
 - [ ] **Audit `get_current_user` imports** [backend] [parallel]
