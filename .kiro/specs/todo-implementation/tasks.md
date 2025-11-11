@@ -591,7 +591,7 @@ This implementation plan converts the TODO.md remaining tasks into actionable co
   - Test with 100+ applications
   - _Requirements: 6.4_
 
-- [ ] 11.3 Add virtualization to DataTable
+- [-] 11.3 Add virtualization to DataTable
   - Update DataTable component to support virtualization
   - Add virtualizer for rows when count > 100
   - Test with 1000+ rows

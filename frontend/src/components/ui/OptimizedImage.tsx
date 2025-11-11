@@ -57,7 +57,7 @@ export const RESPONSIVE_SIZES = {
  */
 export function getResponsiveSizes(
   context: keyof typeof RESPONSIVE_SIZES | 'auto' = 'auto',
-  customSizes?: string
+  customSizes?: string,
 ): string | undefined {
   if (customSizes) return customSizes;
   if (context === 'auto') return undefined;
@@ -180,13 +180,13 @@ export function OptimizedImage({
     objectFit === 'fill' && 'object-fill',
     objectFit === 'none' && 'object-none',
     objectFit === 'scale-down' && 'object-scale-down',
-    className
+    className,
   );
 
   const containerClasses = cn(
     'relative overflow-hidden',
     aspectRatio && aspectRatioClasses[aspectRatio],
-    containerClassName
+    containerClassName,
   );
 
   // If using fill prop, wrap in container

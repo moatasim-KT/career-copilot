@@ -16,6 +16,11 @@ import { useState, useEffect } from 'react';
 
 import { apiClient } from '@/lib/api';
 import { logger } from '@/lib/logger';
+import ApplicationStatusChart from '../charts/ApplicationStatusChart';
+import ApplicationTimelineChart from '../charts/ApplicationTimelineChart';
+import SalaryDistributionChart from '../charts/SalaryDistributionChart';
+import SkillsDemandChart from '../charts/SkillsDemandChart';
+import SuccessRateChart from '../charts/SuccessRateChart';
 
 export default function Dashboard() {
   const [analytics, setAnalytics] = useState<any | null>(null);
@@ -232,6 +237,15 @@ export default function Dashboard() {
             </div>
           </div>
         </div>
+      </div>
+
+      {/* Charts Section */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <ApplicationStatusChart />
+        <ApplicationTimelineChart />
+        <SalaryDistributionChart userTargetSalary={analytics?.target_salary} />
+        <SkillsDemandChart />
+        <SuccessRateChart />
       </div>
 
       {/* Daily Goal */}
