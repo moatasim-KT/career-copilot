@@ -9,20 +9,27 @@ const nextConfig = {
   
   // Image optimization configuration
   images: {
-    // Supported image formats
+    // Supported image formats - Next.js will automatically serve WebP/AVIF when supported
     formats: ['image/webp', 'image/avif'],
     
-    // Image sizes for responsive images
+    // Device sizes for responsive images
+    // These correspond to common device breakpoints and are used when you specify sizes prop
+    // Example: sizes="(max-width: 640px) 100vw, 50vw"
     deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840],
+    
+    // Image sizes for smaller images (icons, avatars, thumbnails)
+    // Used for images that don't need full device width
     imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
     
-    // Quality settings
+    // Default quality for optimized images (1-100)
+    // 85 provides good balance between quality and file size
     quality: 85,
     
-    // Enable image optimization in development
+    // Enable image optimization in development for testing
     unoptimized: false,
     
     // Allowed domains for external images
+    // Add any external image sources here
     remotePatterns: [
       {
         protocol: 'https',
@@ -42,13 +49,17 @@ const nextConfig = {
       },
     ],
     
-    // Minimize layout shift
+    // Cache optimized images for 60 seconds
     minimumCacheTTL: 60,
     
-    // Disable static imports for better control
+    // Allow SVG images (with security restrictions)
     dangerouslyAllowSVG: true,
     contentDispositionType: 'attachment',
     contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
+    
+    // Loader configuration for custom image optimization
+    // Using default Next.js loader
+    loader: 'default',
   },
   
   // Bundle size budgets

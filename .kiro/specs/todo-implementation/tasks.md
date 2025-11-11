@@ -557,7 +557,7 @@ This implementation plan converts the TODO.md remaining tasks into actionable co
   - Test image loading
   - _Requirements: 6.4_
 
-- [ ] 10.2 Configure responsive images
+- [x] 10.2 Configure responsive images
   - Configure image sizes in next.config.js
   - Use `sizes` prop for responsive images
   - Test on different screen sizes

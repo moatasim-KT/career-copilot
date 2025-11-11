@@ -5,17 +5,64 @@
  * and additional features for optimal image loading performance.
  * 
  * Features:
- * - Automatic WebP conversion
- * - Responsive image sizing
+ * - Automatic WebP/AVIF conversion
+ * - Responsive image sizing with smart defaults
  * - Lazy loading by default
  * - Blur placeholder support
  * - Error handling with fallback
  * - Accessibility built-in
+ * 
+ * Responsive Sizes:
+ * The component automatically provides responsive sizes based on usage context.
+ * You can override with custom sizes prop for specific layouts.
  */
 
 import Image, { ImageProps } from 'next/image';
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
+
+/**
+ * Responsive sizes presets for common layouts
+ * These tell the browser which image size to load based on viewport width
+ */
+export const RESPONSIVE_SIZES = {
+  // Full width on all screens
+  full: '100vw',
+  
+  // Full width on mobile, half on tablet, third on desktop
+  hero: '(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw',
+  
+  // Full width on mobile, 50% on larger screens
+  card: '(max-width: 768px) 100vw, 50vw',
+  
+  // Full width on mobile, 33% on tablet, 25% on desktop
+  grid: '(max-width: 640px) 100vw, (max-width: 1024px) 33vw, 25vw',
+  
+  // Fixed small sizes for thumbnails and avatars
+  thumbnail: '(max-width: 640px) 96px, 128px',
+  avatar: '(max-width: 640px) 40px, 48px',
+  
+  // Banner images
+  banner: '(max-width: 768px) 100vw, (max-width: 1200px) 80vw, 1200px',
+  
+  // Sidebar images
+  sidebar: '(max-width: 1024px) 100vw, 300px',
+  
+  // Content images (in article/blog content)
+  content: '(max-width: 768px) 100vw, (max-width: 1200px) 80vw, 800px',
+} as const;
+
+/**
+ * Get responsive sizes based on image context
+ */
+export function getResponsiveSizes(
+  context: keyof typeof RESPONSIVE_SIZES | 'auto' = 'auto',
+  customSizes?: string
+): string | undefined {
+  if (customSizes) return customSizes;
+  if (context === 'auto') return undefined;
+  return RESPONSIVE_SIZES[context];
+}
 
 export interface OptimizedImageProps extends Omit<ImageProps, 'src' | 'alt'> {
   src: string;
@@ -25,6 +72,11 @@ export interface OptimizedImageProps extends Omit<ImageProps, 'src' | 'alt'> {
   objectFit?: 'contain' | 'cover' | 'fill' | 'none' | 'scale-down';
   showPlaceholder?: boolean;
   containerClassName?: string;
+  /**
+   * Responsive sizes context - automatically sets appropriate sizes prop
+   * Use 'auto' to let Next.js decide, or specify a preset for common layouts
+   */
+  responsiveContext?: keyof typeof RESPONSIVE_SIZES | 'auto';
 }
 
 const aspectRatioClasses = {
@@ -69,7 +121,16 @@ const aspectRatioClasses = {
  *   aspectRatio="square"
  * />
  * 
- * // Responsive with fill
+ * // Responsive with fill and automatic sizes
+ * <OptimizedImage
+ *   src="/images/banner.jpg"
+ *   alt="Banner"
+ *   fill
+ *   objectFit="cover"
+ *   responsiveContext="hero"
+ * />
+ * 
+ * // Responsive with custom sizes
  * <OptimizedImage
  *   src="/images/banner.jpg"
  *   alt="Banner"
@@ -91,6 +152,8 @@ export function OptimizedImage({
   priority = false,
   loading = 'lazy',
   quality = 85,
+  responsiveContext = 'auto',
+  sizes: customSizes,
   ...props
 }: OptimizedImageProps) {
   const [imgSrc, setImgSrc] = useState(src);
@@ -105,6 +168,9 @@ export function OptimizedImage({
   const handleLoad = () => {
     setIsLoading(false);
   };
+
+  // Get responsive sizes based on context
+  const responsiveSizes = getResponsiveSizes(responsiveContext, customSizes);
 
   const imageClasses = cn(
     'transition-opacity duration-300',
@@ -140,6 +206,7 @@ export function OptimizedImage({
           priority={priority}
           loading={loading}
           quality={quality}
+          sizes={responsiveSizes}
           {...props}
         />
         {hasError && (
@@ -172,6 +239,7 @@ export function OptimizedImage({
         priority={priority}
         loading={loading}
         quality={quality}
+        sizes={responsiveSizes}
         {...props}
       />
       {hasError && (
@@ -191,6 +259,15 @@ export function OptimizedImage({
 
 /**
  * Avatar component optimized for profile images
+ * 
+ * @example
+ * ```tsx
+ * <OptimizedAvatar
+ *   src="/images/user.jpg"
+ *   alt="John Doe"
+ *   size={48}
+ * />
+ * ```
  */
 export function OptimizedAvatar({
   src,
@@ -199,7 +276,7 @@ export function OptimizedAvatar({
   fallbackSrc = '/images/default-avatar.svg',
   className,
   ...props
-}: Omit<OptimizedImageProps, 'width' | 'height' | 'aspectRatio'> & {
+}: Omit<OptimizedImageProps, 'width' | 'height' | 'aspectRatio' | 'responsiveContext'> & {
   size?: number;
 }) {
   return (
@@ -210,6 +287,7 @@ export function OptimizedAvatar({
       height={size}
       aspectRatio="square"
       fallbackSrc={fallbackSrc}
+      responsiveContext="avatar"
       className={cn('rounded-full', className)}
       {...props}
     />
@@ -218,6 +296,16 @@ export function OptimizedAvatar({
 
 /**
  * Logo component optimized for brand logos
+ * 
+ * @example
+ * ```tsx
+ * <OptimizedLogo
+ *   src="/images/logo.svg"
+ *   alt="Company Name"
+ *   width={150}
+ *   height={50}
+ * />
+ * ```
  */
 export function OptimizedLogo({
   src,
@@ -227,7 +315,7 @@ export function OptimizedLogo({
   priority = true,
   className,
   ...props
-}: Omit<OptimizedImageProps, 'aspectRatio' | 'objectFit'>) {
+}: Omit<OptimizedImageProps, 'aspectRatio' | 'objectFit' | 'responsiveContext'>) {
   return (
     <OptimizedImage
       src={src}
@@ -236,6 +324,7 @@ export function OptimizedLogo({
       height={height}
       objectFit="contain"
       priority={priority}
+      responsiveContext="auto"
       className={className}
       {...props}
     />
@@ -244,6 +333,16 @@ export function OptimizedLogo({
 
 /**
  * Thumbnail component for image previews
+ * 
+ * @example
+ * ```tsx
+ * <OptimizedThumbnail
+ *   src="/images/document.jpg"
+ *   alt="Document preview"
+ *   size={120}
+ *   aspectRatio="video"
+ * />
+ * ```
  */
 export function OptimizedThumbnail({
   src,
@@ -252,7 +351,7 @@ export function OptimizedThumbnail({
   aspectRatio = 'square',
   className,
   ...props
-}: Omit<OptimizedImageProps, 'width' | 'height'> & {
+}: Omit<OptimizedImageProps, 'width' | 'height' | 'responsiveContext'> & {
   size?: number;
 }) {
   return (
@@ -262,6 +361,7 @@ export function OptimizedThumbnail({
       width={size}
       height={size}
       aspectRatio={aspectRatio}
+      responsiveContext="thumbnail"
       className={cn('rounded-lg', className)}
       {...props}
     />

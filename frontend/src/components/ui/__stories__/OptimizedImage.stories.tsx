@@ -4,6 +4,7 @@ import {
   OptimizedAvatar,
   OptimizedLogo,
   OptimizedThumbnail,
+  RESPONSIVE_SIZES,
 } from '../OptimizedImage';
 
 const meta: Meta<typeof OptimizedImage> = {
@@ -13,11 +14,22 @@ const meta: Meta<typeof OptimizedImage> = {
     layout: 'centered',
     docs: {
       description: {
-        component: 'Optimized image component with automatic WebP conversion, lazy loading, and error handling.',
+        component: 'Optimized image component with automatic WebP/AVIF conversion, responsive sizing, lazy loading, and error handling. Supports preset responsive contexts for common layouts.',
       },
     },
   },
   tags: ['autodocs'],
+  argTypes: {
+    responsiveContext: {
+      control: 'select',
+      options: ['auto', ...Object.keys(RESPONSIVE_SIZES)],
+      description: 'Preset responsive sizes for common layouts',
+      table: {
+        type: { summary: 'string' },
+        defaultValue: { summary: 'auto' },
+      },
+    },
+  },
 };
 
 export default meta;
@@ -301,6 +313,183 @@ export const ImageGallery: Story = {
     docs: {
       description: {
         story: 'Responsive image gallery with optimized loading.',
+      },
+    },
+  },
+};
+
+// Responsive Context Examples
+export const ResponsiveContextHero: Story = {
+  render: () => (
+    <div className="w-full max-w-4xl">
+      <div className="relative w-full h-96">
+        <OptimizedImage
+          src="/images/placeholder.svg"
+          alt="Hero with responsive context"
+          fill
+          objectFit="cover"
+          responsiveContext="hero"
+        />
+        <div className="absolute inset-0 flex items-center justify-center bg-black/40">
+          <div className="text-center text-white">
+            <h1 className="text-4xl font-bold mb-2">Responsive Hero</h1>
+            <p className="text-sm opacity-80">Using responsiveContext="hero"</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  ),
+  parameters: {
+    docs: {
+      description: {
+        story: 'Hero image using the "hero" responsive context preset. Automatically applies: (max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw',
+      },
+    },
+  },
+};
+
+export const ResponsiveContextCard: Story = {
+  render: () => (
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-4xl">
+      {[1, 2, 3, 4].map((i) => (
+        <div key={i} className="rounded-lg border border-neutral-200 dark:border-neutral-800 overflow-hidden">
+          <div className="relative w-full h-48">
+            <OptimizedImage
+              src="/images/placeholder.svg"
+              alt={`Card ${i}`}
+              fill
+              objectFit="cover"
+              responsiveContext="card"
+            />
+          </div>
+          <div className="p-4">
+            <h3 className="text-lg font-semibold mb-2">Card {i}</h3>
+            <p className="text-neutral-600 dark:text-neutral-400 text-sm">
+              Using responsiveContext="card"
+            </p>
+          </div>
+        </div>
+      ))}
+    </div>
+  ),
+  parameters: {
+    docs: {
+      description: {
+        story: 'Card images using the "card" responsive context preset. Automatically applies: (max-width: 768px) 100vw, 50vw',
+      },
+    },
+  },
+};
+
+export const ResponsiveContextGrid: Story = {
+  render: () => (
+    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 max-w-4xl">
+      {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
+        <div key={i} className="relative aspect-square rounded-lg overflow-hidden">
+          <OptimizedImage
+            src="/images/placeholder.svg"
+            alt={`Grid item ${i}`}
+            fill
+            objectFit="cover"
+            responsiveContext="grid"
+          />
+        </div>
+      ))}
+    </div>
+  ),
+  parameters: {
+    docs: {
+      description: {
+        story: 'Grid images using the "grid" responsive context preset. Automatically applies: (max-width: 640px) 100vw, (max-width: 1024px) 33vw, 25vw',
+      },
+    },
+  },
+};
+
+export const ResponsiveContextBanner: Story = {
+  render: () => (
+    <div className="w-full max-w-6xl">
+      <div className="relative w-full h-64">
+        <OptimizedImage
+          src="/images/placeholder.svg"
+          alt="Banner"
+          fill
+          objectFit="cover"
+          responsiveContext="banner"
+        />
+        <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-r from-black/60 to-transparent">
+          <div className="text-white text-left px-8">
+            <h2 className="text-3xl font-bold mb-2">Banner Image</h2>
+            <p className="text-sm opacity-90">Using responsiveContext="banner"</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  ),
+  parameters: {
+    docs: {
+      description: {
+        story: 'Banner image using the "banner" responsive context preset. Automatically applies: (max-width: 768px) 100vw, (max-width: 1200px) 80vw, 1200px',
+      },
+    },
+  },
+};
+
+export const ResponsiveContextContent: Story = {
+  render: () => (
+    <div className="max-w-3xl mx-auto prose dark:prose-invert">
+      <h2>Article with Responsive Image</h2>
+      <p>
+        This is an example of an article with an embedded image using the content responsive context.
+      </p>
+      <div className="relative w-full h-96 my-8">
+        <OptimizedImage
+          src="/images/placeholder.svg"
+          alt="Content image"
+          fill
+          objectFit="cover"
+          responsiveContext="content"
+        />
+      </div>
+      <p>
+        The image automatically adapts to different screen sizes using the "content" preset:
+        (max-width: 768px) 100vw, (max-width: 1200px) 80vw, 800px
+      </p>
+    </div>
+  ),
+  parameters: {
+    docs: {
+      description: {
+        story: 'Content image using the "content" responsive context preset for article/blog images.',
+      },
+    },
+  },
+};
+
+export const ResponsiveSizesComparison: Story = {
+  render: () => (
+    <div className="space-y-8 max-w-6xl">
+      <div>
+        <h3 className="text-lg font-semibold mb-4">Available Responsive Contexts</h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+          {Object.entries(RESPONSIVE_SIZES).map(([key, value]) => (
+            <div key={key} className="p-4 border border-neutral-200 dark:border-neutral-800 rounded-lg">
+              <div className="font-mono font-semibold text-primary-600 dark:text-primary-400 mb-2">
+                {key}
+              </div>
+              <div className="text-neutral-600 dark:text-neutral-400 break-all">
+                {value}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  ),
+  parameters: {
+    docs: {
+      description: {
+        story: 'Overview of all available responsive context presets and their corresponding sizes values.',
       },
     },
   },
