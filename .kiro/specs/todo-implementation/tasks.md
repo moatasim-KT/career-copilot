@@ -550,7 +550,7 @@ This implementation plan converts the TODO.md remaining tasks into actionable co
   - _Requirements: 6.4_
 
 - [ ] 10. Optimize Images
-- [ ] 10.1 Migrate all img tags to Next.js Image
+- [x] 10.1 Migrate all img tags to Next.js Image
   - Audit all `<img>` tags in codebase
   - Replace with Next.js `<Image>` component
   - Add required props: width, height, alt
