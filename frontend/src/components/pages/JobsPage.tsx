@@ -28,9 +28,11 @@ import {
   Star,
   StarOff,
   RefreshCw,
+  Upload,
 } from 'lucide-react';
 import { useState, useEffect, useMemo } from 'react';
 
+import { DataImport, type DataImportColumn } from '@/components/features/DataImport';
 import { FilterChips, removeRuleFromQuery } from '@/components/features/FilterChips';
 import { RecentSearches } from '@/components/features/RecentSearches';
 import { SavedSearches, useSavedSearches } from '@/components/features/SavedSearches';
@@ -55,7 +57,31 @@ import Textarea from '@/components/ui/Textarea';
 import { useLocalStorage } from '@/hooks/useLocalStorage';
 import { useRecentSearches } from '@/hooks/useRecentSearches';
 import { useBulkUndo } from '@/hooks/useBulkUndo';
-import { ApplicationsService, JobsService, type JobCreate, type JobResponse } from '@/lib/api/client';
+import { ApplicationsService, JobsService } from '@/lib/api/client';
+
+// Type definitions
+export interface JobCreate {
+  company: string;
+  title: string;
+  location: string;
+  url: string;
+  salary_range: string;
+  job_type: string;
+  description: string;
+  remote: boolean;
+  tech_stack: string[];
+  responsibilities: string;
+  source: string;
+}
+
+export interface JobResponse extends JobCreate {
+  id: number;
+  created_at?: string;
+  updated_at?: string;
+  match_score?: number;
+  salary_min?: number;
+  salary_max?: number;
+}
 import { createJobBulkActions } from '@/lib/bulkActions/jobActions';
 import { JOB_SEARCH_FIELDS } from '@/lib/searchFields';
 import { applySearchQuery, countSearchResults, createEmptyQuery, hasSearchCriteria, queryToSearchParams, searchParamsToQuery } from '@/lib/searchUtils';
@@ -116,6 +142,7 @@ export default function JobsPage() {
   const [selectedJobIds, setSelectedJobIds] = useState<number[]>([]);
   const [showComparisonView, setShowComparisonView] = useState(false);
   const [savedFilters, setSavedFilters] = useLocalStorage<any[]>('savedJobFilters', []);
+  const [showImportModal, setShowImportModal] = useState(false);
   
   // Advanced Search state
   const [showAdvancedSearch, setShowAdvancedSearch] = useState(false);
@@ -150,18 +177,16 @@ export default function JobsPage() {
         affectedIds.map((jobId) => {
           const prevJob = previousState.find((j: JobResponse) => j.id === jobId);
           if (prevJob) {
-            return JobsService.updateJobApiV1JobsJobIdPut({
-              jobId: jobId as number,
-              requestBody: prevJob as any,
-            });
+            return JobsService.update(jobId as number, prevJob);
           }
-        })
+          return Promise.resolve();
+        }),
       );
 
       setSuccessMessage('Action undone successfully');
       loadJobs();
     },
-  });
+  });;
 
   const handleSaveFilter = (filterName: string) => {
     const currentFilters = {
@@ -272,8 +297,8 @@ export default function JobsPage() {
   const loadJobs = async () => {
     setIsLoading(true);
     try {
-      const response = await JobsService.getJobsApiV1JobsGet();
-      setJobs(response);
+      const response = await JobsService.list();
+      setJobs(response.data || []);
     } catch (err) {
       setError('Failed to load jobs');
     } finally {
@@ -284,7 +309,7 @@ export default function JobsPage() {
   const handleScrapeJobs = async () => {
     setIsScraping(true);
     try {
-      await JobsService.scrapeJobsApiV1JobsScrapePost();
+      await JobsService.scrape();
       alert('Job scraping started successfully!');
       // Refresh jobs list after scraping
       loadJobs();
@@ -336,8 +361,8 @@ export default function JobsPage() {
 
     try {
       const response = editingJob
-        ? await JobsService.updateJobApiV1JobsJobIdPut({ jobId: editingJob.id, requestBody: formData })
-        : await JobsService.createJobApiV1JobsPost({ requestBody: formData });
+        ? await JobsService.update(editingJob.id, formData)
+        : await JobsService.create(formData);
 
       setShowJobModal(false);
       setEditingJob(null);
@@ -354,7 +379,7 @@ export default function JobsPage() {
     if (!confirm('Are you sure you want to delete this job?')) return;
 
     try {
-      await JobsService.deleteJobApiV1JobsJobIdDelete({ jobId });
+      await JobsService.delete(jobId);
       loadJobs();
     } catch (err) {
       setError('Failed to delete job');
@@ -363,12 +388,10 @@ export default function JobsPage() {
 
   const handleApply = async (job: JobResponse) => {
     try {
-      await ApplicationsService.createApplicationApiV1ApplicationsPost({
-        requestBody: {
-          job_id: job.id,
-          status: 'interested',
-          notes: 'Applied via job management',
-        },
+      await ApplicationsService.create({
+        job_id: job.id,
+        status: 'interested',
+        notes: 'Applied via job management',
       });
       // Show success message or update UI
       alert('Application created successfully!');
@@ -376,6 +399,53 @@ export default function JobsPage() {
       setError('Failed to create application');
     }
   };
+
+  const handleImportJobs = async (data: any[]) => {
+    try {
+      // Import jobs one by one
+      const results = await Promise.allSettled(
+        data.map((jobData) =>
+          JobsService.create({
+            ...jobData,
+            tech_stack: jobData.tech_stack ? jobData.tech_stack.split(',').map((s: string) => s.trim()) : [],
+          }),
+        ),
+      );
+
+      const successCount = results.filter((r) => r.status === 'fulfilled').length;
+      const failureCount = results.filter((r) => r.status === 'rejected').length;
+
+      if (successCount > 0) {
+        setSuccessMessage(`Successfully imported ${successCount} job(s)`);
+        setTimeout(() => setSuccessMessage(''), 3000);
+        loadJobs();
+      }
+
+      if (failureCount > 0) {
+        setErrorMessage(`Failed to import ${failureCount} job(s)`);
+        setTimeout(() => setErrorMessage(''), 5000);
+      }
+
+      setShowImportModal(false);
+    } catch (err) {
+      setErrorMessage('Import failed. Please try again.');
+      setTimeout(() => setErrorMessage(''), 5000);
+    }
+  };
+
+  const jobImportColumns: DataImportColumn[] = [
+    { key: 'company', label: 'Company', required: true, type: 'string' },
+    { key: 'title', label: 'Job Title', required: true, type: 'string' },
+    { key: 'location', label: 'Location', required: false, type: 'string' },
+    { key: 'url', label: 'URL', required: false, type: 'string' },
+    { key: 'salary_range', label: 'Salary Range', required: false, type: 'string' },
+    { key: 'job_type', label: 'Job Type', required: false, type: 'string' },
+    { key: 'description', label: 'Description', required: false, type: 'string' },
+    { key: 'remote', label: 'Remote', required: false, type: 'boolean' },
+    { key: 'tech_stack', label: 'Tech Stack', required: false, type: 'string' },
+    { key: 'responsibilities', label: 'Responsibilities', required: false, type: 'string' },
+    { key: 'source', label: 'Source', required: false, type: 'string' },
+  ];;
 
   const resetForm = () => {
     setFormData({
@@ -626,6 +696,14 @@ export default function JobsPage() {
           >
             <RefreshCw className={`h-4 w-4 ${isScraping ? 'animate-spin' : ''}`} />
             <span>{isScraping ? 'Finding Jobs...' : 'Find Jobs'}</span>
+          </Button2>
+          <Button2
+            onClick={() => setShowImportModal(true)}
+            variant="outline"
+            className="flex items-center space-x-2"
+          >
+            <Upload className="h-4 w-4" />
+            <span>Import Jobs</span>
           </Button2>
           <Button2 onClick={openAddModal} className="flex items-center space-x-2">
             <Plus className="h-4 w-4" />
@@ -983,6 +1061,38 @@ export default function JobsPage() {
         </form>
       </LazyModal>
 
+      {/* Import Jobs Modal */}
+      <LazyModal
+        isOpen={showImportModal}
+        onClose={() => setShowImportModal(false)}
+        title="Import Jobs from CSV"
+        size="xl"
+      >
+        <DataImport
+          onImport={handleImportJobs}
+          templateUrl="/templates/jobs-template.csv"
+          columns={jobImportColumns}
+          title="Import Jobs"
+          description="Upload a CSV file to bulk import job listings. Download the template below to see the required format."
+          validator={(data) => {
+            const errors: string[] = [];
+            
+            // Validate job types
+            const validJobTypes = ['full-time', 'part-time', 'contract', 'internship'];
+            data.forEach((row, index) => {
+              if (row.job_type && !validJobTypes.includes(row.job_type.toLowerCase())) {
+                errors.push(`Row ${index + 1}: Invalid job type "${row.job_type}". Must be one of: ${validJobTypes.join(', ')}`);
+              }
+            });
+
+            return {
+              valid: errors.length === 0,
+              errors,
+            };
+          }}
+        />
+      </LazyModal>
+
       {/* Jobs List */}
       {isLoading ? (
         <div className="space-y-4">
@@ -1019,7 +1129,7 @@ export default function JobsPage() {
       )}
 
       {/* Advanced Search Panel */}
-      <AdvancedSearch
+      <LazyAdvancedSearch
         isOpen={showAdvancedSearch}
         onClose={() => setShowAdvancedSearch(false)}
         onSearch={handleApplyAdvancedSearch}

@@ -1013,7 +1013,7 @@ This implementation plan converts the TODO.md remaining tasks into actionable co
   - Show thank you message after submission
   - _Requirements: 4.3, 4.4_
 
-- [-] 20. Implement Export & Import Features
+- [x] 20. Implement Export & Import Features
 - [x] 20.1 Create CSV export utility
   - Create `frontend/src/lib/export/exportToCSV.ts`
   - Implement data to CSV conversion
@@ -1050,7 +1050,7 @@ This implementation plan converts the TODO.md remaining tasks into actionable co
   - Encrypt sensitive data (optional)
   - _Requirements: 9.1, 9.5_
 
-- [-] 20.6 Create data import component
+- [x] 20.6 Create data import component
   - Create `frontend/src/components/features/DataImport.tsx`
   - Upload CSV file
   - Parse and validate CSV
@@ -1060,14 +1060,14 @@ This implementation plan converts the TODO.md remaining tasks into actionable co
   - Show success/error summary
   - _Requirements: 9.3, 9.4_
 
-- [ ] 20.7 Add CSV import to jobs page
+- [x] 20.7 Add CSV import to jobs page
   - Add "Import jobs" button
   - Use DataImport component
   - Provide CSV template download link
   - Include example data in template
   - _Requirements: 9.3, 9.4_
 
-- [ ] 20.8 Create data restore feature
+- [x] 20.8 Create data restore feature
   - Add "Restore from backup" in settings
   - Upload backup JSON file
   - Validate file structure
@@ -1146,7 +1146,7 @@ This implementation plan converts the TODO.md remaining tasks into actionable co
   - Customize shortcuts (optional)
   - _Requirements: 10.5_
 
-- [ ] 22. Comprehensive Testing & QA
+- [-] 22. Comprehensive Testing & QA
 - [ ] 22.1 Cross-browser testing
   - Test on Chrome (latest)
   - Test on Firefox (latest)
@@ -1155,26 +1155,6 @@ This implementation plan converts the TODO.md remaining tasks into actionable co
   - Document browser-specific issues
   - Add browser compatibility notice if needed
   - _Requirements: 11.3_
-
-- [ ] 22.2 Mobile device testing
-  - Test on iOS Safari (iPhone SE, 13, 14, 15)
-  - Test touch interactions
-  - Test Safari-specific features (add to home screen)
-  - Test on Android Chrome (various screen sizes)
-  - Test PWA features
-  - Test on tablet devices (iPad, Android tablet)
-  - Document mobile-specific issues
-  - _Requirements: 11.4_
-
-- [ ] 22.3 Accessibility final audit
-  - Run automated accessibility audit (axe, WAVE)
-  - Manual keyboard navigation test on all pages
-  - Screen reader test (VoiceOver, NVDA)
-  - Color contrast check with WebAIM (min 4.5:1)
-  - Verify WCAG 2.1 AA compliance
-  - Document accessibility conformance
-  - _Requirements: 11.2_
-
 - [ ] 22.4 Performance final audit
   - Run Lighthouse on all main pages
   - Target: Performance > 95, Accessibility > 95, Best Practices > 95, SEO > 90
@@ -1183,7 +1163,6 @@ This implementation plan converts the TODO.md remaining tasks into actionable co
   - Test with CPU throttling
   - Document performance metrics
   - _Requirements: 11.1_
-
 - [ ] 22.5 Security audit
   - Check for XSS vulnerabilities
   - Check for CSRF protection
@@ -1204,7 +1183,6 @@ This implementation plan converts the TODO.md remaining tasks into actionable co
   - Test all CRUD operations
   - Test error scenarios (network failure, server error)
   - _Requirements: 11.1, 11.3, 11.4_
-
 - [ ] 22.7 User acceptance testing
   - Recruit beta testers (5-10 users)
   - Provide testing checklist
