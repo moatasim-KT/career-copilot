@@ -1,9 +1,9 @@
 """Analytics endpoints"""
 
-from datetime import datetime, timedelta, timezone
-from typing import List, Dict, Any
+from datetime import datetime, timedelta, timezone, date
+from typing import List, Dict, Any, Optional
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Query
 from sqlalchemy import func
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -11,8 +11,15 @@ from ...core.database import get_db
 from ...core.dependencies import get_current_user
 from ...models.application import Application
 from ...models.user import User
-from ...schemas.analytics import AnalyticsSummaryResponse, InterviewTrendsResponse
+from ...schemas.analytics import (
+    AnalyticsSummaryResponse,
+    InterviewTrendsResponse,
+    ComprehensiveAnalyticsSummary,
+    TrendAnalysisResponse,
+    SkillGapAnalysisResponse,
+)
 from ...services.analytics_service import AnalyticsService
+from ...services.comprehensive_analytics_service import ComprehensiveAnalyticsService
 
 _analytics_cache = {}
 _cache_ttl = timedelta(minutes=5)  # Cache for 5 minutes
@@ -286,4 +293,202 @@ async def get_comprehensive_dashboard(days: int = 90, current_user: User = Depen
         ],
         "weekly_performance": weekly_performance,
         "generated_at": datetime.now(timezone.utc).isoformat(),
+    }
+
+
+# ============================================================================
+# Enhanced Analytics Endpoints (Task 10)
+# ============================================================================
+
+
+@router.get("/api/v1/analytics/comprehensive-summary", response_model=ComprehensiveAnalyticsSummary)
+async def get_comprehensive_analytics_summary(
+    days: int = Query(90, ge=1, le=365, description="Number of days for analysis period"),
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    Get comprehensive analytics summary with all metrics.
+    
+    This endpoint provides:
+    - Application counts by status
+    - Interview, offer, and acceptance rates
+    - Daily, weekly, and monthly application trends
+    - Top skills in jobs
+    - Top companies applied to
+    - Goal progress tracking
+    
+    Requirements: 6.1, 6.2, 6.3
+    """
+    # Check cache first
+    cache_key = f"comprehensive_summary_{current_user.id}_{days}"
+    now = datetime.now(timezone.utc)
+    
+    if cache_key in _analytics_cache:
+        cached_data, cached_time = _analytics_cache[cache_key]
+        if now - cached_time < _cache_ttl:
+            return cached_data
+    
+    # Generate fresh analytics
+    service = ComprehensiveAnalyticsService(db)
+    summary = await service.get_comprehensive_summary(
+        user_id=current_user.id,
+        analysis_period_days=days
+    )
+    
+    # Cache the result
+    _analytics_cache[cache_key] = (summary, now)
+    
+    return summary
+
+
+@router.get("/api/v1/analytics/trends", response_model=TrendAnalysisResponse)
+async def get_trend_analysis(
+    start_date: Optional[date] = Query(None, description="Start date for analysis (defaults to 30 days ago)"),
+    end_date: Optional[date] = Query(None, description="End date for analysis (defaults to today)"),
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    Get detailed trend analysis with direction and percentage changes.
+    
+    This endpoint provides:
+    - Trend direction (up, down, neutral) for daily, weekly, and monthly periods
+    - Percentage changes from previous periods
+    - Time series data for visualization
+    
+    Supports custom time ranges for flexible analysis.
+    
+    Requirements: 6.2
+    """
+    # Set default dates if not provided
+    if end_date is None:
+        end_date = datetime.now(timezone.utc).date()
+    if start_date is None:
+        start_date = end_date - timedelta(days=30)
+    
+    # Check cache
+    cache_key = f"trends_{current_user.id}_{start_date}_{end_date}"
+    now = datetime.now(timezone.utc)
+    
+    if cache_key in _analytics_cache:
+        cached_data, cached_time = _analytics_cache[cache_key]
+        if now - cached_time < _cache_ttl:
+            return cached_data
+    
+    # Generate trend analysis
+    service = ComprehensiveAnalyticsService(db)
+    
+    # Get application trends
+    trends = await service.calculate_application_trends(user_id=current_user.id)
+    
+    # Get time series data
+    time_series_data = await service.get_time_series_data(
+        user_id=current_user.id,
+        start_date=start_date,
+        end_date=end_date
+    )
+    
+    response = TrendAnalysisResponse(
+        trends=trends,
+        time_series_data=time_series_data,
+        analysis_period_start=start_date,
+        analysis_period_end=end_date,
+        generated_at=now
+    )
+    
+    # Cache the result
+    _analytics_cache[cache_key] = (response, now)
+    
+    return response
+
+
+@router.get("/api/v1/analytics/skill-gap-analysis", response_model=SkillGapAnalysisResponse)
+async def get_skill_gap_analysis(
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    Get skill gap analysis comparing user skills with market demand.
+    
+    This endpoint provides:
+    - User's current skills
+    - Top skills in demand in the market (from jobs)
+    - Missing skills the user should consider learning
+    - Skill coverage percentage
+    - Personalized skill recommendations
+    
+    Requirements: 6.3
+    """
+    # Check cache
+    cache_key = f"skill_gap_{current_user.id}"
+    now = datetime.now(timezone.utc)
+    
+    if cache_key in _analytics_cache:
+        cached_data, cached_time = _analytics_cache[cache_key]
+        if now - cached_time < _cache_ttl:
+            return cached_data
+    
+    # Generate skill gap analysis
+    service = ComprehensiveAnalyticsService(db)
+    analysis = await service.analyze_skill_gaps(user_id=current_user.id)
+    
+    response = SkillGapAnalysisResponse(
+        analysis=analysis,
+        generated_at=now
+    )
+    
+    # Cache the result
+    _analytics_cache[cache_key] = (response, now)
+    
+    return response
+
+
+@router.delete("/api/v1/analytics/cache")
+async def clear_analytics_cache(
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    Clear analytics cache for the current user.
+    
+    This endpoint allows users to force refresh their analytics data
+    by clearing the cache. Useful after bulk data imports or updates.
+    
+    Requirements: 10.4
+    """
+    service = ComprehensiveAnalyticsService(db)
+    count = service.invalidate_user_cache(user_id=current_user.id)
+    
+    # Also clear in-memory cache
+    keys_to_delete = [k for k in _analytics_cache.keys() if str(current_user.id) in k]
+    for key in keys_to_delete:
+        _analytics_cache.pop(key, None)
+    
+    return {
+        "message": "Analytics cache cleared successfully",
+        "entries_cleared": count + len(keys_to_delete)
+    }
+
+
+@router.get("/api/v1/analytics/cache/stats")
+async def get_cache_stats(
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    Get analytics cache statistics.
+    
+    Provides information about cache performance and usage.
+    
+    Requirements: 10.4
+    """
+    from ..services.analytics_cache_service import get_analytics_cache
+    
+    cache = get_analytics_cache()
+    stats = cache.get_stats()
+    
+    return {
+        "cache_stats": stats,
+        "in_memory_cache_size": len(_analytics_cache)
     }
