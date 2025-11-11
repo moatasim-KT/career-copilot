@@ -37,6 +37,8 @@ class User(Base):
 	content_generations = relationship("ContentGeneration", back_populates="user", cascade="all, delete-orphan")
 	job_recommendation_feedback = relationship("JobRecommendationFeedback", back_populates="user", cascade="all, delete-orphan")
 	feedback = relationship("Feedback", back_populates="user", cascade="all, delete-orphan")
+	notifications = relationship("Notification", back_populates="user", cascade="all, delete-orphan")
+	notification_preferences = relationship("NotificationPreferences", back_populates="user", uselist=False, cascade="all, delete-orphan")
 
 	def __repr__(self):
 		return f"<User(id={self.id}, username={self.username}, email={self.email})>"

@@ -24,6 +24,7 @@ from .feedback import (
 )
 from .interview import InterviewQuestion, InterviewSession, InterviewStatus, InterviewType
 from .job import Job
+from .notification import Notification, NotificationPreferences, NotificationPriority, NotificationType
 from .resume_upload import ResumeUpload
 from .user import User
 from .user_job_preferences import UserJobPreferences
@@ -50,6 +51,10 @@ __all__ = [
 	"JobRecommendationFeedback",
 	"LearningPath",
 	"LearningPathEnrollment",
+	"Notification",
+	"NotificationPreferences",
+	"NotificationPriority",
+	"NotificationType",
 	"OnboardingProgress",
 	"ResourceBookmarkModel",
 	"ResourceFeedbackModel",

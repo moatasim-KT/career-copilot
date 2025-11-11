@@ -412,6 +412,9 @@ async def update_job(job_id: int, job_data: JobUpdate, current_user: User = Depe
 
 	update_data = job_data.model_dump(exclude_unset=True)
 
+	# Track old status for notifications
+	old_status = job.status
+	
 	# Track if status is being changed to 'applied'
 	status_changed_to_applied = "status" in update_data and update_data["status"] == "applied" and job.status != "applied"
 
@@ -428,6 +431,20 @@ async def update_job(job_id: int, job_data: JobUpdate, current_user: User = Depe
 
 	await db.commit()
 	await db.refresh(job)
+	
+	# Create notification if status changed
+	if "status" in update_data and old_status != update_data["status"]:
+		from ...services.notification_service import notification_service
+		
+		await notification_service.notify_job_status_change(
+			db=db,
+			user_id=current_user.id,
+			job_id=job.id,
+			job_title=job.title,
+			company=job.company,
+			old_status=old_status,
+			new_status=update_data["status"],
+		)
 
 	# Invalidate recommendations cache for this user since job details changed
 	cache_service.invalidate_user_cache(current_user.id)

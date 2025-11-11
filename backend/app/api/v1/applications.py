@@ -398,6 +398,22 @@ async def update_application(
 
 	await db.commit()
 	await db.refresh(app)
+	
+	# Create notification if status changed
+	if "status" in update_data and old_status != update_data["status"] and job:
+		from ...services.notification_service import notification_service
+		
+		await notification_service.notify_application_update(
+			db=db,
+			user_id=current_user.id,
+			application_id=app.id,
+			job_id=job.id,
+			job_title=job.title,
+			company=job.company,
+			old_status=old_status,
+			new_status=update_data["status"],
+			notes=update_data.get("notes"),
+		)
 
 	# Send real-time notification for application status update
 	try:

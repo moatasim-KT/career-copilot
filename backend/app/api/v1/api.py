@@ -34,6 +34,7 @@ from app.api.v1 import (
 	social,
 	tasks,
 )
+from app.api.v1 import notifications_v2
 
 api_router = APIRouter()
 
@@ -59,8 +60,11 @@ api_router.include_router(applications.router, prefix="/applications", tags=["ap
 # Include profile management routes
 api_router.include_router(profile.router, prefix="/profile", tags=["profile"])
 
-# Include notification routes
-api_router.include_router(notifications.router, prefix="/notifications", tags=["notifications"])
+# Include notification routes (legacy)
+api_router.include_router(notifications.router, tags=["notifications-legacy"])
+
+# Include new notification routes with full CRUD
+api_router.include_router(notifications_v2.router, prefix="/api/v1", tags=["notifications"])
 
 # Include analytics routes
 api_router.include_router(analytics.router, prefix="/analytics", tags=["analytics"])
