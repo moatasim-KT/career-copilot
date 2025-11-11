@@ -576,7 +576,7 @@ This implementation plan converts the TODO.md remaining tasks into actionable co
   - _Requirements: 6.4_
 
 - [ ] 11. Implement List Virtualization
-- [-] 11.1 Create VirtualJobList component
+- [x] 11.1 Create VirtualJobList component
   - Create `frontend/src/components/jobs/VirtualJobList.tsx`
   - Use @tanstack/react-virtual
   - Configure virtualizer with estimateSize
