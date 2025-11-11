@@ -585,7 +585,7 @@ This implementation plan converts the TODO.md remaining tasks into actionable co
   - Test with 100+ jobs
   - _Requirements: 6.4_
 
-- [ ] 11.2 Create VirtualApplicationList component
+- [x] 11.2 Create VirtualApplicationList component
   - Create `frontend/src/components/applications/VirtualApplicationList.tsx`
   - Implement virtualization similar to VirtualJobList
   - Test with 100+ applications
