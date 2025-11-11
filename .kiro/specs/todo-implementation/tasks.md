@@ -563,20 +563,20 @@ This implementation plan converts the TODO.md remaining tasks into actionable co
   - Test on different screen sizes
   - _Requirements: 6.4_
 
-- [ ] 10.3 Optimize image formats
+- [x] 10.3 Optimize image formats
   - Configure WebP format in next.config.js
   - Compress source images to <100KB
   - Test image quality
   - _Requirements: 6.4_
 
-- [ ] 10.4 Test image optimization
+- [x] 10.4 Test image optimization
   - Test on slow 3G network
   - Verify blur placeholders appear
   - Check WebP format delivery in Network tab
   - _Requirements: 6.4_
 
 - [ ] 11. Implement List Virtualization
-- [ ] 11.1 Create VirtualJobList component
+- [-] 11.1 Create VirtualJobList component
   - Create `frontend/src/components/jobs/VirtualJobList.tsx`
   - Use @tanstack/react-virtual
   - Configure virtualizer with estimateSize
