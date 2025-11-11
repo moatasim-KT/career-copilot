@@ -231,6 +231,7 @@ def create_app() -> FastAPI:
 		storage_admin,
 		tasks,
 		vector_store_admin,
+		websocket_notifications,
 		workflows,
 	)
 
@@ -276,6 +277,7 @@ def create_app() -> FastAPI:
 	app.include_router(resources.router)
 	app.include_router(learning.router)
 	app.include_router(notifications_new.router)
+	app.include_router(websocket_notifications.router, prefix="/api/v1")
 	app.include_router(feedback.router, prefix="/api/v1", tags=["feedback"])
 	app.include_router(feedback_analysis.router, prefix="/api/v1", tags=["feedback-analysis"])
 	app.include_router(interview.router)  # Already has prefix="/api/v1/interview"

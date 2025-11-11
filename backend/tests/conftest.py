@@ -21,9 +21,13 @@ from app.core.database import Base, get_db
 from app.core.security import get_password_hash
 from app.models.user import User
 
-# Test database URL - using SQLite for tests
-TEST_DATABASE_URL = os.getenv("TEST_DATABASE_URL", "sqlite:///./test_career_copilot.db")
-TEST_ASYNC_DATABASE_URL = TEST_DATABASE_URL.replace("sqlite://", "sqlite+aiosqlite://")
+# Test database URL - using PostgreSQL for tests (matches production)
+# Default to PostgreSQL test database, fallback to main database if not set
+TEST_DATABASE_URL = os.getenv(
+    "TEST_DATABASE_URL",
+    os.getenv("DATABASE_URL", "postgresql://postgres:postgres@localhost:5432/career_copilot_test")
+)
+TEST_ASYNC_DATABASE_URL = TEST_DATABASE_URL.replace("postgresql://", "postgresql+asyncpg://")
 
 
 @pytest.fixture(scope="session")
@@ -38,7 +42,8 @@ def event_loop():
 @pytest.fixture(scope="session")
 def engine():
 	"""Create a synchronous engine for the test session."""
-	_engine = create_engine(TEST_DATABASE_URL, connect_args={"check_same_thread": False} if "sqlite" in TEST_DATABASE_URL else {})
+	# PostgreSQL doesn't need check_same_thread
+	_engine = create_engine(TEST_DATABASE_URL, pool_pre_ping=True)
 
 	# Create all tables
 	Base.metadata.create_all(bind=_engine)
@@ -239,3 +244,16 @@ def reset_db(db: Session):
 	"""
 	yield
 	# Cleanup happens automatically via transaction rollback in db fixture
+
+
+# Aliases for compatibility with different test naming conventions
+@pytest_asyncio.fixture
+async def db_session(async_db: AsyncSession) -> AsyncSession:
+	"""Alias for async_db fixture for compatibility."""
+	return async_db
+
+
+@pytest.fixture
+def test_user_sync(test_user: User) -> User:
+	"""Alias for test_user fixture for compatibility."""
+	return test_user

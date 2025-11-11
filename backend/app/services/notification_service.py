@@ -31,7 +31,7 @@ class NotificationService:
         action_url: Optional[str] = None,
         expires_at: Optional[datetime] = None,
     ) -> Notification:
-        """Create a new notification"""
+        """Create a new notification and send it via WebSocket if user is connected"""
         notification = Notification(
             user_id=user_id,
             type=notification_type,
@@ -46,6 +46,16 @@ class NotificationService:
         db.add(notification)
         await db.commit()
         await db.refresh(notification)
+        
+        # Send notification via WebSocket if user is connected
+        try:
+            from ..services.websocket_notification_service import websocket_notification_service
+            await websocket_notification_service.send_notification(user_id, notification)
+        except Exception as e:
+            # Log error but don't fail notification creation
+            from ..core.logging import get_logger
+            logger = get_logger(__name__)
+            logger.error(f"Failed to send WebSocket notification: {e}")
         
         return notification
 
