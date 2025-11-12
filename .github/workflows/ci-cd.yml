@@ -305,7 +305,7 @@ jobs:
           vercel-token: ${{ secrets.VERCEL_TOKEN }}
           vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
           vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
-          vercel-args: '--prod'
+          environment: 'development'
           working-directory: ./frontend
 
       - name: Notify Slack
@@ -314,7 +314,8 @@ jobs:
         with:
           status: ${{ job.status }}
           text: 'Development deployment completed'
-          webhook_url: ${{ secrets.SLACK_WEBHOOK }}
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
 
   # Job 7: Deploy to Staging
   deploy-staging:
@@ -342,7 +343,7 @@ jobs:
           vercel-token: ${{ secrets.VERCEL_TOKEN }}
           vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
           vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
-          vercel-args: '--prod'
+          environment: 'staging'
           working-directory: ./frontend
 
       - name: Run smoke tests
@@ -355,7 +356,8 @@ jobs:
         with:
           status: ${{ job.status }}
           text: 'Staging deployment completed'
-          webhook_url: ${{ secrets.SLACK_WEBHOOK }}
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
 
   # Job 8: Deploy to Production
   deploy-prod:
@@ -383,7 +385,7 @@ jobs:
           vercel-token: ${{ secrets.VERCEL_TOKEN }}
           vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
           vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
-          vercel-args: '--prod'
+          environment: 'production'
           working-directory: ./frontend
 
       - name: Run smoke tests
@@ -405,4 +407,5 @@ jobs:
         with:
           status: ${{ job.status }}
           text: 'Production deployment completed'
-          webhook_url: ${{ secrets.SLACK_WEBHOOK }}
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
