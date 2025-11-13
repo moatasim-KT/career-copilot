@@ -791,3 +791,6 @@ Total Applications: {total_applications}
 
 # Create singleton instance
 export_service = ExportService()
+
+# Backward compatibility alias
+export_service_v2 = export_service

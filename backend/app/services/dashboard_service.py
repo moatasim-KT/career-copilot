@@ -2,15 +2,16 @@
 Dashboard service for real-time updates and polling fallback.
 """
 
-from typing import Dict, Any
 from datetime import datetime, timedelta
+from typing import Any, Dict
+
 from sqlalchemy.orm import Session
 
+from ..core.logging import get_logger
 from ..models.user import User
-from ..services.job_analytics_service import JobAnalyticsService
+from ..services.analytics_service import AnalyticsService
 from ..services.recommendation_engine import RecommendationEngine
 from ..services.websocket_service import websocket_service
-from ..core.logging import get_logger
 
 logger = get_logger(__name__)
 
@@ -20,7 +21,7 @@ class DashboardService:
 
 	def __init__(self, db: Session):
 		self.db = db
-		self.analytics_service = JobAnalyticsService(db)
+		self.analytics_service = AnalyticsService(db=db)
 		self.recommendation_engine = RecommendationEngine(db)
 
 	async def get_dashboard_data(self, user: User) -> Dict[str, Any]:
