@@ -87,6 +87,7 @@ backups/
 tmp/
 temp/
 *.tmp
+*.bak
 
 # OS
 .DS_Store
