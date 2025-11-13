@@ -1,22 +1,23 @@
 #!/usr/bin/env python3
 """
-Test script for advanced user analytics service
+Test script for analytics specialized service
+Tests the specialized analytics functionality previously in advanced_user_analytics_service
 """
 
-import sys
 import os
+import sys
 
 sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 
 
-def test_advanced_user_analytics():
-	"""Test the advanced user analytics service functionality"""
+def test_analytics_specialized():
+	"""Test the analytics specialized service functionality"""
 
 	try:
 		# Test service import
-		from app.services.advanced_user_analytics_service import advanced_user_analytics_service
+		from app.services.analytics_specialized import analytics_specialized_service
 
-		print("✅ Advanced user analytics service imported successfully")
+		print("✅ Analytics specialized service imported successfully")
 
 		# Test service methods exist
 		methods_to_test = [
@@ -27,7 +28,7 @@ def test_advanced_user_analytics():
 		]
 
 		for method in methods_to_test:
-			if hasattr(advanced_user_analytics_service, method):
+			if hasattr(analytics_specialized_service, method):
 				print(f"✅ Method {method} exists")
 			else:
 				print(f"❌ Method {method} missing")
@@ -45,7 +46,7 @@ def test_advanced_user_analytics():
 		]
 
 		for method in helper_methods:
-			if hasattr(advanced_user_analytics_service, method):
+			if hasattr(analytics_specialized_service, method):
 				print(f"✅ Helper method {method} exists")
 			else:
 				print(f"❌ Helper method {method} missing")
@@ -108,4 +109,4 @@ def test_advanced_user_analytics():
 
 
 if __name__ == "__main__":
-	test_advanced_user_analytics()
+	test_analytics_specialized()

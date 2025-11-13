@@ -225,13 +225,13 @@ async def preview_weekly_report(db: AsyncSession = Depends(get_db)):
 		from starlette.concurrency import run_in_threadpool
 
 		from ...core.database import get_db_manager
-		from ...services.advanced_user_analytics_service import advanced_user_analytics_service
+		from ...services.analytics_specialized import analytics_specialized_service
 
 		db_manager = get_db_manager()
 
 		def _calc_preview():
 			with db_manager.get_sync_session() as session:
-				return advanced_user_analytics_service.calculate_detailed_success_rates(session, MOATASIM_USER_ID, days=7)
+				return analytics_specialized_service.calculate_detailed_success_rates(db=session, user_id=MOATASIM_USER_ID, days=7)
 
 		success_rates = await run_in_threadpool(_calc_preview)
 
@@ -277,13 +277,13 @@ async def preview_monthly_report(db: AsyncSession = Depends(get_db)):
 		from starlette.concurrency import run_in_threadpool
 
 		from ...core.database import get_db_manager
-		from ...services.advanced_user_analytics_service import advanced_user_analytics_service
+		from ...services.analytics_specialized import analytics_specialized_service
 
 		db_manager = get_db_manager()
 
 		def _calc_preview_month():
 			with db_manager.get_sync_session() as session:
-				return advanced_user_analytics_service.calculate_detailed_success_rates(session, MOATASIM_USER_ID, days=30)
+				return analytics_specialized_service.calculate_detailed_success_rates(db=session, user_id=MOATASIM_USER_ID, days=30)
 
 		success_rates = await run_in_threadpool(_calc_preview_month)
 
