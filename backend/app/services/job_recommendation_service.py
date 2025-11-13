@@ -2,11 +2,13 @@
 Consolidated Job Recommendation Service
 
 This service consolidates multiple job recommendation and matching modules:
-- job_matching_service.py: Real-time job matching and notifications
-- job_recommendation_feedback_service.py: Feedback collection and processing
-- job_source_manager.py: Job source management and analytics
-- job_data_normalizer.py: Data normalization and quality scoring
-- job_description_parser_service.py: Job description parsing and extraction
+- job_matching_service.py: Real-time job matching and notifications (consolidated)
+- job_recommendation_feedback_service.py: Feedback collection and processing (consolidated)
+- job_data_normalizer.py: Data normalization and quality scoring (consolidated)
+
+Works in coordination with separate services:
+- job_source_manager.py: Job source management and analytics (separate service - see docs/architecture/job-services-architecture.md)
+- job_description_parser_service.py: Job description parsing (separate stub service)
 
 Provides unified interface for job recommendations, matching algorithms, and feedback processing.
 """
