@@ -11,8 +11,8 @@ from sqlalchemy.orm import Session
 
 from app.core.cache import cached, user_profile_cache
 from app.models.application import Application
-# from app.models.document import Document  # TODO: Create document model
-# from app.models.goal import Goal, Milestone  # TODO: Create goal model
+from app.models.document import Document
+from app.models.goal import Goal, Milestone
 from app.models.job import Job
 from app.models.user import User
 from app.schemas.profile import (

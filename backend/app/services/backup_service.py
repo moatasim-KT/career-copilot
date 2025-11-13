@@ -16,8 +16,7 @@ from app.core.config import settings
 from app.core.database import get_db
 from app.models.analytics import Analytics
 from app.models.application import Application
-
-# from app.models.document import Document  # TODO: Document model doesn't exist
+from app.models.document import Document
 from app.models.job import Job
 from app.models.user import User
 from app.utils.logging import get_logger, handle_exceptions, performance_tracker
@@ -259,25 +258,24 @@ class BackupService:
 					}
 				)
 
-			# Export documents metadata (not file content)
-			# TODO: Document model doesn't exist - commenting out for now
-			# documents = db.query(Document).all()
-			# for doc in documents:
-			# 	export_data["documents"].append(
-			# 		{
-			# 			"id": doc.id,
-			# 			"user_id": doc.user_id,
-			# 			"filename": doc.filename,
-			# 			"original_filename": doc.original_filename,
-			# 			"file_type": doc.file_type,
-			# 			"file_size": doc.file_size,
-			# 			"file_path": doc.file_path,
-			# 			"document_type": doc.document_type,
-			# 			"metadata": doc.metadata,
-			# 			"created_at": doc.created_at.isoformat() if doc.created_at else None,
-			# 			"updated_at": doc.updated_at.isoformat() if doc.updated_at else None,
-			# 		}
-			# 	)
+			# Export documents metadata (not file content for size reasons)
+			documents = db.query(Document).all()
+			for doc in documents:
+				export_data["documents"].append(
+					{
+						"id": doc.id,
+						"user_id": doc.user_id,
+						"original_filename": doc.original_filename,
+						"stored_filename": doc.stored_filename,
+						"document_type": doc.document_type,
+						"file_size": doc.file_size,
+						"mime_type": doc.mime_type,
+						"usage_count": doc.usage_count,
+						"last_used": doc.last_used.isoformat() if doc.last_used else None,
+						"created_at": doc.created_at.isoformat() if doc.created_at else None,
+						"updated_at": doc.updated_at.isoformat() if doc.updated_at else None,
+					}
+				)
 
 			# Export analytics (last 30 days only)
 			cutoff_date = datetime.now(timezone.utc) - timedelta(days=30)

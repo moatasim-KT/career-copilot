@@ -34,11 +34,12 @@ except ModuleNotFoundError:  # Optional dependency; allow import without authlib
 			return self._providers.get(item)
 
 
+from pydantic import BaseModel
+from sqlalchemy.orm import Session
+
 from app.core.config import get_settings
 from app.core.logging import get_audit_logger, get_logger
 from app.models.user import User
-from pydantic import BaseModel
-from sqlalchemy.orm import Session
 
 logger = get_logger(__name__)
 audit_logger = get_audit_logger()
@@ -386,12 +387,16 @@ class OAuthService:
 
 		# Create new user
 		username = self._generate_username_from_oauth(oauth_data, db)
-		
-		placeholder_password = f"oauth_{provider}_{oauth_id}"
+
+		# OAuth users don't need passwords - use secure random token for the field
+		# This makes the password field unpredictable and unusable for authentication
+		import secrets
+
+		secure_oauth_token = secrets.token_urlsafe(32)
 		new_user = User(
 			username=username,
 			email=email,
-			hashed_password=placeholder_password,  # Placeholder for OAuth users
+			hashed_password=secure_oauth_token,  # Secure random token for OAuth users (not usable for login)
 			oauth_provider=provider,
 			oauth_id=oauth_id,
 			profile_picture_url=oauth_data.get("picture", ""),
@@ -507,9 +512,11 @@ class OAuthService:
 			return False
 
 		if user.oauth_provider == provider:
-			# Check if user has a real password (not placeholder) - if not, they can't disconnect OAuth
-			if user.hashed_password.startswith("oauth_"):
-				raise ValueError("Cannot disconnect OAuth account without setting a password first")
+			# OAuth users cannot disconnect without setting a password first
+			# We check if they have access to password-based authentication
+			# If the user only authenticated via OAuth, they need to set a password first
+			if not hasattr(user, "can_password_login") or not user.can_password_login:
+				raise ValueError("Cannot disconnect OAuth account without setting a password first. Please set a password in your account settings.")
 
 			user.oauth_provider = None
 			user.oauth_id = None
