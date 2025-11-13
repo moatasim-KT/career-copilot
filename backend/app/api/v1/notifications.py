@@ -38,7 +38,7 @@ from ...schemas.notification import (
 	NotificationResponse,
 	NotificationStatistics,
 )
-from ...services.scheduled_notification_service import scheduled_notification_service
+from ...services.notification_service import notification_service as scheduled_notification_service
 
 router = APIRouter(prefix="/notifications", tags=["notifications"])
 

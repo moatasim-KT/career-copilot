@@ -301,7 +301,7 @@ def create_app() -> FastAPI:
 		export,
 		feedback,
 		feedback_analysis,
-		groq,
+		# groq,  # Commented out - missing dependencies (groq_service, groq_optimizer, groq_router, groq_monitor)
 		health,
 		import_data,
 		integrations_admin,
@@ -393,7 +393,7 @@ def create_app() -> FastAPI:
 	app.include_router(slack_integration.router, prefix="/api/v1")
 	app.include_router(services_admin.router)
 	app.include_router(integrations_admin.router, prefix="/api/v1/integrations", tags=["integrations"])
-	app.include_router(groq.router, prefix="/api/v1")
+	# app.include_router(groq.router, prefix="/api/v1")  # Commented out - missing service dependencies
 
 	# System Administration
 	app.include_router(database_admin.router)

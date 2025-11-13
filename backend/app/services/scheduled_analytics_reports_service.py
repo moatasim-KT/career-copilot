@@ -17,7 +17,7 @@ from sqlalchemy.orm import Session
 
 from app.core.config import get_settings
 from app.models.user import User
-from app.services.analytics_service_facade import AnalyticsServiceFacade
+from app.services.analytics_service import AnalyticsService
 from app.services.market_analysis_service import market_analysis_service
 
 logger = logging.getLogger(__name__)
@@ -43,10 +43,10 @@ class ScheduledAnalyticsReportsService:
 			if not user:
 				return {"error": "User not found"}
 
-			# Get analytics data using the consolidated facade
-			facade = AnalyticsServiceFacade(db)
-			user_analytics = facade.get_user_analytics(user_id)
-			user_insights = facade.get_user_insights(user_id, days=7)
+			# Get analytics data using the consolidated service
+			analytics_service = AnalyticsService(db=db)
+			user_analytics = analytics_service.get_user_analytics(user_id)
+			user_insights = analytics_service.get_user_insights(user_id, days=7)
 			market_analysis = market_analysis_service.analyze_job_market_patterns(db, user_id, days=7)
 
 			# Create report structure
@@ -80,10 +80,10 @@ class ScheduledAnalyticsReportsService:
 			if not user:
 				return {"error": "User not found"}
 
-			# Get analytics data using the consolidated facade
-			facade = AnalyticsServiceFacade(db)
-			user_analytics = facade.get_user_analytics(user_id)
-			user_insights = facade.get_user_insights(user_id, days=30)
+			# Get analytics data using the consolidated service
+			analytics_service = AnalyticsService(db=db)
+			user_analytics = analytics_service.get_user_analytics(user_id)
+			user_insights = analytics_service.get_user_insights(user_id, days=30)
 			market_dashboard = market_analysis_service.create_market_dashboard_data(db, user_id)
 
 			# Create comprehensive monthly report

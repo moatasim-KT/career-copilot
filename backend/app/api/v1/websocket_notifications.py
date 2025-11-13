@@ -14,7 +14,7 @@ from ...core.database import get_db
 from ...core.logging import get_logger
 from ...dependencies import get_current_user
 from ...models.user import User
-from ...services.websocket_notification_service import websocket_notification_service
+from ...services.websocket_service import websocket_service as websocket_notification_service
 
 logger = get_logger(__name__)
 
