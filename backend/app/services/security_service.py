@@ -1,7 +1,7 @@
 """
-Minimal, import-safe comprehensive security service.
+Security service for file security assessment.
 
-Replaces corrupted file with a simplified implementation to unblock imports.
+Minimal implementation to unblock imports.
 """
 
 from __future__ import annotations
@@ -38,13 +38,13 @@ class SecurityAssessment:
     metadata: Dict[str, Any]
 
 
-class ComprehensiveSecurityService:
+class SecurityService:
     LOW_RISK_THRESHOLD = 3.0
     MEDIUM_RISK_THRESHOLD = 6.0
     HIGH_RISK_THRESHOLD = 7.5
 
     def __init__(self):
-        logger.info("Comprehensive security service (minimal) initialized")
+        logger.info("Security service (minimal) initialized")
 
     async def assess_file_security(
         self,
@@ -102,16 +102,16 @@ class ComprehensiveSecurityService:
 
 
 # Global instance and convenience wrappers
-comprehensive_security_service = ComprehensiveSecurityService()
+security_service = SecurityService()
 
 
 async def assess_file_security(file_content: bytes, filename: str, user_id: Optional[str] = None) -> SecurityAssessment:
-    return await comprehensive_security_service.assess_file_security(file_content, filename, user_id)
+    return await security_service.assess_file_security(file_content, filename, user_id)
 
 
 async def update_security_databases() -> Dict[str, bool]:
-    return await comprehensive_security_service.update_security_databases()
+    return await security_service.update_security_databases()
 
 
 def get_security_statistics() -> Dict[str, Any]:
-    return comprehensive_security_service.get_security_statistics()
+    return security_service.get_security_statistics()

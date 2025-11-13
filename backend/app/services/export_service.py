@@ -1,5 +1,5 @@
 """
-Comprehensive data export service for Career Copilot
+Data export service for Career Copilot
 Supports JSON, CSV, and PDF export formats
 """
 
@@ -29,8 +29,8 @@ from app.schemas.export import (
 logger = get_logger(__name__)
 
 
-class ExportServiceV2:
-    """Enhanced export service with comprehensive format support"""
+class ExportService:
+    """Export service with comprehensive format support"""
 
     async def export_jobs_json(
         self,
@@ -808,4 +808,4 @@ Total Applications: {total_applications}
 
 
 # Create singleton instance
-export_service_v2 = ExportServiceV2()
+export_service = ExportService()
