@@ -24,9 +24,11 @@ from ...core.database import get_db
 from ...dependencies import get_current_user
 from ...models.notification import (
 	Notification,
-	NotificationPreferences as NotificationPreferencesModel,
 	NotificationPriority,
 	NotificationType,
+)
+from ...models.notification import (
+	NotificationPreferences as NotificationPreferencesModel,
 )
 from ...models.user import User
 from ...schemas.notification import (
@@ -571,26 +573,36 @@ async def get_notification_statistics(
 	unread_notifications = unread_result.scalar() or 0
 
 	# Notifications by type
-	type_query = select(Notification.type, func.count(Notification.id).label("count")).where(Notification.user_id == current_user.id).group_by(Notification.type)
+	type_query = (
+		select(Notification.type, func.count(Notification.id).label("count"))
+		.where(Notification.user_id == current_user.id)
+		.group_by(Notification.type)
+	)
 	type_result = await db.execute(type_query)
 	notifications_by_type = {row[0].value: row[1] for row in type_result.all()}
 
 	# Notifications by priority
 	priority_query = (
-		select(Notification.priority, func.count(Notification.id).label("count")).where(Notification.user_id == current_user.id).group_by(Notification.priority)
+		select(Notification.priority, func.count(Notification.id).label("count"))
+		.where(Notification.user_id == current_user.id)
+		.group_by(Notification.priority)
 	)
 	priority_result = await db.execute(priority_query)
 	notifications_by_priority = {row[0].value: row[1] for row in priority_result.all()}
 
 	# Notifications today
 	today_start = datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
-	today_query = select(func.count()).select_from(Notification).where(and_(Notification.user_id == current_user.id, Notification.created_at >= today_start))
+	today_query = (
+		select(func.count()).select_from(Notification).where(and_(Notification.user_id == current_user.id, Notification.created_at >= today_start))
+	)
 	today_result = await db.execute(today_query)
 	notifications_today = today_result.scalar() or 0
 
 	# Notifications this week
 	week_start = today_start - timedelta(days=today_start.weekday())
-	week_query = select(func.count()).select_from(Notification).where(and_(Notification.user_id == current_user.id, Notification.created_at >= week_start))
+	week_query = (
+		select(func.count()).select_from(Notification).where(and_(Notification.user_id == current_user.id, Notification.created_at >= week_start))
+	)
 	week_result = await db.execute(week_query)
 	notifications_this_week = week_result.scalar() or 0
 

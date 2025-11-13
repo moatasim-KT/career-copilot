@@ -8,6 +8,7 @@ from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel
 
 from app.dependencies import get_current_user
+
 from ...core.logging import get_logger
 from ...models.user import User
 from ...services.slack_service import EnhancedSlackService as SlackService
