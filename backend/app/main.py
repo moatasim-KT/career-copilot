@@ -313,6 +313,7 @@ def create_app() -> FastAPI:
 		linkedin_jobs,
 		llm_admin,
 		market,
+		notifications,
 		personalization,
 		progress_admin,
 		recommendations,
@@ -373,6 +374,7 @@ def create_app() -> FastAPI:
 	app.include_router(content.router)
 	app.include_router(resources.router)
 	app.include_router(learning.router)
+	app.include_router(notifications.router, prefix="/api/v1")
 	app.include_router(websocket_notifications.router, prefix="/api/v1")
 	app.include_router(feedback.router, prefix="/api/v1", tags=["feedback"])
 	app.include_router(feedback_analysis.router, prefix="/api/v1", tags=["feedback-analysis"])
