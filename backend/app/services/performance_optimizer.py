@@ -322,7 +322,10 @@ class PerformanceOptimizer:
 		self.db_optimizer = DatabaseOptimizer()
 
 		# Initialize embedding model
-		self.embedding_model = OpenAIEmbeddings(openai_api_key=settings.openai_api_key.get_secret_value())
+		api_key = settings.openai_api_key
+		if hasattr(api_key, "get_secret_value"):
+			api_key = api_key.get_secret_value()
+		self.embedding_model = OpenAIEmbeddings(openai_api_key=api_key)
 
 	@monitor_performance("large_document_processing", "performance_optimizer")
 	async def process_large_contract(

@@ -1,0 +1,47 @@
+"""
+Integration test to verify that get_current_user is used consistently across all endpoints.
+"""
+
+import pytest
+from fastapi.testclient import TestClient
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.main import app
+from app.dependencies import get_current_user
+from app.models.user import User
+
+client = TestClient(app)
+
+
+@pytest.fixture
+async def mock_user(db: AsyncSession) -> User:
+    """Fixture to get the mock user."""
+    return await get_current_user(db)
+
+
+def test_get_current_user_consistency(mock_user: User):
+    """
+    Test that all endpoints that require authentication receive the same mock user.
+    """
+    # Get all routes from the app
+    routes = app.routes
+
+    for route in routes:
+        # Skip websocket routes and routes that don't require authentication
+        if "dependencies" not in route.__dict__ or not route.dependencies:
+            continue
+
+        # Check if the route has a dependency on get_current_user
+        has_auth_dependency = False
+        for dependency in route.dependencies:
+            if dependency.dependency == get_current_user:
+                has_auth_dependency = True
+                break
+
+        if has_auth_dependency:
+            # Make a request to the endpoint
+            response = client.get(route.path)
+
+            # If the endpoint returns a user, check if it's the mock user
+            if response.status_code == 200 and "user" in response.json():
+                assert response.json()["user"]["id"] == mock_user.id

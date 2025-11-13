@@ -47,6 +47,11 @@ Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGc...
 
 ### Jobs
 
+**Implementation**: [[../../backend/app/api/v1/jobs.py|backend/app/api/v1/jobs.py]]  
+**Service Layer**: [[../../backend/app/services/job_service.py|backend/app/services/job_service.py]]  
+**Models**: [[../../backend/app/models/job.py|backend/app/models/job.py]]  
+**Schemas**: [[../../backend/app/schemas/job.py|backend/app/schemas/job.py]]
+
 #### List Jobs
 
 ```http

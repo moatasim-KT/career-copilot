@@ -13,7 +13,7 @@ class Settings(BaseSettings):
 	debug: Optional[bool] = True
 
 	# Database Configuration
-	database_url: Optional[str] = "sqlite:///./data/career_copilot.db"
+	database_url: Optional[str] = "postgresql://postgres:postgres@localhost:5432/career_copilot"
 
 	# AI/LLM Service API Keys
 	openai_api_key: Optional[str] = None

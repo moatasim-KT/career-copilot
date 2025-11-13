@@ -36,7 +36,6 @@ except ModuleNotFoundError:  # Optional dependency; allow import without authlib
 
 from app.core.config import get_settings
 from app.core.logging import get_audit_logger, get_logger
-from app.core.security import create_access_token
 from app.models.user import User
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
@@ -387,7 +386,7 @@ class OAuthService:
 
 		# Create new user
 		username = self._generate_username_from_oauth(oauth_data, db)
-		# For SQLite compatibility, OAuth users get a placeholder password
+		
 		placeholder_password = f"oauth_{provider}_{oauth_id}"
 		new_user = User(
 			username=username,

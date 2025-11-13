@@ -28,7 +28,8 @@ from ..services.recommendation_engine import RecommendationEngine
 from ..services.websocket_service import websocket_service
 
 logger = get_logger(__name__)
-settings = get_settings()
+def get_current_settings():
+	return get_settings()
 
 # ============================================================================
 # CELERY CONFIGURATION AND SETUP
@@ -38,9 +39,10 @@ settings = get_settings()
 # ============================================================================
 
 # Initialize Celery
-redis_host = getattr(settings, "REDIS_HOST", "localhost")
-redis_port = getattr(settings, "REDIS_PORT", 6379)
-redis_db = getattr(settings, "REDIS_DB", 0)
+_settings = get_current_settings()
+redis_host = getattr(_settings, "REDIS_HOST", "localhost")
+redis_port = getattr(_settings, "REDIS_PORT", 6379)
+redis_db = getattr(_settings, "REDIS_DB", 0)
 celery_app = Celery("career_copilot", broker=f"redis://{redis_host}:{redis_port}/{redis_db}")
 
 # Configure Celery
@@ -118,15 +120,16 @@ def run_scrape_jobs():
 
 def _get_sync_jobstore_url(database_url: str) -> str:
 	"""Convert async-style URLs to synchronous equivalents for APScheduler."""
-	if database_url.startswith("postgresql+asyncpg"):
-		return database_url.replace("+asyncpg", "", 1)
-	if database_url.startswith("sqlite+aiosqlite"):
-		return database_url.replace("+aiosqlite", "", 1)
-	return database_url
+	if database_url.startswith("postgresql+asyncpg://"):
+		return database_url.replace("postgresql+asyncpg://", "postgresql://", 1)
+	elif database_url.startswith("postgresql://"):
+		return database_url
+	else:
+		raise ValueError(f"Unsupported database URL for APScheduler job store: {database_url}. Only PostgreSQL is supported.")
 
 
 # Configure job stores
-jobstores = {"default": SQLAlchemyJobStore(url=_get_sync_jobstore_url(settings.database_url))}
+jobstores = {"default": SQLAlchemyJobStore(url=_get_sync_jobstore_url(get_current_settings().database_url))}
 
 # Configure executors
 executors = {"default": ThreadPoolExecutor(20), "processpool": ProcessPoolExecutor(5)}
@@ -152,9 +155,10 @@ async def scrape_jobs():
 
 	db = SessionLocal()
 	scraping_service: JobScrapingService | None = None
+	_settings = get_current_settings()
 	try:
 		# Check if job scraping is enabled
-		if not settings.enable_job_scraping:
+		if not _settings.enable_job_scraping:
 			logger.info("Job scraping is disabled. Skipping job ingestion.")
 			return
 
@@ -289,6 +293,7 @@ async def send_morning_briefing():
 	logger.info("=" * 80)
 
 	db = SessionLocal()
+	_settings = get_current_settings()
 	try:
 		# Initialize notification service
 		notification_service = NotificationService(db=db)
@@ -361,6 +366,7 @@ async def send_evening_summary():
 	logger.info("=" * 80)
 
 	db = SessionLocal()
+	_settings = get_current_settings()
 	try:
 		# Initialize services
 		notification_service = NotificationService(db=db)
@@ -471,7 +477,8 @@ def start_scheduler():
 	Start the APScheduler and register scheduled tasks.
 	Only starts if ENABLE_SCHEDULER configuration is True.
 	"""
-	if not settings.enable_scheduler:
+	_settings = get_current_settings()
+	if not _settings.enable_scheduler:
 		logger.info("APScheduler is disabled by settings (ENABLE_SCHEDULER=False).")
 		return
 

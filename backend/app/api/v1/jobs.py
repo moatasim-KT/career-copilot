@@ -4,11 +4,12 @@ from datetime import datetime, timezone
 from typing import List
 
 from fastapi import APIRouter, Depends, HTTPException, Query
-from sqlalchemy import select, String
+from sqlalchemy import String, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.dependencies import get_current_user
+
 from ...core.database import get_db
-from ...core.dependencies import get_current_user
 from ...models.job import Job
 from ...models.user import User
 from ...schemas.job import JobCreate, JobResponse, JobUpdate
@@ -54,10 +55,11 @@ async def search_jobs(
 	- **use_cache**: Enable result caching (default: True, 15-minute TTL)
 	"""
 	try:
-		from sqlalchemy import and_, or_, func
 		import hashlib
 		import json
-		
+
+		from sqlalchemy import and_, func, or_
+
 		# Generate cache key from search parameters
 		cache_params = {
 			"user_id": current_user.id,
@@ -69,17 +71,17 @@ async def search_jobs(
 			"max_salary": max_salary,
 			"tech_stack": sorted(tech_stack) if tech_stack else [],
 			"skip": skip,
-			"limit": limit
+			"limit": limit,
 		}
 		cache_key = f"job_search:{hashlib.md5(json.dumps(cache_params, sort_keys=True).encode()).hexdigest()}"
-		
+
 		# Try to get from cache
 		if use_cache:
 			cached_result = await cache_service.aget(cache_key)
 			if cached_result is not None:
 				# Convert cached dicts back to Job objects for response model
 				return cached_result
-		
+
 		# Build base query
 		stmt = select(Job).where(Job.user_id == current_user.id)
 
@@ -87,17 +89,13 @@ async def search_jobs(
 		if query:
 			search_term = f"%{query}%"
 			# Search in title, company, description
-			text_search = or_(
-				Job.title.ilike(search_term),
-				Job.company.ilike(search_term),
-				Job.description.ilike(search_term)
-			)
-			
+			text_search = or_(Job.title.ilike(search_term), Job.company.ilike(search_term), Job.description.ilike(search_term))
+
 			# Also search in tech_stack JSON array
 			# For PostgreSQL: tech_stack @> '["query"]'
-			# For SQLite: we'll use a workaround with LIKE on JSON text
+
 			tech_search = func.lower(func.cast(Job.tech_stack, String)).like(f"%{query.lower()}%")
-			
+
 			stmt = stmt.where(or_(text_search, tech_search))
 
 		# Location filtering
@@ -115,30 +113,18 @@ async def search_jobs(
 		# Salary range filtering
 		if min_salary is not None:
 			# Job's max salary should be >= min_salary filter
-			stmt = stmt.where(
-				or_(
-					Job.salary_max >= min_salary,
-					and_(Job.salary_max.is_(None), Job.salary_min >= min_salary)
-				)
-			)
+			stmt = stmt.where(or_(Job.salary_max >= min_salary, and_(Job.salary_max.is_(None), Job.salary_min >= min_salary)))
 
 		if max_salary is not None:
 			# Job's min salary should be <= max_salary filter
-			stmt = stmt.where(
-				or_(
-					Job.salary_min <= max_salary,
-					and_(Job.salary_min.is_(None), Job.salary_max <= max_salary)
-				)
-			)
+			stmt = stmt.where(or_(Job.salary_min <= max_salary, and_(Job.salary_min.is_(None), Job.salary_max <= max_salary)))
 
 		# Tech stack filtering with multiple values
 		if tech_stack:
 			# Filter jobs that contain ANY of the specified technologies
 			tech_conditions = []
 			for tech in tech_stack:
-				tech_conditions.append(
-					func.lower(func.cast(Job.tech_stack, String)).like(f"%{tech.lower()}%")
-				)
+				tech_conditions.append(func.lower(func.cast(Job.tech_stack, String)).like(f"%{tech.lower()}%"))
 			if tech_conditions:
 				stmt = stmt.where(or_(*tech_conditions))
 
@@ -147,7 +133,7 @@ async def search_jobs(
 
 		result = await db.execute(stmt)
 		jobs = result.scalars().all()
-		
+
 		# Cache the results (15-minute TTL for job listings)
 		if use_cache and jobs:
 			# Convert to dict for caching
@@ -174,12 +160,12 @@ async def search_jobs(
 					"notes": job.notes,
 					"created_at": job.created_at.isoformat() if job.created_at else None,
 					"updated_at": job.updated_at.isoformat() if job.updated_at else None,
-					"currency": job.currency
+					"currency": job.currency,
 				}
 				for job in jobs
 			]
 			await cache_service.aset(cache_key, jobs_dict, ttl=900)  # 15 minutes
-		
+
 		return jobs
 	except Exception as e:
 		raise HTTPException(status_code=500, detail=f"Error searching jobs: {e!s}")
@@ -348,10 +334,10 @@ async def create_job(job_data: JobCreate, current_user: User = Depends(get_curre
 	# Trigger real-time job matching for scraped jobs
 	if job.source == "scraped":
 		try:
-			from ...services.job_recommendation_service import get_job_recommendation_service
+			from ...services.job_service import JobManagementSystem
 
-			matching_service = get_job_recommendation_service(db)
-			await matching_service.check_job_matches_for_user(current_user, [job])
+			job_service = JobManagementSystem(db)
+			await job_service.check_job_matches_for_user(current_user, [job])
 		except Exception as e:
 			# Don't fail job creation if matching fails
 			from ...core.logging import get_logger
@@ -414,7 +400,7 @@ async def update_job(job_id: int, job_data: JobUpdate, current_user: User = Depe
 
 	# Track old status for notifications
 	old_status = job.status
-	
+
 	# Track if status is being changed to 'applied'
 	status_changed_to_applied = "status" in update_data and update_data["status"] == "applied" and job.status != "applied"
 
@@ -431,11 +417,11 @@ async def update_job(job_id: int, job_data: JobUpdate, current_user: User = Depe
 
 	await db.commit()
 	await db.refresh(job)
-	
+
 	# Create notification if status changed
 	if "status" in update_data and old_status != update_data["status"]:
 		from ...services.notification_service import notification_service
-		
+
 		await notification_service.notify_job_status_change(
 			db=db,
 			user_id=current_user.id,
@@ -514,8 +500,8 @@ async def get_source_analytics(timeframe_days: int = 30, current_user: User = De
 
 		source_manager = JobSourceManager(db)
 
-		analytics = source_manager.get_source_analytics(timeframe_days)
-		user_preferences = source_manager.get_user_source_preferences(current_user.id)
+		analytics = await source_manager.get_source_analytics(timeframe_days)
+		user_preferences = await source_manager.get_user_source_preferences(current_user.id)
 
 		return {"analytics": analytics, "user_preferences": user_preferences, "timeframe_days": timeframe_days}
 	except Exception as e:
@@ -535,7 +521,7 @@ async def get_source_recommendations(current_user: User = Depends(get_current_us
 
 		source_manager = JobSourceManager(db)
 
-		user_data = source_manager.get_user_source_preferences(current_user.id)
+		user_data = await source_manager.get_user_source_preferences(current_user.id)
 
 		return {
 			"recommended_sources": user_data.get("recommended_sources", []),
@@ -588,9 +574,9 @@ async def trigger_job_scraping(search_params: dict, current_user: User = Depends
 	Returns scraped jobs that were added to the user's job list.
 	"""
 	try:
-		from ...services.job_scraping_service import JobScrapingService
+		from ...services.job_service import JobManagementSystem
 
-		scraper = JobScrapingService(db)
+		job_service = JobManagementSystem(db)
 
 		# Build user preferences from search params and user settings
 		user_preferences = {
@@ -601,7 +587,7 @@ async def trigger_job_scraping(search_params: dict, current_user: User = Depends
 		}
 
 		# Use the manual scraping method
-		jobs = await scraper.scrape_jobs(user_preferences)
+		jobs = await job_service.scrape_jobs(user_preferences)
 
 		# Invalidate cache
 		cache_service.invalidate_user_cache(current_user.id)
@@ -632,7 +618,7 @@ async def get_available_sources(current_user: User = Depends(get_current_user), 
 		source_manager = JobSourceManager(db)
 
 		sources_info = source_manager.get_available_sources_info()
-		user_preferences = source_manager.get_user_source_preferences(current_user.id)
+		user_preferences = await source_manager.get_user_source_preferences(current_user.id)
 
 		return {
 			"sources": sources_info,
@@ -660,7 +646,7 @@ async def get_source_performance_summary(
 
 		source_manager = JobSourceManager(db)
 
-		performance_summary = source_manager.get_source_performance_summary(current_user.id, timeframe_days)
+		performance_summary = await source_manager.get_source_performance_summary(current_user.id, timeframe_days)
 
 		return performance_summary
 	except Exception as e:
@@ -684,7 +670,7 @@ async def update_source_preferences(preferences_data: dict, current_user: User =
 
 		source_manager = JobSourceManager(db)
 
-		updated_prefs = source_manager.create_or_update_user_preferences(current_user.id, preferences_data)
+		updated_prefs = await source_manager.create_or_update_user_preferences(current_user.id, preferences_data)
 
 		return {
 			"message": "Source preferences updated successfully",

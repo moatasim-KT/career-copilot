@@ -15,6 +15,13 @@ import time
 from datetime import datetime
 from typing import Any, Optional
 
+from fastapi import APIRouter, Depends, HTTPException
+from fastapi.encoders import jsonable_encoder
+from fastapi.responses import JSONResponse
+from pydantic import BaseModel
+from sqlalchemy import select, text
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from app.celery import celery_app
 from app.core.config import get_settings
 from app.core.database import get_db, get_db_manager
@@ -24,11 +31,6 @@ from app.monitoring.health.base import HealthStatus
 from app.monitoring.health.database import DatabaseHealthMonitor
 from app.monitoring.health.frontend import FrontendHealthChecker
 from app.schemas.health import HealthResponse
-from fastapi import APIRouter, Depends, HTTPException
-from fastapi.responses import JSONResponse
-from pydantic import BaseModel
-from sqlalchemy import select, text
-from sqlalchemy.ext.asyncio import AsyncSession
 
 logger = get_logger(__name__)
 settings = get_settings()
@@ -128,7 +130,10 @@ class HealthChecker:
 		services["groq"] = {"status": "configured" if self.settings.groq_api_key else "missing", "required": False}
 
 		# ChromaDB
-		services["chromadb"] = {"status": "configured" if getattr(self.settings, "chroma_persist_directory", None) or os.path.exists("data/chroma") else "missing", "required": True}
+		services["chromadb"] = {
+			"status": "configured" if getattr(self.settings, "chroma_persist_directory", None) or os.path.exists("data/chroma") else "missing",
+			"required": True,
+		}
 
 		# Redis (if enabled)
 		if self.settings.enable_redis_caching:
@@ -268,17 +273,17 @@ health_checker = HealthChecker()
 @router.get("/api/v1/health", response_model=HealthResponse)
 async def health_check(db: AsyncSession = Depends(get_db)) -> dict[str, Any]:
 	"""
-	Basic health check endpoint that verifies system component status.
+	    Basic health check endpoint that verifies system component status.
 
-	Checks:
-	- Database connectivity and performance
-	- Scheduler status
-	- Cache service status
-	- Celery worker status
+	    Checks:
+	    - Database connectivity and performance
+	    - Scheduler status
+	    - Cache service status
+	    - Celery worker status
 
-    Returns:
-        HealthResponse: Overall system health status and component details.
-    """
+	Returns:
+	    HealthResponse: Overall system health status and component details.
+	"""
 	components = {}
 
 	# Check database connectivity and performance
@@ -292,6 +297,7 @@ async def health_check(db: AsyncSession = Depends(get_db)) -> dict[str, Any]:
 	# Check scheduler status
 	try:
 		from app.tasks.scheduled_tasks import scheduler as _scheduler
+
 		if _scheduler.running:
 			components["scheduler"] = {"status": "healthy"}
 		else:
@@ -306,8 +312,8 @@ async def health_check(db: AsyncSession = Depends(get_db)) -> dict[str, Any]:
 	# Check cache service status
 	try:
 		# Lazy import to avoid heavy dependencies or optional modules during app startup
-		from app.services.cache_service import \
-		    get_cache_service as _get_cache_service
+		from app.services.cache_service import get_cache_service as _get_cache_service
+
 		cache_service = _get_cache_service()
 		if cache_service.enabled:
 			cache_stats = cache_service.get_cache_stats()
@@ -423,82 +429,102 @@ async def detailed_health_check() -> DetailedHealthStatusModel:
 	)
 
 
-@router.get("/health/readiness")
 @router.get("/health/frontend")
 async def check_frontend_health() -> JSONResponse:
 	"""
-	DEPRECATED: Use /api/v1/health/unified instead.
-	Check frontend application health.
+	    DEPRECATED: Use /api/v1/health/unified instead.
+	    Check frontend application health.
 
-    Returns:
-        Frontend health status including accessibility, rendering, and JS error checks.
-    """
+	Returns:
+	    Frontend health status including accessibility, rendering, and JS error checks.
+	"""
 	logger.warning("Deprecated endpoint /health/frontend called. Use /api/v1/health/unified instead.")
 	checker = FrontendHealthChecker()
 	result = await checker.check_health()
 	return JSONResponse(
 		status_code=200 if result.status != HealthStatus.UNHEALTHY else 503,
-		content=result.dict(),
+		content=jsonable_encoder(result.dict()),
 	)
 
 
 @router.get("/health/database")
 async def check_database_health_deprecated() -> JSONResponse:
 	"""
-	DEPRECATED: Use /api/v1/health/unified/component/database instead.
-	Check comprehensive database health.
+	    DEPRECATED: Use /api/v1/health/unified/component/database instead.
+	    Check comprehensive database health.
 
-    Returns:
-        Detailed database health status including PostgreSQL, ChromaDB and performance metrics.
-    """
+	Returns:
+	    Detailed database health status including PostgreSQL, ChromaDB and performance metrics.
+	"""
 	logger.warning("Deprecated endpoint /health/database called. Use /api/v1/health/unified/component/database instead.")
 	monitor = DatabaseHealthMonitor()
 	result = await monitor.check_health()
 	return JSONResponse(
 		status_code=200 if result.status != HealthStatus.UNHEALTHY else 503,
-		content=result.dict(),
+		content=jsonable_encoder(result.dict()),
 	)
 
 
 @router.get("/health/comprehensive")
 async def check_comprehensive_health() -> JSONResponse:
 	"""
-	DEPRECATED: Use /api/v1/health/unified instead.
-	Check comprehensive system health across all components.
+	    DEPRECATED: Use /api/v1/health/unified instead.
+	    Check comprehensive system health across all components.
 
-    Returns:
-        Complete system health status including backend, frontend, and database components.
-    """
+	Returns:
+	    Complete system health status including backend, frontend, and database components.
+	"""
 	logger.warning("Deprecated endpoint /health/comprehensive called. Use /api/v1/health/unified instead.")
 	try:
-		backend_checker = BackendHealthChecker()
-		frontend_checker = FrontendHealthChecker()
-		database_monitor = DatabaseHealthMonitor()
+		# Run each component check in its own try/except so import errors or runtime
+		# exceptions in optional monitoring modules don't break the entire health endpoint.
+		async def _safe_check(checker_cls):
+			try:
+				checker = checker_cls()
+				res = await checker.check_health()
+				# Some checkers return Pydantic models with .dict(); normalize to dict
+				if hasattr(res, "dict"):
+					return res.dict()
+				return res
+			except Exception as _e:
+				# Return a serializable degraded result
+				return {"status": "unhealthy", "error": str(_e), "last_check": datetime.now().isoformat()}
 
-		backend_result = await backend_checker.check_health()
-		frontend_result = await frontend_checker.check_health()
-		database_result = await database_monitor.check_health()
+		backend_result = await _safe_check(BackendHealthChecker)
+		frontend_result = await _safe_check(FrontendHealthChecker)
+		database_result = await _safe_check(DatabaseHealthMonitor)
 
-		overall_status = HealthStatus.HEALTHY
-		if any(r.status == HealthStatus.UNHEALTHY for r in [backend_result, frontend_result, database_result]):
-			overall_status = HealthStatus.UNHEALTHY
-		elif any(r.status == HealthStatus.DEGRADED for r in [backend_result, frontend_result, database_result]):
-			overall_status = HealthStatus.DEGRADED
+		# Determine overall status from component statuses (strings or enums)
+		def _status_val(r):
+			s = r.get("status") if isinstance(r, dict) else getattr(r, "status", None)
+			# Normalize enums to their name or leave strings
+			try:
+				return s.name if hasattr(s, "name") else s
+			except Exception:
+				return s
+
+		statuses = [_status_val(backend_result), _status_val(frontend_result), _status_val(database_result)]
+
+		overall_status = "healthy"
+		if any(s == str(HealthStatus.UNHEALTHY) or s == HealthStatus.UNHEALTHY.name or s == "unhealthy" for s in statuses):
+			overall_status = "unhealthy"
+		elif any(s == str(HealthStatus.DEGRADED) or s == HealthStatus.DEGRADED.name or s == "degraded" for s in statuses):
+			overall_status = "degraded"
 
 		response = {
 			"status": overall_status,
 			"components": {
-				"backend": backend_result.dict(),
-				"frontend": frontend_result.dict(),
-				"database": database_result.dict(),
+				"backend": backend_result,
+				"frontend": frontend_result,
+				"database": database_result,
 			},
 			"message": f"System health check completed. Status: {overall_status}",
 			"deprecation_notice": "This endpoint is deprecated. Use /api/v1/health/unified instead.",
 		}
 
 		return JSONResponse(
-			status_code=200 if overall_status != HealthStatus.UNHEALTHY else 503,
-			content=response,
+			status_code=200 if overall_status != "unhealthy" else 503,
+			content=jsonable_encoder(response),
 		)
 
 	except Exception as e:
@@ -563,27 +589,27 @@ async def startup_probe() -> dict[str, Any]:
 
 		# Consider startup complete after 30 seconds or when critical services are healthy
 		if uptime > 30:
-			return {"status": "started", "timestamp": datetime.now(), "uptime_seconds": uptime}
+			return {"status": "started", "timestamp": datetime.now().isoformat(), "uptime_seconds": uptime}
 
 		# Check critical services
 		db_health = await health_checker.check_database()
 		ai_health = await health_checker.check_ai_services_health()
 
 		if db_health.get("status") in ["healthy", "degraded"] and ai_health.status in ["healthy", "degraded"]:
-			return {"status": "started", "timestamp": datetime.now(), "uptime_seconds": uptime}
+			return {"status": "started", "timestamp": datetime.now().isoformat(), "uptime_seconds": uptime}
 		else:
 			raise HTTPException(
 				status_code=503,
 				detail={
 					"status": "starting",
-					"timestamp": datetime.now(),
+					"timestamp": datetime.now().isoformat(),
 					"uptime_seconds": uptime,
 					"services": {"database": db_health.get("status"), "ai_services": ai_health.status},
 				},
 			)
 
 	except Exception as e:
-		raise HTTPException(status_code=503, detail={"status": "starting", "timestamp": datetime.now(), "error": str(e)}) from None
+		raise HTTPException(status_code=503, detail={"status": "starting", "timestamp": datetime.now().isoformat(), "error": str(e)}) from None
 
 
 @router.get("/health/environment")
@@ -597,7 +623,7 @@ async def environment_info() -> dict[str, Any]:
 			"debug": getattr(settings, "debug", False),
 			"log_level": settings.log_level,
 		},
-		"timestamp": datetime.now(),
+		"timestamp": datetime.now().isoformat(),
 	}
 
 
@@ -609,17 +635,15 @@ async def unified_health_check() -> JSONResponse:
 	This endpoint uses the new unified health monitoring service that aggregates:
 	- Logging health
 	- ChromaDB health
-	- Database connectivity (PostgreSQL/SQLite)
+	- Database connectivity (PostgreSQL)
 	- Redis connectivity
 
 	Returns:
 		Dict with overall status and component-level health details.
 	"""
 	try:
-		from backend.app.services.health_analytics_service import \
-		    get_health_analytics_service
-		from backend.app.services.health_monitoring_service import \
-		    health_monitoring_service
+		from backend.app.services.health_analytics_service import get_health_analytics_service
+		from backend.app.services.health_monitoring_service import health_monitoring_service
 
 		# Get unified health status
 		health_result = await health_monitoring_service.get_overall_health()
@@ -660,7 +684,7 @@ async def unified_component_health(component: str) -> JSONResponse:
 	Supported components:
 	- logging, log, logs
 	- chroma, chromadb, vector
-	- database, db, postgres, postgresql, sqlite
+	- database, db, postgres, postgresql
 	- redis, cache
 
 	Args:
@@ -670,8 +694,7 @@ async def unified_component_health(component: str) -> JSONResponse:
 		Component-specific health status.
 	"""
 	try:
-		from backend.app.services.health_monitoring_service import \
-		    health_monitoring_service
+		from backend.app.services.health_monitoring_service import health_monitoring_service
 
 		health_result = await health_monitoring_service.get_component_health(component)
 
@@ -708,16 +731,13 @@ async def health_analytics_summary(hours: int = 24) -> JSONResponse:
 		Analytics summary with uptime, incidents, and trends.
 	"""
 	try:
-		from backend.app.services.health_analytics_service import \
-		    get_health_analytics_service
+		from backend.app.services.health_analytics_service import get_health_analytics_service
 
 		analytics_service = get_health_analytics_service()
 		summary = await analytics_service.get_health_summary(hours=hours)
 
-		# Convert dataclass to dict for JSON response
-		from dataclasses import asdict
-
-		summary_dict = asdict(summary)
+		# Convert dataclass or complex object to JSON-serializable form
+		summary_dict = jsonable_encoder(summary)
 
 		return JSONResponse(content=summary_dict, status_code=200)
 
@@ -745,13 +765,12 @@ async def health_analytics_component(component: str, hours: int = 24) -> JSONRes
 		Component-specific analytics with availability and trends.
 	"""
 	try:
-		from backend.app.services.health_analytics_service import \
-		    get_health_analytics_service
+		from backend.app.services.health_analytics_service import get_health_analytics_service
 
 		analytics_service = get_health_analytics_service()
 		analytics = await analytics_service.get_component_analytics(component, hours=hours)
 
-		return JSONResponse(content=analytics, status_code=200)
+		return JSONResponse(content=jsonable_encoder(analytics), status_code=200)
 
 	except Exception as e:
 		logger.error(f"Component analytics failed for {component}: {e}")
@@ -777,8 +796,7 @@ async def health_availability_report(hours: int = 24) -> JSONResponse:
 		Availability report with uptime %, downtime minutes, SLA compliance.
 	"""
 	try:
-		from backend.app.services.health_analytics_service import \
-		    get_health_analytics_service
+		from backend.app.services.health_analytics_service import get_health_analytics_service
 
 		analytics_service = get_health_analytics_service()
 		report = await analytics_service.get_availability_report(hours=hours)
@@ -808,13 +826,12 @@ async def health_performance_trends(hours: int = 24) -> JSONResponse:
 		Performance metrics including average, min, max, p95, p99 response times.
 	"""
 	try:
-		from backend.app.services.health_analytics_service import \
-		    get_health_analytics_service
+		from backend.app.services.health_analytics_service import get_health_analytics_service
 
 		analytics_service = get_health_analytics_service()
 		trends = await analytics_service.get_performance_trends(hours=hours)
 
-		return JSONResponse(content=trends, status_code=200)
+		return JSONResponse(content=jsonable_encoder(trends), status_code=200)
 
 	except Exception as e:
 		logger.error(f"Performance trends failed: {e}")
@@ -839,10 +856,8 @@ async def check_health_alerts(availability_threshold: float = 99.9) -> JSONRespo
 		Alert status with triggered alerts if any.
 	"""
 	try:
-		from backend.app.services.health_analytics_service import \
-		    get_health_analytics_service
-		from backend.app.services.health_monitoring_service import \
-		    health_monitoring_service
+		from backend.app.services.health_analytics_service import get_health_analytics_service
+		from backend.app.services.health_monitoring_service import health_monitoring_service
 
 		# Get current health
 		current_health = await health_monitoring_service.get_overall_health()

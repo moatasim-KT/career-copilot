@@ -46,7 +46,7 @@ class UnifiedSettings(BaseSettings):
 	app_version: str = "1.0.0"
 
 	# ==================== Database Configuration ====================
-	database_url: str = "sqlite:///./data/career_copilot.db"
+	database_url: str = "postgresql://postgres:postgres@localhost:5432/career_copilot"
 	database_pool_size: int = 10
 	database_max_overflow: int = 20
 	database_echo: bool = False
@@ -71,6 +71,11 @@ class UnifiedSettings(BaseSettings):
 	default_llm_model: str = "mixtral-8x7b-32768"
 	llm_temperature: float = 0.7
 	llm_max_tokens: int = 2000
+
+	# LangSmith settings for AI workflow tracing
+	langsmith_api_key: Optional[str] = None
+	langsmith_project: str = "career-copilot"
+	langsmith_tracing: bool = False
 
 	# ==================== Email & Notifications ====================
 	smtp_enabled: bool = False
@@ -171,6 +176,7 @@ class UnifiedSettings(BaseSettings):
 	# ==================== Storage Configuration ====================
 	local_storage_path: str = "data/storage"
 	max_file_size_mb: int = 100
+	allowed_file_types: List[str] = ["pdf", "doc", "docx", "txt", "rtf", "jpg", "jpeg", "png", "gif"]
 	enable_file_versioning: bool = True
 	file_cleanup_days: int = 90
 

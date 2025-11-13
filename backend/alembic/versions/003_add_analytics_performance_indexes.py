@@ -55,20 +55,10 @@ def upgrade() -> None:
     
     # Index for tech stack queries (if using JSON queries)
     # Note: This creates a GIN index for PostgreSQL JSON queries
-    # For SQLite, this will be a regular index on the column
-    try:
-        # Try PostgreSQL GIN index for JSON
-        op.execute(
-            'CREATE INDEX idx_jobs_tech_stack_gin ON jobs USING GIN (tech_stack)'
-        )
-    except Exception:
-        # Fallback to regular index for SQLite
-        op.create_index(
-            'idx_jobs_tech_stack',
-            'jobs',
-            ['tech_stack'],
-            unique=False
-        )
+
+    op.execute(
+        'CREATE INDEX idx_jobs_tech_stack_gin ON jobs USING GIN (tech_stack)'
+    )
     
     # Index for date-based job queries
     op.create_index(
@@ -79,19 +69,9 @@ def upgrade() -> None:
     )
     
     # Users table index for skills
-    try:
-        # Try PostgreSQL GIN index for JSON
-        op.execute(
-            'CREATE INDEX idx_users_skills_gin ON users USING GIN (skills)'
-        )
-    except Exception:
-        # Fallback to regular index for SQLite
-        op.create_index(
-            'idx_users_skills',
-            'users',
-            ['skills'],
-            unique=False
-        )
+    op.execute(
+        'CREATE INDEX idx_users_skills_gin ON users USING GIN (skills)'
+    )
 
 
 def downgrade() -> None:
@@ -107,14 +87,5 @@ def downgrade() -> None:
     op.drop_index('idx_jobs_user_created_at', table_name='jobs')
     
     # Drop JSON indexes
-    try:
-        op.execute('DROP INDEX IF EXISTS idx_jobs_tech_stack_gin')
-        op.execute('DROP INDEX IF EXISTS idx_users_skills_gin')
-    except Exception:
-        pass
-    
-    try:
-        op.drop_index('idx_jobs_tech_stack', table_name='jobs')
-        op.drop_index('idx_users_skills', table_name='users')
-    except Exception:
-        pass
+    op.execute('DROP INDEX IF EXISTS idx_jobs_tech_stack_gin')
+    op.execute('DROP INDEX IF EXISTS idx_users_skills_gin')

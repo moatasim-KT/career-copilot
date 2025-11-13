@@ -18,7 +18,7 @@ from pydantic import BaseModel
 
 from ...core.service_manager import get_service_manager, ServiceManager
 from ...core.service_integration import ServiceType, ServiceStatus
-from ...core.dependencies import get_current_user
+from app.dependencies import get_current_user
 from ...models.database_models import User
 from ...models.api_models import BaseResponse
 

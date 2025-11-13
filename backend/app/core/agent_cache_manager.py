@@ -15,13 +15,13 @@ from datetime import datetime, timezone
 from enum import Enum
 from typing import Any, Dict, List, Optional
 
-from .caching import get_cache_manager
+from .cache import cache_service
 from .config import settings
 from .logging import get_logger
 
 logger = get_logger(__name__)
 settings = get_settings()
-cache_manager = get_cache_manager()
+cache_manager = cache_service
 
 
 class AgentType(str, Enum):
@@ -292,7 +292,7 @@ class AgentCacheManager:
 				# Check if expired
 				if entry.is_expired(config.cache_ttl_seconds):
 					del self.cache_entries[cache_key]
-					await self._remove_from_persistent_cache(cache_key)
+					cache_manager.delete(cache_key)
 					self.cache_stats["misses"] += 1
 					return None
 
@@ -315,14 +315,14 @@ class AgentCacheManager:
 				return result
 
 			# Check persistent cache
-			cached_data = await cache_manager.async_get(cache_key)
+			cached_data = cache_manager.get(cache_key)
 			if cached_data:
 				try:
 					entry = AgentCacheEntry.from_dict(cached_data)
 
 					# Check if expired
 					if entry.is_expired(config.cache_ttl_seconds):
-						await cache_manager.delete(cache_key)
+						cache_manager.delete(cache_key)
 						self.cache_stats["misses"] += 1
 						return None
 
@@ -391,7 +391,7 @@ class AgentCacheManager:
 			self.cache_entries[cache_key] = cache_entry
 
 			# Store in persistent cache
-			await cache_manager.async_set(cache_key, cache_entry.to_dict(), config.cache_ttl_seconds)
+			cache_manager.set(cache_key, cache_entry.to_dict(), config.cache_ttl_seconds)
 
 			# Update execution history for timeout calculation
 			if agent_type not in self.execution_history:
@@ -433,7 +433,7 @@ class AgentCacheManager:
 			for i in range(entries_to_evict):
 				key, _entry = agent_entries[i]
 				del self.cache_entries[key]
-				await self._remove_from_persistent_cache(key)
+				cache_manager.delete(key)
 				self.cache_stats["evictions"] += 1
 
 			logger.info(f"Evicted {entries_to_evict} cache entries for {agent_type.value}")
@@ -507,7 +507,7 @@ class AgentCacheManager:
 					invalidated_count += 1
 
 				# Also invalidate from persistent cache
-				cache_manager.invalidate_pattern(pattern)
+				cache_manager.delete_pattern(pattern)
 
 			else:
 				# Clear all caches
@@ -516,7 +516,7 @@ class AgentCacheManager:
 				self.execution_history.clear()
 
 				# Clear persistent cache
-				cache_manager.invalidate_pattern("agent_result:*")
+				cache_manager.delete_pattern("agent_result:*")
 
 			logger.info(f"Invalidated {invalidated_count} agent cache entries")
 			return invalidated_count
@@ -543,7 +543,7 @@ class AgentCacheManager:
 
 			for key in expired_keys:
 				del self.cache_entries[key]
-				await self._remove_from_persistent_cache(key)
+				cache_manager.delete(key)
 				cleaned_count += 1
 
 			logger.info(f"Cleaned up {cleaned_count} expired cache entries")

@@ -14,10 +14,10 @@ from uuid import UUID
 
 from ..core.database import get_database_manager
 from ..core.logging import get_logger
-from ..models.api_models import UserSettingsResponse, UserSettingsUpdate
 from ..models.database_models import UserSettings as DBUserSettings
-from ..repositories.user_settings_repository import UserSettingsRepository
 from ..repositories.user_repository import UserRepository
+from ..repositories.user_settings_repository import UserSettingsRepository
+from ..schemas.api_models import UserSettingsResponse, UserSettingsUpdate
 
 logger = get_logger(__name__)
 

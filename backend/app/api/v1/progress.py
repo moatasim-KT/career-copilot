@@ -9,7 +9,7 @@ from pydantic import BaseModel
 from ...services.progress_tracker import progress_tracker
 from ...services.workflow_service import workflow_service
 from ...core.logging import get_logger
-from ...core.dependencies import get_current_user
+from app.dependencies import get_current_user
 from ...models.api_models import User
 
 logger = get_logger(__name__)

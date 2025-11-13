@@ -2,6 +2,13 @@
 
 Welcome to Career Copilot! This guide will help you get the most out of your AI-powered career management platform.
 
+## Related Documents
+
+- [[../README.md]] - Project overview and setup
+- [[../TODO.md]] - Development progress
+- [[DEVELOPER_GUIDE.md]] - Developer documentation
+- [[FRONTEND_QUICK_START.md]] - Frontend setup
+
 ## Table of Contents
 
 - [Getting Started](#getting-started)

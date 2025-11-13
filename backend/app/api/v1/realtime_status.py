@@ -12,7 +12,7 @@ from datetime import datetime, timezone
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from sse_starlette.sse import EventSourceResponse
 
-from ...core.dependencies import get_current_user
+from app.dependencies import get_current_user
 from ...core.logging import get_logger
 from ...models.database_models import User
 from ...services.progress_tracker import progress_tracker, ProgressStage

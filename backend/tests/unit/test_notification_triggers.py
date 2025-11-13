@@ -8,9 +8,9 @@ from unittest.mock import patch
 
 import pytest
 
-from ...app.core.config import get_settings
-from ...app.services.email_template_manager import EmailTemplateManager
-from ...app.services.notification_manager import NotificationManager
+from app.core.config import get_settings
+from app.services.email_template_manager import EmailTemplateManager
+from app.services.notification_manager import NotificationManager
 
 
 @pytest.fixture

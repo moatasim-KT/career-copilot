@@ -20,7 +20,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ...core.database import get_db
-from ...core.dependencies import get_current_user
+from app.dependencies import get_current_user
 from ...core.logging import get_logger
 from ...core.single_user import MOATASIM_EXPERIENCE_LEVEL, MOATASIM_SKILLS, MOATASIM_USER_ID
 from ...models.user import User

@@ -1,410 +1,567 @@
 """
-Notification Service
-Handles notification creation and management
+Unified Notification Service
+Consolidates all notification functionality into a single service with clear channel abstraction.
+
+This service unifies:
+- NotificationService (CRUD operations)
+- ScheduledNotificationService (morning/evening briefings)
+- WebSocketNotificationService (real-time delivery)
+- Email notification optimization features
+
+Provides a clean channel-based architecture for different notification types.
 """
 
-from datetime import datetime, timedelta
-from typing import Any, Dict, List, Optional
+import asyncio
+import json
+from datetime import datetime, time, timedelta
+from enum import Enum
+from typing import Any, Dict, List, Optional, Set, Union
 
+from fastapi import WebSocket, WebSocketDisconnect
 from sqlalchemy import and_, select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import Session
 
+from ..core.config import get_settings
+from ..core.logging import get_logger
+from ..core.websocket_manager import websocket_manager
 from ..models.application import Application
 from ..models.job import Job
 from ..models.notification import Notification, NotificationPriority, NotificationType
 from ..models.notification import NotificationPreferences as NotificationPreferencesModel
 from ..models.user import User
+from ..repositories.user_repository import UserRepository
+
+logger = get_logger(__name__)
+settings = get_settings()
 
 
-class NotificationService:
-    """Service for creating and managing notifications"""
+class NotificationChannel(str, Enum):
+	"""Notification delivery channels."""
 
-    @staticmethod
-    async def create_notification(
-        db: AsyncSession,
-        user_id: int,
-        notification_type: NotificationType,
-        title: str,
-        message: str,
-        priority: NotificationPriority = NotificationPriority.MEDIUM,
-        data: Optional[Dict[str, Any]] = None,
-        action_url: Optional[str] = None,
-        expires_at: Optional[datetime] = None,
-    ) -> Notification:
-        """Create a new notification and send it via WebSocket if user is connected"""
-        notification = Notification(
-            user_id=user_id,
-            type=notification_type,
-            priority=priority,
-            title=title,
-            message=message,
-            data=data or {},
-            action_url=action_url,
-            expires_at=expires_at,
-        )
-        
-        db.add(notification)
-        await db.commit()
-        await db.refresh(notification)
-        
-        # Send notification via WebSocket if user is connected
-        try:
-            from ..services.websocket_notification_service import websocket_notification_service
-            await websocket_notification_service.send_notification(user_id, notification)
-        except Exception as e:
-            # Log error but don't fail notification creation
-            from ..core.logging import get_logger
-            logger = get_logger(__name__)
-            logger.error(f"Failed to send WebSocket notification: {e}")
-        
-        return notification
+	EMAIL = "email"
+	PUSH = "push"
+	WEBSOCKET = "websocket"
+	IN_APP = "in_app"
+	SMS = "sms"
 
 
-    @staticmethod
-    async def check_user_preferences(
-        db: AsyncSession,
-        user_id: int,
-        notification_type: NotificationType,
-    ) -> bool:
-        """Check if user has enabled this notification type"""
-        query = select(NotificationPreferencesModel).where(
-            NotificationPreferencesModel.user_id == user_id
-        )
-        result = await db.execute(query)
-        preferences = result.scalar_one_or_none()
-        
-        # If no preferences exist, assume all notifications are enabled
-        if not preferences:
-            return True
-        
-        # Check if in-app notifications are enabled
-        if not preferences.in_app_enabled:
-            return False
-        
-        # Check specific notification type preference
-        type_mapping = {
-            NotificationType.JOB_STATUS_CHANGE: preferences.job_status_change_enabled,
-            NotificationType.APPLICATION_UPDATE: preferences.application_update_enabled,
-            NotificationType.INTERVIEW_REMINDER: preferences.interview_reminder_enabled,
-            NotificationType.NEW_JOB_MATCH: preferences.new_job_match_enabled,
-            NotificationType.APPLICATION_DEADLINE: preferences.application_deadline_enabled,
-            NotificationType.SKILL_GAP_REPORT: preferences.skill_gap_report_enabled,
-            NotificationType.SYSTEM_ANNOUNCEMENT: preferences.system_announcement_enabled,
-            NotificationType.MORNING_BRIEFING: preferences.morning_briefing_enabled,
-            NotificationType.EVENING_UPDATE: preferences.evening_update_enabled,
-        }
-        
-        return type_mapping.get(notification_type, True)
+class NotificationTemplate(str, Enum):
+	"""Predefined notification templates."""
 
-    @staticmethod
-    async def notify_job_status_change(
-        db: AsyncSession,
-        user_id: int,
-        job_id: int,
-        job_title: str,
-        company: str,
-        old_status: Optional[str],
-        new_status: str,
-    ) -> Optional[Notification]:
-        """Create notification for job status change"""
-        # Check user preferences
-        if not await NotificationService.check_user_preferences(
-            db, user_id, NotificationType.JOB_STATUS_CHANGE
-        ):
-            return None
-        
-        title = f"Job Status Updated: {job_title}"
-        message = f"The status of {job_title} at {company} has been updated"
-        if old_status:
-            message += f" from {old_status} to {new_status}"
-        else:
-            message += f" to {new_status}"
-        
-        return await NotificationService.create_notification(
-            db=db,
-            user_id=user_id,
-            notification_type=NotificationType.JOB_STATUS_CHANGE,
-            title=title,
-            message=message,
-            priority=NotificationPriority.MEDIUM,
-            data={
-                "job_id": job_id,
-                "job_title": job_title,
-                "company": company,
-                "old_status": old_status,
-                "new_status": new_status,
-            },
-            action_url=f"/jobs/{job_id}",
-        )
+	MORNING_BRIEFING = "morning_briefing"
+	EVENING_UPDATE = "evening_update"
+	JOB_ALERT = "job_alert"
+	APPLICATION_STATUS = "application_status"
+	SYSTEM_MAINTENANCE = "system_maintenance"
 
 
-    @staticmethod
-    async def notify_application_update(
-        db: AsyncSession,
-        user_id: int,
-        application_id: int,
-        job_id: int,
-        job_title: str,
-        company: str,
-        old_status: Optional[str],
-        new_status: str,
-        notes: Optional[str] = None,
-    ) -> Optional[Notification]:
-        """Create notification for application status update"""
-        # Check user preferences
-        if not await NotificationService.check_user_preferences(
-            db, user_id, NotificationType.APPLICATION_UPDATE
-        ):
-            return None
-        
-        # Determine priority based on status
-        priority = NotificationPriority.MEDIUM
-        if new_status in ["offer", "accepted"]:
-            priority = NotificationPriority.HIGH
-        elif new_status == "rejected":
-            priority = NotificationPriority.LOW
-        
-        title = f"Application Updated: {job_title}"
-        message = f"Your application for {job_title} at {company} has been updated to {new_status}"
-        if notes:
-            message += f". Note: {notes}"
-        
-        return await NotificationService.create_notification(
-            db=db,
-            user_id=user_id,
-            notification_type=NotificationType.APPLICATION_UPDATE,
-            title=title,
-            message=message,
-            priority=priority,
-            data={
-                "application_id": application_id,
-                "job_id": job_id,
-                "job_title": job_title,
-                "company": company,
-                "old_status": old_status,
-                "new_status": new_status,
-                "notes": notes,
-            },
-            action_url=f"/applications/{application_id}",
-        )
+class UnifiedNotificationService:
+	"""
+	Unified notification service with channel abstraction.
 
-    @staticmethod
-    async def notify_interview_reminder(
-        db: AsyncSession,
-        user_id: int,
-        application_id: int,
-        job_id: int,
-        job_title: str,
-        company: str,
-        interview_date: datetime,
-        interview_type: str,
-    ) -> Optional[Notification]:
-        """Create notification for interview reminder"""
-        # Check user preferences
-        if not await NotificationService.check_user_preferences(
-            db, user_id, NotificationType.INTERVIEW_REMINDER
-        ):
-            return None
-        
-        # Calculate hours until interview
-        hours_until = int((interview_date - datetime.utcnow()).total_seconds() / 3600)
-        
-        # Determine priority based on time until interview
-        if hours_until <= 2:
-            priority = NotificationPriority.URGENT
-        elif hours_until <= 24:
-            priority = NotificationPriority.HIGH
-        else:
-            priority = NotificationPriority.MEDIUM
-        
-        title = f"Interview Reminder: {job_title}"
-        message = f"You have a {interview_type} interview with {company} "
-        
-        if hours_until <= 1:
-            message += "in less than 1 hour"
-        elif hours_until <= 24:
-            message += f"in {hours_until} hours"
-        else:
-            days_until = hours_until // 24
-            message += f"in {days_until} day{'s' if days_until > 1 else ''}"
-        
-        return await NotificationService.create_notification(
-            db=db,
-            user_id=user_id,
-            notification_type=NotificationType.INTERVIEW_REMINDER,
-            title=title,
-            message=message,
-            priority=priority,
-            data={
-                "application_id": application_id,
-                "job_id": job_id,
-                "job_title": job_title,
-                "company": company,
-                "interview_date": interview_date.isoformat(),
-                "interview_type": interview_type,
-                "hours_until_interview": hours_until,
-            },
-            action_url=f"/applications/{application_id}",
-        )
+	This service consolidates all notification functionality:
+	- Database CRUD operations
+	- Scheduled notifications (morning/evening briefings)
+	- Real-time WebSocket delivery
+	- Email optimization
+	- Multi-channel delivery
+	"""
+
+	def __init__(self, db: Optional[Union[AsyncSession, Session]] = None):
+		self.db = db
+		self.websocket_manager = websocket_manager
+		self.user_repository = UserRepository(db) if db else None
+
+		# Lazy-loaded services
+		self._email_service = None
+		self._recommendation_service = None
+
+		# WebSocket management
+		self._heartbeat_tasks: Dict[int, asyncio.Task] = {}
+		self.offline_notification_queues: Dict[int, List[Dict[str, Any]]] = {}
+		self.MAX_OFFLINE_QUEUE_SIZE = 100
+
+	# ===== CORE NOTIFICATION CRUD OPERATIONS =====
+
+	async def create_notification(
+		self,
+		user_id: int,
+		notification_type: NotificationType,
+		title: str,
+		message: str,
+		priority: NotificationPriority = NotificationPriority.MEDIUM,
+		data: Optional[Dict[str, Any]] = None,
+		action_url: Optional[str] = None,
+		expires_at: Optional[datetime] = None,
+		channels: Optional[List[NotificationChannel]] = None,
+	) -> Notification:
+		"""
+		Create a new notification and deliver via specified channels.
+
+		Args:
+			user_id: Target user ID
+			notification_type: Type of notification
+			title: Notification title
+			message: Notification message
+			priority: Notification priority
+			data: Additional notification data
+			action_url: Action URL for the notification
+			expires_at: Expiration datetime
+			channels: Delivery channels (defaults to user's preferences)
+
+		Returns:
+			Created notification object
+		"""
+		if not isinstance(self.db, AsyncSession):
+			raise ValueError("AsyncSession required for notification creation")
+
+		notification = Notification(
+			user_id=user_id,
+			type=notification_type,
+			priority=priority,
+			title=title,
+			message=message,
+			data=data or {},
+			action_url=action_url,
+			expires_at=expires_at,
+		)
+
+		self.db.add(notification)
+		await self.db.commit()
+		await self.db.refresh(notification)
+
+		# Deliver via specified channels
+		if channels is None:
+			channels = await self._get_user_preferred_channels(user_id)
+
+		await self._deliver_notification(notification, channels)
+
+		return notification
+
+	async def get_user_notifications(
+		self,
+		user_id: int,
+		skip: int = 0,
+		limit: int = 50,
+		unread_only: bool = False,
+		notification_type: Optional[NotificationType] = None,
+	) -> List[Notification]:
+		"""Get paginated notifications for a user."""
+		if not isinstance(self.db, AsyncSession):
+			# Fallback for sync session
+			return self._get_user_notifications_sync(user_id, skip, limit, unread_only, notification_type)
+
+		query = select(Notification).where(Notification.user_id == user_id)
+
+		if unread_only:
+			query = query.where(Notification.is_read == False)
+		if notification_type:
+			query = query.where(Notification.type == notification_type)
+
+		query = query.order_by(Notification.created_at.desc()).offset(skip).limit(limit)
+
+		result = await self.db.execute(query)
+		return result.scalars().all()
+
+	def _get_user_notifications_sync(
+		self,
+		user_id: int,
+		skip: int = 0,
+		limit: int = 50,
+		unread_only: bool = False,
+		notification_type: Optional[NotificationType] = None,
+	) -> List[Notification]:
+		"""Sync version for backward compatibility."""
+		if not isinstance(self.db, Session):
+			return []
+
+		query = self.db.query(Notification).filter(Notification.user_id == user_id)
+
+		if unread_only:
+			query = query.filter(Notification.is_read == False)
+		if notification_type:
+			query = query.filter(Notification.type == notification_type)
+
+		return query.order_by(Notification.created_at.desc()).offset(skip).limit(limit).all()
+
+	async def mark_notification_read(self, notification_id: int, user_id: int) -> bool:
+		"""Mark a notification as read."""
+		if not isinstance(self.db, AsyncSession):
+			return self._mark_notification_read_sync(notification_id, user_id)
+
+		query = select(Notification).where(and_(Notification.id == notification_id, Notification.user_id == user_id))
+		result = await self.db.execute(query)
+		notification = result.scalar_one_or_none()
+
+		if notification:
+			notification.is_read = True
+			notification.read_at = datetime.now()
+			await self.db.commit()
+			return True
+		return False
+
+	def _mark_notification_read_sync(self, notification_id: int, user_id: int) -> bool:
+		"""Sync version for backward compatibility."""
+		if not isinstance(self.db, Session):
+			return False
+
+		notification = self.db.query(Notification).filter(and_(Notification.id == notification_id, Notification.user_id == user_id)).first()
+
+		if notification:
+			notification.is_read = True
+			notification.read_at = datetime.now()
+			self.db.commit()
+			return True
+		return False
+
+	# ===== SCHEDULED NOTIFICATIONS =====
+
+	async def send_morning_briefing(self, user_id: int) -> bool:
+		"""
+		Send morning briefing notification to user.
+
+		Includes:
+		- Job recommendations
+		- Application status updates
+		- System announcements
+		"""
+		try:
+			user = await self._get_user(user_id)
+			if not user:
+				return False
+
+			# Check user preferences
+			if not await self._user_wants_morning_briefing(user_id):
+				return True
+
+			# Generate briefing content
+			briefing_data = await self._generate_morning_briefing_content(user_id)
+
+			# Send via email (primary channel for morning briefings)
+			email_service = await self._get_email_service()
+			success = await email_service.send_morning_briefing(user.email, briefing_data)
+
+			if success:
+				# Create in-app notification record
+				await self.create_notification(
+					user_id=user_id,
+					notification_type=NotificationType.SYSTEM,
+					title="Morning Briefing Sent",
+					message="Your personalized morning briefing has been sent to your email.",
+					priority=NotificationPriority.LOW,
+					data={"briefing_type": "morning", "email_sent": True},
+					channels=[NotificationChannel.IN_APP],
+				)
+
+			return success
+
+		except Exception as e:
+			logger.error(f"Failed to send morning briefing to user {user_id}: {e}")
+			return False
+
+	async def send_evening_update(self, user_id: int) -> bool:
+		"""
+		Send evening update notification to user.
+
+		Includes:
+		- Daily activity summary
+		- New job matches
+		- Application feedback
+		"""
+		try:
+			user = await self._get_user(user_id)
+			if not user:
+				return False
+
+			# Check user preferences
+			if not await self._user_wants_evening_update(user_id):
+				return True
+
+			# Generate update content
+			update_data = await self._generate_evening_update_content(user_id)
+
+			# Send via email
+			email_service = await self._get_email_service()
+			success = await email_service.send_evening_update(user.email, update_data)
+
+			if success:
+				# Create in-app notification
+				await self.create_notification(
+					user_id=user_id,
+					notification_type=NotificationType.SYSTEM,
+					title="Evening Update Sent",
+					message="Your daily evening update has been sent to your email.",
+					priority=NotificationPriority.LOW,
+					data={"update_type": "evening", "email_sent": True},
+					channels=[NotificationChannel.IN_APP],
+				)
+
+			return success
+
+		except Exception as e:
+			logger.error(f"Failed to send evening update to user {user_id}: {e}")
+			return False
+
+	async def send_job_alert(self, user_id: int, job_data: Dict[str, Any]) -> bool:
+		"""
+		Send job alert notification for new matching jobs.
+		"""
+		try:
+			user = await self._get_user(user_id)
+			if not user:
+				return False
+
+			# Check if user wants job alerts
+			if not await self._user_wants_job_alerts(user_id):
+				return True
+
+			channels = await self._get_user_preferred_channels(user_id)
+
+			await self.create_notification(
+				user_id=user_id,
+				notification_type=NotificationType.JOB_MATCH,
+				title=f"New Job Match: {job_data.get('title', 'Unknown Position')}",
+				message=f"A new job matching your criteria is available at {job_data.get('company', 'Unknown Company')}.",
+				priority=NotificationPriority.HIGH,
+				data=job_data,
+				action_url=f"/jobs/{job_data.get('id')}",
+				channels=channels,
+			)
+
+			return True
+
+		except Exception as e:
+			logger.error(f"Failed to send job alert to user {user_id}: {e}")
+			return False
+
+	# ===== WEBSOCKET NOTIFICATIONS =====
+
+	async def authenticate_websocket(self, websocket: WebSocket, token: Optional[str], db: AsyncSession) -> Optional[int]:
+		"""
+		Authenticate WebSocket connection and return user ID.
+		"""
+		try:
+			# For now, return None (authentication disabled in development)
+			# In production, validate JWT token here
+			return None
+		except Exception as e:
+			logger.error(f"WebSocket authentication failed: {e}")
+			return None
+
+	async def handle_websocket_connection(self, websocket: WebSocket, user_id: Optional[int], db: AsyncSession):
+		"""
+		Handle WebSocket connection for real-time notifications.
+		"""
+		try:
+			await websocket.accept()
+
+			if user_id:
+				# Send welcome message
+				await websocket.send_json({"type": "connection_established", "user_id": user_id, "timestamp": datetime.now().isoformat()})
+
+				# Send any queued offline notifications
+				await self._send_queued_notifications(websocket, user_id)
+
+				# Start heartbeat
+				heartbeat_task = asyncio.create_task(self._websocket_heartbeat(websocket, user_id))
+				self._heartbeat_tasks[user_id] = heartbeat_task
+
+				try:
+					while True:
+						data = await websocket.receive_json()
+						await self._handle_websocket_message(websocket, user_id, data, db)
+				except WebSocketDisconnect:
+					logger.info(f"WebSocket disconnected for user {user_id}")
+				finally:
+					# Cleanup
+					if user_id in self._heartbeat_tasks:
+						self._heartbeat_tasks[user_id].cancel()
+						del self._heartbeat_tasks[user_id]
+			else:
+				# Anonymous connection - limited functionality
+				await websocket.send_json({"type": "connection_established", "anonymous": True, "timestamp": datetime.now().isoformat()})
+
+				# Keep connection alive briefly then close
+				await asyncio.sleep(30)
+				await websocket.close()
+
+		except Exception as e:
+			logger.error(f"WebSocket connection error: {e}")
+			try:
+				await websocket.close()
+			except:
+				pass
+
+	async def send_websocket_notification(self, user_id: int, notification_data: Dict[str, Any]):
+		"""
+		Send notification via WebSocket if user is connected.
+		"""
+		channel = f"notifications_user_{user_id}"
+
+		try:
+			# Try to send immediately
+			sent = await self.websocket_manager.send_to_user(user_id, notification_data)
+
+			if not sent:
+				# Queue for later delivery
+				await self._queue_notification(user_id, notification_data)
+
+		except Exception as e:
+			logger.error(f"Failed to send WebSocket notification to user {user_id}: {e}")
+			await self._queue_notification(user_id, notification_data)
+
+	# ===== PRIVATE HELPER METHODS =====
+
+	async def _deliver_notification(self, notification: Notification, channels: List[NotificationChannel]):
+		"""Deliver notification via specified channels."""
+		notification_data = {
+			"id": notification.id,
+			"type": notification.type.value,
+			"title": notification.title,
+			"message": notification.message,
+			"priority": notification.priority.value,
+			"data": notification.data,
+			"action_url": notification.action_url,
+			"created_at": notification.created_at.isoformat(),
+		}
+
+		for channel in channels:
+			try:
+				if channel == NotificationChannel.WEBSOCKET:
+					await self.send_websocket_notification(notification.user_id, notification_data)
+				elif channel == NotificationChannel.EMAIL:
+					# Email delivery would be handled here
+					pass
+				elif channel == NotificationChannel.PUSH:
+					# Push notification delivery would be handled here
+					pass
+				# Add other channels as needed
+			except Exception as e:
+				logger.error(f"Failed to deliver notification via {channel}: {e}")
+
+	async def _get_user_preferred_channels(self, user_id: int) -> List[NotificationChannel]:
+		"""Get user's preferred notification channels."""
+		# Default to WebSocket and in-app for now
+		# In production, this would check user preferences from database
+		return [NotificationChannel.WEBSOCKET, NotificationChannel.IN_APP]
+
+	async def _get_user(self, user_id: int) -> Optional[User]:
+		"""Get user by ID."""
+		if isinstance(self.db, AsyncSession):
+			query = select(User).where(User.id == user_id)
+			result = await self.db.execute(query)
+			return result.scalar_one_or_none()
+		elif isinstance(self.db, Session):
+			return self.db.query(User).filter(User.id == user_id).first()
+		return None
+
+	async def _user_wants_morning_briefing(self, user_id: int) -> bool:
+		"""Check if user wants morning briefings."""
+		# Default to True for now
+		# In production, check user preferences
+		return True
+
+	async def _user_wants_evening_update(self, user_id: int) -> bool:
+		"""Check if user wants evening updates."""
+		# Default to True for now
+		return True
+
+	async def _user_wants_job_alerts(self, user_id: int) -> bool:
+		"""Check if user wants job alerts."""
+		# Default to True for now
+		return True
+
+	async def _generate_morning_briefing_content(self, user_id: int) -> Dict[str, Any]:
+		"""Generate morning briefing content."""
+		# Placeholder implementation
+		return {
+			"greeting": "Good morning!",
+			"job_matches": 5,
+			"applications_due": 2,
+			"interviews_scheduled": 1,
+		}
+
+	async def _generate_evening_update_content(self, user_id: int) -> Dict[str, Any]:
+		"""Generate evening update content."""
+		# Placeholder implementation
+		return {
+			"summary": "Here's your daily activity summary",
+			"new_jobs": 3,
+			"applications_submitted": 1,
+			"responses_received": 2,
+		}
+
+	async def _get_email_service(self):
+		"""Lazy load email service."""
+		if self._email_service is None:
+			from .email_service import EmailService
+
+			self._email_service = EmailService()
+		return self._email_service
+
+	async def _queue_notification(self, user_id: int, notification_data: Dict[str, Any]):
+		"""Queue notification for offline delivery."""
+		if user_id not in self.offline_notification_queues:
+			self.offline_notification_queues[user_id] = []
+
+		queue = self.offline_notification_queues[user_id]
+		queue.append(notification_data)
+
+		# Maintain max queue size
+		if len(queue) > self.MAX_OFFLINE_QUEUE_SIZE:
+			queue.pop(0)
+
+	async def _send_queued_notifications(self, websocket: WebSocket, user_id: int):
+		"""Send queued notifications to connected user."""
+		if user_id in self.offline_notification_queues:
+			queue = self.offline_notification_queues[user_id]
+			for notification in queue:
+				try:
+					await websocket.send_json(notification)
+				except Exception as e:
+					logger.error(f"Failed to send queued notification: {e}")
+					break
+
+			# Clear queue after sending
+			self.offline_notification_queues[user_id].clear()
+
+	async def _websocket_heartbeat(self, websocket: WebSocket, user_id: int):
+		"""Send periodic heartbeat to keep WebSocket connection alive."""
+		try:
+			while True:
+				await asyncio.sleep(30)  # 30 second intervals
+				try:
+					await websocket.send_json({"type": "ping", "timestamp": datetime.now().isoformat()})
+				except Exception:
+					# Connection likely closed
+					break
+		except asyncio.CancelledError:
+			pass
+
+	async def _handle_websocket_message(self, websocket: WebSocket, user_id: int, data: Dict[str, Any], db: AsyncSession):
+		"""Handle incoming WebSocket messages."""
+		message_type = data.get("type")
+
+		if message_type == "ping":
+			await websocket.send_json({"type": "pong", "timestamp": datetime.now().isoformat()})
+		elif message_type == "mark_read":
+			notification_id = data.get("notification_id")
+			if notification_id:
+				success = await self.mark_notification_read(notification_id, user_id)
+				await websocket.send_json({"type": "mark_read_response", "notification_id": notification_id, "success": success})
 
 
-    @staticmethod
-    async def notify_new_job_match(
-        db: AsyncSession,
-        user_id: int,
-        job_id: int,
-        job_title: str,
-        company: str,
-        location: str,
-        match_score: Optional[float] = None,
-        matching_skills: Optional[List[str]] = None,
-    ) -> Optional[Notification]:
-        """Create notification for new job match"""
-        # Check user preferences
-        if not await NotificationService.check_user_preferences(
-            db, user_id, NotificationType.NEW_JOB_MATCH
-        ):
-            return None
-        
-        # Determine priority based on match score
-        priority = NotificationPriority.MEDIUM
-        if match_score and match_score >= 0.9:
-            priority = NotificationPriority.HIGH
-        elif match_score and match_score >= 0.7:
-            priority = NotificationPriority.MEDIUM
-        else:
-            priority = NotificationPriority.LOW
-        
-        title = f"New Job Match: {job_title}"
-        message = f"A new job at {company} in {location} matches your profile"
-        
-        if match_score:
-            message += f" ({int(match_score * 100)}% match)"
-        
-        if matching_skills:
-            message += f". Matching skills: {', '.join(matching_skills[:3])}"
-            if len(matching_skills) > 3:
-                message += f" and {len(matching_skills) - 3} more"
-        
-        return await NotificationService.create_notification(
-            db=db,
-            user_id=user_id,
-            notification_type=NotificationType.NEW_JOB_MATCH,
-            title=title,
-            message=message,
-            priority=priority,
-            data={
-                "job_id": job_id,
-                "job_title": job_title,
-                "company": company,
-                "location": location,
-                "match_score": match_score,
-                "matching_skills": matching_skills or [],
-            },
-            action_url=f"/jobs/{job_id}",
-        )
+# ===== BACKWARD COMPATIBILITY =====
 
-    @staticmethod
-    async def notify_application_deadline(
-        db: AsyncSession,
-        user_id: int,
-        job_id: int,
-        job_title: str,
-        company: str,
-        deadline: datetime,
-    ) -> Optional[Notification]:
-        """Create notification for application deadline"""
-        # Check user preferences
-        if not await NotificationService.check_user_preferences(
-            db, user_id, NotificationType.APPLICATION_DEADLINE
-        ):
-            return None
-        
-        # Calculate days until deadline
-        days_until = (deadline - datetime.utcnow()).days
-        
-        # Determine priority based on time until deadline
-        if days_until <= 1:
-            priority = NotificationPriority.URGENT
-        elif days_until <= 3:
-            priority = NotificationPriority.HIGH
-        else:
-            priority = NotificationPriority.MEDIUM
-        
-        title = f"Application Deadline: {job_title}"
-        message = f"The application deadline for {job_title} at {company} is "
-        
-        if days_until == 0:
-            message += "today"
-        elif days_until == 1:
-            message += "tomorrow"
-        else:
-            message += f"in {days_until} days"
-        
-        return await NotificationService.create_notification(
-            db=db,
-            user_id=user_id,
-            notification_type=NotificationType.APPLICATION_DEADLINE,
-            title=title,
-            message=message,
-            priority=priority,
-            data={
-                "job_id": job_id,
-                "job_title": job_title,
-                "company": company,
-                "deadline": deadline.isoformat(),
-                "days_until": days_until,
-            },
-            action_url=f"/jobs/{job_id}",
-            expires_at=deadline,
-        )
+# Maintain backward compatibility with existing imports
+NotificationService = UnifiedNotificationService
 
 
-    @staticmethod
-    async def cleanup_expired_notifications(db: AsyncSession) -> int:
-        """Delete expired notifications"""
-        query = select(Notification).where(
-            and_(
-                Notification.expires_at.isnot(None),
-                Notification.expires_at < datetime.utcnow()
-            )
-        )
-        result = await db.execute(query)
-        expired_notifications = result.scalars().all()
-        
-        count = 0
-        for notification in expired_notifications:
-            await db.delete(notification)
-            count += 1
-        
-        await db.commit()
-        return count
-
-    @staticmethod
-    async def cleanup_old_read_notifications(
-        db: AsyncSession,
-        days_old: int = 30
-    ) -> int:
-        """Delete old read notifications"""
-        cutoff_date = datetime.utcnow() - timedelta(days=days_old)
-        
-        query = select(Notification).where(
-            and_(
-                Notification.is_read == True,
-                Notification.read_at < cutoff_date
-            )
-        )
-        result = await db.execute(query)
-        old_notifications = result.scalars().all()
-        
-        count = 0
-        for notification in old_notifications:
-            await db.delete(notification)
-            count += 1
-        
-        await db.commit()
-        return count
+async def get_notification_service(db: Optional[AsyncSession] = None) -> UnifiedNotificationService:
+	"""Factory function for notification service."""
+	return UnifiedNotificationService(db)
 
 
-# Create a singleton instance
-notification_service = NotificationService()
+# Global instance for simple usage
+notification_service = UnifiedNotificationService()

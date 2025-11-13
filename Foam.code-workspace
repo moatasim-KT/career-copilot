@@ -5,6 +5,33 @@
         }
     ],
     "settings": {
-        "foam.openDailyNotes": true
+        "foam.openDailyNotes": true,
+        "foam.files.ignore": [
+            "**/.vscode/**",
+            "**/node_modules/**",
+            "**/.git/**",
+            "**/backend/__pycache__/**",
+            "**/backend/.venv/**",
+            "**/data/**",
+            "**/logs/**",
+            "**/reports/**",
+            "**/secrets/**",
+            "**/tests/**",
+            "**/*.pyc",
+            "**/*.log"
+        ],
+        "foam.links.completion": "on",
+        "foam.dateSnippets.afterCompletion": "createNote"
+    },
+    "extensions": {
+        "recommendations": [
+            "foam.foam-vscode",
+            "ms-vscode.vscode-json",
+            "ms-python.python",
+            "bradlc.vscode-tailwindcss",
+            "ms-vscode.vscode-typescript-next",
+            "esbenp.prettier-vscode",
+            "ms-vscode.vscode-eslint"
+        ]
     }
 }

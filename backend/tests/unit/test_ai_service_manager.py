@@ -12,7 +12,7 @@ import pytest
 
 @pytest.fixture
 def ai_service_manager():
-	with patch("app.core.config.get_settings") as mock_get_settings, patch("app.core.caching.get_cache_manager") as mock_get_cache_manager:
+	with patch("app.core.config.get_settings") as mock_get_settings, patch("app.core.cache.cache_service") as mock_cache_service:
 		mock_settings = MagicMock()
 		mock_settings.openai_api_key = MagicMock(get_secret_value=lambda: "test_openai_key")
 		mock_settings.anthropic_api_key = MagicMock(return_value="test_anthropic_key")  # Anthropic API key is not a SecretStr
@@ -25,7 +25,7 @@ def ai_service_manager():
 
 		mock_cache_instance = MagicMock()
 		mock_cache_instance.async_get = AsyncMock(return_value=None)  # Configure async_get to be an AsyncMock
-		mock_get_cache_manager.return_value = mock_cache_instance
+		mock_cache_service.return_value = mock_cache_instance
 
 		# Import AIServiceManager and ModelType after patches are in place
 		from app.services.llm_service import LLMService, ModelType

@@ -5,7 +5,7 @@ API endpoints for data compression and encryption management
 from typing import Any, Dict
 
 from app.core.config import settings
-from app.core.dependencies import get_current_user, get_db
+from app.dependencies import get_current_user, get_db
 from app.models.user import User
 from app.services.compression_service import compression_service
 from app.services.crypto_service import crypto_service

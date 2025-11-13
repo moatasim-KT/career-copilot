@@ -4,15 +4,16 @@ Redis caching service for Career Co-Pilot system
 
 from __future__ import annotations
 
-import json
-import pickle
 import hashlib
+import json
+import logging
+import pickle
 from datetime import datetime, timezone
-from typing import Any, Callable
 from functools import wraps
+from typing import Any, Callable
+
 import redis
 from redis.exceptions import ConnectionError, TimeoutError
-import logging
 
 from app.core.config import get_settings
 
@@ -428,3 +429,8 @@ class AnalyticsCache:
 user_profile_cache = UserProfileCache(cache_service)
 job_recommendation_cache = JobRecommendationCache(cache_service)
 analytics_cache = AnalyticsCache(cache_service)
+
+
+def get_cache() -> JobRecommendationCache:
+	"""Get the job recommendation cache instance"""
+	return job_recommendation_cache

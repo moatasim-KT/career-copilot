@@ -17,11 +17,13 @@ from app.core.database import get_db
 from app.core.logging import get_correlation_id, get_logger, setup_logging
 from app.middleware.error_handling import add_error_handlers
 from app.middleware.logging_middleware import LoggingMiddleware
+from app.schemas.api_models import ErrorResponse
 from app.services.resume_parser_service import ResumeParserService
 
 logger = get_logger(__name__)
 
 
+import os
 from contextlib import asynccontextmanager
 
 
@@ -31,10 +33,40 @@ async def lifespan(app: FastAPI):
 	logger.info(f"🌐 Running on {get_settings().api_host}:{get_settings().api_port}")
 
 	# Initialize database
-	from .core.database import init_db
+	from .core.database import _setup_legacy_compatibility, get_db_manager
 
-	init_db()
-	logger.info("✅ Database initialized")
+	# Initialize database engines on the active event loop to avoid
+	# asyncpg "Future attached to a different loop" errors.
+	# Prefer eager init during application lifespan so the async engine is
+	# available for all request handlers. You can explicitly disable eager
+	# initialization by setting DB_EAGER_INIT=0 or FALSE in the environment.
+	# This keeps backwards compatibility while making the test runner and
+	# production server more deterministic.
+	eager_flag = os.getenv("DB_EAGER_INIT", os.getenv("FORCE_DB_INIT", "1")).lower()
+	if eager_flag in {"1", "true", "yes"}:
+		logger.info("DB_EAGER_INIT enabled (default): performing eager DB engine initialization in lifespan")
+		db_manager = get_db_manager()
+		# Initialize engines (creates async and sync engines) on this loop.
+		# Wrap in try/except so the app can still start in degraded mode
+		# if an async driver is missing (useful for environments without asyncpg).
+		try:
+			# Create both sync and async engines on the active event loop
+			db_manager._initialize_engines()
+			# Ensure schema exists using the async initialization path if async engine created,
+			# otherwise fall back to sync schema creation via init_db() called below.
+			if db_manager.async_engine is not None:
+				try:
+					await db_manager.init_database()
+				except Exception:
+					logger.exception("Failed to perform async database init during lifespan; will fall back to sync init if possible")
+			# Update legacy compatibility globals now that engines may be ready
+			_setup_legacy_compatibility()
+			logger.info("✅ Database engines initialized and schema ensured (eager)")
+		except Exception as exc:
+			logger.exception("Eager DB engine initialization failed: %s", exc)
+			logger.warning("Proceeding without eager async engine; engines will be created lazily on first use")
+	else:
+		logger.info("DB_EAGER_INIT explicitly disabled: skipping eager DB initialization. Engines will be created lazily on first use.")
 
 	# Initialize cache service
 	from .services.cache_service import cache_service
@@ -45,11 +77,15 @@ async def lifespan(app: FastAPI):
 		logger.warning("⚠️ Redis cache service disabled")
 
 	# Start scheduler
-	if get_settings().enable_scheduler:
+	if get_settings().enable_scheduler and os.getenv("DISABLE_SCHEDULER_IN_TESTS") != "True":
 		from .tasks.scheduled_tasks import start_scheduler
 
 		start_scheduler()
 		logger.info("✅ Scheduler started")
+	elif os.getenv("DISABLE_SCHEDULER_IN_TESTS") == "True":
+		logger.info("ℹ️ Scheduler disabled for testing environment.")
+	else:
+		logger.info("ℹ️ Scheduler disabled by configuration.")
 
 	# Initialize Celery (workers should be started separately)
 	logger.info("✅ Celery application configured")
@@ -58,7 +94,7 @@ async def lifespan(app: FastAPI):
 
 	logger.info("🛑 Career Copilot API shutting down...")
 	# Shutdown scheduler
-	if get_settings().enable_scheduler:
+	if get_settings().enable_scheduler and os.getenv("DISABLE_SCHEDULER_IN_TESTS") != "True":
 		from .tasks.scheduled_tasks import shutdown_scheduler
 
 		shutdown_scheduler()
@@ -87,6 +123,74 @@ def create_app() -> FastAPI:
 	app = FastAPI(
 		title="Career Copilot API", description="AI-powered job application tracking and career management system", version="1.0.0", lifespan=lifespan
 	)
+
+	# Normalize module aliases to avoid duplicate imports under both
+	# "app.*" and "backend.app.*" module paths which can cause SQLAlchemy
+	# to register the same ORM class twice under different module names.
+	# This can happen in some test or import contexts where the package is
+	# referenced by both top-level names. We scan sys.modules for pairs of
+	# modules that point to the same file and alias the backend.* name to the
+	# canonical app.* module object so SQLAlchemy sees only one class.
+	def _normalize_module_aliases():
+		import sys
+		from importlib import import_module
+
+		# Only proceed when both naming schemes might be present
+		if not any(name.startswith("backend.app") for name in sys.modules):
+			return
+
+		for name, mod in list(sys.modules.items()):
+			# look for loaded app.* modules and their backend.app.* counterparts
+			if not name.startswith("app."):
+				continue
+			backend_name = "backend." + name
+			if backend_name in sys.modules:
+				# If both are present and point to the same file, alias them to
+				# the same module object to avoid duplicate class registration
+				mod_b = sys.modules[backend_name]
+				try:
+					file_a = getattr(mod, "__file__", None)
+					file_b = getattr(mod_b, "__file__", None)
+				except Exception:
+					file_a = file_b = None
+				if file_a and file_b and file_a == file_b:
+					sys.modules[backend_name] = mod
+
+	# Run normalization early, before routers and models are imported
+	_normalize_module_aliases()
+
+	# Proactively import the canonical `app` model modules and alias them
+	# to the `backend.app.*` names so that any later import using the
+	# alternate package path does not create duplicate module objects
+	# (which would register ORM classes twice).
+	def _import_and_alias_app_packages():
+		import importlib
+		import pkgutil
+		import sys
+
+		try:
+			app_models = importlib.import_module("app.models")
+		except Exception:
+			# If app.models cannot be imported yet, skip this step.
+			return
+
+		# Walk all submodules under app.models and import them to ensure
+		# they are loaded under the canonical 'app.' package name.
+		for finder, modname, ispkg in pkgutil.walk_packages(app_models.__path__, prefix=app_models.__name__ + "."):
+			try:
+				importlib.import_module(modname)
+			except Exception:
+				# Ignore import errors here; modules may have heavy deps.
+				continue
+
+		# Create aliases for backend.* -> app.* so later imports reuse same modules
+		for name in list(sys.modules.keys()):
+			if name.startswith("app."):
+				backend_name = "backend." + name
+				if backend_name not in sys.modules:
+					sys.modules[backend_name] = sys.modules[name]
+
+	_import_and_alias_app_packages()
 
 	# CORS configuration
 	if isinstance(settings.cors_origins, str):
@@ -130,45 +234,40 @@ def create_app() -> FastAPI:
 	async def validation_exception_handler(request: Request, exc: RequestValidationError):
 		"""Handle validation errors (400)"""
 		logger.warning(f"Validation error: {exc.errors()}")
-		return JSONResponse(
-			status_code=400,
-			content={
-				"detail": "Validation error in request data",
-				"error_code": "VALIDATION_ERROR",
-				"timestamp": datetime.now().isoformat(),
-				"correlation_id": get_correlation_id(),
-				"errors": exc.errors(),
-			},
+		payload = ErrorResponse(
+			request_id=get_correlation_id(),
+			timestamp=datetime.now().isoformat(),
+			error_code="VALIDATION_ERROR",
+			detail="Validation error in request data",
+			field_errors={"validation_errors": exc.errors()},
+			suggestions=["Please check the request format and required fields", "Ensure all data types match the expected format"],
 		)
+		return JSONResponse(status_code=400, content=payload.dict())
 
 	@app.exception_handler(HTTPException)
 	async def http_exception_handler(request: Request, exc: HTTPException):
 		"""Handle HTTP exceptions (404, etc.)"""
 		logger.warning(f"HTTP exception: {exc.status_code} - {exc.detail}")
-		return JSONResponse(
-			status_code=exc.status_code,
-			content={
-				"detail": exc.detail,
-				"error_code": f"HTTP_{exc.status_code}",
-				"timestamp": datetime.now().isoformat(),
-				"correlation_id": get_correlation_id(),
-			},
+		payload = ErrorResponse(
+			request_id=get_correlation_id(),
+			timestamp=datetime.now().isoformat(),
+			error_code=f"HTTP_{exc.status_code}",
+			detail=exc.detail,
 		)
+		return JSONResponse(status_code=exc.status_code, content=payload.dict())
 
 	@app.exception_handler(Exception)
 	async def general_exception_handler(request: Request, exc: Exception):
 		"""Handle all other exceptions (500)"""
 		logger.error(f"Unhandled exception: {exc!s}", exc_info=True)
 		logger.error(f"Stack trace: {traceback.format_exc()}")
-		return JSONResponse(
-			status_code=500,
-			content={
-				"detail": "An internal server error occurred. Please try again later.",
-				"error_code": "INTERNAL_SERVER_ERROR",
-				"timestamp": datetime.now().isoformat(),
-				"correlation_id": get_correlation_id(),
-			},
+		payload = ErrorResponse(
+			request_id=get_correlation_id(),
+			timestamp=datetime.now().isoformat(),
+			error_code="INTERNAL_SERVER_ERROR",
+			detail="An internal server error occurred. Please try again later.",
 		)
+		return JSONResponse(status_code=500, content=payload.dict())
 
 	# Root endpoint
 	@app.get("/")
@@ -189,9 +288,7 @@ def create_app() -> FastAPI:
 
 	# Include routers - Comprehensive registration of ALL API endpoints
 	from .api.v1 import (
-		advanced_user_analytics,
 		analytics,
-		analytics_extended,
 		applications,
 		auth,
 		bulk_operations,
@@ -216,7 +313,6 @@ def create_app() -> FastAPI:
 		linkedin_jobs,
 		llm_admin,
 		market,
-		notifications_new,
 		personalization,
 		progress_admin,
 		recommendations,
@@ -251,19 +347,20 @@ def create_app() -> FastAPI:
 	app.include_router(job_sources.router)
 	app.include_router(applications.router)
 	app.include_router(resume.router, prefix="/api/v1/resume", tags=["resume", "parsing"])
-	
+
 	# Data Export & Import
 	app.include_router(export.router)
 	app.include_router(import_data.router)
-	
+
 	# Bulk Operations
 	app.include_router(bulk_operations.router)
 
-	# Analytics & Reporting
-	app.include_router(analytics.router)
-	app.include_router(analytics_extended.router)
+	# Analytics & Reporting (unified)
+	# Use unified analytics router which consolidates legacy and v1 analytics endpoints
+	from .api.v1 import analytics as analytics_module
+
+	app.include_router(analytics_module.router, prefix="/api/v1", tags=["analytics"])
 	app.include_router(dashboard.router)
-	app.include_router(advanced_user_analytics.router)
 	app.include_router(market.router, prefix="/api/v1", tags=["Market Intelligence"])
 
 	# Recommendations & Matching
@@ -276,7 +373,6 @@ def create_app() -> FastAPI:
 	app.include_router(content.router)
 	app.include_router(resources.router)
 	app.include_router(learning.router)
-	app.include_router(notifications_new.router)
 	app.include_router(websocket_notifications.router, prefix="/api/v1")
 	app.include_router(feedback.router, prefix="/api/v1", tags=["feedback"])
 	app.include_router(feedback_analysis.router, prefix="/api/v1", tags=["feedback-analysis"])

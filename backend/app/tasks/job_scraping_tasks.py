@@ -11,7 +11,7 @@ from app.core.logging import get_logger
 from app.models.job import Job
 from app.models.user import User
 from app.services.cache_service import get_cache_service
-from app.services.job_scraping_service import JobScrapingService
+from app.services.job_service import JobManagementSystem
 
 logger = get_logger(__name__)
 
@@ -19,7 +19,7 @@ cache_service = get_cache_service()
 
 
 @celery_app.task(bind=True, name="app.tasks.job_scraping_tasks.scrape_jobs_for_user_async")
-def scrape_jobs_for_user_async(self, user_id: int) -> Dict[str, Any]:
+async def scrape_jobs_for_user_async(self, user_id: int) -> Dict[str, Any]:
 	"""
 	Scrape jobs for a specific user asynchronously
 
@@ -44,14 +44,19 @@ def scrape_jobs_for_user_async(self, user_id: int) -> Dict[str, Any]:
 			logger.warning(f"User {user_id} has incomplete profile for job scraping")
 			return {"status": "skipped", "reason": "User profile incomplete (missing skills or locations)"}
 
-		# Initialize job scraper
-		job_scraper = JobScrapingService()
+		# Initialize job management service
+		job_service = JobManagementSystem(db)
 
 		# Update progress
 		self.update_state(state="PROGRESS", meta={"current": 30, "total": 100, "status": "Scraping jobs from external sources..."})
 
 		# Scrape jobs
-		scraped_jobs = job_scraper.scrape_jobs(skills=user.skills, locations=user.preferred_locations, experience_level=user.experience_level)
+		user_preferences = {
+			"skills": user.skills,
+			"locations": user.preferred_locations,
+			"experience_level": user.experience_level,
+		}
+		scraped_jobs = await job_service.scrape_jobs(user_preferences)
 
 		if not scraped_jobs:
 			logger.info(f"No jobs found for user {user_id}")
@@ -60,11 +65,10 @@ def scrape_jobs_for_user_async(self, user_id: int) -> Dict[str, Any]:
 		# Update progress
 		self.update_state(state="PROGRESS", meta={"current": 60, "total": 100, "status": "Deduplicating jobs..."})
 
-		# Get existing jobs for deduplication
-		existing_jobs = db.query(Job).filter(Job.user_id == user_id).all()
+		# Deduplicate jobs against existing database entries
+		new_jobs, dedup_stats = job_service.deduplicate_against_db(scraped_jobs, user_id)
 
-		# Deduplicate jobs
-		new_jobs = job_scraper.deduplicate_jobs(existing_jobs, scraped_jobs)
+		logger.info(f"Deduplication stats: {dedup_stats}")
 
 		# Update progress
 		self.update_state(state="PROGRESS", meta={"current": 80, "total": 100, "status": "Saving new jobs..."})

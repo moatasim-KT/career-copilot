@@ -11,6 +11,7 @@ from .career_resources import (
 )
 from .content_generation import ContentGeneration
 from .content_version import ContentVersion
+from .document import Document
 from .feedback import (
 	Feedback,
 	FeedbackPriority,
@@ -22,6 +23,7 @@ from .feedback import (
 	JobRecommendationFeedback,
 	OnboardingProgress,
 )
+from .goal import Goal, GoalProgress, Milestone
 from .interview import InterviewQuestion, InterviewSession, InterviewStatus, InterviewType
 from .job import Job
 from .notification import Notification, NotificationPreferences, NotificationPriority, NotificationType
@@ -36,11 +38,14 @@ __all__ = [
 	"CareerResourceModel",
 	"ContentGeneration",
 	"ContentVersion",
+	"Document",
 	"Feedback",
 	"FeedbackPriority",
 	"FeedbackStatus",
 	"FeedbackType",
 	"FeedbackVote",
+	"Goal",
+	"GoalProgress",
 	"HelpArticle",
 	"HelpArticleVote",
 	"InterviewQuestion",
@@ -51,6 +56,7 @@ __all__ = [
 	"JobRecommendationFeedback",
 	"LearningPath",
 	"LearningPathEnrollment",
+	"Milestone",
 	"Notification",
 	"NotificationPreferences",
 	"NotificationPriority",

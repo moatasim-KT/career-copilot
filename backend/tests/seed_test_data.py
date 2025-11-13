@@ -38,9 +38,8 @@ async def seed_test_user(session: AsyncSession) -> User:
 	user = User(
 		id=1,
 		username="test_user",
-		email="test@example.com",
-		hashed_password=get_password_hash("testpass123"),
-		skills=["Python", "FastAPI", "JavaScript", "React", "TypeScript", "Docker"],
+		        email="test@example.com",
+		        hashed_password=get_password_hash("testpass"),		skills=["Python", "FastAPI", "JavaScript", "React", "TypeScript", "Docker"],
 		preferred_locations=["Remote", "San Francisco", "New York", "Austin"],
 		experience_level="senior",
 		daily_application_goal=10,
@@ -100,7 +99,7 @@ async def seed_additional_test_users(session: AsyncSession):
 		user = User(
 			username=user_data["username"],
 			email=user_data["email"],
-			hashed_password=get_password_hash("testpass123"),
+			hashed_password=get_password_hash("testpass"),
 			skills=user_data["skills"],
 			preferred_locations=user_data["preferred_locations"],
 			experience_level=user_data["experience_level"],

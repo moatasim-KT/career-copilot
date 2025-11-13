@@ -7,7 +7,7 @@ from typing import Dict, List, Optional
 from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel
 
-from ...core.dependencies import get_current_user
+from app.dependencies import get_current_user
 from ...core.logging import get_logger
 from ...models.database_models import User
 from ...services.slack_service import EnhancedSlackService as SlackService

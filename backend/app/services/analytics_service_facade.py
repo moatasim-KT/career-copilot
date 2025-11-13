@@ -21,7 +21,8 @@ from typing import Any, Dict, List, Optional
 
 from sqlalchemy.orm import Session
 
-from .analytics_collection_service import AnalyticsCollectionService
+# Removed: from .analytics_collection_service import AnalyticsCollectionService
+from .analytics_service import AnalyticsService # Import the consolidated AnalyticsService
 from .analytics_processing_service import AnalyticsProcessingService
 from .analytics_query_service import AnalyticsQueryService
 from .analytics_reporting_service import AnalyticsReportingService
@@ -45,7 +46,7 @@ class AnalyticsServiceFacade:
 		    db: Database session for all services
 		"""
 		self.db = db
-		self.collection = AnalyticsCollectionService(db=db)
+		self.analytics_service = AnalyticsService(db=db) # Use the consolidated AnalyticsService
 		self.processing = AnalyticsProcessingService(db=db)
 		self.query = AnalyticsQueryService(db=db)
 		self.reporting = AnalyticsReportingService(db=db)
@@ -55,7 +56,7 @@ class AnalyticsServiceFacade:
 	# Collection Operations (Simplified API)
 	# ========================================
 
-	async def track_event(
+	async def track_event( # Made async
 		self,
 		event_type: str,
 		user_id: int | None = None,
@@ -78,7 +79,7 @@ class AnalyticsServiceFacade:
 		if user_id is None:
 			user_id = 0  # Default for anonymous users
 
-		return self.collection.collect_event(
+		return await self.analytics_service.collect_event( # Changed to analytics_service and awaited
 			user_id=user_id,
 			event_type=event_type,
 			event_data=data or {},
@@ -372,7 +373,7 @@ class AnalyticsServiceFacade:
 		    Dict with health status of all services
 		"""
 		try:
-			collection_health = self.collection.health_check()
+			collection_health = await self.analytics_service.health_check_collection() # Changed and awaited
 			processing_health = await self.processing.health_check()
 			query_health = await self.query.health_check()
 			reporting_health = await self.reporting.health_check()
@@ -403,4 +404,4 @@ class AnalyticsServiceFacade:
 
 	def get_collection_stats(self) -> Dict[str, Any]:
 		"""Get statistics from collection service."""
-		return self.collection.get_stats()
+		return self.analytics_service.get_stats() # Changed to analytics_service

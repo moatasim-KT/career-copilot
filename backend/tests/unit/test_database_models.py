@@ -1,36 +1,13 @@
 import pytest
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
-from sqlalchemy.pool import StaticPool
+from sqlalchemy.orm import Session
 
 from app.models.user import User
 from app.models.job import Job
 from app.models.application import Application
 from app.core.database import Base
 
-# Setup a test database
-SQLALCHEMY_DATABASE_URL = "sqlite:///:memory:"
 
-engine = create_engine(
-	SQLALCHEMY_DATABASE_URL,
-	connect_args={"check_same_thread": False},
-	poolclass=StaticPool,
-)
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-
-
-@pytest.fixture(name="db")
-def session_fixture():
-	Base.metadata.create_all(bind=engine)
-	db = SessionLocal()
-	try:
-		yield db
-	finally:
-		db.close()
-		Base.metadata.drop_all(bind=engine)
-
-
-def test_create_user(db: SessionLocal):
+def test_create_user(db: Session):
 	user = User(username="testuser", email="test@example.com", hashed_password="hashedpassword")
 	db.add(user)
 	db.commit()
@@ -39,7 +16,7 @@ def test_create_user(db: SessionLocal):
 	assert user.username == "testuser"
 
 
-def test_get_user(db: SessionLocal):
+def test_get_user(db: Session):
 	user = User(username="testuser", email="test@example.com", hashed_password="hashedpassword")
 	db.add(user)
 	db.commit()
@@ -50,7 +27,7 @@ def test_get_user(db: SessionLocal):
 	assert retrieved_user.username == "testuser"
 
 
-def test_update_user(db: SessionLocal):
+def test_update_user(db: Session):
 	user = User(username="testuser", email="test@example.com", hashed_password="hashedpassword")
 	db.add(user)
 	db.commit()
@@ -65,7 +42,7 @@ def test_update_user(db: SessionLocal):
 	assert updated_user.email == "new_email@example.com"
 
 
-def test_delete_user(db: SessionLocal):
+def test_delete_user(db: Session):
 	user = User(username="testuser", email="test@example.com", hashed_password="hashedpassword")
 	db.add(user)
 	db.commit()
@@ -78,7 +55,7 @@ def test_delete_user(db: SessionLocal):
 	assert deleted_user is None
 
 
-def test_create_job(db: SessionLocal):
+def test_create_job(db: Session):
 	user = User(username="testuser", email="test@example.com", hashed_password="hashedpassword")
 	db.add(user)
 	db.commit()
@@ -92,7 +69,7 @@ def test_create_job(db: SessionLocal):
 	assert job.company == "TestCo"
 
 
-def test_get_job(db: SessionLocal):
+def test_get_job(db: Session):
 	user = User(username="testuser", email="test@example.com", hashed_password="hashedpassword")
 	db.add(user)
 	db.commit()
@@ -108,7 +85,7 @@ def test_get_job(db: SessionLocal):
 	assert retrieved_job.title == "Software Engineer"
 
 
-def test_update_job(db: SessionLocal):
+def test_update_job(db: Session):
 	user = User(username="testuser", email="test@example.com", hashed_password="hashedpassword")
 	db.add(user)
 	db.commit()
@@ -128,7 +105,7 @@ def test_update_job(db: SessionLocal):
 	assert updated_job.title == "Senior Software Engineer"
 
 
-def test_delete_job_cascades_applications(db: SessionLocal):
+def test_delete_job_cascades_applications(db: Session):
 	user = User(username="testuser", email="test@example.com", hashed_password="hashedpassword")
 	db.add(user)
 	db.commit()
@@ -158,7 +135,7 @@ def test_delete_job_cascades_applications(db: SessionLocal):
 	assert deleted_application is None
 
 
-def test_create_application(db: SessionLocal):
+def test_create_application(db: Session):
 	user = User(username="testuser", email="test@example.com", hashed_password="hashedpassword")
 	db.add(user)
 	db.commit()
@@ -177,7 +154,7 @@ def test_create_application(db: SessionLocal):
 	assert application.status == "interested"
 
 
-def test_get_application(db: SessionLocal):
+def test_get_application(db: Session):
 	user = User(username="testuser", email="test@example.com", hashed_password="hashedpassword")
 	db.add(user)
 	db.commit()
@@ -198,7 +175,7 @@ def test_get_application(db: SessionLocal):
 	assert retrieved_application.status == "interested"
 
 
-def test_update_application(db: SessionLocal):
+def test_update_application(db: Session):
 	user = User(username="testuser", email="test@example.com", hashed_password="hashedpassword")
 	db.add(user)
 	db.commit()
@@ -223,7 +200,7 @@ def test_update_application(db: SessionLocal):
 	assert updated_application.status == "applied"
 
 
-def test_delete_application(db: SessionLocal):
+def test_delete_application(db: Session):
 	user = User(username="testuser", email="test@example.com", hashed_password="hashedpassword")
 	db.add(user)
 	db.commit()

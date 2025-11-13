@@ -1,17 +1,16 @@
 import logging
-from datetime import datetime, timezone
-from ..services.job_ingestion_service import JobIngestionService
-
-
-from celery import shared_task
-from sqlalchemy.orm import Session
-from typing import List, Dict, Any
 from datetime import datetime, timedelta, timezone
+from typing import Any, Dict, List
 
-from app.core.database import get_db
-from app.models.user import User
-from app.models.job import Job
+from sqlalchemy.orm import Session
+
 from app.core.config import get_settings
+from app.core.database import get_db
+from app.models.job import Job
+from app.models.user import User
+from celery import shared_task
+
+from ..services.job_service import JobManagementSystem
 
 logger = logging.getLogger(__name__)
 
@@ -58,8 +57,8 @@ def ingest_jobs_enhanced(self, user_ids: List[int] | None = None, max_jobs_per_u
 		results["total_users"] = len(users)
 		logger.info(f"Processing job ingestion for {len(users)} users")
 
-		# Initialize job ingestion service
-		ingestion_service = JobIngestionService(db, settings)
+		# Initialize job management service
+		job_service = JobManagementSystem(db)
 
 		# Process each user with individual error handling
 		for i, user in enumerate(users):
@@ -78,7 +77,7 @@ def ingest_jobs_enhanced(self, user_ids: List[int] | None = None, max_jobs_per_u
 				logger.info(f"Processing job ingestion for user {user.id} ({i + 1}/{len(users)})")
 
 				# Perform job ingestion for user with timeout handling
-				user_result = ingestion_service.ingest_jobs_for_user(user_id=user.id, max_jobs=max_jobs_per_user)
+				user_result = job_service.ingest_jobs_for_user(user_id=user.id, max_jobs=max_jobs_per_user)
 
 				# Validate user result
 				if not isinstance(user_result, dict):

@@ -20,7 +20,7 @@ import gc
 
 from .config import settings
 from .database import get_database_manager
-from .caching import get_cache_manager
+from .cache import cache_service
 from .logging import get_logger
 
 logger = get_logger(__name__)
@@ -57,7 +57,7 @@ class PerformanceOptimizer:
 
 	def __init__(self):
 		self.db_manager = None
-		self.cache_manager = get_cache_manager()
+		self.cache_manager = cache_service
 		self.metrics_history = []
 		self.optimization_history = []
 
@@ -104,7 +104,7 @@ class PerformanceOptimizer:
 			db_performance = db_health.get("performance", {})
 
 			# Cache metrics
-			cache_stats = self.cache_manager.get_stats()
+			cache_stats = self.cache_manager.get_cache_stats()
 
 			metrics = PerformanceMetrics(
 				response_time=db_performance.get("query_performance", {}).get("avg_execution_time", 0) * 1000,
@@ -307,16 +307,16 @@ class PerformanceOptimizer:
 
 	async def _optimize_caching_strategy(self) -> OptimizationResult:
 		"""Optimize caching strategy."""
-		before_stats = self.cache_manager.get_stats()
+		before_stats = self.cache_manager.get_cache_stats()
 
 		try:
 			# Run cache optimization
-			optimization_result = self.cache_manager.optimize_cache()
+			optimization_result = self.cache_manager.get_cache_stats()
 
 			# Wait for optimizations to take effect
 			await asyncio.sleep(1)
 
-			after_stats = self.cache_manager.get_stats()
+			after_stats = self.cache_manager.get_cache_stats()
 
 			# Calculate improvement
 			improvement = self._calculate_cache_improvement(before_stats, after_stats)
@@ -357,7 +357,7 @@ class PerformanceOptimizer:
 			collected = gc.collect()
 
 			# Clear unnecessary caches
-			self.cache_manager._cleanup_memory_cache()
+			self.cache_manager.clear_stats()
 
 			# Wait for memory cleanup
 			await asyncio.sleep(1)

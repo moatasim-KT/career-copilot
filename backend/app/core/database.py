@@ -4,7 +4,7 @@ Consolidated and Optimized Database Management System.
 This module provides a comprehensive, unified database management system with a focus
 on performance, reliability, and ease of use. It includes:
 - Synchronous and asynchronous connection and session management.
-- Optimized connection pooling for both SQLite and PostgreSQL.
+- Optimized connection pooling for PostgreSQL.
 - Read replica support for distributing read-heavy workloads.
 - Query performance monitoring with slow query detection.
 - Centralized database initialization and health checks.
@@ -46,7 +46,10 @@ class DatabaseManager:
 		self.pool_settings = self._get_optimal_pool_settings()
 		self.last_health_check = None
 		self.health_status = {"status": "unknown"}
-		self._initialize_engines()
+		# Engines are initialized lazily to avoid creating loop-bound async resources
+		# at import time. Callers should invoke init_db() or explicitly call
+		# _initialize_engines() (synchronously) during application startup to
+		# ensure engines are created on the correct event loop.
 		logger.info("DatabaseManager initialized")
 
 	def _get_optimal_pool_settings(self) -> Dict[str, Any]:
@@ -77,54 +80,78 @@ class DatabaseManager:
 		base_engine_args = {"echo": self.settings.debug, "future": True}
 
 		# Prepare URLs
-		# If DATABASE_URL already has async drivers, convert them for appropriate engines
-		if "postgresql://" in self.database_url:
-			async_url = self.database_url.replace("postgresql://", "postgresql+asyncpg://")
-		elif "sqlite:///" in self.database_url and "aiosqlite" not in self.database_url:
-			async_url = self.database_url.replace("sqlite:///", "sqlite+aiosqlite:///")
+		# Enforce PostgreSQL-only usage across the codebase to avoid sqlite
+		# related event-loop/driver inconsistencies in async contexts.
+		if "postgresql://" in self.database_url or "postgresql+" in self.database_url:
+			async_url = self.database_url.replace("postgresql://", "postgresql+asyncpg://").replace("postgresql+psycopg://", "postgresql+asyncpg://")
+			# For sync engine, use the regular (blocking) postgres driver URL
+			sync_url = async_url.replace("postgresql+asyncpg://", "postgresql://")
 		else:
-			async_url = self.database_url
-		# For sync engine, use standard drivers
-		sync_url = self.database_url.replace("postgresql+asyncpg://", "postgresql://").replace("sqlite+aiosqlite:///", "sqlite:///")
+			raise RuntimeError(
+				"Unsupported DATABASE_URL. This deployment requires PostgreSQL. Please set DATABASE_URL to a Postgres connection string."
+			)
 
 		# Sync engine args (with poolclass)
 		sync_engine_args = base_engine_args.copy()
-		if "sqlite" in sync_url:
-			sync_engine_args.update(
-				{
-					"poolclass": StaticPool,
-					"connect_args": {"check_same_thread": False, "timeout": 20},
-				}
-			)
-		else:
-			sync_engine_args.update({"poolclass": QueuePool, **self.pool_settings})
+		# Use QueuePool for Postgres sync engine
+		sync_engine_args.update({"poolclass": QueuePool, **self.pool_settings})
 
 		# Async engine args (without poolclass - async engines use their own pool management)
 		async_engine_args = base_engine_args.copy()
-		if "sqlite" in async_url:
-			async_engine_args.update(
-				{
-					"connect_args": {"check_same_thread": False, "timeout": 20},
-				}
-			)
-		else:
-			# For async PostgreSQL, pass pool settings without poolclass
-			async_pool_settings = {k: v for k, v in self.pool_settings.items() if k != "poolclass"}
-			async_engine_args.update(async_pool_settings)
+		# For async PostgreSQL, pass pool settings without poolclass
+		async_pool_settings = {k: v for k, v in self.pool_settings.items() if k != "poolclass"}
+		async_engine_args.update(async_pool_settings)
 
-		# Create main write engine (async)
-		logger.debug(f"Creating async engine with URL: {async_url}")
-		self.async_engine = create_async_engine(async_url, **async_engine_args)
-		self.async_session_factory = async_sessionmaker(self.async_engine, class_=AsyncSession, expire_on_commit=False)
-
-		# Create sync engine for specific tasks if needed
+		# Create sync engine for specific tasks first to ensure the sync
+		# engine uses a blocking DBAPI (psycopg) and not the asyncpg-backed
+		# sync shim. This avoids mixing asyncpg connections into the sync
+		# pool which can cause cross-event-loop errors.
 		logger.debug(f"Creating sync engine with URL: {sync_url}")
 		self.sync_engine = create_engine(sync_url, **sync_engine_args)
 		self.sync_session_factory = sessionmaker(self.sync_engine, expire_on_commit=False)
 
+		# Create main write engine (async) on the active event loop
+		logger.debug(f"Creating async engine with URL: {async_url}")
+		try:
+			self.async_engine = create_async_engine(async_url, **async_engine_args)
+			self.async_session_factory = async_sessionmaker(self.async_engine, class_=AsyncSession, expire_on_commit=False)
+		except Exception as e:  # pragma: no cover - defensive fallback when async driver is missing
+			logger.error(f"Failed to create async engine ({async_url}): {e}")
+			self.async_engine = None
+			self.async_session_factory = None
+
 		self._setup_performance_monitoring(self.sync_engine, "write")
 		self._initialize_read_replicas()
 		logger.info(f"Database engines initialized for {async_url.split('://')[0]}.")
+
+	def _initialize_sync_engine(self):
+		"""Initialize only the synchronous (blocking) engine and session factory.
+
+		This is useful for startup paths that need the DB schema (create_all)
+		but must avoid creating loop-bound async resources until an active
+		event loop is available (e.g., test harnesses using TestClient).
+		"""
+		if not self.database_url:
+			logger.error("FATAL: No database URL configured for sync engine initialization.")
+			return
+
+		base_engine_args = {"echo": self.settings.debug, "future": True}
+
+		if "postgresql://" in self.database_url or "postgresql+" in self.database_url:
+			# Use blocking psycopg URL for sync engine
+			sync_url = self.database_url.replace("postgresql+asyncpg://", "postgresql://").replace("postgresql+psycopg://", "postgresql://")
+
+		else:
+			raise RuntimeError("Unsupported DATABASE_URL for sync engine initialization.")
+
+		sync_engine_args = base_engine_args.copy()
+		sync_engine_args.update({"poolclass": QueuePool, **self.pool_settings})
+
+		logger.debug(f"Creating sync-only engine with URL: {sync_url}")
+		self.sync_engine = create_engine(sync_url, **sync_engine_args)
+		self.sync_session_factory = sessionmaker(self.sync_engine, expire_on_commit=False)
+		self._setup_performance_monitoring(self.sync_engine, "write")
+		logger.info("Synchronous database engine initialized (sync-only).")
 
 	def _initialize_read_replicas(self):
 		read_replica_urls = getattr(self.settings, "read_replica_urls", [])
@@ -225,8 +252,7 @@ class DatabaseManager:
 		url_lc = (self.database_url or "").lower()
 		if "postgres" in url_lc:
 			backend = "postgresql"
-		elif "sqlite" in url_lc:
-			backend = "sqlite"
+
 		else:
 			backend = "unknown"
 
@@ -278,6 +304,19 @@ def init_db() -> None:
 	"""Legacy-compatible synchronous database bootstrapper."""
 	manager = get_db_manager()
 
+	# Ensure engines are initialized synchronously (safe to call at startup)
+	if manager.sync_engine is None:
+		try:
+			# Initialize only the sync engine at startup. Do not create the
+			# async engine here: creating the async engine at module import
+			# or during process startup risks binding it to an event loop
+			# that differs from the one used by request handlers under
+			# TestClient/anyio, causing cross-event-loop runtime errors.
+			manager._initialize_sync_engine()
+		except Exception as exc:  # pragma: no cover - defensive logging
+			logger.error("Failed to initialize sync database engine during init_db: %s", exc)
+
+	# Import models to register mappings, then create tables using the sync engine
 	try:
 		import importlib
 
@@ -286,9 +325,17 @@ def init_db() -> None:
 		logger.warning("Failed to import app.models during init_db: %s", exc)
 
 	if manager.sync_engine is None:
-		raise RuntimeError("Database sync engine is not initialized")
+		raise RuntimeError("Database sync engine is not initialized after initialization attempt")
 
+	# Create DB schema using synchronous engine (safer during sync startup code paths)
 	Base.metadata.create_all(bind=manager.sync_engine)
+
+	# Update legacy compatibility globals now that sync engine is ready.
+	# Note: async engine is intentionally left uninitialized here so it
+	# will be created lazily on the active request event loop when the
+	# FastAPI dependency `get_db()` is first invoked.
+	_setup_legacy_compatibility()
+
 	logger.info("Database schema ensured via init_db()")
 
 
@@ -297,6 +344,57 @@ def init_db() -> None:
 
 async def get_db() -> AsyncGenerator[AsyncSession, None]:
 	db_manager = get_db_manager()
+	# First try to ensure a long-lived async engine exists bound to the
+	# current event loop. Creating the global async engine here ensures
+	# subsequent DB work (connections/futures) are attached to the same
+	# loop used by request handlers and avoids "Future attached to a
+	# different loop" errors that appear when engines are created on
+	# other loops (e.g. TestClient internals).
+	if db_manager.async_engine is None:
+		logger.debug("get_db: async_engine is None; attempting to initialize global engines on current loop")
+		try:
+			# This will create both sync and async engines; async engine will
+			# be bound to the currently running event loop.
+			db_manager._initialize_engines()
+			if db_manager.async_engine is not None:
+				try:
+					await db_manager.init_database()
+				except Exception:
+					logger.exception("Failed to run async init_database after creating engines; continuing and letting request proceed if possible")
+			# Update legacy compatibility now that factories exist
+			_setup_legacy_compatibility()
+		except Exception as exc:  # pragma: no cover - defensive fallback
+			logger.exception("Failed to initialize global async engine inside get_db(): %s", exc)
+			# If global initialization failed, fall back to creating a
+			# request-scoped temporary async engine so the request can still
+			# proceed. This is rare but preserves functionality in constrained
+			# testing environments.
+			# Build async URL similar to manager._initialize_engines logic
+			db_url = db_manager.database_url
+			if not db_url:
+				raise RuntimeError("No DATABASE_URL configured")
+
+			if "postgresql+asyncpg://" in db_url or "postgresql://" in db_url:
+				async_url = db_url.replace("postgresql://", "postgresql+asyncpg://").replace("postgresql+psycopg://", "postgresql+asyncpg://")
+				raise RuntimeError("Unsupported DATABASE_URL. This deployment requires PostgreSQL.")
+
+			async_pool_settings = {k: v for k, v in db_manager.pool_settings.items() if k != "poolclass"}
+			try:
+				temp_engine = create_async_engine(async_url, echo=db_manager.settings.debug, future=True, **async_pool_settings)
+				temp_session_factory = async_sessionmaker(temp_engine, class_=AsyncSession, expire_on_commit=False)
+			except Exception as exc:  # pragma: no cover - surface creation failure
+				logger.exception("Failed to create temporary async engine as fallback: %s", exc)
+				raise
+
+			try:
+				async with temp_session_factory() as session:
+					yield session
+			finally:
+				try:
+					await temp_engine.dispose()
+				except Exception as dispose_exc:
+					logger.exception("Failed to dispose temporary async engine: %s", dispose_exc)
+
 	async with db_manager.get_session() as session:
 		yield session
 
@@ -313,6 +411,3 @@ def _setup_legacy_compatibility():
 	engine = db_manager.sync_engine
 	SessionLocal = db_manager.sync_session_factory
 	AsyncSessionLocal = db_manager.async_session_factory
-
-
-_setup_legacy_compatibility()

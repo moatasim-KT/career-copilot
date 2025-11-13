@@ -33,7 +33,7 @@ class LangSmithManager:
 	"""Manager for LangSmith tracing and monitoring."""
 
 	def __init__(self):
-		self.settings = get_settings()
+		self.settings = settings
 		self.client: Optional[LangSmithClient] = None
 		self.project_name = self.settings.langsmith_project
 		self.enabled = self.settings.langsmith_tracing and bool(self.settings.langsmith_api_key)

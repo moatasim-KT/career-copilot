@@ -1,11 +1,14 @@
 {
   "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@types/typescript": "^2.0.0",
     "openapi-typescript-codegen": "^0.29.0"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
     "framer-motion": "^12.23.24",
     "react-hook-form": "^7.66.0",
+    "typescript": "^5.9.3",
     "zod": "^4.1.12"
   }
 }

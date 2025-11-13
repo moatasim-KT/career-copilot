@@ -9,8 +9,8 @@ from app.config.validator import run_full_validation, log_validation_results
 
 
 def test_config_loading():
-	"""Test configuration loading and validation"""
-	settings = get_settings()
-	results = run_full_validation(settings)
-	all_valid = log_validation_results(results)
-	assert all_valid is True, "Some configuration validations failed"
+    """Test configuration loading and validation"""
+    settings = get_settings()
+    results = run_full_validation(settings)
+    all_valid = log_validation_results(results)
+    assert all_valid is True, "Some configuration validations failed"

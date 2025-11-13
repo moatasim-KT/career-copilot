@@ -1,7 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 
-import { apiClient } from '@/lib/api/api';
-import { queryKeys, getCacheConfig } from '@/lib/queryClient';
+import { JobsService } from '../lib/api/client';
 
 export interface UseJobsOptions {
   skip?: number;
@@ -11,17 +10,16 @@ export interface UseJobsOptions {
 
 export const useJobs = (options: UseJobsOptions = {}) => {
   const { skip = 0, limit = 100, enabled = true } = options;
-  
+
   return useQuery({
-    queryKey: queryKeys.jobs.list({ skip, limit }),
+    queryKey: ['jobs', { skip, limit }],
     queryFn: async () => {
-      const response = await apiClient.getJobs(skip, limit);
+      const response = await JobsService.list({ skip, limit });
       if (response.error) {
         throw new Error(response.error);
       }
       return response.data || [];
     },
     enabled,
-    ...getCacheConfig('JOBS'),
   });
 };

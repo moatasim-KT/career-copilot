@@ -27,7 +27,7 @@ class CareerResourceModel(Base):
 	type = Column(String(50), nullable=False, index=True)  # course, article, video, book, tool, certification
 	provider = Column(String(100), nullable=False)
 	url = Column(Text, nullable=False)
-	skills = Column(ARRAY(String), nullable=False, default=list)
+	skills = Column(String, nullable=False, default="[]")
 	difficulty = Column(String(50), nullable=False)  # beginner, intermediate, advanced
 	duration = Column(String(100))
 	price = Column(String(50), nullable=False)
@@ -35,9 +35,9 @@ class CareerResourceModel(Base):
 	base_relevance_score = Column(Integer, default=85)
 	image_url = Column(Text)
 	is_active = Column(Boolean, default=True, nullable=False)
-	tags = Column(ARRAY(String), default=list)
-	prerequisites = Column(ARRAY(String), default=list)
-	learning_outcomes = Column(ARRAY(String), default=list)
+	tags = Column(String, default="[]")
+	prerequisites = Column(String, default="[]")
+	learning_outcomes = Column(String, default="[]")
 
 	# Metadata
 	created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
@@ -149,7 +149,7 @@ class ResourceView(Base):
 
 	# Context
 	source = Column(String(100))  # where user found this resource: search, recommendation, bookmark
-	filters_used = Column(ARRAY(String))
+	filters_used = Column(String, default="[]")
 
 	# Timestamp
 	viewed_at = Column(DateTime, default=datetime.utcnow, nullable=False)
@@ -181,8 +181,8 @@ class LearningPath(Base):
 	estimated_duration_weeks = Column(Integer)
 
 	# Structure
-	resource_ids = Column(ARRAY(String), nullable=False)  # Ordered list of resource IDs
-	milestones = Column(ARRAY(String))  # Key milestones/checkpoints
+	resource_ids = Column(String, nullable=False, default="[]")  # Ordered list of resource IDs
+	milestones = Column(String, default="[]")  # Key milestones/checkpoints
 
 	# Metadata
 	is_active = Column(Boolean, default=True, nullable=False)
@@ -213,7 +213,7 @@ class LearningPathEnrollment(Base):
 
 	# Progress tracking
 	current_resource_index = Column(Integer, default=0)
-	completed_resource_ids = Column(ARRAY(String), default=list)
+	completed_resource_ids = Column(String, default="[]")
 	progress_percentage = Column(Integer, default=0)
 
 	# Status

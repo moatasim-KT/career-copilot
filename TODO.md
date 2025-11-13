@@ -1,217 +1,103 @@
-# TODO: Backend-Frontend Integration Tasks
+# TODO: Career Copilot Integrated Roadmap & Consolidation Implementation - Detailed Task List
 
-This document outlines the detailed tasks for implementing the backend-frontend integration, derived from `PLAN.md`.
+This document provides a detailed breakdown of tasks based on the approved `PLAN.md`.
 
-## General Implementation Guidelines
+## IMPORTANT: Foundational Work First!
+The following consolidation and build optimization phases (`Phase 0` and `Phase 0.5`) are foundational and must be completed before or in parallel with subsequent feature development phases. This approach ensures a stable, efficient, and maintainable platform for future work.
 
-- [ ] Before starting any implementation task, review existing code to avoid reimplementation. Leverage existing functionalities where possible.
-- [ ] When working with existing implementations, prioritize enhancement and improvement. Avoid unnecessary overhauls if the current implementation is functional.
-- [ ] Before modifying any file, check `git status` to ensure it is not actively being changed by another agent. If a file is actively changing, defer modifications until it stabilizes.
+## Phase 0: Critical Consolidation (Weeks 1-2)
+**Objective:** Reduce codebase complexity, improve maintainability, and establish single sources of truth.
 
-## Phase 1: Dependency Consolidation (Critical)
+### 0.1. Service Layer Consolidation ✅ COMPLETED
+- [x] `[consolidation]` `[backend]` Create service mapping document (document dependencies, responsibilities of existing services).
+- [x] `[consolidation]` `[backend]` Consolidate analytics services (re-architect; keep `analytics_service.py` primary; use facade; refactor/remove redundant implementations).
+- [x] `[consolidation]` `[backend]` Consolidate job management services (create unified `JobManagementSystem` class).
+- [x] `[consolidation]` `[backend]` Merge LLM services with plugin architecture (single provider-agnostic LLM service).
+- [x] `[consolidation]` `[backend]` Unify notification services (single, unified service with clear channel abstraction).
+- [x] `[consolidation]` `[backend]` Remove duplicate storage implementations (standardize on single approach).
+- [x] `[consolidation]` `[backend]` Update import statements across the codebase after service consolidation.
+- [x] `[consolidation]` `[backend]` Fix all remaining import issues (83/83 production services now import successfully; test files excluded).
 
-- [ ] **Audit `get_current_user` imports** [backend] [parallel]
-  - [ ] Search the entire backend codebase for all occurrences of `get_current_user`.
-  - [ ] Identify files importing from `app/dependencies.py` and `app/core/dependencies.py`.
-- [ ] **Standardize imports** [backend]
-  - [ ] Modify all imports to exclusively use `app.dependencies.get_current_user`.
-- [ ] **Remove duplicate implementation** [backend]
-  - [ ] Delete or deprecate `app.core.dependencies.get_current_user`.
-- [ ] **Add integration tests** [test]
-  - [ ] Create new tests or extend existing ones to verify that `get_current_user` consistently returns the same mock user across various endpoints when authentication is disabled.
+### 0.2. API Route Cleanup
+- [] `[consolidation]` `[backend]` Audit all API endpoints for duplication (across analytics and notifications routes).
+- [] `[consolidation]` `[backend]` Merge analytics routes into a single, unified `analytics.py` file.
+- [] `[consolidation]` `[backend]` Consolidate notification routes (unify, ensure proper versioning).
+- [] `[consolidation]` `[backend]` Remove deprecated route versions.
+- [] `[consolidation]` `[backend]` Update OpenAPI documentation after route consolidation.
 
-## Phase 2: Endpoint Testing Framework Enhancements
+## Phase 0.5: Build Optimization (Week 3)
+**Objective:** Significantly reduce frontend build times and bundle size, improving developer productivity and user experience.
 
-- [ ] **Create test report generator** [backend] [test]
-  - [ ] Develop a module to generate HTML test reports.
-  - [ ] Ensure reports include pass/fail status, response times, and detailed error messages.
-  - [ ] Implement functionality to categorize results by endpoint type.
-  - [ ] Add options to export reports to JSON and CSV formats.
+### 0.5.1 Bundle Size Reduction
+- [ ] `[optimization]` `[frontend]` Disable bundle analyzer in CI builds (`@next/bundle-analyzer` configuration).
+- [ ] `[optimization]` `[frontend]` Optimize Sentry source map uploads (review `widenClientFileUpload`).
+- [ ] `[optimization]` `[frontend]` Implement code splitting for large components (lazy loading).
+- [ ] `[optimization]` `[frontend]` Remove unused dependencies (audit `package.json`).
+- [ ] `[optimization]` `[frontend]` Configure proper tree-shaking (Webpack/Next.js configuration).
 
-## Phase 3: Missing Backend Implementations
+### 0.5.2 Webpack Configuration Cleanup
+- [ ] `[optimization]` `[frontend]` Review and optimize Webpack plugins.
+- [ ] `[optimization]` `[frontend]` Implement conditional bundle analysis.
+- [ ] `[optimization]` `[frontend]` Configure proper caching strategies for faster incremental builds.
+- [ ] `[optimization]` `[frontend]` Optimize CSS processing (PostCSS/TailwindCSS).
 
-### 3.1 Data Export Functionality
+## Phase 1: Critical Priority Tasks (Immediate - Next 1-2 weeks - *After Consolidation*)
+**Objective:** Address high-priority security vulnerabilities and implement core backend functionalities.
 
-- [ ] **Implement JSON export** [backend]
-  - [ ] Develop a JSON formatter for jobs and applications.
-  - [ ] Integrate filtering and field selection capabilities.
-  - [ ] Add pagination support for large datasets.
-- [ ] **Implement CSV export** [backend]
-  - [ ] Develop a CSV formatter for jobs and applications.
-  - [ ] Handle nested data structures (e.g., `tech_stack`, `interview_feedback`).
-  - [ ] Ensure proper escaping and encoding.
-- [ ] **Implement PDF export** [backend]
-  - [ ] Integrate a PDF generation library (e.g., ReportLab).
-  - [ ] Design professional PDF templates for jobs and applications.
-  - [ ] Include charts and visualizations if applicable.
-- [ ] **Implement full backup export** [backend]
-  - [ ] Create an endpoint to export all user data (jobs, applications, profile, settings).
-  - [ ] Generate a compressed archive (e.g., ZIP) containing all data.
+### 1.1. Security & Credentials
+- [ ] `[security]` `[backend]` Replace hardcoded placeholder tokens/passwords with environment variables (or secure secrets management).
+- [ ] `[docs]` Update `.env.example` to accurately reflect all necessary environment variables.
+- [ ] `[security]` `[backend]` Ensure application correctly loads and uses credentials from environment variables securely.
+- [ ] `[security]` `[backend]` Update security scanning configurations (e.g., Bandit) to prevent flagging valid environment variable usage.
 
-### 3.2 Data Import Functionality
+### 1.2. Core Backend Functionality
+- [ ] `[backend]` `[api]` `[service]` Implement Data Export (JSON, CSV) for jobs and applications (using consolidated services).
+- [ ] `[backend]` `[api]` `[service]` Implement Data Import (CSV) for jobs and applications, including validation (using consolidated services).
+- [ ] `[backend]` `[api]` `[service]` Implement Bulk Operations (create, update, delete) for jobs and applications (using consolidated services).
+- [ ] `[backend]` `[api]` Fix critical API placeholders in `advanced_user_analytics.py` and `database_performance.py` with actual functionality.
+- [ ] `[backend]` `[api]` `[security]` Implement admin permission check in `job_ingestion.py` (RBAC).
+- [ ] `[backend]` `[database]` Refactor `FeedbackService` to use async queries.
+- [ ] `[backend]` `[api]` Define and add missing Pydantic schemas in `resume.py`.
 
-- [ ] **Implement job import** [backend]
-  - [ ] Develop logic to parse CSV files containing job data.
-  - [ ] Implement validation for required fields and data types.
-  - [ ] Handle parsing of `tech_stack` arrays.
-  - [ ] Implement bulk insertion of validated jobs using database transactions.
-  - [ ] Return an import summary with success/failure counts and error details.
-- [ ] **Implement application import** [backend]
-  - [ ] Develop logic to parse CSV files containing application data.
-  - [ ] Implement validation for status values and dates.
-  - [ ] Implement linking applications to existing jobs.
-  - [ ] Implement bulk insertion of validated applications using database transactions.
-  - [ ] Return an import summary with success/failure counts and error details.
+## Phase 2: High Priority Tasks (Next 2-4 weeks - *After Consolidation*)
+**Objective:** Connect the frontend to the new backend features and implement real-time notifications.
 
-### 3.3 Bulk Operations
+### 2.1. Frontend-Backend Integration
+- [ ] `[frontend]` `[api]` Update API client `frontend/src/lib/api/api.ts` for new backend endpoints (considering consolidated backend APIs).
+- [ ] `[frontend]` Replace placeholder logic in frontend hooks (e.g., `useAddJob.ts`, `useDeleteApplication.ts`) with actual API client calls.
+- [ ] `[frontend]` `[auth]` Implement global logout/re-authentication flow.
 
-- [ ] **Implement bulk create operations** [backend]
-  - [ ] Create endpoints for bulk job creation.
-  - [ ] Create endpoints for bulk application creation.
-  - [ ] Ensure database transactions for atomicity.
-  - [ ] Return detailed results including created IDs.
-- [ ] **Implement bulk update operations** [backend]
-  - [ ] Create endpoints for bulk job updates.
-  - [ ] Create endpoints for bulk application updates.
-  - [ ] Implement validation for all updates before applying.
-  - [ ] Return updated IDs and error details.
-- [ ] **Implement bulk delete operations** [backend]
-  - [ ] Create endpoints for bulk job deletion.
-  - [ ] Create endpoints for bulk application deletion.
-  - [ ] Implement a soft delete option.
-  - [ ] Return deleted IDs and error details.
+### 2.2. Notification System
+- **Backend Implementation** `[parallel]`
+  - [ ] `[backend]` `[database]` Define `Notification` and `NotificationPreferences` SQLAlchemy models.
+  - [ ] `[backend]` `[service]` Create CRUD service (`notification_service.py`) and REST API endpoints (`notifications.py`).
+  - [ ] `[backend]` `[websocket]` Implement WebSocket manager and endpoint (`backend/app/websocket/`).
+- **Frontend Implementation** `[parallel]`
+  - [ ] `[frontend]` `[websocket]` Implement WebSocket client (`frontend/src/lib/`).
+  - [ ] `[frontend]` `[ui]` Update `Layout.tsx` for real-time notifications and badges.
 
-### 3.4 Enhanced Search and Filtering
+## Phase 3: Medium Priority Tasks (Next 1-2 months)
+**Objective:** Enhance analytics, improve application performance, and strengthen error handling/monitoring.
 
-- [ ] **Optimize search performance** [backend] [database]
-  - [ ] Add database indexes for frequently searched fields.
-  - [ ] Implement query result caching (e.g., using Redis).
-  - [ ] Implement pagination with cursor-based navigation.
-  - [ ] Ensure sub-second response times for search queries.
+### 3.1. Analytics and Performance
+- [ ] `[backend]` `[service]` Implement detailed analytics calculations (trends, skill gaps) in `analytics_service.py`.
+- [ ] `[backend]` `[database]` Add appropriate indexes to performance-critical database queries.
+- [ ] `[backend]` `[cache]` Integrate and configure Redis for caching frequently accessed data.
 
-### 3.5 Notification Management System
+### 3.2. Error Handling & Monitoring
+- [ ] `[backend]` Implement global exception handlers (centralized error logging and responses).
+- [ ] `[frontend]` `[monitoring]` Integrate a third-party monitoring service (e.g., Sentry) in `frontend/src/lib/logger.ts` and the backend.
 
-- [ ] **Create notification data models** [backend] [database]
-  - [ ] Define SQLAlchemy models for `Notification` and `NotificationPreferences`.
-  - [ ] Create Pydantic schemas for request and response bodies.
-  - [ ] Generate a database migration for new notification tables.
-- [ ] **Implement notification CRUD endpoints** [backend]
-  - [ ] Create an endpoint to retrieve notifications with filtering options.
-  - [ ] Implement endpoints to mark notifications as read/unread.
-  - [ ] Implement an endpoint to mark all notifications as read.
-  - [ ] Create an endpoint to delete individual notifications.
-  - [ ] Implement an endpoint for bulk deletion of notifications.
-- [ ] **Implement notification preferences** [backend]
-  - [ ] Create an endpoint to retrieve user notification preferences.
-  - [ ] Create an endpoint to update user notification preferences (e.g., email, push, in-app settings, per-event-type configuration).
-- [ ] **Create notification generation system** [backend]
-  - [ ] Implement logic to generate notifications on job status changes.
-  - [ ] Implement logic for application updates.
-  - [ ] Implement logic for interview reminders.
-  - [ ] Implement logic for new job matches.
+## Phase 4: Low Priority & Ongoing Tasks (Future Releases)
+**Objective:** Implement advanced user features, ensure code quality through comprehensive testing, and maintain up-to-date documentation.
 
-### 3.6 WebSocket Real-time Updates
+### 4.1. Advanced Features & Testing
+- [ ] `[frontend]` `[ui]` Integrate `LazyRichTextEditor` component.
+- [ ] `[frontend]` Implement job benchmarking feature.
+- [ ] `[test]` Write unit and integration tests for all newly implemented features (frontend and backend).
+- [ ] `[test]` `[frontend]` Fix MSW setup in `Auth.test.tsx` for reliable authentication testing.
 
-- [ ] **Set up WebSocket infrastructure** [backend]
-  - [ ] Configure WebSocket support within FastAPI.
-  - [ ] Develop a connection manager to handle active WebSocket connections.
-  - [ ] Implement user authentication for WebSocket connections.
-- [ ] **Implement notification WebSocket endpoint** [backend]
-  - [ ] Create a `/ws/notifications` WebSocket endpoint.
-  - [ ] Handle the full connection lifecycle (connect, disconnect, reconnect).
-  - [ ] Implement heartbeat/ping-pong mechanisms for connection health.
-- [ ] **Integrate WebSocket with notification system** [backend]
-  - [ ] Send real-time notifications through the WebSocket connection.
-  - [ ] Implement notification broadcasting to relevant users.
-  - [ ] Handle offline users by queuing notifications for later delivery.
-
-### 3.7 Analytics Enhancements
-
-- [ ] **Implement comprehensive analytics summary** [backend]
-  - [ ] Calculate application counts by status.
-  - [ ] Compute interview and offer rates, and acceptance rate.
-  - [ ] Analyze daily/weekly/monthly application trends.
-  - [ ] Identify top skills in jobs and top companies applied to.
-- [ ] **Implement trend analysis** [backend]
-  - [ ] Calculate trend direction (up, down, neutral) and percentage changes.
-  - [ ] Support custom time ranges for trend analysis.
-- [ ] **Implement skill gap analysis** [backend]
-  - [ ] Compare user skills with market demand.
-  - [ ] Identify missing skills and calculate skill coverage percentage.
-  - [ ] Generate skill recommendations.
-- [ ] **Optimize analytics performance** [backend] [database]
-  - [ ] Implement result caching with a 5-minute TTL.
-  - [ ] Add database indexes for analytics queries.
-  - [ ] Utilize aggregation queries for efficiency.
-  - [ ] Ensure sub-3-second response times for analytics queries.
-
-## Phase 4: Comprehensive Error Handling
-
-- [ ] **Create error response models** [backend]
-  - [ ] Define a standardized `ErrorResponse` Pydantic model including `request_id`, `timestamp`, and `field_errors`.
-- [ ] **Add global exception handlers** [backend]
-  - [ ] Implement handlers for validation errors (400, 422).
-  - [ ] Implement handlers for not found errors (404).
-  - [ ] Implement handlers for database errors (500).
-  - [ ] Implement a catch-all handler for unexpected exceptions.
-- [ ] **Enhance error logging** [backend]
-  - [ ] Ensure all errors are logged with full context, including `request_id`, user, and endpoint information.
-  - [ ] Implement structured logging.
-- [ ] **Improve error messages** [backend]
-  - [ ] Provide clear, actionable error messages to the frontend.
-  - [ ] Include field names in validation errors.
-  - [ ] Avoid exposing sensitive information in production.
-  - [ ] Add error codes for programmatic handling.
-
-## Phase 5: Performance Optimizations
-
-- [ ] **Add database indexes** [database] [parallel]
-  - [ ] Create indexes on frequently queried fields.
-  - [ ] Add composite indexes for common filter combinations.
-  - [ ] Index foreign keys for join performance.
-- [ ] **Implement caching layer** [backend] [parallel]
-  - [ ] Set up Redis for distributed caching.
-  - [ ] Cache analytics results (5-minute TTL), user profiles (1-hour TTL), and job listings (15-minute TTL).
-  - [ ] Implement cache invalidation on updates.
-- [ ] **Optimize database queries** [backend] [parallel]
-  - [ ] Use `select_related` for eager loading to reduce N+1 queries.
-  - [ ] Implement query result pagination.
-  - [ ] Add query performance logging.
-- [ ] **Implement connection pooling** [backend] [parallel]
-  - [ ] Configure the database connection pool with appropriate size limits.
-  - [ ] Monitor connection pool usage.
-
-## Phase 6: Comprehensive Testing
-
-- [ ] **Write unit tests for new endpoints** [test]
-  - [ ] Cover all new export, import, bulk operation, search, and notification CRUD functionalities.
-- [ ] **Write integration tests** [test]
-  - [ ] Test complete export-import workflows.
-  - [ ] Test WebSocket connections and real-time messaging.
-  - [ ] Test notification generation and delivery.
-  - [ ] Test analytics calculation accuracy.
-- [ ] **Write end-to-end tests** [test]
-  - [ ] Cover complete user workflows involving new features (e.g., job creation -> application -> export; import -> search -> filter -> apply; notification flow).
-- [ ] **Implement performance tests** [test]
-  - [ ] Conduct tests for 100 concurrent requests.
-  - [ ] Test large dataset queries (10,000+ records).
-  - [ ] Test bulk operations with 1,000+ records.
-  - [ ] Test WebSocket with 100+ connections.
-  - [ ] Verify all response time requirements are met.
-
-## Phase 7: Documentation and Deployment
-
-- [ ] **Update API documentation** [documentation]
-  - [ ] Document all new endpoints with examples.
-  - [ ] Update the OpenAPI schema.
-  - [ ] Add usage examples for export/import.
-  - [ ] Document the WebSocket protocol.
-- [ ] **Create deployment guide** [documentation]
-  - [ ] Document environment variables.
-  - [ ] Add database migration instructions.
-  - [ ] Document Redis setup for caching.
-  - [ ] Add monitoring setup instructions.
-- [ ] **Update frontend documentation** [documentation]
-  - [ ] Document new API client methods.
-  - [ ] Add examples for new features.
-  - [ ] Update the integration guide.
+### 4.2. Documentation
+- [ ] `[docs]` Update API documentation (new and consolidated endpoints).
+- [ ] `[docs]` Update user and developer guides (new features, consolidated architectures).
+- [ ] `[docs]` Document new environment variables and deployment steps.

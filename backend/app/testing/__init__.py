@@ -5,16 +5,19 @@ This module provides comprehensive tools for discovering, testing, and validatin
 all FastAPI endpoints in the Career Copilot application.
 """
 
-from .endpoint_discovery import EndpointDiscovery, EndpointInfo, ParameterInfo
-from .endpoint_tester import EndpointTester, TestResult, ValidationResult
-from .test_data_generator import TestDataGenerator
+from .endpoint_discovery import EndpointDiscovery, EndpointInfo, ParameterInfo, ParameterLocation
+from .endpoint_tester import EndpointTester, TestResult, ValidationResult, TestStatus
+from .test_data_generator import TestDataGenerator, TestDataType
 
 __all__ = [
     "EndpointDiscovery",
     "EndpointInfo",
     "ParameterInfo",
+    "ParameterLocation",
     "EndpointTester",
     "TestResult",
     "ValidationResult",
+    "TestStatus",
     "TestDataGenerator",
+    "TestDataType",
 ]

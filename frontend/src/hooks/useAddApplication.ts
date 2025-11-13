@@ -1,15 +1,11 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
-// Placeholder for API client
-const addApplication = async (newApplication: any) => {
-  // Replace with actual API call
-  return { id: String(Date.now()), ...newApplication };
-};
+import { ApplicationsService } from '../lib/api/client';
 
 export const useAddApplication = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: addApplication,
+    mutationFn: ApplicationsService.create,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['applications'] });
     },

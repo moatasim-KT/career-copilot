@@ -21,6 +21,7 @@ from app.api.v1 import (
 	health,
 	jobs,
 	notifications,
+	notifications_v2,
 	oauth,
 	offline,
 	personalization,
@@ -33,8 +34,8 @@ from app.api.v1 import (
 	skill_matching,
 	social,
 	tasks,
+	test_reports,
 )
-from app.api.v1 import notifications_v2
 
 api_router = APIRouter()
 
@@ -60,14 +61,13 @@ api_router.include_router(applications.router, prefix="/applications", tags=["ap
 # Include profile management routes
 api_router.include_router(profile.router, prefix="/profile", tags=["profile"])
 
-# Include notification routes (legacy)
-api_router.include_router(notifications.router, tags=["notifications-legacy"])
-
-# Include new notification routes with full CRUD
+# Legacy notification routes were removed from the main router to avoid
+# duplicate endpoints. Keep the newer v2 notification router registered
+# under the /api/v1 prefix which provides the full CRUD functionality.
 api_router.include_router(notifications_v2.router, prefix="/api/v1", tags=["notifications"])
 
 # Include analytics routes
-api_router.include_router(analytics.router, prefix="/analytics", tags=["analytics"])
+api_router.include_router(analytics.router, prefix="/api/v1/analytics", tags=["analytics"])
 
 # Include recommendation routes
 api_router.include_router(recommendations.router, prefix="/recommendations", tags=["recommendations"])
@@ -101,6 +101,9 @@ api_router.include_router(goals.router, prefix="/goals", tags=["goals"])
 
 # Include cache management routes
 api_router.include_router(cache.router, prefix="/cache", tags=["cache"])
+
+# Test report endpoints (generate/download test reports)
+api_router.include_router(test_reports.router, prefix="/test-reports", tags=["test-reports"])
 
 # Include export routes
 api_router.include_router(export.router, prefix="/export", tags=["export"])

@@ -11,7 +11,7 @@ from sqlalchemy import select
 from pydantic import BaseModel, Field
 
 from app.core.database import get_db
-from app.core.dependencies import get_current_user, get_admin_user
+from app.dependencies import get_current_user, get_admin_user
 from app.models.user import User
 from app.services.feedback_analysis_service import FeedbackAnalysisService
 from app.services.job_recommendation_service import JobRecommendationService

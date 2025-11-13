@@ -7,23 +7,23 @@ import asyncio
 import time
 import uuid
 from dataclasses import dataclass
-from enum import Enum
-from typing import Any, Dict, List, Optional, Union, AsyncGenerator
 from datetime import datetime, timedelta
+from enum import Enum
+from typing import Any, AsyncGenerator, Dict, List, Optional, Union
 
 from langchain_anthropic import ChatAnthropic
-from langchain_openai import ChatOpenAI
 from langchain_core.messages import BaseMessage, HumanMessage, SystemMessage
+from langchain_openai import ChatOpenAI
 
 from ..core.config import get_settings
-from ..core.logging import get_logger
-from .cache_service import get_cache_service
-from ..core.task_complexity import TaskComplexity, get_complexity_analyzer
 from ..core.cost_tracker import CostCategory, get_cost_tracker
-from ..monitoring.metrics_collector import get_metrics_collector
+from ..core.logging import get_logger
 from ..core.monitoring import get_performance_metrics_collector
-from ..core.streaming_manager import get_streaming_manager, StreamingMode, StreamingChunk
-from ..core.token_optimizer import get_token_optimizer, TokenBudget, OptimizationStrategy
+from ..core.streaming_manager import StreamingChunk, StreamingMode, get_streaming_manager
+from ..core.task_complexity import TaskComplexity, get_complexity_analyzer
+from ..core.token_optimizer import OptimizationStrategy, TokenBudget, get_token_optimizer
+from ..monitoring.metrics_collector import get_metrics_collector
+from .cache_service import get_cache_service
 
 logger = get_logger(__name__)
 settings = get_settings()
@@ -614,58 +614,111 @@ class LLMService:
 		raise Exception("All models failed for streaming request")
 
 	async def _create_llm_instance(self, model_config: ModelConfig):
+		"""Create LLM instance using the appropriate service plugin."""
+		from ..core.service_integration import ServiceConfig
+		from .llm_service_plugin import GroqServicePlugin, OllamaServicePlugin, OpenAIServicePlugin
+
+		# Get or create the appropriate plugin
 		if model_config.provider == ModelProvider.OPENAI:
-			return ChatOpenAI(
-				model=model_config.model_name,
-				temperature=model_config.temperature,
-				max_tokens=model_config.max_tokens,
-				api_key=settings.openai_api_key.get_secret_value(),
-			)
+			if not hasattr(self, "_openai_plugin") or self._openai_plugin is None:
+				config = ServiceConfig(service_id="openai", service_type="ai_provider", config={"api_key": settings.openai_api_key})
+				self._openai_plugin = OpenAIServicePlugin(config)
+				await self._openai_plugin.start()
+			return self._openai_plugin
+
 		elif model_config.provider == ModelProvider.ANTHROPIC:
+			# Keep LangChain for Anthropic for now
 			return ChatAnthropic(
 				model=model_config.model_name,
 				temperature=model_config.temperature,
 				max_tokens=model_config.max_tokens,
 				api_key=settings.anthropic_api_key,
 			)
+
 		elif model_config.provider == ModelProvider.GROQ:
-			# Assuming Groq uses OpenAI's client
-			return ChatOpenAI(
-				model=model_config.model_name,
-				temperature=model_config.temperature,
-				max_tokens=model_config.max_tokens,
-				api_key=settings.groq_api_key.get_secret_value(),
-				base_url="https://api.groq.com/openai/v1",
-			)
+			if not hasattr(self, "_groq_plugin") or self._groq_plugin is None:
+				config = ServiceConfig(service_id="groq", service_type="ai_provider", config={"api_key": settings.groq_api_key})
+				self._groq_plugin = GroqServicePlugin(config)
+				await self._groq_plugin.start()
+			return self._groq_plugin
+
+		elif model_config.provider == ModelProvider.LOCAL:
+			if not hasattr(self, "_ollama_plugin") or self._ollama_plugin is None:
+				config = ServiceConfig(service_id="ollama", service_type="ai_provider", config={"base_url": "http://localhost:11434"})
+				self._ollama_plugin = OllamaServicePlugin(config)
+				await self._ollama_plugin.start()
+			return self._ollama_plugin
+
 		raise ValueError(f"Unsupported provider: {model_config.provider}")
 
 	async def _call_model_with_performance_tracking(
 		self, model_config, messages, task_complexity, cost_category, user_id, session_id, request_context, optimization_result
 	):
-		# This is a simplified version of the original method
-		llm = await self._create_llm_instance(model_config)
-		start_time = time.time()
-		response = await llm.ainvoke(messages)
-		processing_time = time.time() - start_time
+		"""Call model with performance tracking using plugin architecture."""
+		llm_plugin = await self._create_llm_instance(model_config)
 
-		token_usage = self._extract_token_usage(response)
-		cost = token_usage.get("total_tokens", 0) * model_config.cost_per_token
-		confidence_score = self._calculate_confidence(response, model_config)
+		# Convert LangChain messages to dict format for plugins
+		messages_dict = []
+		for msg in messages:
+			if hasattr(msg, "type") and hasattr(msg, "content"):
+				messages_dict.append({"role": msg.type, "content": msg.content})
+			else:
+				messages_dict.append(msg)
 
-		# Simplified AIResponse creation
-		return AIResponse(
-			content=response.content,
-			model_used=model_config.model_name,
-			provider=model_config.provider,
-			confidence_score=confidence_score,
-			processing_time=processing_time,
-			token_usage=token_usage,
-			cost=cost,
-			complexity_used=task_complexity,
-			cost_category=cost_category,
-			budget_impact={},
-			metadata={},
-		)
+		# Prepare kwargs for the plugin
+		kwargs = {
+			"temperature": model_config.temperature,
+			"max_tokens": model_config.max_tokens,
+		}
+
+		# Handle Anthropic separately (still uses LangChain)
+		if model_config.provider == ModelProvider.ANTHROPIC:
+			start_time = time.time()
+			response = await llm_plugin.ainvoke(messages)
+			processing_time = time.time() - start_time
+
+			token_usage = self._extract_token_usage(response)
+			cost = token_usage.get("total_tokens", 0) * model_config.cost_per_token
+			confidence_score = self._calculate_confidence(response, model_config)
+
+			return AIResponse(
+				content=response.content,
+				model_used=model_config.model_name,
+				provider=model_config.provider.value,
+				token_usage=token_usage,
+				cost=cost,
+				confidence_score=confidence_score,
+				processing_time=processing_time,
+				task_complexity=task_complexity,
+				cost_category=cost_category,
+				user_id=user_id,
+				session_id=session_id,
+				request_context=request_context,
+				optimization_result=optimization_result,
+			)
+		else:
+			# Use plugin generate_completion method
+			result = await llm_plugin.generate_completion(messages=messages_dict, model=model_config.model_name, **kwargs)
+
+			token_usage = result.get("usage", {})
+			cost = token_usage.get("total_tokens", 0) * model_config.cost_per_token
+			confidence_score = self._calculate_confidence_from_content(result.get("content", ""), model_config)
+
+			return AIResponse(
+				content=result["content"],
+				model_used=result.get("model", model_config.model_name),
+				provider=model_config.provider.value,
+				token_usage=token_usage,
+				cost=cost,
+				confidence_score=confidence_score,
+				processing_time=result.get("response_time", 0),
+				task_complexity=task_complexity,
+				cost_category=cost_category,
+				user_id=user_id,
+				session_id=session_id,
+				request_context=request_context,
+				optimization_result=optimization_result,
+			)
 
 	def _extract_token_usage(self, response) -> Dict[str, int]:
 		if hasattr(response, "response_metadata") and "token_usage" in response.response_metadata:
@@ -680,6 +733,20 @@ class LLMService:
 	def _calculate_confidence(self, response, model_config: ModelConfig) -> float:
 		# Simplified confidence logic
 		return 0.9 if "gpt-4" in model_config.model_name or "claude-3" in model_config.model_name else 0.75
+
+	def _calculate_confidence_from_content(self, content: str, model_config: ModelConfig) -> float:
+		"""Calculate confidence score from response content."""
+		# Simplified confidence logic based on content length and model
+		base_confidence = 0.9 if "gpt-4" in model_config.model_name or "claude-3" in model_config.model_name else 0.75
+
+		# Adjust based on content length (longer responses might be more confident)
+		content_length = len(content.strip())
+		if content_length > 500:
+			base_confidence += 0.05
+		elif content_length < 50:
+			base_confidence -= 0.1
+
+		return min(1.0, max(0.1, base_confidence))
 
 	def get_service_health(self) -> Dict[str, Dict[str, Any]]:
 		"""

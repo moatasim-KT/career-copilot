@@ -3,21 +3,22 @@ Scheduled Analytics Reports Service
 Generates and sends automated analytics reports via email
 """
 
-from datetime import datetime
-from typing import Dict, List, Any
-from sqlalchemy.orm import Session
 import json
 import logging
-from email.mime.text import MIMEText
-from email.mime.multipart import MIMEMultipart
-from email.mime.base import MIMEBase
-from email import encoders
 import smtplib
+from datetime import datetime
+from email import encoders
+from email.mime.base import MIMEBase
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
+from typing import Any, Dict, List
 
-from app.models.user import User
-from app.services.advanced_user_analytics_service import advanced_user_analytics_service
-from app.services.market_analysis_service import market_analysis_service
+from sqlalchemy.orm import Session
+
 from app.core.config import get_settings
+from app.models.user import User
+from app.services.analytics_service_facade import AnalyticsServiceFacade
+from app.services.market_analysis_service import market_analysis_service
 
 logger = logging.getLogger(__name__)
 settings = get_settings()
@@ -42,13 +43,10 @@ class ScheduledAnalyticsReportsService:
 			if not user:
 				return {"error": "User not found"}
 
-			# Get analytics data for the past week
-			success_rates = advanced_user_analytics_service.calculate_detailed_success_rates(db, user_id, days=7)
-
-			conversion_funnel = advanced_user_analytics_service.analyze_conversion_funnel(db, user_id, days=7)
-
-			benchmarks = advanced_user_analytics_service.generate_performance_benchmarks(db, user_id, days=7)
-
+			# Get analytics data using the consolidated facade
+			facade = AnalyticsServiceFacade(db)
+			user_analytics = facade.get_user_analytics(user_id)
+			user_insights = facade.get_user_insights(user_id, days=7)
 			market_analysis = market_analysis_service.analyze_job_market_patterns(db, user_id, days=7)
 
 			# Create report structure
@@ -58,16 +56,15 @@ class ScheduledAnalyticsReportsService:
 				"user_id": user_id,
 				"username": user.username,
 				"period": "Last 7 days",
-				"summary": self._create_weekly_summary(success_rates, conversion_funnel, benchmarks),
+				"summary": self._create_weekly_summary(user_analytics, user_insights),
 				"detailed_analytics": {
-					"success_rates": success_rates,
-					"conversion_funnel": conversion_funnel,
-					"performance_benchmarks": benchmarks,
+					"user_analytics": user_analytics,
+					"user_insights": user_insights,
 					"market_analysis": market_analysis,
 				},
-				"key_insights": self._generate_weekly_insights(success_rates, benchmarks, market_analysis),
-				"recommendations": self._generate_weekly_recommendations(success_rates, benchmarks),
-				"next_week_goals": self._suggest_next_week_goals(success_rates, benchmarks),
+				"key_insights": self._generate_weekly_insights(user_insights, market_analysis),
+				"recommendations": self._generate_weekly_recommendations(user_insights),
+				"next_week_goals": self._suggest_next_week_goals(user_insights),
 			}
 
 			return report
@@ -83,15 +80,10 @@ class ScheduledAnalyticsReportsService:
 			if not user:
 				return {"error": "User not found"}
 
-			# Get analytics data for the past month
-			success_rates = advanced_user_analytics_service.calculate_detailed_success_rates(db, user_id, days=30)
-
-			conversion_funnel = advanced_user_analytics_service.analyze_conversion_funnel(db, user_id, days=30)
-
-			benchmarks = advanced_user_analytics_service.generate_performance_benchmarks(db, user_id, days=30)
-
-			predictive = advanced_user_analytics_service.create_predictive_analytics(db, user_id, days=30)
-
+			# Get analytics data using the consolidated facade
+			facade = AnalyticsServiceFacade(db)
+			user_analytics = facade.get_user_analytics(user_id)
+			user_insights = facade.get_user_insights(user_id, days=30)
 			market_dashboard = market_analysis_service.create_market_dashboard_data(db, user_id)
 
 			# Create comprehensive monthly report
@@ -101,16 +93,14 @@ class ScheduledAnalyticsReportsService:
 				"user_id": user_id,
 				"username": user.username,
 				"period": "Last 30 days",
-				"executive_summary": self._create_monthly_executive_summary(success_rates, benchmarks, predictive, market_dashboard),
+				"executive_summary": self._create_monthly_executive_summary(user_analytics, user_insights, market_dashboard),
 				"detailed_analytics": {
-					"success_rates": success_rates,
-					"conversion_funnel": conversion_funnel,
-					"performance_benchmarks": benchmarks,
-					"predictive_analytics": predictive,
+					"user_analytics": user_analytics,
+					"user_insights": user_insights,
 					"market_dashboard": market_dashboard,
 				},
-				"trends_analysis": self._analyze_monthly_trends(success_rates),
-				"competitive_position": self._analyze_competitive_position(benchmarks),
+				"trends_analysis": self._analyze_monthly_trends(user_analytics),
+				"competitive_position": self._analyze_competitive_position(user_insights),
 				"market_insights": market_dashboard.get("market_patterns", {}).get("market_insights", []),
 				"strategic_recommendations": self._generate_strategic_recommendations(benchmarks, predictive, market_dashboard),
 				"next_month_strategy": self._create_next_month_strategy(predictive, benchmarks),
@@ -244,31 +234,31 @@ class ScheduledAnalyticsReportsService:
 
 	# Helper methods
 
-	def _create_weekly_summary(self, success_rates: Dict, conversion_funnel: Dict, benchmarks: Dict) -> Dict[str, Any]:
+	def _create_weekly_summary(self, user_analytics: Dict, user_insights: Dict) -> Dict[str, Any]:
 		"""Create weekly summary from analytics data"""
-		if "error" in success_rates:
+		if "error" in user_analytics:
 			return {"error": "Insufficient data for weekly summary"}
 
 		return {
-			"applications_submitted": success_rates.get("total_applications", 0),
-			"interview_rate": success_rates.get("success_rates", {}).get("application_to_interview", 0),
-			"success_rate": success_rates.get("success_rates", {}).get("overall_success", 0),
-			"performance_score": benchmarks.get("overall_performance_score", 0),
-			"market_position": benchmarks.get("market_position", "average"),
-			"trend_direction": success_rates.get("trends", {}).get("trend_direction", "stable"),
+			"applications_submitted": user_analytics.get("total_applications", 0),
+			"interview_rate": user_insights.get("interview_rate", 0),
+			"success_rate": user_insights.get("success_rate", 0),
+			"performance_score": user_insights.get("performance_score", 0),
+			"market_position": user_insights.get("market_position", "average"),
+			"trend_direction": user_insights.get("trend_direction", "stable"),
 		}
 
-	def _create_monthly_executive_summary(self, success_rates: Dict, benchmarks: Dict, predictive: Dict, market_dashboard: Dict) -> Dict[str, Any]:
+	def _create_monthly_executive_summary(self, user_analytics: Dict, user_insights: Dict, market_dashboard: Dict) -> Dict[str, Any]:
 		"""Create monthly executive summary"""
-		if "error" in success_rates:
+		if "error" in user_analytics:
 			return {"error": "Insufficient data for monthly summary"}
 
 		return {
-			"total_applications": success_rates.get("total_applications", 0),
-			"overall_success_rate": success_rates.get("success_rates", {}).get("overall_success", 0),
-			"interview_conversion_rate": success_rates.get("success_rates", {}).get("application_to_interview", 0),
-			"offer_conversion_rate": success_rates.get("success_rates", {}).get("interview_to_offer", 0),
-			"performance_score": benchmarks.get("overall_performance_score", 0),
+			"total_applications": user_analytics.get("total_applications", 0),
+			"overall_success_rate": user_insights.get("success_rate", 0),
+			"interview_conversion_rate": user_insights.get("interview_rate", 0),
+			"offer_conversion_rate": user_insights.get("offer_rate", 0),
+			"performance_score": user_insights.get("performance_score", 0),
 			"market_position": benchmarks.get("market_position", "average"),
 			"success_probability": predictive.get("predictive_analytics", {}).get("success_probability", 0),
 			"estimated_time_to_offer": predictive.get("predictive_analytics", {}).get("estimated_time_to_offer", 0),
@@ -276,7 +266,7 @@ class ScheduledAnalyticsReportsService:
 			"active_opportunities": market_dashboard.get("summary", {}).get("active_alerts", 0),
 		}
 
-	def _generate_weekly_insights(self, success_rates: Dict, benchmarks: Dict, market_analysis: Dict) -> List[str]:
+	def _generate_weekly_insights(self, user_insights: Dict, market_analysis: Dict) -> List[str]:
 		"""Generate weekly insights"""
 		insights = []
 
@@ -300,7 +290,7 @@ class ScheduledAnalyticsReportsService:
 
 		return insights
 
-	def _generate_weekly_recommendations(self, success_rates: Dict, benchmarks: Dict) -> List[str]:
+	def _generate_weekly_recommendations(self, user_insights: Dict) -> List[str]:
 		"""Generate weekly recommendations"""
 		recommendations = []
 
@@ -317,7 +307,7 @@ class ScheduledAnalyticsReportsService:
 
 		return recommendations
 
-	def _suggest_next_week_goals(self, success_rates: Dict, benchmarks: Dict) -> List[str]:
+	def _suggest_next_week_goals(self, user_insights: Dict) -> List[str]:
 		"""Suggest goals for next week"""
 		goals = []
 
@@ -335,7 +325,7 @@ class ScheduledAnalyticsReportsService:
 
 		return goals
 
-	def _analyze_monthly_trends(self, success_rates: Dict) -> Dict[str, Any]:
+	def _analyze_monthly_trends(self, user_analytics: Dict) -> Dict[str, Any]:
 		"""Analyze monthly trends"""
 		if "error" in success_rates:
 			return {"error": "Insufficient data for trend analysis"}
@@ -361,7 +351,7 @@ class ScheduledAnalyticsReportsService:
 
 		return {"insufficient_data": True}
 
-	def _analyze_competitive_position(self, benchmarks: Dict) -> Dict[str, Any]:
+	def _analyze_competitive_position(self, user_insights: Dict) -> Dict[str, Any]:
 		"""Analyze competitive position"""
 		if "error" in benchmarks:
 			return {"error": "Insufficient data for competitive analysis"}

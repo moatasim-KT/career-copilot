@@ -1,0 +1,607 @@
+{
+  "summary": {
+    "total_tests": 8,
+    "passed": 6,
+    "failed": 2,
+    "errors": 0,
+    "skipped": 0,
+    "pass_rate": 75.0,
+    "average_response_time": 0.06818056106567383,
+    "timestamp": "2025-11-11T21:14:03.389169"
+  },
+  "results_by_endpoint": {
+    "GET /": [
+      {
+        "endpoint": "/",
+        "method": "GET",
+        "status": "passed",
+        "status_code": 200,
+        "response_time": 0.12335896492004395,
+        "test_type": "valid",
+        "error_message": null,
+        "request_data": {},
+        "response_data": {
+          "message": "Demo API",
+          "version": "1.0.0"
+        },
+        "validation_errors": [],
+        "validation_warnings": [],
+        "timestamp": "2025-11-11T21:14:02.959812"
+      }
+    ],
+    "GET /health": [
+      {
+        "endpoint": "/health",
+        "method": "GET",
+        "status": "passed",
+        "status_code": 200,
+        "response_time": 0.07414698600769043,
+        "test_type": "valid",
+        "error_message": null,
+        "request_data": {},
+        "response_data": {
+          "status": "healthy"
+        },
+        "validation_errors": [],
+        "validation_warnings": [],
+        "timestamp": "2025-11-11T21:14:03.034021"
+      }
+    ],
+    "GET /items": [
+      {
+        "endpoint": "/items",
+        "method": "GET",
+        "status": "passed",
+        "status_code": 200,
+        "response_time": 0.13602304458618164,
+        "test_type": "valid",
+        "error_message": null,
+        "request_data": {
+          "skip": 40,
+          "limit": 15
+        },
+        "response_data": [
+          {
+            "id": 1,
+            "name": "Item 1",
+            "price": 10.99
+          },
+          {
+            "id": 2,
+            "name": "Item 2",
+            "price": 20.99
+          }
+        ],
+        "validation_errors": [],
+        "validation_warnings": [],
+        "timestamp": "2025-11-11T21:14:03.170546"
+      }
+    ],
+    "GET /items/{item_id}": [
+      {
+        "endpoint": "/items/{item_id}",
+        "method": "GET",
+        "status": "passed",
+        "status_code": 200,
+        "response_time": 0.004929065704345703,
+        "test_type": "valid",
+        "error_message": null,
+        "request_data": {
+          "item_id": 26
+        },
+        "response_data": {
+          "id": 26,
+          "name": "Item 26",
+          "price": 10.99
+        },
+        "validation_errors": [],
+        "validation_warnings": [],
+        "timestamp": "2025-11-11T21:14:03.175664"
+      }
+    ],
+    "POST /items": [
+      {
+        "endpoint": "/items",
+        "method": "POST",
+        "status": "failed",
+        "status_code": 422,
+        "response_time": 0.047724246978759766,
+        "test_type": "valid",
+        "error_message": "Client error: 422",
+        "request_data": {
+          "body": {
+            "name": "Bob Johnson",
+            "description": "This is a test description with some sample content.",
+            "price": 244.89,
+            "tags": "test_value_143"
+          }
+        },
+        "response_data": {
+          "detail": [
+            {
+              "type": "list_type",
+              "loc": [
+                "body",
+                "tags"
+              ],
+              "msg": "Input should be a valid list",
+              "input": "test_value_143"
+            }
+          ]
+        },
+        "validation_errors": [],
+        "validation_warnings": [],
+        "timestamp": "2025-11-11T21:14:03.223659"
+      }
+    ],
+    "PUT /items/{item_id}": [
+      {
+        "endpoint": "/items/{item_id}",
+        "method": "PUT",
+        "status": "failed",
+        "status_code": 422,
+        "response_time": 0.13830900192260742,
+        "test_type": "valid",
+        "error_message": "Client error: 422",
+        "request_data": {
+          "item_id": 755,
+          "body": {
+            "name": "John Doe",
+            "description": "This is a test description with some sample content.",
+            "price": 676.7,
+            "tags": "test_value_914"
+          }
+        },
+        "response_data": {
+          "detail": [
+            {
+              "type": "list_type",
+              "loc": [
+                "body",
+                "tags"
+              ],
+              "msg": "Input should be a valid list",
+              "input": "test_value_914"
+            }
+          ]
+        },
+        "validation_errors": [],
+        "validation_warnings": [],
+        "timestamp": "2025-11-11T21:14:03.362871"
+      }
+    ],
+    "DELETE /items/{item_id}": [
+      {
+        "endpoint": "/items/{item_id}",
+        "method": "DELETE",
+        "status": "passed",
+        "status_code": 200,
+        "response_time": 0.010389089584350586,
+        "test_type": "valid",
+        "error_message": null,
+        "request_data": {
+          "item_id": 559
+        },
+        "response_data": {
+          "message": "Item 559 deleted"
+        },
+        "validation_errors": [],
+        "validation_warnings": [],
+        "timestamp": "2025-11-11T21:14:03.377968"
+      }
+    ],
+    "GET /search": [
+      {
+        "endpoint": "/search",
+        "method": "GET",
+        "status": "passed",
+        "status_code": 200,
+        "response_time": 0.010564088821411133,
+        "test_type": "valid",
+        "error_message": null,
+        "request_data": {
+          "query": "test_value_90",
+          "category": "test_value_605",
+          "min_price": 421.92,
+          "max_price": 29.8,
+          "tags": "test_value_224"
+        },
+        "response_data": {
+          "query": "test_value_90",
+          "results": []
+        },
+        "validation_errors": [],
+        "validation_warnings": [],
+        "timestamp": "2025-11-11T21:14:03.388643"
+      }
+    ]
+  },
+  "results_by_status": {
+    "passed": [
+      {
+        "endpoint": "/",
+        "method": "GET",
+        "status": "passed",
+        "status_code": 200,
+        "response_time": 0.12335896492004395,
+        "test_type": "valid",
+        "error_message": null,
+        "request_data": {},
+        "response_data": {
+          "message": "Demo API",
+          "version": "1.0.0"
+        },
+        "validation_errors": [],
+        "validation_warnings": [],
+        "timestamp": "2025-11-11T21:14:02.959812"
+      },
+      {
+        "endpoint": "/health",
+        "method": "GET",
+        "status": "passed",
+        "status_code": 200,
+        "response_time": 0.07414698600769043,
+        "test_type": "valid",
+        "error_message": null,
+        "request_data": {},
+        "response_data": {
+          "status": "healthy"
+        },
+        "validation_errors": [],
+        "validation_warnings": [],
+        "timestamp": "2025-11-11T21:14:03.034021"
+      },
+      {
+        "endpoint": "/items",
+        "method": "GET",
+        "status": "passed",
+        "status_code": 200,
+        "response_time": 0.13602304458618164,
+        "test_type": "valid",
+        "error_message": null,
+        "request_data": {
+          "skip": 40,
+          "limit": 15
+        },
+        "response_data": [
+          {
+            "id": 1,
+            "name": "Item 1",
+            "price": 10.99
+          },
+          {
+            "id": 2,
+            "name": "Item 2",
+            "price": 20.99
+          }
+        ],
+        "validation_errors": [],
+        "validation_warnings": [],
+        "timestamp": "2025-11-11T21:14:03.170546"
+      },
+      {
+        "endpoint": "/items/{item_id}",
+        "method": "GET",
+        "status": "passed",
+        "status_code": 200,
+        "response_time": 0.004929065704345703,
+        "test_type": "valid",
+        "error_message": null,
+        "request_data": {
+          "item_id": 26
+        },
+        "response_data": {
+          "id": 26,
+          "name": "Item 26",
+          "price": 10.99
+        },
+        "validation_errors": [],
+        "validation_warnings": [],
+        "timestamp": "2025-11-11T21:14:03.175664"
+      },
+      {
+        "endpoint": "/items/{item_id}",
+        "method": "DELETE",
+        "status": "passed",
+        "status_code": 200,
+        "response_time": 0.010389089584350586,
+        "test_type": "valid",
+        "error_message": null,
+        "request_data": {
+          "item_id": 559
+        },
+        "response_data": {
+          "message": "Item 559 deleted"
+        },
+        "validation_errors": [],
+        "validation_warnings": [],
+        "timestamp": "2025-11-11T21:14:03.377968"
+      },
+      {
+        "endpoint": "/search",
+        "method": "GET",
+        "status": "passed",
+        "status_code": 200,
+        "response_time": 0.010564088821411133,
+        "test_type": "valid",
+        "error_message": null,
+        "request_data": {
+          "query": "test_value_90",
+          "category": "test_value_605",
+          "min_price": 421.92,
+          "max_price": 29.8,
+          "tags": "test_value_224"
+        },
+        "response_data": {
+          "query": "test_value_90",
+          "results": []
+        },
+        "validation_errors": [],
+        "validation_warnings": [],
+        "timestamp": "2025-11-11T21:14:03.388643"
+      }
+    ],
+    "failed": [
+      {
+        "endpoint": "/items",
+        "method": "POST",
+        "status": "failed",
+        "status_code": 422,
+        "response_time": 0.047724246978759766,
+        "test_type": "valid",
+        "error_message": "Client error: 422",
+        "request_data": {
+          "body": {
+            "name": "Bob Johnson",
+            "description": "This is a test description with some sample content.",
+            "price": 244.89,
+            "tags": "test_value_143"
+          }
+        },
+        "response_data": {
+          "detail": [
+            {
+              "type": "list_type",
+              "loc": [
+                "body",
+                "tags"
+              ],
+              "msg": "Input should be a valid list",
+              "input": "test_value_143"
+            }
+          ]
+        },
+        "validation_errors": [],
+        "validation_warnings": [],
+        "timestamp": "2025-11-11T21:14:03.223659"
+      },
+      {
+        "endpoint": "/items/{item_id}",
+        "method": "PUT",
+        "status": "failed",
+        "status_code": 422,
+        "response_time": 0.13830900192260742,
+        "test_type": "valid",
+        "error_message": "Client error: 422",
+        "request_data": {
+          "item_id": 755,
+          "body": {
+            "name": "John Doe",
+            "description": "This is a test description with some sample content.",
+            "price": 676.7,
+            "tags": "test_value_914"
+          }
+        },
+        "response_data": {
+          "detail": [
+            {
+              "type": "list_type",
+              "loc": [
+                "body",
+                "tags"
+              ],
+              "msg": "Input should be a valid list",
+              "input": "test_value_914"
+            }
+          ]
+        },
+        "validation_errors": [],
+        "validation_warnings": [],
+        "timestamp": "2025-11-11T21:14:03.362871"
+      }
+    ],
+    "error": [],
+    "skipped": []
+  },
+  "all_results": [
+    {
+      "endpoint": "/",
+      "method": "GET",
+      "status": "passed",
+      "status_code": 200,
+      "response_time": 0.12335896492004395,
+      "test_type": "valid",
+      "error_message": null,
+      "request_data": {},
+      "response_data": {
+        "message": "Demo API",
+        "version": "1.0.0"
+      },
+      "validation_errors": [],
+      "validation_warnings": [],
+      "timestamp": "2025-11-11T21:14:02.959812"
+    },
+    {
+      "endpoint": "/health",
+      "method": "GET",
+      "status": "passed",
+      "status_code": 200,
+      "response_time": 0.07414698600769043,
+      "test_type": "valid",
+      "error_message": null,
+      "request_data": {},
+      "response_data": {
+        "status": "healthy"
+      },
+      "validation_errors": [],
+      "validation_warnings": [],
+      "timestamp": "2025-11-11T21:14:03.034021"
+    },
+    {
+      "endpoint": "/items",
+      "method": "GET",
+      "status": "passed",
+      "status_code": 200,
+      "response_time": 0.13602304458618164,
+      "test_type": "valid",
+      "error_message": null,
+      "request_data": {
+        "skip": 40,
+        "limit": 15
+      },
+      "response_data": [
+        {
+          "id": 1,
+          "name": "Item 1",
+          "price": 10.99
+        },
+        {
+          "id": 2,
+          "name": "Item 2",
+          "price": 20.99
+        }
+      ],
+      "validation_errors": [],
+      "validation_warnings": [],
+      "timestamp": "2025-11-11T21:14:03.170546"
+    },
+    {
+      "endpoint": "/items/{item_id}",
+      "method": "GET",
+      "status": "passed",
+      "status_code": 200,
+      "response_time": 0.004929065704345703,
+      "test_type": "valid",
+      "error_message": null,
+      "request_data": {
+        "item_id": 26
+      },
+      "response_data": {
+        "id": 26,
+        "name": "Item 26",
+        "price": 10.99
+      },
+      "validation_errors": [],
+      "validation_warnings": [],
+      "timestamp": "2025-11-11T21:14:03.175664"
+    },
+    {
+      "endpoint": "/items",
+      "method": "POST",
+      "status": "failed",
+      "status_code": 422,
+      "response_time": 0.047724246978759766,
+      "test_type": "valid",
+      "error_message": "Client error: 422",
+      "request_data": {
+        "body": {
+          "name": "Bob Johnson",
+          "description": "This is a test description with some sample content.",
+          "price": 244.89,
+          "tags": "test_value_143"
+        }
+      },
+      "response_data": {
+        "detail": [
+          {
+            "type": "list_type",
+            "loc": [
+              "body",
+              "tags"
+            ],
+            "msg": "Input should be a valid list",
+            "input": "test_value_143"
+          }
+        ]
+      },
+      "validation_errors": [],
+      "validation_warnings": [],
+      "timestamp": "2025-11-11T21:14:03.223659"
+    },
+    {
+      "endpoint": "/items/{item_id}",
+      "method": "PUT",
+      "status": "failed",
+      "status_code": 422,
+      "response_time": 0.13830900192260742,
+      "test_type": "valid",
+      "error_message": "Client error: 422",
+      "request_data": {
+        "item_id": 755,
+        "body": {
+          "name": "John Doe",
+          "description": "This is a test description with some sample content.",
+          "price": 676.7,
+          "tags": "test_value_914"
+        }
+      },
+      "response_data": {
+        "detail": [
+          {
+            "type": "list_type",
+            "loc": [
+              "body",
+              "tags"
+            ],
+            "msg": "Input should be a valid list",
+            "input": "test_value_914"
+          }
+        ]
+      },
+      "validation_errors": [],
+      "validation_warnings": [],
+      "timestamp": "2025-11-11T21:14:03.362871"
+    },
+    {
+      "endpoint": "/items/{item_id}",
+      "method": "DELETE",
+      "status": "passed",
+      "status_code": 200,
+      "response_time": 0.010389089584350586,
+      "test_type": "valid",
+      "error_message": null,
+      "request_data": {
+        "item_id": 559
+      },
+      "response_data": {
+        "message": "Item 559 deleted"
+      },
+      "validation_errors": [],
+      "validation_warnings": [],
+      "timestamp": "2025-11-11T21:14:03.377968"
+    },
+    {
+      "endpoint": "/search",
+      "method": "GET",
+      "status": "passed",
+      "status_code": 200,
+      "response_time": 0.010564088821411133,
+      "test_type": "valid",
+      "error_message": null,
+      "request_data": {
+        "query": "test_value_90",
+        "category": "test_value_605",
+        "min_price": 421.92,
+        "max_price": 29.8,
+        "tags": "test_value_224"
+      },
+      "response_data": {
+        "query": "test_value_90",
+        "results": []
+      },
+      "validation_errors": [],
+      "validation_warnings": [],
+      "timestamp": "2025-11-11T21:14:03.388643"
+    }
+  ]
+}

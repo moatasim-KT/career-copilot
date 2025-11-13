@@ -4,9 +4,10 @@ import enum
 from datetime import datetime
 from typing import Any, ClassVar
 
-from app.core.database import Base
 from sqlalchemy import Column, DateTime, Enum, Float, ForeignKey, Integer, String, Text
 from sqlalchemy.orm import relationship
+
+from app.core.database import Base
 
 
 class InterviewType(enum.Enum):
@@ -41,7 +42,7 @@ class InterviewSession(Base):
 
 	user = relationship("User")
 	job = relationship("Job")
-	questions = relationship("InterviewQuestion", back_populates="session", cascade="all, delete-orphan")
+	questions = relationship("app.models.interview.InterviewQuestion", back_populates="session", cascade="all, delete-orphan")
 
 
 class InterviewQuestion(Base):
@@ -59,5 +60,4 @@ class InterviewQuestion(Base):
 	created_at = Column(DateTime, default=datetime.utcnow, index=True)
 	updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
-	session = relationship("InterviewSession", back_populates="questions")
-	session = relationship("InterviewSession", back_populates="questions")
+	session = relationship("app.models.interview.InterviewSession", back_populates="questions")

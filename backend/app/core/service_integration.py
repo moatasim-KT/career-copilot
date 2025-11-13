@@ -9,12 +9,12 @@ health monitoring, and intelligent routing capabilities.
 import asyncio
 import time
 from abc import ABC, abstractmethod
+from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
-from typing import Any, Dict, List, Optional, Set, Callable
-from dataclasses import dataclass, field
+from typing import Any, Callable, Dict, List, Optional, Set
 
-from .config import get_config_manager
+from .config import get_settings
 from .logging import get_logger
 
 logger = get_logger(__name__)
@@ -466,7 +466,7 @@ class ServiceDiscovery:
 
 	def __init__(self, registry: ServiceRegistry):
 		self.registry = registry
-		self.config = get_config_manager()
+		self.config = get_settings()
 		self._discovery_plugins: List[Callable] = []
 
 	def add_discovery_plugin(self, plugin: Callable):

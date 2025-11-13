@@ -4,8 +4,9 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.dependencies import get_current_user
+
 from ...core.database import get_db
-from ...core.dependencies import get_current_user
 from ...models.user import User
 from ...schemas.user_job_preferences import (
 	AvailableSourcesResponse,
@@ -111,12 +112,12 @@ async def create_job_source_preferences(
 		source_manager = JobSourceManager(db)
 
 		# Check if preferences already exist
-		existing_prefs = source_manager.get_user_preferences(current_user.id)
+		existing_prefs = await source_manager.get_user_preferences(current_user.id)
 		if existing_prefs:
 			raise HTTPException(status_code=400, detail="User preferences already exist. Use PUT to update.")
 
 		preferences_data = preferences.model_dump()
-		created_prefs = source_manager.create_or_update_user_preferences(current_user.id, preferences_data)
+		created_prefs = await source_manager.create_or_update_user_preferences(current_user.id, preferences_data)
 
 		return UserJobPreferencesResponse(
 			id=created_prefs.id,
@@ -154,7 +155,7 @@ async def update_job_source_preferences(
 		source_manager = JobSourceManager(db)
 
 		preferences_data = preferences.model_dump(exclude_unset=True)
-		updated_prefs = source_manager.create_or_update_user_preferences(current_user.id, preferences_data)
+		updated_prefs = await source_manager.create_or_update_user_preferences(current_user.id, preferences_data)
 
 		return UserJobPreferencesResponse(
 			id=updated_prefs.id,
@@ -187,7 +188,7 @@ async def get_job_source_preferences(current_user: User = Depends(get_current_us
 
 		source_manager = JobSourceManager(db)
 
-		user_prefs = source_manager.get_user_preferences(current_user.id)
+		user_prefs = await source_manager.get_user_preferences(current_user.id)
 		if not user_prefs:
 			raise HTTPException(status_code=404, detail="No job source preferences found")
 
@@ -232,8 +233,8 @@ async def get_job_source_analytics(
 
 		source_manager = JobSourceManager(db)
 
-		analytics = source_manager.get_source_analytics(timeframe_days, current_user.id)
-		user_preferences = source_manager.get_user_source_preferences(current_user.id)
+		analytics = await source_manager.get_source_analytics(timeframe_days, current_user.id)
+		user_preferences = await source_manager.get_user_source_preferences(current_user.id)
 
 		response_data = {
 			"analytics": analytics,
@@ -271,7 +272,7 @@ async def get_source_recommendations(
 
 		source_manager = JobSourceManager(db)
 
-		user_data = source_manager.get_user_source_preferences(current_user.id)
+		user_data = await source_manager.get_user_source_preferences(current_user.id)
 		recommendations = user_data.get("recommended_sources", [])[:limit]
 
 		return {
@@ -302,19 +303,27 @@ async def get_source_quality_metrics(
 
 		source_manager = JobSourceManager(db)
 
-		# Validate source exists
-		if source not in source_manager.source_metadata:
+		# Validate source exists using the manager helper
+		source_info = source_manager.get_source_info(source)
+		if not source_info:
 			raise HTTPException(status_code=404, detail=f"Job source '{source}' not found")
 
+		# calculate_source_quality_score is synchronous in the manager
 		quality_data = source_manager.calculate_source_quality_score(source, timeframe_days, current_user.id)
-		metadata = source_manager.get_source_metadata(source)
+
+		# metadata and user priority
+		metadata = source_info
+		prefs = await source_manager.get_user_preferences(current_user.id)
+		user_priority = None
+		if prefs and getattr(prefs, "source_priorities", None):
+			user_priority = prefs.source_priorities.get(source)
 
 		return {
 			"source": source,
 			"timeframe_days": timeframe_days,
 			"quality_data": quality_data,
 			"metadata": metadata,
-			"user_priority": source_manager.get_source_priority(source, current_user.id),
+			"user_priority": user_priority,
 		}
 
 	except HTTPException:
@@ -343,12 +352,12 @@ async def update_source_priority(
 
 		source_manager = JobSourceManager(db)
 
-		# Validate source exists
-		if source not in source_manager.source_metadata:
+		# Validate source exists using the manager helper
+		if not source_manager.get_source_info(source):
 			raise HTTPException(status_code=404, detail=f"Job source '{source}' not found")
 
 		# Get or create user preferences
-		user_prefs = source_manager.get_user_preferences(current_user.id)
+		user_prefs = await source_manager.get_user_preferences(current_user.id)
 		current_priorities = user_prefs.source_priorities if user_prefs else {}
 
 		# Update priority
@@ -356,7 +365,7 @@ async def update_source_priority(
 
 		# Save preferences
 		preferences_data = {"source_priorities": current_priorities}
-		updated_prefs = source_manager.create_or_update_user_preferences(current_user.id, preferences_data)
+		updated_prefs = await source_manager.create_or_update_user_preferences(current_user.id, preferences_data)
 
 		return {
 			"message": f"Priority for {source} updated to {priority}",

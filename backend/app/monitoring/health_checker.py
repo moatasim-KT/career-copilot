@@ -171,15 +171,15 @@ class HealthChecker:
 					last_check=datetime.now(timezone.utc),
 				)
 
-			from ..core.caching import get_cache_manager
+			from ..core.cache import cache_service
 
-			cache_manager = get_cache_manager()
+			cache_manager = cache_service
 
 			# Test Redis connection
 			test_key = f"health_check_{int(time.time())}"
-			await cache_manager.async_set(test_key, "test_value", ttl=10)
-			value = await cache_manager.async_get(test_key)
-			await cache_manager.delete(test_key)
+			cache_manager.set(test_key, "test_value", ttl=10)
+			value = cache_manager.get(test_key)
+			cache_manager.delete(test_key)
 
 			response_time = (time.time() - start_time) * 1000
 

@@ -158,14 +158,7 @@ class EnhancedDatabaseMigrator:
 					},
 				},
 			)
-		else:
-			# SQLite or other database configuration
-			self.engine = create_async_engine(
-				database_url,
-				echo=getattr(self.settings, "api_debug", False),
-				poolclass=StaticPool,
-				connect_args={"check_same_thread": False, "timeout": 60},
-			)
+
 
 		# Set up connection pool monitoring
 		self._setup_pool_monitoring()
@@ -222,11 +215,7 @@ class EnhancedDatabaseMigrator:
 					result = await conn.execute(text("SELECT version()"))
 					version_info = result.scalar()
 					connection_info["database_version"] = version_info
-				elif "sqlite" in self.settings.database_url:
-					connection_info["database_type"] = "sqlite"
-					result = await conn.execute(text("SELECT sqlite_version()"))
-					version_info = result.scalar()
-					connection_info["database_version"] = version_info
+
 
 				connection_info["connected"] = True
 				connection_info["connection_time"] = time.time() - start_time
@@ -548,21 +537,7 @@ class EnhancedDatabaseMigrator:
 		pool = self.engine.pool
 		pool_type = type(pool).__name__
 
-		if pool_type == "StaticPool":
-			# StaticPool (SQLite) - single connection
-			return ConnectionPoolStats(
-				pool_size=1,
-				checked_in=0,
-				checked_out=1 if self.connection_stats["successful_connections"] > 0 else 0,
-				overflow=0,
-				invalid=0,
-				total_connections=self.connection_stats["total_connections"],
-				active_connections=1 if self.connection_stats["successful_connections"] > 0 else 0,
-				idle_connections=0,
-				pool_timeout=30,
-				max_overflow=0,
-			)
-		elif hasattr(pool, "size"):
+
 			# QueuePool and other pool types
 			return ConnectionPoolStats(
 				pool_size=pool.size(),

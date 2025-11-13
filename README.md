@@ -188,7 +188,7 @@ npm run dev
 
 ## 📚 Documentation
 
-Comprehensive documentation is available in the [`docs/`](docs/) directory:
+Comprehensive documentation is available in the [[docs/index.md|docs/]] directory.
 
 ### 🤖 AI Agent Coordination (New!)
 
@@ -198,26 +198,9 @@ Comprehensive documentation is available in the [`docs/`](docs/) directory:
 - **[Task Assignments](.agents/task-partition-plan.md)** - Detailed task breakdown (18 Gemini + 16 Copilot tasks)
 - **[Real-Time Status](.agents/task-assignments.json)** - Live agent state and progress tracking
 
-### 📖 Setup & Installation
+### � Documentation Hub
 
-- **[Installation Guide](docs/setup/INSTALLATION.md)** - Complete setup instructions
-- **[Configuration Guide](docs/setup/CONFIGURATION.md)** - Environment variables and configuration
-- **[Quick Start](docs/setup/INSTALLATION.md#quick-start-5-minutes)** - Get running in 5 minutes
-
-### 🏗️ Architecture & Design
-
-- **[System Architecture](docs/architecture/ARCHITECTURE.md)** - Technical architecture and design patterns
-- **[Database Schema](docs/architecture/ARCHITECTURE.md#database-schema)** - Database structure and relationships
-- **[API Design](docs/architecture/ARCHITECTURE.md#api-architecture)** - RESTful API architecture
-
-### 🔌 API Reference
-
-- **[API Documentation](docs/api/API.md)** - Complete API reference
-- **[Authentication](docs/api/API.md#authentication)** - JWT authentication flow
-- **[Endpoints](docs/api/API.md#endpoints)** - All available endpoints
-- **[Code Examples](docs/api/API.md#code-examples)** - Integration examples
-
-### 🚀 Deployment
+For complete documentation, visit the [[docs/index.md|Documentation Index]] which provides organized access to all guides, API references, and technical documentation.
 
 - **[Deployment Guide](docs/deployment/DEPLOYMENT.md)** - Production deployment instructions
 - **[Docker Deployment](docs/deployment/DEPLOYMENT.md#docker-compose-deployment)** - Deploy with Docker Compose
@@ -595,7 +578,18 @@ We welcome contributions! Please see our [Contributing Guide](frontend/CONTRIBUT
 - **Design System**: Use tokens from `globals.css`, follow Button2/Card2 patterns
 - **Commits**: Use conventional commits format (`feat:`, `fix:`, `docs:`, etc.)
 
-## 📄 License
+## 🔗 Project Links
+
+- [[TODO.md]] - Current development tasks and progress
+- [[PLAN.md]] - Implementation plan and roadmap
+- [[RESEARCH.md]] - Research findings and analysis
+- [[CHANGELOG.md]] - Version history and changes
+- [[./CONTRIBUTING.md]] - Contribution guidelines
+- [[docs/DEVELOPER_GUIDE.md|Developer Guide]] - Comprehensive development documentation
+- [[docs/USER_GUIDE.md|User Guide]] - User documentation and tutorials
+- [[docs/FRONTEND_QUICK_START.md|Frontend Quick Start]] - Frontend development setup
+
+## �📄 License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 

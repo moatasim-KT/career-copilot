@@ -8,7 +8,7 @@ from typing import Any, Dict, Optional
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
 from pydantic import BaseModel
 
-from ...core.dependencies import get_current_user_optional
+from app.dependencies import get_current_user_optional
 from ...core.logging import get_logger
 from ...services.external_service_manager import get_external_service_manager
 from ...services.external_service_validator import get_external_service_validator

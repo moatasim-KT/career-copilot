@@ -1,0 +1,1764 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Frontend-Backend Integration Gap Analysis Report</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: #f5f5f5;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            padding: 40px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+        }
+
+        .subtitle {
+            color: #7f8c8d;
+            margin-bottom: 30px;
+            font-size: 1.1em;
+        }
+
+        .summary {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .stat-card.critical {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+
+        .stat-card.high {
+            background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+        }
+
+        .stat-card.medium {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        }
+
+        .stat-card.low {
+            background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+        }
+
+        .stat-value {
+            font-size: 3em;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 0.9em;
+            opacity: 0.9;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .section {
+            margin-bottom: 40px;
+        }
+
+        .section-title {
+            color: #2c3e50;
+            font-size: 1.8em;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 3px solid #3498db;
+        }
+
+        .gap-card {
+            background: #fff;
+            border: 1px solid #e0e0e0;
+            border-left: 4px solid #3498db;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 4px;
+            transition: box-shadow 0.3s;
+        }
+
+        .gap-card:hover {
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        .gap-card.critical {
+            border-left-color: #e74c3c;
+        }
+
+        .gap-card.high {
+            border-left-color: #f39c12;
+        }
+
+        .gap-card.medium {
+            border-left-color: #3498db;
+        }
+
+        .gap-card.low {
+            border-left-color: #2ecc71;
+        }
+
+        .gap-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .gap-title {
+            font-size: 1.2em;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 0.85em;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .badge.critical {
+            background: #fee;
+            color: #e74c3c;
+        }
+
+        .badge.high {
+            background: #fef5e7;
+            color: #f39c12;
+        }
+
+        .badge.medium {
+            background: #ebf5fb;
+            color: #3498db;
+        }
+
+        .badge.low {
+            background: #eafaf1;
+            color: #2ecc71;
+        }
+
+        .gap-details {
+            margin-bottom: 15px;
+        }
+
+        .detail-row {
+            display: flex;
+            margin-bottom: 8px;
+            font-size: 0.95em;
+        }
+
+        .detail-label {
+            font-weight: 600;
+            color: #7f8c8d;
+            min-width: 150px;
+        }
+
+        .detail-value {
+            color: #2c3e50;
+            font-family: 'Courier New', monospace;
+        }
+
+        .description {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 15px;
+            color: #555;
+        }
+
+        .recommendation {
+            background: #e8f5e9;
+            padding: 15px;
+            border-radius: 4px;
+            border-left: 3px solid #4caf50;
+        }
+
+        .recommendation-title {
+            font-weight: 600;
+            color: #2e7d32;
+            margin-bottom: 8px;
+        }
+
+        .recommendation-text {
+            color: #555;
+        }
+
+        .features-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .feature-tag {
+            background: #e3f2fd;
+            color: #1976d2;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 0.85em;
+        }
+
+        .filter-buttons {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .filter-btn {
+            padding: 8px 16px;
+            border: 2px solid #e0e0e0;
+            background: white;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.9em;
+            transition: all 0.3s;
+        }
+
+        .filter-btn:hover {
+            background: #f5f5f5;
+        }
+
+        .filter-btn.active {
+            background: #3498db;
+            color: white;
+            border-color: #3498db;
+        }
+
+        .no-gaps {
+            text-align: center;
+            padding: 40px;
+            color: #7f8c8d;
+            font-size: 1.1em;
+        }
+
+        @media print {
+            body {
+                background: white;
+            }
+            .container {
+                box-shadow: none;
+            }
+            .filter-buttons {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 Frontend-Backend Integration Gap Analysis</h1>
+        <div class="subtitle">Generated on 2025-11-12 02:40:27</div>
+
+        <div class="summary">
+            <div class="stat-card">
+                <div class="stat-value">38</div>
+                <div class="stat-label">Total Gaps</div>
+            </div>
+            <div class="stat-card critical">
+                <div class="stat-value">0</div>
+                <div class="stat-label">Critical</div>
+            </div>
+            <div class="stat-card high">
+                <div class="stat-value">1</div>
+                <div class="stat-label">High Priority</div>
+            </div>
+            <div class="stat-card medium">
+                <div class="stat-value">26</div>
+                <div class="stat-label">Medium Priority</div>
+            </div>
+            <div class="stat-card low">
+                <div class="stat-value">11</div>
+                <div class="stat-label">Low Priority</div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2 class="section-title">📊 Gap Statistics</h2>
+            <div class="gap-details">
+                <div class="detail-row">
+                    <div class="detail-label">Unique Endpoints Missing:</div>
+                    <div class="detail-value">26</div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label">Components Affected:</div>
+                    <div class="detail-value">20</div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label">Gap Types:</div>
+                    <div class="detail-value">missing_endpoint: 38</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2 class="section-title">🚨 Detected Gaps</h2>
+            <div class="filter-buttons">
+                <button class="filter-btn active" onclick="filterGaps('all')">All Gaps</button>
+                <button class="filter-btn" onclick="filterGaps('critical')">Critical</button>
+                <button class="filter-btn" onclick="filterGaps('high')">High</button>
+                <button class="filter-btn" onclick="filterGaps('medium')">Medium</button>
+                <button class="filter-btn" onclick="filterGaps('low')">Low</button>
+            </div>
+            <div id="gaps-container">
+                
+            <div class="gap-card high">
+                <div class="gap-header">
+                    <div class="gap-title">GET /api/v1/</div>
+                    <span class="badge high">high</span>
+                </div>
+                <div class="gap-details">
+                    <div class="detail-row">
+                        <div class="detail-label">Gap Type:</div>
+                        <div class="detail-value">Missing Endpoint</div>
+                    </div>
+                    <div class="detail-row">
+                        <div class="detail-label">Component:</div>
+                        <div class="detail-value">components.analytics.AnalyticsDashboard</div>
+                    </div>
+                    
+                <div class="detail-row">
+                    <div class="detail-label">Location:</div>
+                    <div class="detail-value">components/analytics/AnalyticsDashboard.tsx:126</div>
+                </div>
+                
+                    
+                    <div class="detail-row">
+                        <div class="detail-label">Status:</div>
+                        <div class="detail-value">not_found</div>
+                    </div>
+                </div>
+                <div class="description">
+                    <strong>Description:</strong> Frontend expects GET /api/v1/ but endpoint does not exist in backend
+                </div>
+                <div class="recommendation">
+                    <div class="recommendation-title">💡 Recommendation</div>
+                    <div class="recommendation-text">Implement GET endpoint to retrieve  data. Add route handler in appropriate router file.</div>
+                </div>
+                <div class="features-list"><span class="feature-tag">analytics</span></div>
+            </div>
+            
+
+            <div class="gap-card medium">
+                <div class="gap-header">
+                    <div class="gap-title">PUT /api/v1/notifications/{id}/read</div>
+                    <span class="badge medium">medium</span>
+                </div>
+                <div class="gap-details">
+                    <div class="detail-row">
+                        <div class="detail-label">Gap Type:</div>
+                        <div class="detail-value">Missing Endpoint</div>
+                    </div>
+                    <div class="detail-row">
+                        <div class="detail-label">Component:</div>
+                        <div class="detail-value">hooks.useNotificationsQuery</div>
+                    </div>
+                    
+                <div class="detail-row">
+                    <div class="detail-label">Location:</div>
+                    <div class="detail-value">hooks/useNotificationsQuery.ts:66</div>
+                </div>
+                
+                    
+                    <div class="detail-row">
+                        <div class="detail-label">Status:</div>
+                        <div class="detail-value">not_found</div>
+                    </div>
+                </div>
+                <div class="description">
+                    <strong>Description:</strong> Frontend expects PUT /api/v1/notifications/{id}/read but endpoint does not exist in backend
+                </div>
+                <div class="recommendation">
+                    <div class="recommendation-title">💡 Recommendation</div>
+                    <div class="recommendation-text">Implement PUT endpoint to update existing read. Include ID validation and update logic.</div>
+                </div>
+                <div class="features-list"><span class="feature-tag">useNotificationsQuery</span><span class="feature-tag">useNotifications</span></div>
+            </div>
+            
+
+            <div class="gap-card medium">
+                <div class="gap-header">
+                    <div class="gap-title">PUT /api/v1/notifications/read-all</div>
+                    <span class="badge medium">medium</span>
+                </div>
+                <div class="gap-details">
+                    <div class="detail-row">
+                        <div class="detail-label">Gap Type:</div>
+                        <div class="detail-value">Missing Endpoint</div>
+                    </div>
+                    <div class="detail-row">
+                        <div class="detail-label">Component:</div>
+                        <div class="detail-value">hooks.useNotificationsQuery</div>
+                    </div>
+                    
+                <div class="detail-row">
+                    <div class="detail-label">Location:</div>
+                    <div class="detail-value">hooks/useNotificationsQuery.ts:115</div>
+                </div>
+                
+                    
+                    <div class="detail-row">
+                        <div class="detail-label">Status:</div>
+                        <div class="detail-value">not_found</div>
+                    </div>
+                </div>
+                <div class="description">
+                    <strong>Description:</strong> Frontend expects PUT /api/v1/notifications/read-all but endpoint does not exist in backend
+                </div>
+                <div class="recommendation">
+                    <div class="recommendation-title">💡 Recommendation</div>
+                    <div class="recommendation-text">Implement PUT endpoint to update existing read-all. Include ID validation and update logic.</div>
+                </div>
+                <div class="features-list"><span class="feature-tag">useNotificationsQuery</span><span class="feature-tag">useNotifications</span></div>
+            </div>
+            
+
+            <div class="gap-card medium">
+                <div class="gap-header">
+                    <div class="gap-title">DELETE /api/v1/notifications/{id}</div>
+                    <span class="badge medium">medium</span>
+                </div>
+                <div class="gap-details">
+                    <div class="detail-row">
+                        <div class="detail-label">Gap Type:</div>
+                        <div class="detail-value">Missing Endpoint</div>
+                    </div>
+                    <div class="detail-row">
+                        <div class="detail-label">Component:</div>
+                        <div class="detail-value">hooks.useNotificationsQuery</div>
+                    </div>
+                    
+                <div class="detail-row">
+                    <div class="detail-label">Location:</div>
+                    <div class="detail-value">hooks/useNotificationsQuery.ts:159</div>
+                </div>
+                
+                    
+                    <div class="detail-row">
+                        <div class="detail-label">Status:</div>
+                        <div class="detail-value">not_found</div>
+                    </div>
+                </div>
+                <div class="description">
+                    <strong>Description:</strong> Frontend expects DELETE /api/v1/notifications/{id} but endpoint does not exist in backend
+                </div>
+                <div class="recommendation">
+                    <div class="recommendation-title">💡 Recommendation</div>
+                    <div class="recommendation-text">Implement DELETE endpoint to remove notifications. Include ID validation and deletion logic.</div>
+                </div>
+                <div class="features-list"><span class="feature-tag">useNotificationsQuery</span><span class="feature-tag">useNotifications</span></div>
+            </div>
+            
+
+            <div class="gap-card medium">
+                <div class="gap-header">
+                    <div class="gap-title">GET /api/v1/profile</div>
+                    <span class="badge medium">medium</span>
+                </div>
+                <div class="gap-details">
+                    <div class="detail-row">
+                        <div class="detail-label">Gap Type:</div>
+                        <div class="detail-value">Missing Endpoint</div>
+                    </div>
+                    <div class="detail-row">
+                        <div class="detail-label">Component:</div>
+                        <div class="detail-value">hooks.useUserProfile</div>
+                    </div>
+                    
+                <div class="detail-row">
+                    <div class="detail-label">Location:</div>
+                    <div class="detail-value">hooks/useUserProfile.ts:20</div>
+                </div>
+                
+                    
+                    <div class="detail-row">
+                        <div class="detail-label">Status:</div>
+                        <div class="detail-value">not_found</div>
+                    </div>
+                </div>
+                <div class="description">
+                    <strong>Description:</strong> Frontend expects GET /api/v1/profile but endpoint does not exist in backend
+                </div>
+                <div class="recommendation">
+                    <div class="recommendation-title">💡 Recommendation</div>
+                    <div class="recommendation-text">Implement GET endpoint to retrieve profile data. Add route handler in appropriate router file.</div>
+                </div>
+                <div class="features-list"><span class="feature-tag">useUserProfile</span></div>
+            </div>
+            
+
+            <div class="gap-card medium">
+                <div class="gap-header">
+                    <div class="gap-title">PUT /api/v1/profile</div>
+                    <span class="badge medium">medium</span>
+                </div>
+                <div class="gap-details">
+                    <div class="detail-row">
+                        <div class="detail-label">Gap Type:</div>
+                        <div class="detail-value">Missing Endpoint</div>
+                    </div>
+                    <div class="detail-row">
+                        <div class="detail-label">Component:</div>
+                        <div class="detail-value">hooks.useUserProfile</div>
+                    </div>
+                    
+                <div class="detail-row">
+                    <div class="detail-label">Location:</div>
+                    <div class="detail-value">hooks/useUserProfile.ts:39</div>
+                </div>
+                
+                    
+                    <div class="detail-row">
+                        <div class="detail-label">Status:</div>
+                        <div class="detail-value">not_found</div>
+                    </div>
+                </div>
+                <div class="description">
+                    <strong>Description:</strong> Frontend expects PUT /api/v1/profile but endpoint does not exist in backend
+                </div>
+                <div class="recommendation">
+                    <div class="recommendation-title">💡 Recommendation</div>
+                    <div class="recommendation-text">Implement PUT endpoint to update existing profile. Include ID validation and update logic.</div>
+                </div>
+                <div class="features-list"><span class="feature-tag">useUserProfile</span><span class="feature-tag">ResumeUpload</span></div>
+            </div>
+            
+
+            <div class="gap-card medium">
+                <div class="gap-header">
+                    <div class="gap-title">PUT /api/v1/notifications/{id}/read</div>
+                    <span class="badge medium">medium</span>
+                </div>
+                <div class="gap-details">
+                    <div class="detail-row">
+                        <div class="detail-label">Gap Type:</div>
+                        <div class="detail-value">Missing Endpoint</div>
+                    </div>
+                    <div class="detail-row">
+                        <div class="detail-label">Component:</div>
+                        <div class="detail-value">hooks.useNotifications</div>
+                    </div>
+                    
+                <div class="detail-row">
+                    <div class="detail-label">Location:</div>
+                    <div class="detail-value">hooks/useNotifications.ts:84</div>
+                </div>
+                
+                    
+                    <div class="detail-row">
+                        <div class="detail-label">Status:</div>
+                        <div class="detail-value">not_found</div>
+                    </div>
+                </div>
+                <div class="description">
+                    <strong>Description:</strong> Frontend expects PUT /api/v1/notifications/{id}/read but endpoint does not exist in backend
+                </div>
+                <div class="recommendation">
+                    <div class="recommendation-title">💡 Recommendation</div>
+                    <div class="recommendation-text">Implement PUT endpoint to update existing read. Include ID validation and update logic.</div>
+                </div>
+                <div class="features-list"><span class="feature-tag">useNotificationsQuery</span><span class="feature-tag">useNotifications</span></div>
+            </div>
+            
+
+            <div class="gap-card medium">
+                <div class="gap-header">
+                    <div class="gap-title">PUT /api/v1/notifications/{id}/unread</div>
+                    <span class="badge medium">medium</span>
+                </div>
+                <div class="gap-details">
+                    <div class="detail-row">
+                        <div class="detail-label">Gap Type:</div>
+                        <div class="detail-value">Missing Endpoint</div>
+                    </div>
+                    <div class="detail-row">
+                        <div class="detail-label">Component:</div>
+                        <div class="detail-value">hooks.useNotifications</div>
+                    </div>
+                    
+                <div class="detail-row">
+                    <div class="detail-label">Location:</div>
+                    <div class="detail-value">hooks/useNotifications.ts:110</div>
+                </div>
+                
+                    
+                    <div class="detail-row">
+                        <div class="detail-label">Status:</div>
+                        <div class="detail-value">not_found</div>
+                    </div>
+                </div>
+                <div class="description">
+                    <strong>Description:</strong> Frontend expects PUT /api/v1/notifications/{id}/unread but endpoint does not exist in backend
+                </div>
+                <div class="recommendation">
+                    <div class="recommendation-title">💡 Recommendation</div>
+                    <div class="recommendation-text">Implement PUT endpoint to update existing unread. Include ID validation and update logic.</div>
+                </div>
+                <div class="features-list"><span class="feature-tag">useNotifications</span></div>
+            </div>
+            
+
+            <div class="gap-card medium">
+                <div class="gap-header">
+                    <div class="gap-title">PUT /api/v1/notifications/read-all</div>
+                    <span class="badge medium">medium</span>
+                </div>
+                <div class="gap-details">
+                    <div class="detail-row">
+                        <div class="detail-label">Gap Type:</div>
+                        <div class="detail-value">Missing Endpoint</div>
+                    </div>
+                    <div class="detail-row">
+                        <div class="detail-label">Component:</div>
+                        <div class="detail-value">hooks.useNotifications</div>
+                    </div>
+                    
+                <div class="detail-row">
+                    <div class="detail-label">Location:</div>
+                    <div class="detail-value">hooks/useNotifications.ts:137</div>
+                </div>
+                
+                    
+                    <div class="detail-row">
+                        <div class="detail-label">Status:</div>
+                        <div class="detail-value">not_found</div>
+                    </div>
+                </div>
+                <div class="description">
+                    <strong>Description:</strong> Frontend expects PUT /api/v1/notifications/read-all but endpoint does not exist in backend
+                </div>
+                <div class="recommendation">
+                    <div class="recommendation-title">💡 Recommendation</div>
+                    <div class="recommendation-text">Implement PUT endpoint to update existing read-all. Include ID validation and update logic.</div>
+                </div>
+                <div class="features-list"><span class="feature-tag">useNotificationsQuery</span><span class="feature-tag">useNotifications</span></div>
+            </div>
+            
+
+            <div class="gap-card medium">
+                <div class="gap-header">
+                    <div class="gap-title">DELETE /api/v1/notifications/{id}</div>
+                    <span class="badge medium">medium</span>
+                </div>
+                <div class="gap-details">
+                    <div class="detail-row">
+                        <div class="detail-label">Gap Type:</div>
+                        <div class="detail-value">Missing Endpoint</div>
+                    </div>
+                    <div class="detail-row">
+                        <div class="detail-label">Component:</div>
+                        <div class="detail-value">hooks.useNotifications</div>
+                    </div>
+                    
+                <div class="detail-row">
+                    <div class="detail-label">Location:</div>
+                    <div class="detail-value">hooks/useNotifications.ts:162</div>
+                </div>
+                
+                    
+                    <div class="detail-row">
+                        <div class="detail-label">Status:</div>
+                        <div class="detail-value">not_found</div>
+                    </div>
+                </div>
+                <div class="description">
+                    <strong>Description:</strong> Frontend expects DELETE /api/v1/notifications/{id} but endpoint does not exist in backend
+                </div>
+                <div class="recommendation">
+                    <div class="recommendation-title">💡 Recommendation</div>
+                    <div class="recommendation-text">Implement DELETE endpoint to remove notifications. Include ID validation and deletion logic.</div>
+                </div>
+                <div class="features-list"><span class="feature-tag">useNotificationsQuery</span><span class="feature-tag">useNotifications</span></div>
+            </div>
+            
+
+            <div class="gap-card medium">
+                <div class="gap-header">
+                    <div class="gap-title">POST /api/v1/notifications/bulk-delete</div>
+                    <span class="badge medium">medium</span>
+                </div>
+                <div class="gap-details">
+                    <div class="detail-row">
+                        <div class="detail-label">Gap Type:</div>
+                        <div class="detail-value">Missing Endpoint</div>
+                    </div>
+                    <div class="detail-row">
+                        <div class="detail-label">Component:</div>
+                        <div class="detail-value">hooks.useNotifications</div>
+                    </div>
+                    
+                <div class="detail-row">
+                    <div class="detail-label">Location:</div>
+                    <div class="detail-value">hooks/useNotifications.ts:185</div>
+                </div>
+                
+                    
+                    <div class="detail-row">
+                        <div class="detail-label">Status:</div>
+                        <div class="detail-value">not_found</div>
+                    </div>
+                </div>
+                <div class="description">
+                    <strong>Description:</strong> Frontend expects POST /api/v1/notifications/bulk-delete but endpoint does not exist in backend
+                </div>
+                <div class="recommendation">
+                    <div class="recommendation-title">💡 Recommendation</div>
+                    <div class="recommendation-text">Implement POST endpoint to create new bulk-delete. Include request validation and database insertion. Support batch operations with transaction handling.</div>
+                </div>
+                <div class="features-list"><span class="feature-tag">useNotifications</span></div>
+            </div>
+            
+
+            <div class="gap-card medium">
+                <div class="gap-header">
+                    <div class="gap-title">GET /api/applications</div>
+                    <span class="badge medium">medium</span>
+                </div>
+                <div class="gap-details">
+                    <div class="detail-row">
+                        <div class="detail-label">Gap Type:</div>
+                        <div class="detail-value">Missing Endpoint</div>
+                    </div>
+                    <div class="detail-row">
+                        <div class="detail-label">Component:</div>
+                        <div class="detail-value">lib.optimisticUpdates</div>
+                    </div>
+                    
+                <div class="detail-row">
+                    <div class="detail-label">Location:</div>
+                    <div class="detail-value">lib/optimisticUpdates.ts:250</div>
+                </div>
+                
+                    
+                    <div class="detail-row">
+                        <div class="detail-label">Status:</div>
+                        <div class="detail-value">not_found</div>
+                    </div>
+                </div>
+                <div class="description">
+                    <strong>Description:</strong> Frontend expects GET /api/applications but endpoint does not exist in backend
+                </div>
+                <div class="recommendation">
+                    <div class="recommendation-title">💡 Recommendation</div>
+                    <div class="recommendation-text">Implement GET endpoint to retrieve applications data. Add route handler in appropriate router file.</div>
+                </div>
+                <div class="features-list"><span class="feature-tag">optimisticUpdates</span><span class="feature-tag">swr</span></div>
+            </div>
+            
+
+            <div class="gap-card medium">
+                <div class="gap-header">
+                    <div class="gap-title">GET /api/jobs</div>
+                    <span class="badge medium">medium</span>
+                </div>
+                <div class="gap-details">
+                    <div class="detail-row">
+                        <div class="detail-label">Gap Type:</div>
+                        <div class="detail-value">Missing Endpoint</div>
+                    </div>
+                    <div class="detail-row">
+                        <div class="detail-label">Component:</div>
+                        <div class="detail-value">lib.swr</div>
+                    </div>
+                    
+                <div class="detail-row">
+                    <div class="detail-label">Location:</div>
+                    <div class="detail-value">lib/swr.ts:188</div>
+                </div>
+                
+                    
+                    <div class="detail-row">
+                        <div class="detail-label">Status:</div>
+                        <div class="detail-value">not_found</div>
+                    </div>
+                </div>
+                <div class="description">
+                    <strong>Description:</strong> Frontend expects GET /api/jobs but endpoint does not exist in backend
+                </div>
+                <div class="recommendation">
+                    <div class="recommendation-title">💡 Recommendation</div>
+                    <div class="recommendation-text">Implement GET endpoint to retrieve jobs data. Add route handler in appropriate router file.</div>
+                </div>
+                <div class="features-list"><span class="feature-tag">swr</span></div>
+            </div>
+            
+
+            <div class="gap-card medium">
+                <div class="gap-header">
+                    <div class="gap-title">GET /api/applications</div>
+                    <span class="badge medium">medium</span>
+                </div>
+                <div class="gap-details">
+                    <div class="detail-row">
+                        <div class="detail-label">Gap Type:</div>
+                        <div class="detail-value">Missing Endpoint</div>
+                    </div>
+                    <div class="detail-row">
+                        <div class="detail-label">Component:</div>
+                        <div class="detail-value">lib.swr</div>
+                    </div>
+                    
+                <div class="detail-row">
+                    <div class="detail-label">Location:</div>
+                    <div class="detail-value">lib/swr.ts:206</div>
+                </div>
+                
+                    
+                    <div class="detail-row">
+                        <div class="detail-label">Status:</div>
+                        <div class="detail-value">not_found</div>
+                    </div>
+                </div>
+                <div class="description">
+                    <strong>Description:</strong> Frontend expects GET /api/applications but endpoint does not exist in backend
+                </div>
+                <div class="recommendation">
+                    <div class="recommendation-title">💡 Recommendation</div>
+                    <div class="recommendation-text">Implement GET endpoint to retrieve applications data. Add route handler in appropriate router file.</div>
+                </div>
+                <div class="features-list"><span class="feature-tag">optimisticUpdates</span><span class="feature-tag">swr</span></div>
+            </div>
+            
+
+            <div class="gap-card medium">
+                <div class="gap-header">
+                    <div class="gap-title">GET /api/profile</div>
+                    <span class="badge medium">medium</span>
+                </div>
+                <div class="gap-details">
+                    <div class="detail-row">
+                        <div class="detail-label">Gap Type:</div>
+                        <div class="detail-value">Missing Endpoint</div>
+                    </div>
+                    <div class="detail-row">
+                        <div class="detail-label">Component:</div>
+                        <div class="detail-value">lib.swr</div>
+                    </div>
+                    
+                <div class="detail-row">
+                    <div class="detail-label">Location:</div>
+                    <div class="detail-value">lib/swr.ts:224</div>
+                </div>
+                
+                    
+                    <div class="detail-row">
+                        <div class="detail-label">Status:</div>
+                        <div class="detail-value">not_found</div>
+                    </div>
+                </div>
+                <div class="description">
+                    <strong>Description:</strong> Frontend expects GET /api/profile but endpoint does not exist in backend
+                </div>
+                <div class="recommendation">
+                    <div class="recommendation-title">💡 Recommendation</div>
+                    <div class="recommendation-text">Implement GET endpoint to retrieve profile data. Add route handler in appropriate router file.</div>
+                </div>
+                <div class="features-list"><span class="feature-tag">swr</span></div>
+            </div>
+            
+
+            <div class="gap-card medium">
+                <div class="gap-header">
+                    <div class="gap-title">GET /api/analytics/summary</div>
+                    <span class="badge medium">medium</span>
+                </div>
+                <div class="gap-details">
+                    <div class="detail-row">
+                        <div class="detail-label">Gap Type:</div>
+                        <div class="detail-value">Missing Endpoint</div>
+                    </div>
+                    <div class="detail-row">
+                        <div class="detail-label">Component:</div>
+                        <div class="detail-value">lib.swr</div>
+                    </div>
+                    
+                <div class="detail-row">
+                    <div class="detail-label">Location:</div>
+                    <div class="detail-value">lib/swr.ts:243</div>
+                </div>
+                
+                    
+                    <div class="detail-row">
+                        <div class="detail-label">Status:</div>
+                        <div class="detail-value">not_found</div>
+                    </div>
+                </div>
+                <div class="description">
+                    <strong>Description:</strong> Frontend expects GET /api/analytics/summary but endpoint does not exist in backend
+                </div>
+                <div class="recommendation">
+                    <div class="recommendation-title">💡 Recommendation</div>
+                    <div class="recommendation-text">Implement GET endpoint to retrieve summary data. Add route handler in appropriate router file.</div>
+                </div>
+                <div class="features-list"><span class="feature-tag">swr</span></div>
+            </div>
+            
+
+            <div class="gap-card medium">
+                <div class="gap-header">
+                    <div class="gap-title">GET /api/notifications</div>
+                    <span class="badge medium">medium</span>
+                </div>
+                <div class="gap-details">
+                    <div class="detail-row">
+                        <div class="detail-label">Gap Type:</div>
+                        <div class="detail-value">Missing Endpoint</div>
+                    </div>
+                    <div class="detail-row">
+                        <div class="detail-label">Component:</div>
+                        <div class="detail-value">lib.swr</div>
+                    </div>
+                    
+                <div class="detail-row">
+                    <div class="detail-label">Location:</div>
+                    <div class="detail-value">lib/swr.ts:263</div>
+                </div>
+                
+                    
+                    <div class="detail-row">
+                        <div class="detail-label">Status:</div>
+                        <div class="detail-value">not_found</div>
+                    </div>
+                </div>
+                <div class="description">
+                    <strong>Description:</strong> Frontend expects GET /api/notifications but endpoint does not exist in backend
+                </div>
+                <div class="recommendation">
+                    <div class="recommendation-title">💡 Recommendation</div>
+                    <div class="recommendation-text">Implement GET endpoint to retrieve notifications data. Add route handler in appropriate router file.</div>
+                </div>
+                <div class="features-list"><span class="feature-tag">swr</span></div>
+            </div>
+            
+
+            <div class="gap-card medium">
+                <div class="gap-header">
+                    <div class="gap-title">GET /api/v1/auth/refresh</div>
+                    <span class="badge medium">medium</span>
+                </div>
+                <div class="gap-details">
+                    <div class="detail-row">
+                        <div class="detail-label">Gap Type:</div>
+                        <div class="detail-value">Missing Endpoint</div>
+                    </div>
+                    <div class="detail-row">
+                        <div class="detail-label">Component:</div>
+                        <div class="detail-value">lib.api.examples</div>
+                    </div>
+                    
+                <div class="detail-row">
+                    <div class="detail-label">Location:</div>
+                    <div class="detail-value">lib/api/examples.ts:61</div>
+                </div>
+                
+                    
+                    <div class="detail-row">
+                        <div class="detail-label">Status:</div>
+                        <div class="detail-value">not_found</div>
+                    </div>
+                </div>
+                <div class="description">
+                    <strong>Description:</strong> Frontend expects GET /api/v1/auth/refresh but endpoint does not exist in backend
+                </div>
+                <div class="recommendation">
+                    <div class="recommendation-title">💡 Recommendation</div>
+                    <div class="recommendation-text">Implement GET endpoint to retrieve refresh data. Add route handler in appropriate router file.</div>
+                </div>
+                <div class="features-list"><span class="feature-tag">api</span></div>
+            </div>
+            
+
+            <div class="gap-card medium">
+                <div class="gap-header">
+                    <div class="gap-title">GET /api/v1/auth/refresh</div>
+                    <span class="badge medium">medium</span>
+                </div>
+                <div class="gap-details">
+                    <div class="detail-row">
+                        <div class="detail-label">Gap Type:</div>
+                        <div class="detail-value">Missing Endpoint</div>
+                    </div>
+                    <div class="detail-row">
+                        <div class="detail-label">Component:</div>
+                        <div class="detail-value">lib.api.examples</div>
+                    </div>
+                    
+                <div class="detail-row">
+                    <div class="detail-label">Location:</div>
+                    <div class="detail-value">lib/api/examples.ts:130</div>
+                </div>
+                
+                    
+                    <div class="detail-row">
+                        <div class="detail-label">Status:</div>
+                        <div class="detail-value">not_found</div>
+                    </div>
+                </div>
+                <div class="description">
+                    <strong>Description:</strong> Frontend expects GET /api/v1/auth/refresh but endpoint does not exist in backend
+                </div>
+                <div class="recommendation">
+                    <div class="recommendation-title">💡 Recommendation</div>
+                    <div class="recommendation-text">Implement GET endpoint to retrieve refresh data. Add route handler in appropriate router file.</div>
+                </div>
+                <div class="features-list"><span class="feature-tag">api</span></div>
+            </div>
+            
+
+            <div class="gap-card medium">
+                <div class="gap-header">
+                    <div class="gap-title">GET /api/v1/auth/refresh</div>
+                    <span class="badge medium">medium</span>
+                </div>
+                <div class="gap-details">
+                    <div class="detail-row">
+                        <div class="detail-label">Gap Type:</div>
+                        <div class="detail-value">Missing Endpoint</div>
+                    </div>
+                    <div class="detail-row">
+                        <div class="detail-label">Component:</div>
+                        <div class="detail-value">lib.api.examples</div>
+                    </div>
+                    
+                <div class="detail-row">
+                    <div class="detail-label">Location:</div>
+                    <div class="detail-value">lib/api/examples.ts:130</div>
+                </div>
+                
+                    
+                    <div class="detail-row">
+                        <div class="detail-label">Status:</div>
+                        <div class="detail-value">not_found</div>
+                    </div>
+                </div>
+                <div class="description">
+                    <strong>Description:</strong> Frontend expects GET /api/v1/auth/refresh but endpoint does not exist in backend
+                </div>
+                <div class="recommendation">
+                    <div class="recommendation-title">💡 Recommendation</div>
+                    <div class="recommendation-text">Implement GET endpoint to retrieve refresh data. Add route handler in appropriate router file.</div>
+                </div>
+                <div class="features-list"><span class="feature-tag">api</span></div>
+            </div>
+            
+
+            <div class="gap-card medium">
+                <div class="gap-header">
+                    <div class="gap-title">GET /api/v1/jobs/cached</div>
+                    <span class="badge medium">medium</span>
+                </div>
+                <div class="gap-details">
+                    <div class="detail-row">
+                        <div class="detail-label">Gap Type:</div>
+                        <div class="detail-value">Missing Endpoint</div>
+                    </div>
+                    <div class="detail-row">
+                        <div class="detail-label">Component:</div>
+                        <div class="detail-value">lib.api.examples</div>
+                    </div>
+                    
+                <div class="detail-row">
+                    <div class="detail-label">Location:</div>
+                    <div class="detail-value">lib/api/examples.ts:178</div>
+                </div>
+                
+                    
+                    <div class="detail-row">
+                        <div class="detail-label">Status:</div>
+                        <div class="detail-value">not_found</div>
+                    </div>
+                </div>
+                <div class="description">
+                    <strong>Description:</strong> Frontend expects GET /api/v1/jobs/cached but endpoint does not exist in backend
+                </div>
+                <div class="recommendation">
+                    <div class="recommendation-title">💡 Recommendation</div>
+                    <div class="recommendation-text">Implement GET endpoint to retrieve cached data. Add route handler in appropriate router file.</div>
+                </div>
+                <div class="features-list"><span class="feature-tag">api</span></div>
+            </div>
+            
+
+            <div class="gap-card medium">
+                <div class="gap-header">
+                    <div class="gap-title">GET /api/v1/analytics</div>
+                    <span class="badge medium">medium</span>
+                </div>
+                <div class="gap-details">
+                    <div class="detail-row">
+                        <div class="detail-label">Gap Type:</div>
+                        <div class="detail-value">Missing Endpoint</div>
+                    </div>
+                    <div class="detail-row">
+                        <div class="detail-label">Component:</div>
+                        <div class="detail-value">lib.api.examples</div>
+                    </div>
+                    
+                <div class="detail-row">
+                    <div class="detail-label">Location:</div>
+                    <div class="detail-value">lib/api/examples.ts:179</div>
+                </div>
+                
+                    
+                    <div class="detail-row">
+                        <div class="detail-label">Status:</div>
+                        <div class="detail-value">not_found</div>
+                    </div>
+                </div>
+                <div class="description">
+                    <strong>Description:</strong> Frontend expects GET /api/v1/analytics but endpoint does not exist in backend
+                </div>
+                <div class="recommendation">
+                    <div class="recommendation-title">💡 Recommendation</div>
+                    <div class="recommendation-text">Implement GET endpoint to retrieve analytics data. Add route handler in appropriate router file.</div>
+                </div>
+                <div class="features-list"><span class="feature-tag">api</span></div>
+            </div>
+            
+
+            <div class="gap-card medium">
+                <div class="gap-header">
+                    <div class="gap-title">GET /api/refresh-token</div>
+                    <span class="badge medium">medium</span>
+                </div>
+                <div class="gap-details">
+                    <div class="detail-row">
+                        <div class="detail-label">Gap Type:</div>
+                        <div class="detail-value">Missing Endpoint</div>
+                    </div>
+                    <div class="detail-row">
+                        <div class="detail-label">Component:</div>
+                        <div class="detail-value">lib.api.config</div>
+                    </div>
+                    
+                <div class="detail-row">
+                    <div class="detail-label">Location:</div>
+                    <div class="detail-value">lib/api/config.ts:161</div>
+                </div>
+                
+                    
+                    <div class="detail-row">
+                        <div class="detail-label">Status:</div>
+                        <div class="detail-value">not_found</div>
+                    </div>
+                </div>
+                <div class="description">
+                    <strong>Description:</strong> Frontend expects GET /api/refresh-token but endpoint does not exist in backend
+                </div>
+                <div class="recommendation">
+                    <div class="recommendation-title">💡 Recommendation</div>
+                    <div class="recommendation-text">Implement GET endpoint to retrieve refresh-token data. Add route handler in appropriate router file.</div>
+                </div>
+                <div class="features-list"><span class="feature-tag">api</span></div>
+            </div>
+            
+
+            <div class="gap-card medium">
+                <div class="gap-header">
+                    <div class="gap-title">GET /api/refresh-token</div>
+                    <span class="badge medium">medium</span>
+                </div>
+                <div class="gap-details">
+                    <div class="detail-row">
+                        <div class="detail-label">Gap Type:</div>
+                        <div class="detail-value">Missing Endpoint</div>
+                    </div>
+                    <div class="detail-row">
+                        <div class="detail-label">Component:</div>
+                        <div class="detail-value">lib.api.config</div>
+                    </div>
+                    
+                <div class="detail-row">
+                    <div class="detail-label">Location:</div>
+                    <div class="detail-value">lib/api/config.ts:188</div>
+                </div>
+                
+                    
+                    <div class="detail-row">
+                        <div class="detail-label">Status:</div>
+                        <div class="detail-value">not_found</div>
+                    </div>
+                </div>
+                <div class="description">
+                    <strong>Description:</strong> Frontend expects GET /api/refresh-token but endpoint does not exist in backend
+                </div>
+                <div class="recommendation">
+                    <div class="recommendation-title">💡 Recommendation</div>
+                    <div class="recommendation-text">Implement GET endpoint to retrieve refresh-token data. Add route handler in appropriate router file.</div>
+                </div>
+                <div class="features-list"><span class="feature-tag">api</span></div>
+            </div>
+            
+
+            <div class="gap-card medium">
+                <div class="gap-header">
+                    <div class="gap-title">GET /api/v1/jobs/cached</div>
+                    <span class="badge medium">medium</span>
+                </div>
+                <div class="gap-details">
+                    <div class="detail-row">
+                        <div class="detail-label">Gap Type:</div>
+                        <div class="detail-value">Missing Endpoint</div>
+                    </div>
+                    <div class="detail-row">
+                        <div class="detail-label">Component:</div>
+                        <div class="detail-value">lib.api.config</div>
+                    </div>
+                    
+                <div class="detail-row">
+                    <div class="detail-label">Location:</div>
+                    <div class="detail-value">lib/api/config.ts:89</div>
+                </div>
+                
+                    
+                    <div class="detail-row">
+                        <div class="detail-label">Status:</div>
+                        <div class="detail-value">not_found</div>
+                    </div>
+                </div>
+                <div class="description">
+                    <strong>Description:</strong> Frontend expects GET /api/v1/jobs/cached but endpoint does not exist in backend
+                </div>
+                <div class="recommendation">
+                    <div class="recommendation-title">💡 Recommendation</div>
+                    <div class="recommendation-text">Implement GET endpoint to retrieve cached data. Add route handler in appropriate router file.</div>
+                </div>
+                <div class="features-list"><span class="feature-tag">api</span></div>
+            </div>
+            
+
+            <div class="gap-card medium">
+                <div class="gap-header">
+                    <div class="gap-title">PUT /api/v1/notificationsettings/{id}</div>
+                    <span class="badge medium">medium</span>
+                </div>
+                <div class="gap-details">
+                    <div class="detail-row">
+                        <div class="detail-label">Gap Type:</div>
+                        <div class="detail-value">Missing Endpoint</div>
+                    </div>
+                    <div class="detail-row">
+                        <div class="detail-label">Component:</div>
+                        <div class="detail-value">components.settings.NotificationPreferences</div>
+                    </div>
+                    
+                <div class="detail-row">
+                    <div class="detail-label">Location:</div>
+                    <div class="detail-value">components/settings/NotificationPreferences.tsx:260</div>
+                </div>
+                
+                    
+                    <div class="detail-row">
+                        <div class="detail-label">Status:</div>
+                        <div class="detail-value">not_found</div>
+                    </div>
+                </div>
+                <div class="description">
+                    <strong>Description:</strong> Frontend expects PUT /api/v1/notificationsettings/{id} but endpoint does not exist in backend
+                </div>
+                <div class="recommendation">
+                    <div class="recommendation-title">💡 Recommendation</div>
+                    <div class="recommendation-text">Implement PUT endpoint to update existing notificationsettings. Include ID validation and update logic.</div>
+                </div>
+                <div class="features-list"><span class="feature-tag">settings</span></div>
+            </div>
+            
+
+            <div class="gap-card medium">
+                <div class="gap-header">
+                    <div class="gap-title">PUT /api/v1/profile</div>
+                    <span class="badge medium">medium</span>
+                </div>
+                <div class="gap-details">
+                    <div class="detail-row">
+                        <div class="detail-label">Gap Type:</div>
+                        <div class="detail-value">Missing Endpoint</div>
+                    </div>
+                    <div class="detail-row">
+                        <div class="detail-label">Component:</div>
+                        <div class="detail-value">components.features.ResumeUpload</div>
+                    </div>
+                    
+                <div class="detail-row">
+                    <div class="detail-label">Location:</div>
+                    <div class="detail-value">components/features/ResumeUpload.tsx:190</div>
+                </div>
+                
+                    
+                    <div class="detail-row">
+                        <div class="detail-label">Status:</div>
+                        <div class="detail-value">not_found</div>
+                    </div>
+                </div>
+                <div class="description">
+                    <strong>Description:</strong> Frontend expects PUT /api/v1/profile but endpoint does not exist in backend
+                </div>
+                <div class="recommendation">
+                    <div class="recommendation-title">💡 Recommendation</div>
+                    <div class="recommendation-text">Implement PUT endpoint to update existing profile. Include ID validation and update logic.</div>
+                </div>
+                <div class="features-list"><span class="feature-tag">useUserProfile</span><span class="feature-tag">ResumeUpload</span></div>
+            </div>
+            
+
+            <div class="gap-card low">
+                <div class="gap-header">
+                    <div class="gap-title">GET /api/health</div>
+                    <span class="badge low">low</span>
+                </div>
+                <div class="gap-details">
+                    <div class="detail-row">
+                        <div class="detail-label">Gap Type:</div>
+                        <div class="detail-value">Missing Endpoint</div>
+                    </div>
+                    <div class="detail-row">
+                        <div class="detail-label">Component:</div>
+                        <div class="detail-value">hooks.useOfflineMode</div>
+                    </div>
+                    
+                <div class="detail-row">
+                    <div class="detail-label">Location:</div>
+                    <div class="detail-value">hooks/useOfflineMode.ts:44</div>
+                </div>
+                
+                    
+                    <div class="detail-row">
+                        <div class="detail-label">Status:</div>
+                        <div class="detail-value">not_found</div>
+                    </div>
+                </div>
+                <div class="description">
+                    <strong>Description:</strong> Frontend expects GET /api/health but endpoint does not exist in backend
+                </div>
+                <div class="recommendation">
+                    <div class="recommendation-title">💡 Recommendation</div>
+                    <div class="recommendation-text">Implement GET endpoint to retrieve health data. Add route handler in appropriate router file.</div>
+                </div>
+                <div class="features-list"><span class="feature-tag">useOfflineMode</span><span class="feature-tag">monitoring</span></div>
+            </div>
+            
+
+            <div class="gap-card low">
+                <div class="gap-header">
+                    <div class="gap-title">GET /api/push/subscribe</div>
+                    <span class="badge low">low</span>
+                </div>
+                <div class="gap-details">
+                    <div class="detail-row">
+                        <div class="detail-label">Gap Type:</div>
+                        <div class="detail-value">Missing Endpoint</div>
+                    </div>
+                    <div class="detail-row">
+                        <div class="detail-label">Component:</div>
+                        <div class="detail-value">lib.pushNotifications</div>
+                    </div>
+                    
+                <div class="detail-row">
+                    <div class="detail-label">Location:</div>
+                    <div class="detail-value">lib/pushNotifications.ts:175</div>
+                </div>
+                
+                    
+                    <div class="detail-row">
+                        <div class="detail-label">Status:</div>
+                        <div class="detail-value">not_found</div>
+                    </div>
+                </div>
+                <div class="description">
+                    <strong>Description:</strong> Frontend expects GET /api/push/subscribe but endpoint does not exist in backend
+                </div>
+                <div class="recommendation">
+                    <div class="recommendation-title">💡 Recommendation</div>
+                    <div class="recommendation-text">Implement GET endpoint to retrieve subscribe data. Add route handler in appropriate router file.</div>
+                </div>
+                <div class="features-list"><span class="feature-tag">pushNotifications</span></div>
+            </div>
+            
+
+            <div class="gap-card low">
+                <div class="gap-header">
+                    <div class="gap-title">PUT /api/v1/status/{id}</div>
+                    <span class="badge low">low</span>
+                </div>
+                <div class="gap-details">
+                    <div class="detail-row">
+                        <div class="detail-label">Gap Type:</div>
+                        <div class="detail-value">Missing Endpoint</div>
+                    </div>
+                    <div class="detail-row">
+                        <div class="detail-label">Component:</div>
+                        <div class="detail-value">lib.utils.optimistic</div>
+                    </div>
+                    
+                <div class="detail-row">
+                    <div class="detail-label">Location:</div>
+                    <div class="detail-value">lib/utils/optimistic.ts:20</div>
+                </div>
+                
+                    
+                    <div class="detail-row">
+                        <div class="detail-label">Status:</div>
+                        <div class="detail-value">not_found</div>
+                    </div>
+                </div>
+                <div class="description">
+                    <strong>Description:</strong> Frontend expects PUT /api/v1/status/{id} but endpoint does not exist in backend
+                </div>
+                <div class="recommendation">
+                    <div class="recommendation-title">💡 Recommendation</div>
+                    <div class="recommendation-text">Implement PUT endpoint to update existing status. Include ID validation and update logic.</div>
+                </div>
+                <div class="features-list"><span class="feature-tag">optimistic</span></div>
+            </div>
+            
+
+            <div class="gap-card low">
+                <div class="gap-header">
+                    <div class="gap-title">GET /api/sentry-example-api</div>
+                    <span class="badge low">low</span>
+                </div>
+                <div class="gap-details">
+                    <div class="detail-row">
+                        <div class="detail-label">Gap Type:</div>
+                        <div class="detail-value">Missing Endpoint</div>
+                    </div>
+                    <div class="detail-row">
+                        <div class="detail-label">Component:</div>
+                        <div class="detail-value">app.sentry-example-page.page</div>
+                    </div>
+                    
+                <div class="detail-row">
+                    <div class="detail-label">Location:</div>
+                    <div class="detail-value">app/sentry-example-page/page.tsx:55</div>
+                </div>
+                
+                    
+                    <div class="detail-row">
+                        <div class="detail-label">Status:</div>
+                        <div class="detail-value">not_found</div>
+                    </div>
+                </div>
+                <div class="description">
+                    <strong>Description:</strong> Frontend expects GET /api/sentry-example-api but endpoint does not exist in backend
+                </div>
+                <div class="recommendation">
+                    <div class="recommendation-title">💡 Recommendation</div>
+                    <div class="recommendation-text">Implement GET endpoint to retrieve sentry-example-api data. Add route handler in appropriate router file.</div>
+                </div>
+                <div class="features-list"><span class="feature-tag">app</span></div>
+            </div>
+            
+
+            <div class="gap-card low">
+                <div class="gap-header">
+                    <div class="gap-title">GET /api/v1/health/comprehensive</div>
+                    <span class="badge low">low</span>
+                </div>
+                <div class="gap-details">
+                    <div class="detail-row">
+                        <div class="detail-label">Gap Type:</div>
+                        <div class="detail-value">Missing Endpoint</div>
+                    </div>
+                    <div class="detail-row">
+                        <div class="detail-label">Component:</div>
+                        <div class="detail-value">app.health.page</div>
+                    </div>
+                    
+                <div class="detail-row">
+                    <div class="detail-label">Location:</div>
+                    <div class="detail-value">app/health/page.tsx:27</div>
+                </div>
+                
+                    
+                    <div class="detail-row">
+                        <div class="detail-label">Status:</div>
+                        <div class="detail-value">not_found</div>
+                    </div>
+                </div>
+                <div class="description">
+                    <strong>Description:</strong> Frontend expects GET /api/v1/health/comprehensive but endpoint does not exist in backend
+                </div>
+                <div class="recommendation">
+                    <div class="recommendation-title">💡 Recommendation</div>
+                    <div class="recommendation-text">Implement GET endpoint to retrieve comprehensive data. Add route handler in appropriate router file.</div>
+                </div>
+                <div class="features-list"><span class="feature-tag">app</span></div>
+            </div>
+            
+
+            <div class="gap-card low">
+                <div class="gap-header">
+                    <div class="gap-title">GET /api/v1/health/comprehensive</div>
+                    <span class="badge low">low</span>
+                </div>
+                <div class="gap-details">
+                    <div class="detail-row">
+                        <div class="detail-label">Gap Type:</div>
+                        <div class="detail-value">Missing Endpoint</div>
+                    </div>
+                    <div class="detail-row">
+                        <div class="detail-label">Component:</div>
+                        <div class="detail-value">app.health.page</div>
+                    </div>
+                    
+                <div class="detail-row">
+                    <div class="detail-label">Location:</div>
+                    <div class="detail-value">app/health/page.tsx:27</div>
+                </div>
+                
+                    
+                    <div class="detail-row">
+                        <div class="detail-label">Status:</div>
+                        <div class="detail-value">not_found</div>
+                    </div>
+                </div>
+                <div class="description">
+                    <strong>Description:</strong> Frontend expects GET /api/v1/health/comprehensive but endpoint does not exist in backend
+                </div>
+                <div class="recommendation">
+                    <div class="recommendation-title">💡 Recommendation</div>
+                    <div class="recommendation-text">Implement GET endpoint to retrieve comprehensive data. Add route handler in appropriate router file.</div>
+                </div>
+                <div class="features-list"><span class="feature-tag">app</span></div>
+            </div>
+            
+
+            <div class="gap-card low">
+                <div class="gap-header">
+                    <div class="gap-title">DELETE /api/v1/search/{id}</div>
+                    <span class="badge low">low</span>
+                </div>
+                <div class="gap-details">
+                    <div class="detail-row">
+                        <div class="detail-label">Gap Type:</div>
+                        <div class="detail-value">Missing Endpoint</div>
+                    </div>
+                    <div class="detail-row">
+                        <div class="detail-label">Component:</div>
+                        <div class="detail-value">components.features.SavedSearches</div>
+                    </div>
+                    
+                <div class="detail-row">
+                    <div class="detail-label">Location:</div>
+                    <div class="detail-value">components/features/SavedSearches.tsx:376</div>
+                </div>
+                
+                    
+                    <div class="detail-row">
+                        <div class="detail-label">Status:</div>
+                        <div class="detail-value">not_found</div>
+                    </div>
+                </div>
+                <div class="description">
+                    <strong>Description:</strong> Frontend expects DELETE /api/v1/search/{id} but endpoint does not exist in backend
+                </div>
+                <div class="recommendation">
+                    <div class="recommendation-title">💡 Recommendation</div>
+                    <div class="recommendation-text">Implement DELETE endpoint to remove search. Include ID validation and deletion logic. Include query parameters for filtering and pagination.</div>
+                </div>
+                <div class="features-list"><span class="feature-tag">SavedSearches</span></div>
+            </div>
+            
+
+            <div class="gap-card low">
+                <div class="gap-header">
+                    <div class="gap-title">GET /api/v1/interview/start</div>
+                    <span class="badge low">low</span>
+                </div>
+                <div class="gap-details">
+                    <div class="detail-row">
+                        <div class="detail-label">Gap Type:</div>
+                        <div class="detail-value">Missing Endpoint</div>
+                    </div>
+                    <div class="detail-row">
+                        <div class="detail-label">Component:</div>
+                        <div class="detail-value">components.features.InterviewPractice</div>
+                    </div>
+                    
+                <div class="detail-row">
+                    <div class="detail-label">Location:</div>
+                    <div class="detail-value">components/features/InterviewPractice.tsx:130</div>
+                </div>
+                
+                    
+                    <div class="detail-row">
+                        <div class="detail-label">Status:</div>
+                        <div class="detail-value">not_found</div>
+                    </div>
+                </div>
+                <div class="description">
+                    <strong>Description:</strong> Frontend expects GET /api/v1/interview/start but endpoint does not exist in backend
+                </div>
+                <div class="recommendation">
+                    <div class="recommendation-title">💡 Recommendation</div>
+                    <div class="recommendation-text">Implement GET endpoint to retrieve start data. Add route handler in appropriate router file.</div>
+                </div>
+                <div class="features-list"><span class="feature-tag">InterviewPractice</span></div>
+            </div>
+            
+
+            <div class="gap-card low">
+                <div class="gap-header">
+                    <div class="gap-title">POST /api/v1/content/generate</div>
+                    <span class="badge low">low</span>
+                </div>
+                <div class="gap-details">
+                    <div class="detail-row">
+                        <div class="detail-label">Gap Type:</div>
+                        <div class="detail-value">Missing Endpoint</div>
+                    </div>
+                    <div class="detail-row">
+                        <div class="detail-label">Component:</div>
+                        <div class="detail-value">components.features.ContentGeneration</div>
+                    </div>
+                    
+                <div class="detail-row">
+                    <div class="detail-label">Location:</div>
+                    <div class="detail-value">components/features/ContentGeneration.tsx:89</div>
+                </div>
+                
+                    
+                    <div class="detail-row">
+                        <div class="detail-label">Status:</div>
+                        <div class="detail-value">not_found</div>
+                    </div>
+                </div>
+                <div class="description">
+                    <strong>Description:</strong> Frontend expects POST /api/v1/content/generate but endpoint does not exist in backend
+                </div>
+                <div class="recommendation">
+                    <div class="recommendation-title">💡 Recommendation</div>
+                    <div class="recommendation-text">Implement POST endpoint to create new generate. Include request validation and database insertion.</div>
+                </div>
+                <div class="features-list"><span class="feature-tag">ContentGeneration</span></div>
+            </div>
+            
+
+            <div class="gap-card low">
+                <div class="gap-header">
+                    <div class="gap-title">GET /api/health</div>
+                    <span class="badge low">low</span>
+                </div>
+                <div class="gap-details">
+                    <div class="detail-row">
+                        <div class="detail-label">Gap Type:</div>
+                        <div class="detail-value">Missing Endpoint</div>
+                    </div>
+                    <div class="detail-row">
+                        <div class="detail-label">Component:</div>
+                        <div class="detail-value">components.monitoring.HealthMonitor</div>
+                    </div>
+                    
+                <div class="detail-row">
+                    <div class="detail-label">Location:</div>
+                    <div class="detail-value">components/monitoring/HealthMonitor.tsx:76</div>
+                </div>
+                
+                    
+                    <div class="detail-row">
+                        <div class="detail-label">Status:</div>
+                        <div class="detail-value">not_found</div>
+                    </div>
+                </div>
+                <div class="description">
+                    <strong>Description:</strong> Frontend expects GET /api/health but endpoint does not exist in backend
+                </div>
+                <div class="recommendation">
+                    <div class="recommendation-title">💡 Recommendation</div>
+                    <div class="recommendation-text">Implement GET endpoint to retrieve health data. Add route handler in appropriate router file.</div>
+                </div>
+                <div class="features-list"><span class="feature-tag">useOfflineMode</span><span class="feature-tag">monitoring</span></div>
+            </div>
+            
+
+            <div class="gap-card low">
+                <div class="gap-header">
+                    <div class="gap-title">GET /api/feedback</div>
+                    <span class="badge low">low</span>
+                </div>
+                <div class="gap-details">
+                    <div class="detail-row">
+                        <div class="detail-label">Gap Type:</div>
+                        <div class="detail-value">Missing Endpoint</div>
+                    </div>
+                    <div class="detail-row">
+                        <div class="detail-label">Component:</div>
+                        <div class="detail-value">components.help.FeedbackWidget</div>
+                    </div>
+                    
+                <div class="detail-row">
+                    <div class="detail-label">Location:</div>
+                    <div class="detail-value">components/help/FeedbackWidget.tsx:148</div>
+                </div>
+                
+                    
+                    <div class="detail-row">
+                        <div class="detail-label">Status:</div>
+                        <div class="detail-value">not_found</div>
+                    </div>
+                </div>
+                <div class="description">
+                    <strong>Description:</strong> Frontend expects GET /api/feedback but endpoint does not exist in backend
+                </div>
+                <div class="recommendation">
+                    <div class="recommendation-title">💡 Recommendation</div>
+                    <div class="recommendation-text">Implement GET endpoint to retrieve feedback data. Add route handler in appropriate router file.</div>
+                </div>
+                <div class="features-list"><span class="feature-tag">help</span></div>
+            </div>
+            
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function filterGaps(severity) {
+            const cards = document.querySelectorAll('.gap-card');
+            const buttons = document.querySelectorAll('.filter-btn');
+
+            buttons.forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+
+            cards.forEach(card => {
+                if (severity === 'all' || card.classList.contains(severity)) {
+                    card.style.display = 'block';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        }
+    </script>
+</body>
+</html>

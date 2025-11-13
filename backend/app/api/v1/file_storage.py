@@ -1,20 +1,22 @@
 """
 File Storage API Endpoints
 
-Provides REST API endpoints for file storage operations including
-versioning, cleanup, and storage management.
+Provides REST API endpoints for file storage operations using database storage.
 """
 
-from typing import Dict, List, Optional, Any
-from fastapi import APIRouter, HTTPException, Query, Body, Depends
+import base64
+import io
+from typing import Any, Dict, List, Optional
+
+from fastapi import APIRouter, Body, Depends, HTTPException, Query
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
-import io
 
-from ...services.file_storage_service import file_storage_service, FileRecord, FileVersion, StorageStats, CleanupPolicy
+from app.dependencies import get_current_user
+
 from ...core.exceptions import StorageError, ValidationError
 from ...core.logging import get_logger
-from ...core.dependencies import get_current_user
+from ...services.database_storage_service import ChromaStorageService
 
 logger = get_logger(__name__)
 
@@ -27,8 +29,7 @@ class FileUploadRequest(BaseModel):
 	content: str = Field(description="Base64 encoded file content")
 	filename: str = Field(description="Original filename")
 	mime_type: Optional[str] = Field(default=None, description="MIME type")
-	tags: Optional[List[str]] = Field(default=None, description="File tags")
-	metadata: Optional[Dict[str, Any]] = Field(default=None, description="Additional metadata")
+	document_type: str = Field(default="upload", description="Type of document")
 
 
 class FileUpdateRequest(BaseModel):
@@ -37,16 +38,13 @@ class FileUpdateRequest(BaseModel):
 	content: str = Field(description="Base64 encoded file content")
 	filename: Optional[str] = Field(default=None, description="New filename")
 	mime_type: Optional[str] = Field(default=None, description="MIME type")
-	metadata: Optional[Dict[str, Any]] = Field(default=None, description="Additional metadata")
 
 
 class FileListResponse(BaseModel):
 	"""File list response model."""
 
-	files: List[FileRecord] = Field(description="List of files")
+	files: List[Dict[str, Any]] = Field(description="List of files")
 	total_count: int = Field(description="Total number of files")
-	active_count: int = Field(description="Number of active files")
-	deleted_count: int = Field(description="Number of deleted files")
 
 
 class CleanupRequest(BaseModel):
@@ -60,24 +58,17 @@ class CleanupRequest(BaseModel):
 async def get_file_storage_info():
 	"""Get file storage service information."""
 	try:
-		stats = await file_storage_service.get_storage_stats()
-
 		return {
-			"service": "File Storage Service",
+			"service": "ChromaDB Storage Service",
 			"version": "1.0.0",
-			"storage_backend": stats.storage_backend,
+			"storage_backend": "ChromaDB + PostgreSQL",
 			"status": "operational",
 			"endpoints": {
 				"upload": "POST /file-storage/upload - Upload a new file",
-				"get": "GET /file-storage/{file_id} - Get file content",
-				"update": "PUT /file-storage/{file_id} - Update file (creates new version)",
-				"delete": "DELETE /file-storage/{file_id} - Delete file",
-				"list": "GET /file-storage/list - List all files",
-				"info": "GET /file-storage/{file_id}/info - Get file metadata",
-				"versions": "GET /file-storage/{file_id}/versions - Get file versions",
-				"stats": "GET /file-storage/stats - Get storage statistics",
-				"cleanup": "POST /file-storage/cleanup - Clean up old files",
-				"policies": "GET /file-storage/policies - Get cleanup policies",
+				"get": "GET /file-storage/{stored_filename} - Get file content",
+				"delete": "DELETE /file-storage/{stored_filename} - Delete file",
+				"list": "GET /file-storage/list - List user files",
+				"info": "GET /file-storage/{stored_filename}/info - Get file metadata",
 			},
 		}
 	except Exception as e:
@@ -85,32 +76,34 @@ async def get_file_storage_info():
 		raise HTTPException(status_code=500, detail="Failed to get service information")
 
 
-@router.post("/upload", response_model=FileRecord)
-async def upload_file(request: FileUploadRequest, current_user: Optional[str] = Depends(get_current_user)):
+@router.post("/upload", response_model=Dict[str, Any])
+async def upload_file(request: FileUploadRequest, current_user: Optional[Dict] = Depends(get_current_user)):
 	"""Upload a new file to storage."""
 	try:
 		# Decode base64 content
-		import base64
-
 		try:
 			content = base64.b64decode(request.content)
 		except Exception as e:
-			raise HTTPException(status_code=400, detail=f"Invalid base64 content: {e}")
+			raise HTTPException(status_code=400, detail=f"Invalid base64 content: {e!s}")
 
-		# Prepare metadata
-		metadata = request.metadata or {}
-		if request.mime_type:
-			metadata["mime_type"] = request.mime_type
-		if request.tags:
-			metadata["tags"] = request.tags
-		if current_user:
-			metadata["uploaded_by"] = current_user
+		# Get user ID
+		user_id = current_user.get("id") if current_user else 1
 
-		# Store file
-		file_record = await file_storage_service.store_file(content=content, filename=request.filename, metadata=metadata)
+		# Store file using ChromaDB storage
+		storage_service = ChromaStorageService()
+		stored_filename = await storage_service.store_file(
+			user_id=user_id,
+			file_content=content,
+			original_filename=request.filename,
+			document_type=request.document_type,
+			mime_type=request.mime_type,
+		)
 
-		logger.info(f"File uploaded successfully: {request.filename} (ID: {file_record.file_id})")
-		return file_record
+		# Get file metadata
+		file_metadata = await storage_service.get_file_metadata(stored_filename)
+
+		logger.info(f"File uploaded successfully: {request.filename} -> {stored_filename}")
+		return file_metadata
 
 	except ValidationError as e:
 		raise HTTPException(status_code=400, detail=str(e))
@@ -121,31 +114,40 @@ async def upload_file(request: FileUploadRequest, current_user: Optional[str] = 
 		raise HTTPException(status_code=500, detail="Failed to upload file")
 
 
-@router.get("/{file_id}")
+@router.get("/{stored_filename}")
 async def get_file(
-	file_id: str,
-	version_id: Optional[str] = Query(None, description="Specific version ID"),
+	stored_filename: str,
 	download: bool = Query(False, description="Download as attachment"),
-	current_user: Optional[str] = Depends(get_current_user),
+	current_user: Optional[Dict] = Depends(get_current_user),
 ):
 	"""Get file content."""
 	try:
-		content, version = await file_storage_service.get_file(file_id, version_id)
+		storage_service = ChromaStorageService()
+		content = await storage_service.get_file(stored_filename)
+
+		if not content:
+			raise HTTPException(status_code=404, detail="File not found")
+
+		# Get metadata for headers
+		metadata = await storage_service.get_file_metadata(stored_filename)
 
 		# Prepare response headers
 		headers = {
-			"Content-Type": version.mime_type,
+			"Content-Type": metadata.get("mime_type", "application/octet-stream"),
 			"Content-Length": str(len(content)),
-			"X-File-ID": file_id,
-			"X-Version-ID": version.version_id,
-			"X-File-Hash": version.file_hash,
+			"X-Stored-Filename": stored_filename,
 		}
 
 		if download:
-			headers["Content-Disposition"] = f'attachment; filename="{version.original_filename}"'
+			headers["Content-Disposition"] = f'attachment; filename="{metadata.get("original_filename", stored_filename)}"'
 
-		# Return file content as streaming response
-		return StreamingResponse(io.BytesIO(content), media_type=version.mime_type, headers=headers)
+		return StreamingResponse(io.BytesIO(content), media_type=metadata.get("mime_type", "application/octet-stream"), headers=headers)
+
+	except HTTPException:
+		raise
+	except Exception as e:
+		logger.error(f"Failed to get file {stored_filename}: {e}")
+		raise HTTPException(status_code=500, detail="Failed to retrieve file")
 
 	except StorageError as e:
 		if "not found" in str(e).lower():
@@ -156,118 +158,67 @@ async def get_file(
 		raise HTTPException(status_code=500, detail="Failed to retrieve file")
 
 
-@router.put("/{file_id}", response_model=FileVersion)
-async def update_file(file_id: str, request: FileUpdateRequest, current_user: Optional[str] = Depends(get_current_user)):
-	"""Update an existing file (creates new version)."""
-	try:
-		# Decode base64 content
-		import base64
-
-		try:
-			content = base64.b64decode(request.content)
-		except Exception as e:
-			raise HTTPException(status_code=400, detail=f"Invalid base64 content: {e}")
-
-		# Prepare metadata
-		metadata = request.metadata or {}
-		if request.mime_type:
-			metadata["mime_type"] = request.mime_type
-		if current_user:
-			metadata["updated_by"] = current_user
-
-		# Update file
-		new_version = await file_storage_service.update_file(file_id=file_id, content=content, filename=request.filename, metadata=metadata)
-
-		logger.info(f"File updated successfully: {file_id} (new version: {new_version.version_id})")
-		return new_version
-
-	except ValidationError as e:
-		raise HTTPException(status_code=400, detail=str(e))
-	except StorageError as e:
-		if "not found" in str(e).lower():
-			raise HTTPException(status_code=404, detail=str(e))
-		raise HTTPException(status_code=500, detail=str(e))
-	except Exception as e:
-		logger.error(f"Failed to update file {file_id}: {e}")
-		raise HTTPException(status_code=500, detail="Failed to update file")
-
-
-@router.delete("/{file_id}")
+@router.delete("/{stored_filename}")
 async def delete_file(
-	file_id: str,
-	hard_delete: bool = Query(False, description="Perform hard delete (permanent)"),
-	current_user: Optional[str] = Depends(get_current_user),
+	stored_filename: str,
+	current_user: Optional[Dict] = Depends(get_current_user),
 ):
 	"""Delete a file."""
 	try:
-		success = await file_storage_service.delete_file(file_id, hard_delete)
+		storage_service = ChromaStorageService()
+		success = await storage_service.delete_file(stored_filename)
 
 		if not success:
 			raise HTTPException(status_code=404, detail="File not found")
 
-		delete_type = "hard" if hard_delete else "soft"
-		logger.info(f"File {delete_type} deleted successfully: {file_id}")
+		logger.info(f"File deleted successfully: {stored_filename}")
+		return {"message": "File deleted successfully"}
 
-		return {"success": True, "message": f"File {delete_type} deleted successfully", "file_id": file_id, "hard_delete": hard_delete}
-
+	except HTTPException:
+		raise
 	except Exception as e:
-		logger.error(f"Failed to delete file {file_id}: {e}")
+		logger.error(f"Failed to delete file {stored_filename}: {e}")
 		raise HTTPException(status_code=500, detail="Failed to delete file")
 
 
 @router.get("/list", response_model=FileListResponse)
 async def list_files(
-	include_deleted: bool = Query(False, description="Include soft-deleted files"),
-	tags: Optional[str] = Query(None, description="Filter by tags (comma-separated)"),
-	limit: int = Query(100, ge=1, le=1000, description="Maximum number of files to return"),
-	offset: int = Query(0, ge=0, description="Number of files to skip"),
-	current_user: Optional[str] = Depends(get_current_user),
+	document_type: Optional[str] = Query(None, description="Filter by document type"),
+	current_user: Optional[Dict] = Depends(get_current_user),
 ):
-	"""List all files with optional filtering."""
+	"""List user files."""
 	try:
-		# Parse tags
-		tag_list = None
-		if tags:
-			tag_list = [tag.strip() for tag in tags.split(",") if tag.strip()]
+		user_id = current_user.get("id") if current_user else 1
+		storage_service = ChromaStorageService()
+		files = await storage_service.list_user_files(user_id, document_type)
 
-		# Get all files
-		all_files = await file_storage_service.list_files(include_deleted=include_deleted, tags=tag_list)
-
-		# Apply pagination
-		total_count = len(all_files)
-		files = all_files[offset : offset + limit]
-
-		# Count active and deleted files
-		active_count = sum(1 for f in all_files if not f.is_deleted)
-		deleted_count = total_count - active_count
-
-		return FileListResponse(files=files, total_count=total_count, active_count=active_count, deleted_count=deleted_count)
+		return FileListResponse(files=files, total_count=len(files))
 
 	except Exception as e:
 		logger.error(f"Failed to list files: {e}")
 		raise HTTPException(status_code=500, detail="Failed to list files")
 
 
-@router.get("/{file_id}/info", response_model=FileRecord)
-async def get_file_info(file_id: str, current_user: Optional[str] = Depends(get_current_user)):
-	"""Get file metadata without content."""
+@router.get("/{stored_filename}/info", response_model=Dict[str, Any])
+async def get_file_info(
+	stored_filename: str,
+	current_user: Optional[Dict] = Depends(get_current_user),
+):
+	"""Get file metadata."""
 	try:
-		file_record = await file_storage_service.get_file_info(file_id)
+		storage_service = ChromaStorageService()
+		metadata = await storage_service.get_file_metadata(stored_filename)
 
-		if not file_record:
+		if not metadata:
 			raise HTTPException(status_code=404, detail="File not found")
 
-		return file_record
+		return metadata
 
+	except HTTPException:
+		raise
 	except Exception as e:
-		logger.error(f"Failed to get file info {file_id}: {e}")
+		logger.error(f"Failed to get file info {stored_filename}: {e}")
 		raise HTTPException(status_code=500, detail="Failed to get file information")
-
-
-@router.get("/{file_id}/versions", response_model=List[FileVersion])
-async def get_file_versions(file_id: str, current_user: Optional[str] = Depends(get_current_user)):
-	"""Get all versions of a file."""
-	try:
 		file_record = await file_storage_service.get_file_info(file_id)
 
 		if not file_record:

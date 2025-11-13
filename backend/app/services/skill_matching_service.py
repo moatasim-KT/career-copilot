@@ -29,7 +29,7 @@ TECH_SKILLS = {
     
     # Databases
     "postgresql", "mysql", "mongodb", "redis", "elasticsearch", "cassandra", "dynamodb",
-    "oracle", "mssql", "sqlite", "neo4j", "firebase", "supabase",
+    "oracle", "mssql", "neo4j", "firebase", "supabase",
     
     # Cloud & DevOps
     "aws", "azure", "gcp", "google cloud", "docker", "kubernetes", "jenkins", "gitlab",

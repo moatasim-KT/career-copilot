@@ -30,6 +30,10 @@ class User(Base):
 	created_at = Column(DateTime, default=datetime.utcnow)
 	updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
+	# Additional profile fields
+	profile = Column(JSON, default=dict)  # Extended profile information
+	settings = Column(JSON, default=dict)  # User settings
+
 	# Relationships
 	jobs = relationship("Job", back_populates="user", cascade="all, delete-orphan")
 	applications = relationship("Application", back_populates="user", cascade="all, delete-orphan")
@@ -39,6 +43,12 @@ class User(Base):
 	feedback = relationship("Feedback", back_populates="user", cascade="all, delete-orphan")
 	notifications = relationship("Notification", back_populates="user", cascade="all, delete-orphan")
 	notification_preferences = relationship("NotificationPreferences", back_populates="user", uselist=False, cascade="all, delete-orphan")
+	documents = relationship("Document", back_populates="user", cascade="all, delete-orphan")
+	goals = relationship("Goal", back_populates="user", cascade="all, delete-orphan")
+	milestones = relationship("Milestone", back_populates="user", cascade="all, delete-orphan")
+	document_templates = relationship("DocumentTemplate", back_populates="user", cascade="all, delete-orphan")
+	generated_documents = relationship("GeneratedDocument", back_populates="user", cascade="all, delete-orphan")
+	settings_rel = relationship("UserSettings", back_populates="user", uselist=False, cascade="all, delete-orphan")
 
 	def __repr__(self):
 		return f"<User(id={self.id}, username={self.username}, email={self.email})>"

@@ -8,7 +8,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ...core.database import get_db
-from ...core.dependencies import get_current_user
+from app.dependencies import get_current_user
 from ...models.feedback import JobRecommendationFeedback
 from ...models.job import Job
 from ...models.user import User

@@ -2,6 +2,14 @@
 
 Thank you for your interest in contributing to Career Copilot! We welcome contributions from the community, whether you're fixing bugs, adding features, improving documentation, or reporting issues.
 
+## Related Documents
+
+- [[./README.md]] - Project overview and setup
+- [[TODO.md]] - Current development tasks
+- [[PLAN.md]] - Implementation plan
+- [[docs/DEVELOPER_GUIDE.md|Developer Guide]] - Development documentation
+- [[docs/FRONTEND_QUICK_START.md|Frontend Quick Start]] - Frontend setup
+
 ## Table of Contents
 
 - [Code of Conduct](#code-of-conduct)

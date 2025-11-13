@@ -19,6 +19,7 @@ from app.tasks.scheduled_tasks import (
 )
 from freezegun import freeze_time
 from sqlalchemy.orm import Session
+from tests.conftest import TEST_DATABASE_URL
 
 
 # Fixtures for mock User and Job objects
@@ -62,6 +63,7 @@ def mock_settings():
 	settings.smtp_password = "password"
 	settings.smtp_from_email = "from@test.com"
 	settings.frontend_url = "http://localhost:3000"
+	settings.database_url = TEST_DATABASE_URL
 	return settings
 
 
@@ -71,8 +73,7 @@ async def test_scrape_jobs_scheduled_task_success(mock_db_session, mock_user, mo
 	"""Test the scrape_jobs scheduled task (calls ingest_jobs_for_user internally)"""
 	with (
 		patch("app.tasks.scheduled_tasks.SessionLocal", return_value=mock_db_session),
-		patch("app.core.config.get_settings", return_value=mock_settings),
-		patch("app.tasks.scheduled_tasks.settings", mock_settings),
+		patch("app.tasks.scheduled_tasks.get_settings", return_value=mock_settings),
 		patch("app.tasks.scheduled_tasks.JobScrapingService") as MockJobScrapingService,
 		patch("app.tasks.scheduled_tasks.get_job_matching_service") as mock_matching_factory,
 		patch("app.tasks.scheduled_tasks.websocket_service.send_system_notification", new_callable=AsyncMock),
@@ -202,17 +203,18 @@ async def test_scrape_jobs_error_handling(mock_db_session, mock_user, mock_setti
 	"""Test error handling in the scrape_jobs scheduled task"""
 	with (
 		patch("app.tasks.scheduled_tasks.SessionLocal", return_value=mock_db_session),
-		patch("app.core.config.get_settings", return_value=mock_settings),
-		patch("app.tasks.scheduled_tasks.settings", mock_settings),
+		patch("app.tasks.scheduled_tasks.get_settings", return_value=mock_settings),
 		patch("app.tasks.scheduled_tasks.JobScrapingService") as MockJobScrapingService,
 		patch("app.tasks.scheduled_tasks.get_job_matching_service"),
 		patch("app.tasks.scheduled_tasks.websocket_service.send_system_notification", new_callable=AsyncMock),
 		patch("app.tasks.scheduled_tasks.logger") as mock_logger,
 		patch.dict(sys.modules, {"app.services.cache_service": SimpleNamespace(cache_service=Mock())}),
 	):
+		# Configure mock user query
 		mock_db_session.query.return_value.filter.return_value.all.return_value = [mock_user]
 		mock_db_session.query.return_value.filter.return_value.first.return_value = mock_user
 
+		# Configure scraping service mock
 		mock_scraping_instance = MockJobScrapingService.return_value
 		mock_scraping_instance.ingest_jobs_for_user.side_effect = Exception("Scraper API error")
 		mock_scraping_instance.scraper.close = Mock()
@@ -229,8 +231,7 @@ async def test_scrape_jobs_error_handling(mock_db_session, mock_user, mock_setti
 async def test_send_morning_briefing_success(mock_db_session, mock_user, mock_settings):
 	with (
 		patch("app.tasks.scheduled_tasks.SessionLocal", return_value=mock_db_session),
-		patch("app.core.config.get_settings", return_value=mock_settings),
-		patch("app.tasks.scheduled_tasks.settings", mock_settings),
+		patch("app.tasks.scheduled_tasks.get_settings", return_value=mock_settings),
 		patch("app.tasks.scheduled_tasks.RecommendationEngine") as MockRecommendationEngine,
 		patch("app.tasks.scheduled_tasks.NotificationService") as MockNotificationService,
 	):
@@ -259,8 +260,7 @@ async def test_send_morning_briefing_success(mock_db_session, mock_user, mock_se
 async def test_send_evening_summary_success(mock_db_session, mock_user, mock_settings):
 	with (
 		patch("app.tasks.scheduled_tasks.SessionLocal", return_value=mock_db_session),
-		patch("app.core.config.get_settings", return_value=mock_settings),
-		patch("app.tasks.scheduled_tasks.settings", mock_settings),
+		patch("app.tasks.scheduled_tasks.get_settings", return_value=mock_settings),
 		patch("app.tasks.scheduled_tasks.AnalyticsService") as MockAnalyticsService,
 		patch("app.tasks.scheduled_tasks.NotificationService") as MockNotificationService,
 	):

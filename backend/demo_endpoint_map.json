@@ -1,0 +1,220 @@
+[
+  {
+    "path": "/",
+    "method": "GET",
+    "name": "root",
+    "tags": [
+      "root"
+    ],
+    "summary": null,
+    "description": "Root endpoint",
+    "parameters": [],
+    "request_body_model": null,
+    "response_model": null,
+    "status_code": 200,
+    "requires_auth": false,
+    "deprecated": false
+  },
+  {
+    "path": "/health",
+    "method": "GET",
+    "name": "health_check",
+    "tags": [
+      "health"
+    ],
+    "summary": null,
+    "description": "Health check endpoint",
+    "parameters": [],
+    "request_body_model": null,
+    "response_model": null,
+    "status_code": 200,
+    "requires_auth": false,
+    "deprecated": false
+  },
+  {
+    "path": "/items",
+    "method": "GET",
+    "name": "list_items",
+    "tags": [
+      "items"
+    ],
+    "summary": null,
+    "description": "List all items",
+    "parameters": [
+      {
+        "name": "skip",
+        "location": "query",
+        "type": "<class 'int'>",
+        "required": false,
+        "default": "0"
+      },
+      {
+        "name": "limit",
+        "location": "query",
+        "type": "<class 'int'>",
+        "required": false,
+        "default": "annotation=int required=False default=10 alias='limit' json_schema_extra={} metadata=[Le(le=100)]"
+      }
+    ],
+    "request_body_model": null,
+    "response_model": "typing.List[__main__.ItemResponse]",
+    "status_code": 200,
+    "requires_auth": false,
+    "deprecated": false
+  },
+  {
+    "path": "/items/{item_id}",
+    "method": "GET",
+    "name": "get_item",
+    "tags": [
+      "items"
+    ],
+    "summary": null,
+    "description": "Get a specific item",
+    "parameters": [
+      {
+        "name": "item_id",
+        "location": "path",
+        "type": "<class 'int'>",
+        "required": true,
+        "default": null
+      }
+    ],
+    "request_body_model": null,
+    "response_model": "<class '__main__.ItemResponse'>",
+    "status_code": 200,
+    "requires_auth": false,
+    "deprecated": false
+  },
+  {
+    "path": "/items",
+    "method": "POST",
+    "name": "create_item",
+    "tags": [
+      "items"
+    ],
+    "summary": null,
+    "description": "Create a new item",
+    "parameters": [
+      {
+        "name": "item",
+        "location": "body",
+        "type": "<class '__main__.Item'>",
+        "required": true,
+        "default": null
+      }
+    ],
+    "request_body_model": "Item",
+    "response_model": "<class '__main__.ItemResponse'>",
+    "status_code": 201,
+    "requires_auth": false,
+    "deprecated": false
+  },
+  {
+    "path": "/items/{item_id}",
+    "method": "PUT",
+    "name": "update_item",
+    "tags": [
+      "items"
+    ],
+    "summary": null,
+    "description": "Update an item",
+    "parameters": [
+      {
+        "name": "item_id",
+        "location": "path",
+        "type": "<class 'int'>",
+        "required": true,
+        "default": null
+      },
+      {
+        "name": "item",
+        "location": "body",
+        "type": "<class '__main__.Item'>",
+        "required": true,
+        "default": null
+      }
+    ],
+    "request_body_model": "Item",
+    "response_model": "<class '__main__.ItemResponse'>",
+    "status_code": 200,
+    "requires_auth": false,
+    "deprecated": false
+  },
+  {
+    "path": "/items/{item_id}",
+    "method": "DELETE",
+    "name": "delete_item",
+    "tags": [
+      "items"
+    ],
+    "summary": null,
+    "description": "Delete an item",
+    "parameters": [
+      {
+        "name": "item_id",
+        "location": "path",
+        "type": "<class 'int'>",
+        "required": true,
+        "default": null
+      }
+    ],
+    "request_body_model": null,
+    "response_model": null,
+    "status_code": 200,
+    "requires_auth": false,
+    "deprecated": false
+  },
+  {
+    "path": "/search",
+    "method": "GET",
+    "name": "search_items",
+    "tags": [
+      "search"
+    ],
+    "summary": null,
+    "description": "Search for items",
+    "parameters": [
+      {
+        "name": "query",
+        "location": "query",
+        "type": "<class 'str'>",
+        "required": true,
+        "default": null
+      },
+      {
+        "name": "category",
+        "location": "query",
+        "type": "typing.Optional[str]",
+        "required": false,
+        "default": null
+      },
+      {
+        "name": "min_price",
+        "location": "query",
+        "type": "typing.Optional[float]",
+        "required": false,
+        "default": null
+      },
+      {
+        "name": "max_price",
+        "location": "query",
+        "type": "typing.Optional[float]",
+        "required": false,
+        "default": null
+      },
+      {
+        "name": "tags",
+        "location": "query",
+        "type": "typing.List[str]",
+        "required": false,
+        "default": "annotation=List[str] required=False default=[] alias='tags' json_schema_extra={}"
+      }
+    ],
+    "request_body_model": null,
+    "response_model": null,
+    "status_code": 200,
+    "requires_auth": false,
+    "deprecated": false
+  }
+]

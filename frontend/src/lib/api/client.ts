@@ -220,34 +220,38 @@ export const apiClient = {
     // ============================================================================
     jobs: {
         list: (params?: { skip?: number; limit?: number }) =>
-            fetchApi('/jobs', { params }),
+            fetchApi('/jobs', { params, requiresAuth: true }),
 
         get: (id: number) =>
-            fetchApi(`/jobs/${id}`),
+            fetchApi(`/jobs/${id}`, { requiresAuth: true }),
 
         create: (data: any) =>
             fetchApi('/jobs', {
                 method: 'POST',
                 body: JSON.stringify(data),
+                requiresAuth: true,
             }),
 
         update: (id: number, data: any) =>
             fetchApi(`/jobs/${id}`, {
                 method: 'PUT',
                 body: JSON.stringify(data),
+                requiresAuth: true,
             }),
 
         delete: (id: number) =>
             fetchApi(`/jobs/${id}`, {
                 method: 'DELETE',
+                requiresAuth: true,
             }),
 
         available: (params?: { limit?: number; skip?: number }) =>
-            fetchApi('/jobs/available', { params }),
+            fetchApi('/jobs/available', { params, requiresAuth: true }),
 
         scrape: () =>
             fetchApi('/jobs/scrape', {
                 method: 'POST',
+                requiresAuth: true,
             }),
     },
 
@@ -256,26 +260,29 @@ export const apiClient = {
     // ============================================================================
     applications: {
         list: (params?: { skip?: number; limit?: number; status?: string }) =>
-            fetchApi('/applications', { params }),
+            fetchApi('/applications', { params, requiresAuth: true }),
 
         get: (id: number) =>
-            fetchApi(`/applications/${id}`),
+            fetchApi(`/applications/${id}`, { requiresAuth: true }),
 
         create: (data: any) =>
             fetchApi('/applications', {
                 method: 'POST',
                 body: JSON.stringify(data),
+                requiresAuth: true,
             }),
 
         update: (id: number, data: any) =>
             fetchApi(`/applications/${id}`, {
                 method: 'PUT',
                 body: JSON.stringify(data),
+                requiresAuth: true,
             }),
 
         delete: (id: number) =>
             fetchApi(`/applications/${id}`, {
                 method: 'DELETE',
+                requiresAuth: true,
             }),
     },
 

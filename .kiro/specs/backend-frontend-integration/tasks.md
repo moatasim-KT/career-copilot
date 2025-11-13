@@ -325,14 +325,14 @@
   - Verify response time requirements
   - _Requirements: 10.1, 10.5_
 
-- [ ] 14. Run comprehensive endpoint testing
-- [ ] 14.1 Execute endpoint discovery
+- [-] 14. Run comprehensive endpoint testing
+- [x] 14.1 Execute endpoint discovery
   - Run endpoint discovery on complete application
   - Generate endpoint map
   - Categorize all endpoints
   - _Requirements: 2.1_
 
-- [ ] 14.2 Run automated endpoint tests
+- [x] 14.2 Run automated endpoint tests
   - Test all endpoints with generated test data
   - Validate responses against schemas
   - Check for authentication errors

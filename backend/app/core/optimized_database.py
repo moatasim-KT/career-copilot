@@ -25,43 +25,7 @@ def create_optimized_engine():
 	}
 
 	# Configure based on database type
-	if database_url.startswith("sqlite"):
-		# SQLite-specific optimizations
-		engine_args.update(
-			{
-				"poolclass": StaticPool,
-				"connect_args": {
-					"check_same_thread": False,
-					"timeout": 20,
-					# SQLite performance pragmas
-					"isolation_level": None,  # Enable autocommit mode
-				},
-				"pool_pre_ping": True,
-			}
-		)
 
-		# Create engine
-		engine = create_engine(database_url, **engine_args)
-
-		# Add SQLite-specific optimizations
-		@event.listens_for(engine, "connect")
-		def set_sqlite_pragma(dbapi_connection, connection_record):
-			"""Set SQLite performance pragmas"""
-			cursor = dbapi_connection.cursor()
-
-			# Performance optimizations
-			cursor.execute("PRAGMA journal_mode=WAL")  # Write-Ahead Logging
-			cursor.execute("PRAGMA synchronous=NORMAL")  # Faster than FULL, safer than OFF
-			cursor.execute("PRAGMA cache_size=10000")  # 10MB cache
-			cursor.execute("PRAGMA temp_store=MEMORY")  # Store temp tables in memory
-			cursor.execute("PRAGMA mmap_size=268435456")  # 256MB memory-mapped I/O
-
-			# Foreign key support
-			cursor.execute("PRAGMA foreign_keys=ON")
-
-			cursor.close()
-
-			logger.debug("SQLite performance pragmas applied")
 
 	elif "postgresql" in database_url:
 		# PostgreSQL-specific optimizations
@@ -148,12 +112,7 @@ def check_database_health(engine) -> dict:
 			start_time = time.time()
 
 			# Simple health check query
-			if "sqlite" in str(engine.url):
-				result = conn.execute("SELECT 1")
-			elif "postgresql" in str(engine.url):
-				result = conn.execute("SELECT 1")
-			else:
-				result = conn.execute("SELECT 1")
+
 
 			result.fetchone()
 			response_time = (time.time() - start_time) * 1000  # Convert to ms
@@ -185,13 +144,7 @@ def optimize_database_maintenance(engine):
 	"""Perform database maintenance operations"""
 	try:
 		with engine.connect() as conn:
-			if "sqlite" in str(engine.url):
-				# SQLite maintenance
-				conn.execute("PRAGMA optimize")
-				conn.execute("PRAGMA wal_checkpoint(TRUNCATE)")
-				logger.info("SQLite maintenance completed")
 
-			elif "postgresql" in str(engine.url):
 				# PostgreSQL maintenance (be careful in production)
 				conn.execute("ANALYZE")
 				logger.info("PostgreSQL statistics updated")

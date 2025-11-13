@@ -4,15 +4,15 @@ Job recommendation feedback API endpoints
 
 from typing import List, Optional
 
-from app.core.database import get_db
-from app.core.dependencies import get_current_user
-from app.models.user import User
-from app.schemas.job_recommendation_feedback import (
-    JobRecommendationFeedbackCreate, JobRecommendationFeedbackResponse)
-from app.services.job_recommendation_service import JobRecommendationService
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.core.database import get_db
+from app.dependencies import get_current_user
+from app.models.user import User
+from app.schemas.job_recommendation_feedback import JobRecommendationFeedbackCreate, JobRecommendationFeedbackResponse
+from app.services.job_service import JobManagementSystem
 
 # NOTE: This file has been converted to use AsyncSession.
 # Database queries need to be converted to async: await db.execute(select(...)) instead of db.query(...)
@@ -26,7 +26,8 @@ async def create_job_recommendation_feedback(
 ):
 	"""Create job recommendation feedback"""
 	try:
-		feedback = feedback_service.process_feedback(current_user.id, feedback_data)
+		job_service = JobManagementSystem(db)
+		feedback = job_service.process_feedback(current_user.id, feedback_data)
 		return feedback
 	except ValueError as e:
 		raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
@@ -34,7 +35,10 @@ async def create_job_recommendation_feedback(
 
 @router.get("/job-recommendation-feedback", response_model=List[JobRecommendationFeedbackResponse])
 async def get_user_job_recommendation_feedback(
-	limit: int = Query(50, ge=1, le=100), offset: int = Query(0, ge=0), current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)
+	limit: int = Query(50, ge=1, le=100),
+	offset: int = Query(0, ge=0),
+	current_user: User = Depends(get_current_user),
+	db: AsyncSession = Depends(get_db),
 ):
 	"""Get user's job recommendation feedback"""
 	result = await db.execute(
@@ -54,12 +58,12 @@ async def quick_job_feedback(
 	db: AsyncSession = Depends(get_db),
 ):
 	"""Quick endpoint for providing thumbs up/down feedback on a job recommendation"""
-	feedback_service = JobRecommendationFeedbackService(db)
+	job_service = JobManagementSystem(db)
 
 	feedback_data = JobRecommendationFeedbackCreate(job_id=job_id, is_helpful=is_helpful, comment=comment)
 
 	try:
-		feedback = feedback_service.create_feedback(current_user.id, feedback_data)
+		feedback = job_service.process_feedback(current_user.id, feedback_data)
 		return feedback
 	except ValueError as e:
 		raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))

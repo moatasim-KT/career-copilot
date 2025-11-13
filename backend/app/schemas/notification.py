@@ -90,13 +90,13 @@ class NotificationPreferencesBase(BaseModel):
     evening_update_enabled: bool = True
 
     # Timing preferences
-    morning_briefing_time: str = Field("08:00", regex=r"^([0-1][0-9]|2[0-3]):[0-5][0-9]$")
-    evening_update_time: str = Field("18:00", regex=r"^([0-1][0-9]|2[0-3]):[0-5][0-9]$")
-    quiet_hours_start: Optional[str] = Field(None, regex=r"^([0-1][0-9]|2[0-3]):[0-5][0-9]$")
-    quiet_hours_end: Optional[str] = Field(None, regex=r"^([0-1][0-9]|2[0-3]):[0-5][0-9]$")
+    morning_briefing_time: str = Field("08:00", pattern=r"^([0-1][0-9]|2[0-3]):[0-5][0-9]$")
+    evening_update_time: str = Field("18:00", pattern=r"^([0-1][0-9]|2[0-3]):[0-5][0-9]$")
+    quiet_hours_start: Optional[str] = Field(None, pattern=r"^([0-1][0-9]|2[0-3]):[0-5][0-9]$")
+    quiet_hours_end: Optional[str] = Field(None, pattern=r"^([0-1][0-9]|2[0-3]):[0-5][0-9]$")
 
     # Frequency preferences
-    digest_frequency: str = Field("daily", regex=r"^(daily|weekly|never)$")
+    digest_frequency: str = Field("daily", pattern=r"^(daily|weekly|never)$")
 
     @validator("quiet_hours_end")
     def validate_quiet_hours(cls, v, values):

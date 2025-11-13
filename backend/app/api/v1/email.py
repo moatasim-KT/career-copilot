@@ -7,7 +7,7 @@ from typing import Any, Dict, List, Optional
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
 from pydantic import BaseModel, EmailStr, Field
 
-from ...core.dependencies import get_current_user
+from app.dependencies import get_current_user
 from ...core.logging import get_logger
 from ...models.database_models import User
 from ...services.email_service import EmailProvider, EmailService, UnifiedEmailMessage

@@ -251,6 +251,60 @@ class JobSourceManager:
 
 		return prefs
 
+	async def create_or_update_user_preferences(self, user_id: int, preferences_data: Dict[str, Any]) -> UserJobPreferences:
+		"""Create or update user job source preferences from a dict payload."""
+		from sqlalchemy import select, update
+
+		try:
+			# Normalize incoming fields to model column names
+			values = {
+				"preferred_sources": preferences_data.get("preferred_sources", None),
+				"disabled_sources": preferences_data.get("disabled_sources", None),
+				"source_priorities": preferences_data.get("source_priorities", None),
+				"auto_scraping_enabled": preferences_data.get("auto_scraping_enabled", None),
+				"max_jobs_per_source": preferences_data.get("max_jobs_per_source", None),
+				"min_quality_threshold": preferences_data.get("min_quality_threshold", None),
+				"notify_on_high_match": preferences_data.get("notify_on_high_match", None),
+				"notify_on_new_sources": preferences_data.get("notify_on_new_sources", None),
+			}
+
+			# Remove None values so we only update provided fields
+			values = {k: v for k, v in values.items() if v is not None}
+
+			# Try to find existing prefs
+			result = await self.db.execute(select(UserJobPreferences).where(UserJobPreferences.user_id == user_id))
+			prefs = result.scalar_one_or_none()
+
+			if prefs:
+				# Update provided fields
+				if values:
+					await self.db.execute(update(UserJobPreferences).where(UserJobPreferences.user_id == user_id).values(**values))
+			else:
+				# Create new preferences row
+				prefs = UserJobPreferences(
+					user_id=user_id,
+					preferred_sources=values.get("preferred_sources", []),
+					disabled_sources=values.get("disabled_sources", []),
+					source_priorities=values.get("source_priorities", {}),
+					auto_scraping_enabled=values.get("auto_scraping_enabled", True),
+					max_jobs_per_source=values.get("max_jobs_per_source", 10),
+					min_quality_threshold=values.get("min_quality_threshold", 60.0),
+					notify_on_high_match=values.get("notify_on_high_match", True),
+					notify_on_new_sources=values.get("notify_on_new_sources", False),
+				)
+				self.db.add(prefs)
+
+			await self.db.commit()
+
+			# Refresh and return
+			result = await self.db.execute(select(UserJobPreferences).where(UserJobPreferences.user_id == user_id))
+			return result.scalar_one()
+
+		except Exception as e:
+			await self.db.rollback()
+			logger.error(f"Error creating/updating user preferences: {e}")
+			raise
+
 	def get_source_quality_metrics(self, source: str) -> Dict[str, Any]:
 		"""Get quality metrics for a job source"""
 		if source not in self.JOB_SOURCES:
@@ -264,6 +318,15 @@ class JobSourceManager:
 			"refresh_rate_hours": source_data["refresh_rate_hours"],
 			"reliability": "high" if source_data["quality_score"] >= 8.5 else "medium",
 		}
+
+	def _get_source_quality_score(self, source: str) -> float:
+		"""Private helper returning a numeric quality score for a source.
+		This keeps compatibility with other services that call _get_source_quality_score.
+		"""
+		try:
+			return float(self.JOB_SOURCES.get(source, {}).get("quality_score", 50.0))
+		except Exception:
+			return 50.0
 
 	def get_recommended_sources(self, user_preferences: Optional[Dict[str, Any]] = None) -> List[str]:
 		"""Get recommended job sources based on user preferences"""
@@ -314,3 +377,104 @@ class JobSourceManager:
 			"sources_requiring_api_key": sum(1 for s in self.JOB_SOURCES.values() if s["requires_api_key"]),
 			"global_coverage": sum(1 for s in self.JOB_SOURCES.values() if "Global" in s["supported_locations"]),
 		}
+
+	# --- Analytics helpers -------------------------------------------------
+
+	async def get_user_source_preferences(self, user_id: int) -> Dict[str, Any]:
+		"""Return a lightweight, serializable view of a user's source preferences and derived insights."""
+		prefs = await self.get_user_preferences(user_id)
+		if not prefs:
+			# Default structure when no prefs exist
+			return {
+				"insights": [],
+				"recommended_sources": self.get_recommended_sources(),
+				"source_performance": {},
+			}
+
+		# Build user insights and recommended sources
+		user_pref_data = {
+			"insights": [{"note": "Using custom source priorities"} if prefs.source_priorities else {"note": "No custom source priorities"}],
+			"recommended_sources": self.get_recommended_sources(
+				{
+					"categories": [],
+					"locations": [],
+					"remote_only": False,
+				}
+			),
+			"source_performance": {},
+		}
+
+		return user_pref_data
+
+	async def get_source_analytics(self, timeframe_days: int = 30, user_id: Optional[int] = None) -> Dict[str, Any]:
+		"""Return analytics for all job sources over the requested timeframe.
+		A practical, lightweight implementation suitable for tests and endpoint responses.
+		"""
+		from sqlalchemy import func
+
+		from ..models.job import Job
+
+		cutoff = None
+		try:
+			from datetime import datetime, timedelta
+
+			cutoff = datetime.utcnow() - timedelta(days=max(1, int(timeframe_days)))
+		except Exception:
+			cutoff = None
+
+		analytics: Dict[str, Any] = {s: {"jobs_count": 0, "quality": self._get_source_quality_score(s)} for s in self.JOB_SOURCES}
+
+		# Try to count recent jobs per source when DB is available
+		try:
+			result = await self.db.execute(select(Job.source, func.count(Job.id).label("count")).where(Job.created_at >= cutoff).group_by(Job.source))
+			for row in result.all():
+				source_key = row[0]
+				if source_key in analytics:
+					analytics[source_key]["jobs_count"] = int(row[1])
+		except Exception:
+			# If DB or schema not available, return best-effort values
+			pass
+
+		# Build summary and simple trends placeholder
+		summary = {
+			"timeframe_days": timeframe_days,
+			"by_source": analytics,
+			"trends": {},
+		}
+
+		return summary
+
+	async def get_source_performance_summary(self, user_id: int, timeframe_days: int = 30) -> Dict[str, Any]:
+		"""Return a user-personalized source performance summary used by endpoints.
+		This composes analytics and user preference data into a compact response.
+		"""
+		analytics = await self.get_source_analytics(timeframe_days, user_id)
+		user_prefs = await self.get_user_source_preferences(user_id)
+
+		# Create a simple ranking by combining quality and job counts
+		rankings = []
+		for src, data in analytics.get("by_source", {}).items():
+			rank_score = float(data.get("quality", 0)) * 0.7 + float(data.get("jobs_count", 0)) * 0.3
+			rankings.append(
+				{"source": src, "score": round(rank_score, 2), "jobs_count": data.get("jobs_count", 0), "quality": data.get("quality", 0)}
+			)
+
+		rankings.sort(key=lambda x: x["score"], reverse=True)
+
+		return {
+			"rankings": rankings,
+			"analytics": analytics,
+			"user_insights": user_prefs.get("insights", []),
+			"recommended_sources": user_prefs.get("recommended_sources", []),
+		}
+
+	def calculate_source_quality_score(self, source: str, timeframe_days: int = 30, user_id: Optional[int] = None) -> float:
+		"""Return a numeric quality score for the given source. This is a thin wrapper
+		around the internal _get_source_quality_score to preserve the public API used by endpoints."""
+		try:
+			base = self._get_source_quality_score(source)
+			# Small adjustment based on timeframe (older timeframes reduce confidence slightly)
+			adjustment = max(0.0, 1.0 - (max(1, timeframe_days) / 365.0) * 0.1)
+			return round(float(base) * adjustment, 2)
+		except Exception:
+			return float(self._get_source_quality_score(source))

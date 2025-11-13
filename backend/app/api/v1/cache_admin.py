@@ -1,6 +1,6 @@
 
 from fastapi import APIRouter, Depends
-from ...core.dependencies import get_current_user
+from app.dependencies import get_current_user
 from ...models.user import User
 
 router = APIRouter(prefix="/api/v1/cache", tags=["cache-admin"])

@@ -19,6 +19,10 @@ from typing import Any, Dict, List, Optional, Tuple
 from urllib.parse import urlparse
 
 import requests
+from bs4 import BeautifulSoup
+from sqlalchemy import and_, case, desc, func, or_, select
+from sqlalchemy.orm import Session
+
 from app.core.config import get_settings
 from app.core.logging import get_logger
 from app.models.application import Application
@@ -38,9 +42,6 @@ from app.services.llm_service import LLMService, get_llm_service
 from app.services.recommendation_engine import RecommendationEngine
 from app.services.websocket_service import websocket_service
 from app.utils.redis_client import redis_client
-from bs4 import BeautifulSoup
-from sqlalchemy import and_, case, desc, func, or_, select
-from sqlalchemy.orm import Session
 
 logger = get_logger(__name__)
 settings = get_settings()
@@ -538,6 +539,115 @@ class JobRecommendationService:
 	def get_user_preferences(self, user_id: int) -> Optional[UserJobPreferences]:
 		"""Get user's job source preferences"""
 		return self.db.query(UserJobPreferences).filter(UserJobPreferences.user_id == user_id).first()
+
+	# --- Adaptive algorithm / A/B test integration helpers -----------------
+
+	def get_algorithm_weights(self, user_id: int) -> Dict[str, int]:
+		"""Return algorithm weights used for a given user.
+		This delegates to the AdaptiveRecommendationEngine when available, otherwise
+		returns a reasonable mapping derived from the legacy RecommendationEngine.
+		"""
+		try:
+			# Prefer the adaptive engine when present
+			from app.services.adaptive_recommendation_engine import AdaptiveRecommendationEngine
+
+			engine = AdaptiveRecommendationEngine(self.db)
+			weights = engine.get_algorithm_weights(user_id)
+			return dict(weights)
+		except Exception:
+			# Fallback: map legacy recommendation weights (fractions) into percentages
+			legacy = getattr(self.recommendation_engine, "weights", {})
+			return {
+				"skill_matching": int(legacy.get("skills_match", 0) * 100),
+				"location_matching": int(legacy.get("location_match", 0) * 100),
+				"experience_matching": int(legacy.get("experience_match", 0) * 100),
+			}
+
+	def _get_active_test_variant(self, user_id: int) -> str:
+		"""Return the active A/B test variant for the user (if any).
+		Tries adaptive engine first, falls back to 'control'.
+		"""
+		try:
+			from app.services.adaptive_recommendation_engine import AdaptiveRecommendationEngine
+
+			engine = AdaptiveRecommendationEngine(self.db)
+			# Return the first active test variant found for simplicity
+			for test_name, cfg in engine.ab_test_configs.items():
+				if cfg.get("active"):
+					return engine.get_user_algorithm_variant(user_id, test_name)
+			return "control"
+		except Exception:
+			return "control"
+
+	def update_algorithm_weights(self, new_weights: Dict[str, int], test_name: Optional[str] = None) -> None:
+		"""Update algorithm weights globally or for a named A/B test.
+		Delegates to AdaptiveRecommendationEngine when available.
+		"""
+		try:
+			from app.services.adaptive_recommendation_engine import AdaptiveRecommendationEngine
+
+			engine = AdaptiveRecommendationEngine(self.db)
+			if test_name:
+				# update variant weights or test config depending on API
+				engine.ab_test_configs.setdefault(test_name, {})["variant_a"] = dict(new_weights)
+			else:
+				engine.update_algorithm_weights(new_weights)
+			return
+		except Exception:
+			# Best-effort fallback to update legacy engine default weights
+			legacy = self.recommendation_engine
+			legacy.weights = {
+				"skills_match": new_weights.get("skill_matching", 0) / 100.0,
+				"location_match": new_weights.get("location_matching", 0) / 100.0,
+				"experience_match": new_weights.get("experience_matching", 0) / 100.0,
+			}
+
+	def start_ab_test(
+		self, test_name: str, variant_a: Dict[str, int], variant_b: Dict[str, int], traffic_split: float = 0.5, description: str = ""
+	) -> None:
+		"""Start an A/B test for algorithm variations.
+		If AdaptiveRecommendationEngine is available it will be used; otherwise a best-effort
+		configuration is stored on the legacy engine instance.
+		"""
+		try:
+			from app.services.adaptive_recommendation_engine import AdaptiveRecommendationEngine
+
+			engine = AdaptiveRecommendationEngine(self.db)
+			engine.start_ab_test(test_name, variant_a, variant_b, traffic_split=traffic_split, description=description)
+			return
+		except Exception:
+			# store on local state so callers can inspect
+			self.ab_test_configs = getattr(self, "ab_test_configs", {})
+			self.ab_test_configs[test_name] = {
+				"active": True,
+				"traffic_split": traffic_split,
+				"variant_a": dict(variant_a),
+				"variant_b": dict(variant_b),
+				"description": description,
+			}
+
+	def stop_ab_test(self, test_name: str) -> None:
+		"""Stop a running A/B test"""
+		try:
+			from app.services.adaptive_recommendation_engine import AdaptiveRecommendationEngine
+
+			engine = AdaptiveRecommendationEngine(self.db)
+			engine.stop_ab_test(test_name)
+			return
+		except Exception:
+			if hasattr(self, "ab_test_configs") and test_name in self.ab_test_configs:
+				self.ab_test_configs[test_name]["active"] = False
+
+	def get_ab_test_results(self, test_name: str, days: int = 7) -> Dict[str, Any]:
+		"""Get A/B test results. Delegates to adaptive engine when available."""
+		try:
+			from app.services.adaptive_recommendation_engine import AdaptiveRecommendationEngine
+
+			engine = AdaptiveRecommendationEngine(self.db)
+			return engine.get_ab_test_results(test_name, days=days)
+		except Exception:
+			# Return empty/default structure
+			return {"variant_a": {}, "variant_b": {}, "control": {}}
 
 	# Data Normalization and Parsing
 

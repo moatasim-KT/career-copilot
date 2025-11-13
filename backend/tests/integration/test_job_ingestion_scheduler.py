@@ -2,6 +2,7 @@ import pytest
 from unittest.mock import patch, MagicMock
 from app.tasks.scheduled_tasks import start_scheduler, shutdown_scheduler, scheduler
 from app.core.config import Settings
+from tests.conftest import TEST_DATABASE_URL
 
 
 @pytest.fixture(autouse=True)
@@ -18,8 +19,8 @@ def cleanup_scheduler():
 @pytest.mark.asyncio
 async def test_scheduler_starts_and_stops():
 	"""Test that the scheduler can start and stop without errors"""
-	with patch("app.core.config.get_settings") as mock_get_settings:
-		mock_settings_instance = Settings(enable_scheduler=True, database_url="sqlite:///./test.db")
+	with patch("app.tasks.scheduled_tasks.get_settings") as mock_get_settings:
+		mock_settings_instance = Settings(enable_scheduler=True, database_url=TEST_DATABASE_URL)
 		mock_get_settings.return_value = mock_settings_instance
 
 		start_scheduler()
@@ -41,8 +42,8 @@ async def test_scheduler_starts_and_stops():
 async def test_scheduler_disabled_by_settings(mocker):
 	"""Test that scheduler doesn't start when disabled in settings"""
 	mocker.patch("app.tasks.scheduled_tasks.scheduler.start")  # Prevent actual scheduler start
-	with patch("app.core.config.get_settings") as mock_get_settings:
-		mock_settings_instance = Settings(enable_scheduler=False, database_url="sqlite:///./test.db")
+	with patch("app.tasks.scheduled_tasks.get_settings") as mock_get_settings:
+		mock_settings_instance = Settings(enable_scheduler=False, database_url=TEST_DATABASE_URL)
 		mock_get_settings.return_value = mock_settings_instance
 
 		start_scheduler()
@@ -56,10 +57,10 @@ async def test_scheduler_disabled_by_settings(mocker):
 @pytest.mark.asyncio
 async def test_ingest_jobs_function_execution():
 	"""Test that the ingest_jobs function can be called directly"""
-	with patch("app.core.config.get_settings") as mock_get_settings:
+	with patch("app.tasks.scheduled_tasks.get_settings") as mock_get_settings:
 		mock_settings_instance = Settings(
 			enable_scheduler=True,
-			database_url="sqlite:///./test.db",
+			database_url=TEST_DATABASE_URL,
 			enable_job_scraping=False,  # Disable actual scraping for test
 		)
 		mock_get_settings.return_value = mock_settings_instance
@@ -84,8 +85,8 @@ async def test_ingest_jobs_function_execution():
 @pytest.mark.asyncio
 async def test_scheduler_job_registration():
 	"""Test that jobs are properly registered with correct triggers"""
-	with patch("app.core.config.get_settings") as mock_get_settings:
-		mock_settings_instance = Settings(enable_scheduler=True, database_url="sqlite:///./test.db")
+	with patch("app.tasks.scheduled_tasks.get_settings") as mock_get_settings:
+		mock_settings_instance = Settings(enable_scheduler=True, database_url=TEST_DATABASE_URL)
 		mock_get_settings.return_value = mock_settings_instance
 
 		start_scheduler()
@@ -117,8 +118,8 @@ async def test_ingest_jobs_scheduled_correctly_registered(mocker):
 	# Patch scheduler.add_job to inspect its calls
 	mock_add_job = mocker.patch("app.tasks.scheduled_tasks.scheduler.add_job")
 
-	with patch("app.core.config.get_settings") as mock_get_settings:
-		mock_settings_instance = Settings(enable_scheduler=True, database_url="sqlite:///./test.db")
+	with patch("app.tasks.scheduled_tasks.get_settings") as mock_get_settings:
+		mock_settings_instance = Settings(enable_scheduler=True, database_url=TEST_DATABASE_URL)
 		mock_get_settings.return_value = mock_settings_instance
 
 		start_scheduler()

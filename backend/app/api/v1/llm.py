@@ -7,7 +7,7 @@ from fastapi import APIRouter, HTTPException, Depends, Query
 from pydantic import BaseModel, Field
 
 from ...services.llm_service import LLMService, TaskType, RoutingCriteria, get_llm_service
-from ...core.dependencies import get_current_user
+from app.dependencies import get_current_user
 from ...core.logging import get_logger
 
 logger = get_logger(__name__)

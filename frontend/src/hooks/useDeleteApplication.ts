@@ -1,15 +1,11 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
-// Placeholder for API client
-const deleteApplication = async (id: string) => {
-  // Replace with actual API call
-  return id;
-};
+import { ApplicationsService } from '../lib/api/client';
 
 export const useDeleteApplication = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: deleteApplication,
+    mutationFn: (id: number) => ApplicationsService.delete(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['applications'] });
     },

@@ -5,8 +5,9 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.dependencies import get_current_user
+
 from ...core.database import get_db
-from ...core.dependencies import get_current_user
 from ...models.feedback import HelpArticle, HelpArticleVote
 from ...models.user import User
 
@@ -334,6 +335,44 @@ async def search_help_articles(
 	result = await db.execute(query)
 	articles = result.scalars().all()
 
+	# Calculate relevance scores for each article
+	def calculate_relevance_score(article: HelpArticle, search_query: str) -> float:
+		"""Calculate relevance score based on search query match"""
+		query_lower = search_query.lower()
+		query_words = query_lower.split()
+
+		title_lower = article.title.lower()
+		content_lower = (article.content or "").lower()
+		excerpt_lower = (article.excerpt or "").lower()
+
+		score = 0.0
+
+		# Title matches get highest weight
+		for word in query_words:
+			if word in title_lower:
+				score += 0.4
+
+		# Excerpt matches get medium weight
+		for word in query_words:
+			if word in excerpt_lower:
+				score += 0.3
+
+		# Content matches get lower weight
+		for word in query_words:
+			if word in content_lower:
+				score += 0.2
+
+		# Exact phrase match bonus
+		if query_lower in title_lower:
+			score += 0.5
+		elif query_lower in excerpt_lower:
+			score += 0.3
+		elif query_lower in content_lower:
+			score += 0.1
+
+		# Normalize to 0-1 range (max possible score is roughly 1.5)
+		return min(score / 1.5, 1.0)
+
 	return {
 		"results": [
 			{
@@ -342,7 +381,7 @@ async def search_help_articles(
 				"slug": article.slug,
 				"category": article.category,
 				"summary": article.excerpt or "",
-				"relevance_score": 0.95,  # TODO: Implement proper relevance scoring
+				"relevance_score": calculate_relevance_score(article, q),
 			}
 			for article in articles
 		],

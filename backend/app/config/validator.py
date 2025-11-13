@@ -25,9 +25,8 @@ def validate_database_connection(settings: Settings) -> Tuple[bool, str]:
 		if not settings.database_url:
 			return False, "DATABASE_URL is not configured"
 
-		# Check for common database URL patterns
 		if settings.database_url.startswith("sqlite"):
-			return True, "SQLite database configured"
+			return False, "SQLite database is no longer supported. Please use PostgreSQL."
 		elif settings.database_url.startswith("postgresql"):
 			return True, "PostgreSQL database configured"
 		else:

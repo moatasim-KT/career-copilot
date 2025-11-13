@@ -11,7 +11,7 @@ from sqlalchemy import select
 from pydantic import BaseModel, Field
 
 from ...core.database import get_db
-from ...core.dependencies import get_current_user
+from app.dependencies import get_current_user
 from ...models.user import User
 from ...services.briefing_service import briefing_service
 from ...tasks.email_tasks import send_morning_briefing_task, send_evening_summary_task, track_email_engagement

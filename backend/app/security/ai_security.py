@@ -7,7 +7,7 @@ from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 from typing import Any, ClassVar, Dict, List, Optional, Set
 
-from ..core.caching import get_cache_manager
+from ..core.cache import cache_service
 from ..core.config import get_settings
 from ..core.logging import get_logger
 from ..monitoring.metrics_collector import get_metrics_collector
@@ -15,7 +15,7 @@ from ..monitoring.metrics_collector import get_metrics_collector
 logger = get_logger(__name__)
 settings = get_settings()
 metrics_collector = get_metrics_collector()
-cache_manager = get_cache_manager()
+cache_manager = cache_service
 
 
 @dataclass

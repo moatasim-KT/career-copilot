@@ -9,7 +9,7 @@ from typing import Optional
 from datetime import datetime
 
 from ...core.database import get_db
-from ...core.dependencies import get_current_user
+from app.dependencies import get_current_user
 from ...models.user import User
 from ...services.market_analysis_service import market_analysis_service
 from ...schemas.market_analysis import (

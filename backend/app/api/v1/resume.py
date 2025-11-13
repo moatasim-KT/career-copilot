@@ -9,7 +9,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ...core.database import get_db
-from ...core.dependencies import get_current_user
+from app.dependencies import get_current_user
 from ...models.content_generation import ContentGeneration
 from ...models.job import Job
 from ...models.resume_upload import ResumeUpload
@@ -30,7 +30,7 @@ from ...schemas.resume import (
 from ...services.content_generator_service import ContentGeneratorService
 from ...services.content_quality_service import ContentQualityService
 from ...services.job_description_parser_service import JobDescriptionParserService
-from ...services.profile_service import ProfileService
+# from ...services.profile_service import ProfileService  # TODO: Fix missing schemas
 from ...services.resume_parser_service import ResumeParserService
 
 # NOTE: This file has been converted to use AsyncSession.
@@ -44,7 +44,7 @@ resume_parser = ResumeParserService()
 job_description_parser = JobDescriptionParserService()
 content_generator = ContentGeneratorService()
 content_quality = ContentQualityService()
-profile_service = ProfileService()
+# profile_service = ProfileService()  # TODO: Fix missing schemas
 
 
 # Basic resume endpoints

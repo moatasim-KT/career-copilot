@@ -16,7 +16,7 @@ config = context.config
 database_url = os.getenv("DATABASE_URL")
 if database_url:
     # Alembic uses sync drivers, so convert async URLs to sync
-    database_url = database_url.replace("postgresql+asyncpg://", "postgresql://").replace("sqlite+aiosqlite:///", "sqlite:///")
+
     config.set_main_option("sqlalchemy.url", database_url)
 
 # Interpret the config file for Python logging.

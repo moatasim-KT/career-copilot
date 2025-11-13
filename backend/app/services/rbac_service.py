@@ -9,11 +9,11 @@ from typing import Any, Dict, List, Optional
 
 from pydantic import BaseModel
 
+from ..core.audit import AuditEventType, AuditSeverity, audit_logger
 from ..core.config import get_settings
 from ..core.database import get_database_manager
 from ..core.logging import get_logger
-from ..core.audit import audit_logger, AuditEventType, AuditSeverity
-from ..models.database_models import User, RoleAssignment, PermissionGrant
+from ..models.user import User
 
 logger = get_logger(__name__)
 settings = get_settings()
@@ -403,7 +403,7 @@ class RBACService:
 		try:
 			db_manager = await get_database_manager()
 			async with db_manager.get_session() as session:
-				from sqlalchemy import select, and_, or_
+				from sqlalchemy import and_, or_, select
 
 				result = await session.execute(
 					select(RoleAssignment.role).where(
@@ -454,7 +454,7 @@ class RBACService:
 			# Get direct permission grants
 			db_manager = await get_database_manager()
 			async with db_manager.get_session() as session:
-				from sqlalchemy import select, and_, or_
+				from sqlalchemy import and_, or_, select
 
 				result = await session.execute(
 					select(PermissionGrant.permission).where(
@@ -536,7 +536,7 @@ class RBACService:
 			db_manager = await get_database_manager()
 			async with db_manager.get_session() as session:
 				# Check if role assignment already exists
-				from sqlalchemy import select, and_
+				from sqlalchemy import and_, select
 
 				existing = await session.execute(
 					select(RoleAssignment).where(
@@ -771,6 +771,7 @@ class RBACService:
 				db_manager = await get_database_manager()
 				async with db_manager.get_session() as session:
 					from sqlalchemy import select
+
 					from ..models.database_models import ContractAnalysis
 
 					result = await session.execute(select(ContractAnalysis.user_id).where(ContractAnalysis.id == resource_id))

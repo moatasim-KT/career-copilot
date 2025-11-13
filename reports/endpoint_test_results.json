@@ -1,0 +1,6077 @@
+{
+  "generated_at": 1762917383.777867,
+  "results": [
+    {
+      "method": "GET",
+      "path": "/",
+      "status": "ok",
+      "status_code": 200,
+      "response_time": 0.0068,
+      "body_snippet": "{\"message\":\"Career Copilot API\",\"version\":\"1.0.0\",\"status\":\"running\",\"timestamp\":\"2025-11-12T08:15:55.795562\"}"
+    },
+    {
+      "method": "POST",
+      "path": "/login",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0015,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/playground",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0011,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/playground-redirect",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0012,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/workflows/",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0035,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/workflows/{workflow_id}",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0025,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "POST",
+      "path": "/workflows/{workflow_id}/execute",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0014,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/workflows/{workflow_id}/status/{execution_id}",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0043,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "DELETE",
+      "path": "/workflows/{workflow_id}/executions/{execution_id}",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0024,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/workflows/{workflow_id}/executions",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0024,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/analytics/risk-trends",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0016,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/analytics/contract-comparison",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0013,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/analytics/compliance-check",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0018,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/analytics/cost-analysis",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.002,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/analytics/performance-metrics",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0013,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/analytics/dashboard",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0015,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/analytics/langsmith-metrics",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0017,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/analytics/langsmith-summary",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0019,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/workflow/progress/{workflow_id}",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0012,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/workflow/progress",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0012,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/workflow/agent/{agent_name}/progress",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0012,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/workflow/cancel/{workflow_id}",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0013,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/workflow/stats/summary",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0013,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/v1/workflow/cleanup",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0013,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "POST",
+      "path": "/cloud-storage/backup",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0017,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/cloud-storage/backups",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0012,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/cloud-storage/backup/{backup_id}/restore",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0013,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "DELETE",
+      "path": "/cloud-storage/backup/{backup_id}",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0016,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "POST",
+      "path": "/cloud-storage/backup/{backup_id}/share",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0043,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/cloud-storage/metrics",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.002,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "POST",
+      "path": "/cloud-storage/cleanup",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0013,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/cloud-storage/export-metadata",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0012,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/cloud-storage/health",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0016,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/cloud-storage/policy",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0012,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "POST",
+      "path": "/database-backup/create",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0014,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/database-backup/list",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0016,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/database-backup/{backup_id}",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.002,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "POST",
+      "path": "/database-backup/restore",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.002,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "POST",
+      "path": "/database-backup/verify/{backup_id}",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0014,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "POST",
+      "path": "/database-backup/cleanup",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0012,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/database-backup/health",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0017,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "POST",
+      "path": "/database-backup/schedule",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0013,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/auth/oauth/google/login",
+      "status": "ok",
+      "status_code": 307,
+      "response_time": 0.0011,
+      "body_snippet": ""
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/auth/oauth/google/callback",
+      "status": "ok",
+      "status_code": 400,
+      "response_time": 0.2992,
+      "body_snippet": "{\"request_id\":\"80cc9630-3831-4146-a483-b9407c658d4a\",\"timestamp\":\"2025-11-12T08:15:56.165630\",\"error_code\":\"VALIDATION_ERROR\",\"detail\":\"Validation error in request data\",\"field_errors\":{\"validation_er"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/auth/oauth/linkedin/login",
+      "status": "ok",
+      "status_code": 307,
+      "response_time": 0.002,
+      "body_snippet": ""
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/auth/oauth/linkedin/callback",
+      "status": "ok",
+      "status_code": 400,
+      "response_time": 0.0031,
+      "body_snippet": "{\"request_id\":\"808aaf19-9f49-4ace-88a3-808c04522134\",\"timestamp\":\"2025-11-12T08:15:56.172564\",\"error_code\":\"VALIDATION_ERROR\",\"detail\":\"Validation error in request data\",\"field_errors\":{\"validation_er"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/users/me",
+      "status": "ok",
+      "status_code": 200,
+      "response_time": 0.1574,
+      "body_snippet": "{\"username\":\"moatasim\",\"email\":\"moatasimfarooque@gmail.com\",\"id\":1,\"skills\":[],\"preferred_locations\":[\"Remote\",\"United States\"],\"experience_level\":\"senior\",\"daily_application_goal\":10,\"is_admin\":true,"
+    },
+    {
+      "method": "PUT",
+      "path": "/api/v1/users/me",
+      "status": "ok",
+      "status_code": 200,
+      "response_time": 0.0232,
+      "body_snippet": "{\"username\":\"moatasim\",\"email\":\"moatasimfarooque@gmail.com\",\"id\":1,\"skills\":[],\"preferred_locations\":[\"Remote\",\"United States\"],\"experience_level\":\"senior\",\"daily_application_goal\":10,\"is_admin\":true,"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/users",
+      "status": "ok",
+      "status_code": 200,
+      "response_time": 0.0181,
+      "body_snippet": "[{\"username\":\"moatasim\",\"email\":\"moatasimfarooque@gmail.com\",\"id\":1,\"skills\":[],\"preferred_locations\":[\"Remote\",\"United States\"],\"experience_level\":\"senior\",\"daily_application_goal\":10,\"is_admin\":true"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/users",
+      "status": "ok",
+      "status_code": 400,
+      "response_time": 0.0104,
+      "body_snippet": "{\"request_id\":\"a3e116b2-71a8-4e4a-970d-298cd3398311\",\"timestamp\":\"2025-11-12T08:15:56.381357\",\"error_code\":\"VALIDATION_ERROR\",\"detail\":\"Validation error in request data\",\"field_errors\":{\"validation_er"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/users/{user_id}",
+      "status": "ok",
+      "status_code": 400,
+      "response_time": 0.0188,
+      "body_snippet": "{\"request_id\":\"cc89a007-75c6-47e7-91eb-7157f2b4d421\",\"timestamp\":\"2025-11-12T08:15:56.399484\",\"error_code\":\"VALIDATION_ERROR\",\"detail\":\"Validation error in request data\",\"field_errors\":{\"validation_er"
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/v1/users/{user_id}",
+      "status": "ok",
+      "status_code": 400,
+      "response_time": 0.0146,
+      "body_snippet": "{\"request_id\":\"c447ac68-ce9d-48d3-a51b-0293e1950636\",\"timestamp\":\"2025-11-12T08:15:56.416924\",\"error_code\":\"VALIDATION_ERROR\",\"detail\":\"Validation error in request data\",\"field_errors\":{\"validation_er"
+    },
+    {
+      "method": "POST",
+      "path": "/extract-skills",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0022,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "POST",
+      "path": "/match-skills",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.002,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "POST",
+      "path": "/skill-similarity",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0018,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "POST",
+      "path": "/batch-extract-skills",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0017,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "POST",
+      "path": "/analyze-skill-gaps",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0069,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/model-info",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.002,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "POST",
+      "path": "/clear-cache",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0016,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/vocabulary",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0021,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/configuration/status",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0017,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/configuration/summary",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0018,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "POST",
+      "path": "/configuration/reload",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0053,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/configuration/reload-history",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0018,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/configuration/validate",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0015,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/feature-flags",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0013,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/feature-flags/{flag_name}",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0015,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "POST",
+      "path": "/feature-flags/{flag_name}/check",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0015,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "PUT",
+      "path": "/feature-flags/{flag_name}/state",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0013,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "POST",
+      "path": "/feature-flags/{flag_name}/rollout",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0012,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "DELETE",
+      "path": "/feature-flags/cache",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0035,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/configuration/snapshots",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0026,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "POST",
+      "path": "/configuration/rollback",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0028,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/configuration/environment",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0015,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/job-sources",
+      "status": "ok",
+      "status_code": 200,
+      "response_time": 0.0454,
+      "body_snippet": "{\"sources\":[{\"source\":\"linkedin\",\"display_name\":\"LinkedIn Jobs\",\"description\":\"Professional networking platform with extensive job listings across all industries\",\"is_available\":true,\"requires_api_key"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/job-sources/preferences",
+      "status": "ok",
+      "status_code": 400,
+      "response_time": 0.0069,
+      "body_snippet": "{\"request_id\":\"4358bcbc-733a-4b79-991a-c37ebbcbabf9\",\"timestamp\":\"2025-11-12T08:15:56.519837\",\"error_code\":\"HTTP_400\",\"detail\":\"User preferences already exist. Use PUT to update.\",\"field_errors\":null,"
+    },
+    {
+      "method": "PUT",
+      "path": "/api/v1/job-sources/preferences",
+      "status": "ok",
+      "status_code": 200,
+      "response_time": 0.0076,
+      "body_snippet": "{\"id\":1,\"user_id\":1,\"preferred_sources\":[],\"disabled_sources\":[],\"source_priorities\":{},\"auto_scraping_enabled\":true,\"max_jobs_per_source\":10,\"min_quality_threshold\":60.0,\"notify_on_high_match\":true,\""
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/job-sources/preferences",
+      "status": "ok",
+      "status_code": 200,
+      "response_time": 0.0039,
+      "body_snippet": "{\"id\":1,\"user_id\":1,\"preferred_sources\":[],\"disabled_sources\":[],\"source_priorities\":{},\"auto_scraping_enabled\":true,\"max_jobs_per_source\":10,\"min_quality_threshold\":60.0,\"notify_on_high_match\":true,\""
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/job-sources/analytics",
+      "status": "ok",
+      "status_code": 200,
+      "response_time": 0.0064,
+      "body_snippet": "{\"analytics\":{\"timeframe_days\":30,\"by_source\":{\"linkedin\":{\"jobs_count\":0,\"quality\":9.5},\"indeed\":{\"jobs_count\":0,\"quality\":9.0},\"glassdoor\":{\"jobs_count\":0,\"quality\":8.5},\"dice\":{\"jobs_count\":0,\"qual"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/job-sources/recommendations",
+      "status": "ok",
+      "status_code": 200,
+      "response_time": 0.0101,
+      "body_snippet": "{\"recommendations\":[\"linkedin\",\"ycombinator\",\"indeed\",\"github_jobs\",\"stackoverflow\"],\"total_available\":5,\"user_id\":1,\"insights\":[{\"note\":\"No custom source priorities\"}]}"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/job-sources/{source}/quality",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0067,
+      "body_snippet": "{\"request_id\":\"ebdf4d95-8582-418a-a702-787bbe8b3ab7\",\"timestamp\":\"2025-11-12T08:15:56.554478\",\"error_code\":\"HTTP_404\",\"detail\":\"Job source '{source}' not found\",\"field_errors\":null,\"suggestions\":null}"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/job-sources/{source}/priority",
+      "status": "ok",
+      "status_code": 400,
+      "response_time": 0.0071,
+      "body_snippet": "{\"request_id\":\"6cddb090-59fd-4153-b631-583315189fad\",\"timestamp\":\"2025-11-12T08:15:56.561574\",\"error_code\":\"VALIDATION_ERROR\",\"detail\":\"Validation error in request data\",\"field_errors\":{\"validation_er"
+    },
+    {
+      "method": "GET",
+      "path": "/metrics",
+      "status": "ok",
+      "status_code": 200,
+      "response_time": 0.0189,
+      "body_snippet": "# HELP python_gc_objects_collected_total Objects collected during gc\n# TYPE python_gc_objects_collected_total counter\npython_gc_objects_collected_total{generation=\"0\"} 61662.0\npython_gc_objects_collec"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/reports/weekly",
+      "status": "error",
+      "status_code": 500,
+      "response_time": 0.004,
+      "body_snippet": "{\"request_id\":\"3c3ca4f2-014c-473f-bf8e-e58fd4a69159\",\"timestamp\":\"2025-11-12T08:15:56.586135\",\"error_code\":\"HTTP_500\",\"detail\":\"Failed to generate weekly report: 404: Failed to generate report: 'Async"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/reports/monthly",
+      "status": "error",
+      "status_code": 500,
+      "response_time": 0.0109,
+      "body_snippet": "{\"request_id\":\"6b3ddb93-6503-4ed4-bc01-03ee3e67aab0\",\"timestamp\":\"2025-11-12T08:15:56.591067\",\"error_code\":\"HTTP_500\",\"detail\":\"Failed to generate monthly report: 404: Failed to generate report: 'Asyn"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/reports/email/weekly",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0037,
+      "body_snippet": "{\"request_id\":\"8faab901-73e7-4473-88e5-95d3f966cb94\",\"timestamp\":\"2025-11-12T08:15:56.601354\",\"error_code\":\"HTTP_404\",\"detail\":\"Failed to generate report: 'AsyncSession' object has no attribute 'query"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/reports/email/monthly",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0068,
+      "body_snippet": "{\"request_id\":\"d0d70384-0b4b-41b5-b1ff-3b605500739e\",\"timestamp\":\"2025-11-12T08:15:56.606086\",\"error_code\":\"HTTP_404\",\"detail\":\"Failed to generate report: 'AsyncSession' object has no attribute 'query"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/admin/reports/weekly/all",
+      "status": "ok",
+      "status_code": 200,
+      "response_time": 0.0052,
+      "body_snippet": "{\"message\":\"Weekly reports scheduled for all users\",\"scheduled_at\":\"2025-11-12T08:15:56.613002\",\"report_type\":\"weekly\",\"scope\":\"all_users\"}"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/admin/reports/monthly/all",
+      "status": "ok",
+      "status_code": 200,
+      "response_time": 0.0032,
+      "body_snippet": "{\"message\":\"Monthly reports scheduled for all users\",\"scheduled_at\":\"2025-11-12T08:15:56.616016\",\"report_type\":\"monthly\",\"scope\":\"all_users\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/reports/preview/weekly",
+      "status": "ok",
+      "status_code": 200,
+      "response_time": 0.557,
+      "body_snippet": "{\"preview_available\":false,\"message\":\"Insufficient data for preview - submit some applications first\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/reports/preview/monthly",
+      "status": "ok",
+      "status_code": 200,
+      "response_time": 0.0234,
+      "body_snippet": "{\"preview_available\":false,\"message\":\"Insufficient data for preview - submit some applications first\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/strategies",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0039,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "POST",
+      "path": "/validate-prerequisites",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0031,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "POST",
+      "path": "/plan/sharding",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.011,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "POST",
+      "path": "/plan/encryption",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0076,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "POST",
+      "path": "/plan/version",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0073,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "POST",
+      "path": "/plan/combined",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0039,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "POST",
+      "path": "/execute/{migration_id}",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0103,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/status/{migration_id}",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0022,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/result/{migration_id}",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0038,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "POST",
+      "path": "/recommendations",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0105,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "DELETE",
+      "path": "/cancel/{migration_id}",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0045,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "POST",
+      "path": "/rollback/{migration_id}",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0078,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/rollback-status/{migration_id}",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0104,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "POST",
+      "path": "/create",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0039,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/list",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0062,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/info/{backup_name}",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0038,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "POST",
+      "path": "/restore",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.005,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "DELETE",
+      "path": "/cleanup",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0111,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "DELETE",
+      "path": "/{backup_name}",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0156,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/export/database",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0127,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/feedback",
+      "status": "ok",
+      "status_code": 200,
+      "response_time": 0.017,
+      "body_snippet": "[]"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/feedback/stats",
+      "status": "ok",
+      "status_code": 200,
+      "response_time": 0.1403,
+      "body_snippet": "{\"total\":0,\"by_status\":{},\"by_type\":{},\"by_priority\":{}}"
+    },
+    {
+      "method": "GET",
+      "path": "/social/feed",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.007,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "POST",
+      "path": "/social/post",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0036,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/social/me/resources",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0057,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "POST",
+      "path": "/social/me/bookmarks",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0075,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "POST",
+      "path": "/social/resources/{resource_id}/feedback",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0086,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/social/me/bookmarks",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0091,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "PATCH",
+      "path": "/social/me/bookmarks/{resource_id}",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0048,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/social/me/stats",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0022,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/tasks/status/{task_id}",
+      "status": "ok",
+      "status_code": 200,
+      "response_time": 0.0781,
+      "body_snippet": "{\"task_id\":\"{task_id}\",\"status\":\"PENDING\",\"result\":null,\"metadata\":null,\"progress\":null,\"traceback\":null,\"error\":null}"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/tasks/user/{user_id}",
+      "status": "ok",
+      "status_code": 400,
+      "response_time": 0.0058,
+      "body_snippet": "{\"request_id\":\"ea70d4d2-9756-4286-9abe-dfd7b493ba3a\",\"timestamp\":\"2025-11-12T08:15:57.638036\",\"error_code\":\"VALIDATION_ERROR\",\"detail\":\"Validation error in request data\",\"field_errors\":{\"validation_er"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/tasks/my-tasks",
+      "status": "ok",
+      "status_code": 200,
+      "response_time": 0.0029,
+      "body_snippet": "[]"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/tasks/submit",
+      "status": "ok",
+      "status_code": 400,
+      "response_time": 0.0072,
+      "body_snippet": "{\"request_id\":\"3e5bbcf7-4711-4279-87fd-1ddcf28d5884\",\"timestamp\":\"2025-11-12T08:15:57.649599\",\"error_code\":\"VALIDATION_ERROR\",\"detail\":\"Validation error in request data\",\"field_errors\":{\"validation_er"
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/v1/tasks/cancel/{task_id}",
+      "status": "ok",
+      "status_code": 200,
+      "response_time": 0.0396,
+      "body_snippet": "{\"task_id\":\"{task_id}\",\"status\":\"PENDING\",\"result\":null,\"metadata\":null,\"progress\":null,\"traceback\":null,\"error\":null}"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/tasks/queue-stats",
+      "status": "ok",
+      "status_code": 200,
+      "response_time": 3.0649,
+      "body_snippet": "{\"queue_stats\":{},\"total_active\":0,\"total_scheduled\":0,\"total_reserved\":0,\"timestamp\":\"2025-11-12T03:16:00.746097+00:00\"}"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/tasks/cleanup",
+      "status": "ok",
+      "status_code": 200,
+      "response_time": 0.0054,
+      "body_snippet": "{\"cleaned_count\":0,\"message\":\"Cleaned up 0 completed tasks\"}"
+    },
+    {
+      "method": "POST",
+      "path": "/schedule",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0025,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "POST",
+      "path": "/contract-analysis",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0015,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/status/{task_id}",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0015,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/result/{task_id}",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0029,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "POST",
+      "path": "/cancel/{task_id}",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0012,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/list",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.001,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/queue/stats",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.001,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/retry-history/{task_id}",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0015,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "POST",
+      "path": "/retry/{task_id}",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0021,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/monitoring/metrics",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0041,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/health",
+      "status": "ok",
+      "status_code": 200,
+      "response_time": 0.0022,
+      "body_snippet": "{\"status\":\"healthy\",\"timestamp\":\"2025-11-12T08:16:00.780707\",\"environment\":\"development\",\"uptime_seconds\":8.334794998168945,\"version\":\"1.0.0\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/history",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0025,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "POST",
+      "path": "/upload",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0012,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/{upload_id}/status",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0011,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/{upload_id}/suggestions",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.001,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "POST",
+      "path": "/{upload_id}/apply-suggestions",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0012,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "POST",
+      "path": "/parse-job-description",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0011,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/job-description/test",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0012,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "POST",
+      "path": "/content/generate",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0013,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/content/{content_id}",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0016,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "PUT",
+      "path": "/content/{content_id}",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0015,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/content/user/{user_id}",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0014,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/content/{content_id}/versions",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0011,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "POST",
+      "path": "/content/{content_id}/rollback/{version_number}",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0011,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/content/{content_id}/suggestions",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0011,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "POST",
+      "path": "/content/{content_id}/track-modifications",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0013,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "POST",
+      "path": "/content/{content_id}/analyze-quality",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0011,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "POST",
+      "path": "/content/{content_id}/check-grammar",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0012,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/content/{content_id}/export/{format_type}",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0011,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "POST",
+      "path": "/content/preview",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0011,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/feedback-analysis",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.001,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/algorithm-suggestions",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0011,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "POST",
+      "path": "/apply-algorithm-adjustments",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0013,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "POST",
+      "path": "/algorithm-weights",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0012,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "POST",
+      "path": "/ab-tests",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.002,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/ab-tests",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0021,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/ab-tests/{test_name}/results",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0014,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "POST",
+      "path": "/ab-tests/{test_name}/stop",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0059,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/user-algorithm-info",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0037,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/feedback-impact",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0113,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/import/jobs",
+      "status": "ok",
+      "status_code": 400,
+      "response_time": 0.1522,
+      "body_snippet": "{\"request_id\":\"6e09811b-274e-4093-b351-1b7161f8d781\",\"timestamp\":\"2025-11-12T08:16:00.969700\",\"error_code\":\"VALIDATION_ERROR\",\"detail\":\"Validation error in request data\",\"field_errors\":{\"validation_er"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/import/applications",
+      "status": "ok",
+      "status_code": 400,
+      "response_time": 0.0246,
+      "body_snippet": "{\"request_id\":\"9b7bd382-a3e6-49e7-b58a-d409c376af93\",\"timestamp\":\"2025-11-12T08:16:01.014078\",\"error_code\":\"VALIDATION_ERROR\",\"detail\":\"Validation error in request data\",\"field_errors\":{\"validation_er"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/interview/sessions",
+      "status": "ok",
+      "status_code": 200,
+      "response_time": 0.0463,
+      "body_snippet": "[]"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/interview/practice",
+      "status": "ok",
+      "status_code": 200,
+      "response_time": 0.0031,
+      "body_snippet": "{\"category\":\"general\",\"total\":3,\"questions\":[{\"id\":1,\"question\":\"Why do you want to work here?\",\"category\":\"general\",\"difficulty\":\"medium\"},{\"id\":2,\"question\":\"What are your greatest strengths and wea"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/interview/sessions",
+      "status": "ok",
+      "status_code": 400,
+      "response_time": 0.0066,
+      "body_snippet": "{\"request_id\":\"c4e93ea0-68f7-4a43-9423-7cf9b66ce712\",\"timestamp\":\"2025-11-12T08:16:01.070445\",\"error_code\":\"VALIDATION_ERROR\",\"detail\":\"Validation error in request data\",\"field_errors\":{\"validation_er"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/interview/sessions/{session_id}",
+      "status": "ok",
+      "status_code": 400,
+      "response_time": 0.0045,
+      "body_snippet": "{\"request_id\":\"3ca67e6b-d2d7-4c77-ae50-b308604f6f51\",\"timestamp\":\"2025-11-12T08:16:01.074420\",\"error_code\":\"VALIDATION_ERROR\",\"detail\":\"Validation error in request data\",\"field_errors\":{\"validation_er"
+    },
+    {
+      "method": "PUT",
+      "path": "/api/v1/interview/sessions/{session_id}",
+      "status": "ok",
+      "status_code": 400,
+      "response_time": 0.0077,
+      "body_snippet": "{\"request_id\":\"a4ef401f-b69c-4e42-82d0-d522d52a4087\",\"timestamp\":\"2025-11-12T08:16:01.082816\",\"error_code\":\"VALIDATION_ERROR\",\"detail\":\"Validation error in request data\",\"field_errors\":{\"validation_er"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/interview/sessions/{session_id}/questions",
+      "status": "ok",
+      "status_code": 400,
+      "response_time": 0.0054,
+      "body_snippet": "{\"request_id\":\"70c12706-5fb9-4ebb-943e-6ca516b518a2\",\"timestamp\":\"2025-11-12T08:16:01.088050\",\"error_code\":\"VALIDATION_ERROR\",\"detail\":\"Validation error in request data\",\"field_errors\":{\"validation_er"
+    },
+    {
+      "method": "PUT",
+      "path": "/api/v1/interview/questions/{question_id}",
+      "status": "ok",
+      "status_code": 400,
+      "response_time": 0.0062,
+      "body_snippet": "{\"request_id\":\"d693818d-1db0-47fc-bfe3-86874852c757\",\"timestamp\":\"2025-11-12T08:16:01.092768\",\"error_code\":\"VALIDATION_ERROR\",\"detail\":\"Validation error in request data\",\"field_errors\":{\"validation_er"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/interview/sessions/{session_id}/generate-question",
+      "status": "ok",
+      "status_code": 400,
+      "response_time": 0.0046,
+      "body_snippet": "{\"request_id\":\"38aa28e3-a4cc-4e42-abf6-b59b9148f1f2\",\"timestamp\":\"2025-11-12T08:16:01.099372\",\"error_code\":\"VALIDATION_ERROR\",\"detail\":\"Validation error in request data\",\"field_errors\":{\"validation_er"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/interview/questions/{question_id}/evaluate-answer",
+      "status": "ok",
+      "status_code": 400,
+      "response_time": 0.006,
+      "body_snippet": "{\"request_id\":\"f5e5e9e3-8022-43ee-a4d3-2c76dc0c74a5\",\"timestamp\":\"2025-11-12T08:16:01.104404\",\"error_code\":\"VALIDATION_ERROR\",\"detail\":\"Validation error in request data\",\"field_errors\":{\"validation_er"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/interview/sessions/history",
+      "status": "ok",
+      "status_code": 400,
+      "response_time": 0.0087,
+      "body_snippet": "{\"request_id\":\"0557849e-1e8f-4eb4-a43b-44092c32fea5\",\"timestamp\":\"2025-11-12T08:16:01.113532\",\"error_code\":\"VALIDATION_ERROR\",\"detail\":\"Validation error in request data\",\"field_errors\":{\"validation_er"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/interview/sessions/analytics",
+      "status": "ok",
+      "status_code": 400,
+      "response_time": 0.0052,
+      "body_snippet": "{\"request_id\":\"8c7409ff-52e0-48f8-a95e-c1ab36372f71\",\"timestamp\":\"2025-11-12T08:16:01.119416\",\"error_code\":\"VALIDATION_ERROR\",\"detail\":\"Validation error in request data\",\"field_errors\":{\"validation_er"
+    },
+    {
+      "method": "POST",
+      "path": "/upload/initiate",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0015,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "POST",
+      "path": "/upload/chunk/{session_id}",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0016,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "POST",
+      "path": "/upload/finalize/{session_id}",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0025,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/upload/progress/{session_id}",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0029,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "DELETE",
+      "path": "/upload/cancel/{session_id}",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0014,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "POST",
+      "path": "/upload/simple",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0017,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/weekly-progress",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0025,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/monthly-progress",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0015,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/salary-trends-comprehensive",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0015,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/career-insights",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0028,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/recommendation-effectiveness",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0038,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/progress-summary",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.002,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/career-trajectory",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0012,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/salary-insights",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0012,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/recommendation-performance",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0014,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/comprehensive-report",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0027,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/comprehensive-report",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0013,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/historical-reports/{report_type}",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0014,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/email/templates",
+      "status": "ok",
+      "status_code": 200,
+      "response_time": 0.0063,
+      "body_snippet": "{\"templates\":[],\"total\":0,\"message\":\"Email templates ready\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/email/history",
+      "status": "ok",
+      "status_code": 200,
+      "response_time": 0.0035,
+      "body_snippet": "{\"history\":[],\"total\":0,\"message\":\"Email history ready\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/me/settings",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0018,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "PUT",
+      "path": "/me/settings",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0027,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "POST",
+      "path": "/me/settings/reset",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0014,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/me/profile",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0016,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "PUT",
+      "path": "/me/profile",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.003,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "POST",
+      "path": "/me/change-password",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0024,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/me/settings/ai-model",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0027,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/me/settings/notifications",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0039,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/me/settings/risk-thresholds",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0023,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/me/settings/integrations",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0026,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "PUT",
+      "path": "/me/settings/integrations/{integration_name}/{setting_key}",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0065,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "POST",
+      "path": "/vector-store/embeddings",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0028,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "POST",
+      "path": "/vector-store/search/contracts",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0045,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "POST",
+      "path": "/vector-store/search/precedents",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0029,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "POST",
+      "path": "/vector-store/batch/embeddings",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0065,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "DELETE",
+      "path": "/vector-store/embeddings/{contract_id}",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0051,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/vector-store/stats",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0038,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/vector-store/health",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0089,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/vector-store/collections",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.004,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/vector-store/contracts/{contract_id}/embeddings",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0075,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/slack/channels",
+      "status": "ok",
+      "status_code": 200,
+      "response_time": 0.0128,
+      "body_snippet": "{\"channels\":[],\"total\":0,\"message\":\"Slack channels ready\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/slack/status",
+      "status": "ok",
+      "status_code": 200,
+      "response_time": 0.0127,
+      "body_snippet": "{\"status\":\"configured\",\"connected\":false,\"message\":\"Slack status ready\"}"
+    },
+    {
+      "method": "POST",
+      "path": "/",
+      "status": "ok",
+      "status_code": 405,
+      "response_time": 0.0035,
+      "body_snippet": "{\"detail\":\"Method Not Allowed\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/",
+      "status": "ok",
+      "status_code": 200,
+      "response_time": 0.0014,
+      "body_snippet": "{\"message\":\"Career Copilot API\",\"version\":\"1.0.0\",\"status\":\"running\",\"timestamp\":\"2025-11-12T08:16:01.273751\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/dashboard",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0042,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/celebration",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0016,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/weekly-summary",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.002,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/{goal_id}",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0022,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "PUT",
+      "path": "/{goal_id}",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0015,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "POST",
+      "path": "/{goal_id}/progress",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0013,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "DELETE",
+      "path": "/{goal_id}",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0014,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "POST",
+      "path": "/milestones",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0014,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/milestones/recent",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0019,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "POST",
+      "path": "/auto-track-application/{application_id}",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0036,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/market/trends",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0015,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/market/salary-insights",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0013,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/health",
+      "status": "ok",
+      "status_code": 200,
+      "response_time": 1.207,
+      "body_snippet": "{\"status\":\"healthy\",\"timestamp\":\"2025-11-12T08:16:02.482990\",\"components\":{\"database\":{\"status\":\"healthy\",\"details\":{\"status\":\"healthy\",\"backend\":\"postgresql\",\"response_time_ms\":5.728006362915039},\"re"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/health/db",
+      "status": "ok",
+      "status_code": 200,
+      "response_time": 0.0134,
+      "body_snippet": "{\"status\":\"healthy\",\"database\":\"connected\",\"timestamp\":\"2025-11-12T08:16:02.516736\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/health",
+      "status": "ok",
+      "status_code": 200,
+      "response_time": 0.0019,
+      "body_snippet": "{\"status\":\"healthy\",\"timestamp\":\"2025-11-12T08:16:02.520648\",\"environment\":\"development\",\"uptime_seconds\":10.07473373413086,\"version\":\"1.0.0\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/health/detailed",
+      "status": "ok",
+      "status_code": 200,
+      "response_time": 1.287,
+      "body_snippet": "{\"status\":\"healthy\",\"timestamp\":\"2025-11-12T08:16:03.773964\",\"environment\":\"development\",\"uptime_seconds\":11.328422784805298,\"version\":\"1.0.0\",\"services\":{\"vector_store\":{\"name\":\"vector_store\",\"status"
+    },
+    {
+      "method": "GET",
+      "path": "/health/readiness",
+      "status": "ok",
+      "status_code": 200,
+      "response_time": 0.0286,
+      "body_snippet": "{\"ready\":true,\"timestamp\":\"2025-11-12T08:16:03.836157\",\"checks\":{\"critical_services\":true,\"database\":true}}"
+    },
+    {
+      "method": "GET",
+      "path": "/health/frontend",
+      "status": "error",
+      "status_code": 503,
+      "response_time": 0.0208,
+      "body_snippet": "{\"status\":\"unhealthy\",\"message\":\"Frontend accessibility check failed\",\"timestamp\":\"2025-11-12T03:16:03.854847+00:00\",\"response_time_ms\":15.604972839355469,\"details\":null,\"error\":\"Frontend accessibilit"
+    },
+    {
+      "method": "GET",
+      "path": "/health/database",
+      "status": "error",
+      "status_code": 503,
+      "response_time": 0.0038,
+      "body_snippet": "{\"status\":\"unhealthy\",\"message\":\"PostgreSQL health check failed\",\"timestamp\":\"2025-11-12T03:16:03.859219+00:00\",\"response_time_ms\":0.07605552673339844,\"details\":null,\"error\":\"PostgreSQL check failed: "
+    },
+    {
+      "method": "GET",
+      "path": "/health/comprehensive",
+      "status": "error",
+      "status_code": 503,
+      "response_time": 1.0475,
+      "body_snippet": "{\"status\":\"unhealthy\",\"components\":{\"backend\":{\"status\":\"unhealthy\",\"message\":\"Celery worker check failed\",\"timestamp\":\"2025-11-12T03:16:04.898766+00:00\",\"response_time_ms\":1035.4559421539307,\"details"
+    },
+    {
+      "method": "GET",
+      "path": "/health/readiness",
+      "status": "ok",
+      "status_code": 200,
+      "response_time": 0.0161,
+      "body_snippet": "{\"ready\":true,\"timestamp\":\"2025-11-12T08:16:04.925326\",\"checks\":{\"critical_services\":true,\"database\":true}}"
+    },
+    {
+      "method": "GET",
+      "path": "/health/liveness",
+      "status": "ok",
+      "status_code": 200,
+      "response_time": 0.0015,
+      "body_snippet": "{\"alive\":true,\"timestamp\":\"2025-11-12T08:16:04.926848\",\"uptime_seconds\":12.480867862701416}"
+    },
+    {
+      "method": "GET",
+      "path": "/health/startup",
+      "status": "ok",
+      "status_code": 200,
+      "response_time": 0.0034,
+      "body_snippet": "{\"status\":\"started\",\"timestamp\":\"2025-11-12T08:16:04.930403\",\"uptime_seconds\":12.482423067092896}"
+    },
+    {
+      "method": "GET",
+      "path": "/health/environment",
+      "status": "ok",
+      "status_code": 200,
+      "response_time": 0.0011,
+      "body_snippet": "{\"environment\":\"development\",\"configuration\":{\"debug\":true,\"log_level\":\"INFO\"},\"timestamp\":\"2025-11-12T08:16:04.931716\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/health/unified",
+      "status": "error",
+      "status_code": 503,
+      "response_time": 0.2728,
+      "body_snippet": "{\"timestamp\":\"2025-11-12T03:16:04.944733+00:00\",\"status\":\"unhealthy\",\"components\":{\"logging\":{\"overall_status\":\"unhealthy\",\"critical_issues\":[\"Log directory audit_dir does not exist\",\"Log directory ba"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/health/unified/component/{component}",
+      "status": "ok",
+      "status_code": 200,
+      "response_time": 0.0183,
+      "body_snippet": "{\"status\":\"unknown\",\"error\":\"unknown component: {component}\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/health/analytics/summary",
+      "status": "ok",
+      "status_code": 200,
+      "response_time": 0.012,
+      "body_snippet": "{\"period_start\":\"2025-11-11T03:16:05.226409+00:00\",\"period_end\":\"2025-11-12T03:16:05.226409+00:00\",\"total_checks\":1,\"healthy_percentage\":0.0,\"degraded_percentage\":0.0,\"unhealthy_percentage\":100.0,\"ave"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/health/analytics/component/{component}",
+      "status": "ok",
+      "status_code": 200,
+      "response_time": 0.0044,
+      "body_snippet": "{\"component\":\"{component}\",\"period_start\":\"2025-11-11T03:16:05.237307+00:00\",\"period_end\":\"2025-11-12T03:16:05.237307+00:00\",\"total_checks\":0,\"availability_percentage\":0.0,\"average_response_time_ms\":0"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/health/analytics/availability-report",
+      "status": "ok",
+      "status_code": 200,
+      "response_time": 0.0089,
+      "body_snippet": "{\"period\":{\"start\":\"2025-11-11T03:16:05.246624+00:00\",\"end\":\"2025-11-12T03:16:05.246624+00:00\",\"hours\":24},\"availability\":{\"uptime_percentage\":0.0,\"downtime_percentage\":100.0,\"downtime_minutes\":1440.0"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/health/analytics/performance-trends",
+      "status": "ok",
+      "status_code": 200,
+      "response_time": 0.0051,
+      "body_snippet": "{\"period\":{\"start\":\"2025-11-11T03:16:05.251958+00:00\",\"end\":\"2025-11-12T03:16:05.251958+00:00\",\"hours\":24},\"component_trends\":{\"overall\":{\"average_response_time_ms\":0.0,\"min_response_time_ms\":0.0,\"max"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/health/alerts/check",
+      "status": "error",
+      "status_code": 503,
+      "response_time": 0.0134,
+      "body_snippet": "{\"alerts_triggered\":1,\"alerts\":[{\"severity\":\"critical\",\"message\":\"System availability (0.00%) below threshold (99.9%)\",\"metric\":\"availability\",\"current_value\":0.0,\"threshold\":99.9,\"timestamp\":\"2025-11"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/health/migration-guide",
+      "status": "ok",
+      "status_code": 200,
+      "response_time": 0.0034,
+      "body_snippet": "{\"message\":\"Migration guide for unified health API\",\"migration_timeline\":{\"deprecation_announced\":\"2025-10-30\",\"recommended_migration_by\":\"2025-12-31\",\"removal_planned\":\"2026-03-31\"},\"endpoint_migrati"
+    },
+    {
+      "method": "POST",
+      "path": "/ingest",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0091,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "POST",
+      "path": "/ingest/immediate",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.007,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/stats",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0033,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "POST",
+      "path": "/test",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0081,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "POST",
+      "path": "/admin/ingest-all",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0063,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/test-all-sources",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.003,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "POST",
+      "path": "/feedback",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.007,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/feedback",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0062,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/feedback/stats",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0022,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/feedback/{feedback_id}",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0048,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "PUT",
+      "path": "/feedback/{feedback_id}",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0025,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "POST",
+      "path": "/feedback/{feedback_id}/vote",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0046,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/onboarding/progress",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0022,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "PUT",
+      "path": "/onboarding/progress",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0023,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "POST",
+      "path": "/onboarding/step/{step_id}/complete",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0106,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "POST",
+      "path": "/onboarding/tutorial/{tutorial_id}/complete",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0023,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "POST",
+      "path": "/onboarding/feature/{feature_id}/discover",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0094,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/help/articles",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0025,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/help/articles/{article_id}",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0039,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/help/articles/slug/{slug}",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0029,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "POST",
+      "path": "/help/search",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0026,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "POST",
+      "path": "/help/articles/{article_id}/vote",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0048,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/help/categories",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0019,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/help/popular",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0031,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/tutorials",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.002,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/feature-highlights",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0026,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "POST",
+      "path": "/cost-management/estimate-cost",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0047,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "POST",
+      "path": "/cost-management/analyze-complexity",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0042,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/cost-management/budget-status",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0101,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "POST",
+      "path": "/cost-management/budget-limits",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0052,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "DELETE",
+      "path": "/cost-management/budget-limits",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0025,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/cost-management/cost-summary",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0027,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "POST",
+      "path": "/cost-management/optimize-model-selection",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.003,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/cost-management/available-models",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0062,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/cost-management/service-health",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0018,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "POST",
+      "path": "/cost-management/clear-cache",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0013,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/cost-management/complexity-levels",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0019,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/applications/summary",
+      "status": "ok",
+      "status_code": 200,
+      "response_time": 0.0309,
+      "body_snippet": "{\"timeframe_days\":30,\"total_applications\":0,\"status_breakdown\":{},\"average_response_time_days\":0,\"applications_with_response\":0,\"response_rate\":0}"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/applications/stats",
+      "status": "ok",
+      "status_code": 200,
+      "response_time": 0.008,
+      "body_snippet": "{\"timeframe_days\":30,\"total_applications\":0,\"group_by\":\"status\",\"data\":{}}"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/applications/search",
+      "status": "ok",
+      "status_code": 200,
+      "response_time": 0.0406,
+      "body_snippet": "[]"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/applications",
+      "status": "ok",
+      "status_code": 200,
+      "response_time": 0.0083,
+      "body_snippet": "[]"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/applications",
+      "status": "ok",
+      "status_code": 400,
+      "response_time": 0.0088,
+      "body_snippet": "{\"request_id\":\"cfce7ffc-8280-40e1-8b1e-5902822ad752\",\"timestamp\":\"2025-11-12T08:16:05.530685\",\"error_code\":\"VALIDATION_ERROR\",\"detail\":\"Validation error in request data\",\"field_errors\":{\"validation_er"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/applications/{app_id}",
+      "status": "ok",
+      "status_code": 400,
+      "response_time": 0.0067,
+      "body_snippet": "{\"request_id\":\"d73b134d-f6d7-4435-bc4d-8ee45645ed44\",\"timestamp\":\"2025-11-12T08:16:05.536683\",\"error_code\":\"VALIDATION_ERROR\",\"detail\":\"Validation error in request data\",\"field_errors\":{\"validation_er"
+    },
+    {
+      "method": "PUT",
+      "path": "/api/v1/applications/{app_id}",
+      "status": "ok",
+      "status_code": 400,
+      "response_time": 0.0131,
+      "body_snippet": "{\"request_id\":\"27405070-b87f-4a06-a70b-5ee12599c194\",\"timestamp\":\"2025-11-12T08:16:05.550496\",\"error_code\":\"VALIDATION_ERROR\",\"detail\":\"Validation error in request data\",\"field_errors\":{\"validation_er"
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/v1/applications/{app_id}",
+      "status": "ok",
+      "status_code": 400,
+      "response_time": 0.0045,
+      "body_snippet": "{\"request_id\":\"f044cb7b-29d8-434b-a854-917e150a0a3c\",\"timestamp\":\"2025-11-12T08:16:05.555338\",\"error_code\":\"VALIDATION_ERROR\",\"detail\":\"Validation error in request data\",\"field_errors\":{\"validation_er"
+    },
+    {
+      "method": "GET",
+      "path": "/notifications",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0015,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/notifications/{notification_id}",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0016,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "PUT",
+      "path": "/notifications/{notification_id}/read",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0017,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "PUT",
+      "path": "/notifications/{notification_id}/unread",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0014,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "PUT",
+      "path": "/notifications/read-all",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0012,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "POST",
+      "path": "/notifications/mark-read",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0016,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "DELETE",
+      "path": "/notifications/{notification_id}",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0019,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "POST",
+      "path": "/notifications/bulk-delete",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0015,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "DELETE",
+      "path": "/notifications/all",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.002,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/notifications/statistics",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.005,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/notifications/preferences",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0053,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "PUT",
+      "path": "/notifications/preferences",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0044,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "POST",
+      "path": "/notifications/preferences/reset",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0043,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/load-balancer/stats",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0079,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/load-balancer/resources",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0065,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "POST",
+      "path": "/load-balancer/scale",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0038,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/load-balancer/workers",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0065,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/load-balancer/queue",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0026,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "POST",
+      "path": "/load-balancer/optimize",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0014,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/load-balancer/health",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0014,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "POST",
+      "path": "/load-balancer/restart",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0014,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/recommendations",
+      "status": "ok",
+      "status_code": 200,
+      "response_time": 0.1035,
+      "body_snippet": "[]"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/recommendations/algorithm-info",
+      "status": "ok",
+      "status_code": 200,
+      "response_time": 0.0105,
+      "body_snippet": "{\"user_id\":1,\"algorithm_weights\":{\"skill_matching\":40,\"location_matching\":20,\"experience_matching\":15,\"salary_matching\":10,\"company_culture\":5,\"growth_potential\":5,\"recency\":5},\"active_test_variant\":\""
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/recommendations/feedback",
+      "status": "ok",
+      "status_code": 400,
+      "response_time": 0.0045,
+      "body_snippet": "{\"request_id\":\"def4803b-ba8c-4376-a900-9b53649b8974\",\"timestamp\":\"2025-11-12T08:16:05.740162\",\"error_code\":\"VALIDATION_ERROR\",\"detail\":\"Validation error in request data\",\"field_errors\":{\"validation_er"
+    },
+    {
+      "method": "GET",
+      "path": "/database-performance/metrics",
+      "status": "ok",
+      "status_code": 200,
+      "response_time": 0.0067,
+      "body_snippet": "{\"success\":true,\"message\":\"Performance metrics retrieved for last 1 hours\",\"data\":{\"period_hours\":1,\"query_count\":0,\"average_response_time\":0.0,\"connection_pool\":{\"active_connections\":0,\"idle_connecti"
+    },
+    {
+      "method": "GET",
+      "path": "/database-performance/slow-queries",
+      "status": "ok",
+      "status_code": 200,
+      "response_time": 0.0047,
+      "body_snippet": "{\"success\":true,\"message\":\"Analyzed 0 slow query patterns\",\"data\":{\"analysis_period_hours\":24,\"min_occurrences\":2,\"slow_queries\":[]}}"
+    },
+    {
+      "method": "POST",
+      "path": "/database-performance/optimize-query",
+      "status": "ok",
+      "status_code": 400,
+      "response_time": 0.0041,
+      "body_snippet": "{\"request_id\":\"1c5700b4-e9b3-4151-bfae-6ab1292246ab\",\"timestamp\":\"2025-11-12T08:16:05.755876\",\"error_code\":\"VALIDATION_ERROR\",\"detail\":\"Validation error in request data\",\"field_errors\":{\"validation_er"
+    },
+    {
+      "method": "POST",
+      "path": "/database-performance/optimize/indexes",
+      "status": "ok",
+      "status_code": 200,
+      "response_time": 0.0173,
+      "body_snippet": "{\"status\":\"success\",\"message\":\"Index optimization completed. Created 27 indexes.\",\"results\":{\"indexes_created\":[\"idx_users_oauth_provider_id\",\"idx_users_skills_gin\",\"idx_users_preferred_locations_gin\""
+    },
+    {
+      "method": "POST",
+      "path": "/database-performance/optimize/queries",
+      "status": "ok",
+      "status_code": 200,
+      "response_time": 0.0085,
+      "body_snippet": "{\"status\":\"success\",\"message\":\"Query optimization completed\",\"results\":{\"optimizations_applied\":[\"Updated table statistics\"],\"status\":\"success\"}}"
+    },
+    {
+      "method": "GET",
+      "path": "/database-performance/analyze/performance",
+      "status": "ok",
+      "status_code": 200,
+      "response_time": 0.0042,
+      "body_snippet": "{\"status\":\"error\",\"message\":\"Query performance analysis completed\",\"results\":{\"status\":\"error\",\"error\":\"division by zero\"}}"
+    },
+    {
+      "method": "GET",
+      "path": "/database-performance/connection-pooling",
+      "status": "error",
+      "status_code": null,
+      "response_time": 0.0175,
+      "error": "Unable to serialize unknown type: <class 'method'>"
+    },
+    {
+      "method": "POST",
+      "path": "/database-performance/cleanup",
+      "status": "ok",
+      "status_code": 200,
+      "response_time": 0.4578,
+      "body_snippet": "{\"status\":\"error\",\"message\":\"Data cleanup completed. Deleted 0 records.\",\"results\":{\"status\":\"error\",\"error\":\"'coroutine' object has no attribute 'rowcount'\"}}"
+    },
+    {
+      "method": "GET",
+      "path": "/database-performance/stats",
+      "status": "error",
+      "status_code": null,
+      "response_time": 0.017,
+      "error": "Unable to serialize unknown type: <class 'method'>"
+    },
+    {
+      "method": "POST",
+      "path": "/database-performance/optimize/all",
+      "status": "error",
+      "status_code": null,
+      "response_time": 0.0184,
+      "error": "Unable to serialize unknown type: <class 'method'>"
+    },
+    {
+      "method": "GET",
+      "path": "/database-performance/index-recommendations",
+      "status": "ok",
+      "status_code": 200,
+      "response_time": 0.0093,
+      "body_snippet": "{\"success\":true,\"message\":\"Generated 3 index recommendations\",\"data\":{\"recommendations\":[\"CREATE INDEX idx_users_email ON users(email);\",\"CREATE INDEX idx_jobs_created_at ON jobs(created_at);\",\"-- Dat"
+    },
+    {
+      "method": "GET",
+      "path": "/database-performance/health",
+      "status": "ok",
+      "status_code": 200,
+      "response_time": 0.0113,
+      "body_snippet": "{\"success\":true,\"message\":\"Database health check completed\",\"data\":{\"database\":\"connected\",\"connection_pool\":\"unknown\",\"note\":\"Database performance optimizer not available\"}}"
+    },
+    {
+      "method": "POST",
+      "path": "/database-performance/analyze-table/{table_name}",
+      "status": "ok",
+      "status_code": 400,
+      "response_time": 0.0092,
+      "body_snippet": "{\"request_id\":\"1360037b-a5e9-4630-a916-bb835bcbbff4\",\"timestamp\":\"2025-11-12T08:16:06.324554\",\"error_code\":\"HTTP_400\",\"detail\":\"Invalid table name\",\"field_errors\":null,\"suggestions\":null}"
+    },
+    {
+      "method": "POST",
+      "path": "/database-performance/vacuum/{table_name}",
+      "status": "ok",
+      "status_code": 400,
+      "response_time": 0.0097,
+      "body_snippet": "{\"request_id\":\"5ccd69c8-650d-4acb-88a6-e4d92fa5e659\",\"timestamp\":\"2025-11-12T08:16:06.334326\",\"error_code\":\"HTTP_400\",\"detail\":\"Invalid table name\",\"field_errors\":null,\"suggestions\":null}"
+    },
+    {
+      "method": "GET",
+      "path": "/database-performance/connection-pools",
+      "status": "ok",
+      "status_code": 200,
+      "response_time": 0.0103,
+      "body_snippet": "{\"success\":true,\"message\":\"Connection pool status retrieved\",\"data\":{\"pools\":{},\"timestamp\":\"2025-11-12T03:16:06.341660+00:00\"}}"
+    },
+    {
+      "method": "GET",
+      "path": "/cache/stats",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0066,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/cache/metrics",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0059,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/cache/metrics/history",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0077,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/cache/alerts",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.005,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "POST",
+      "path": "/cache/alerts/{alert_id}/resolve",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0088,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/cache/recommendations",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0039,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "POST",
+      "path": "/cache/optimize",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0046,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "POST",
+      "path": "/cache/clear",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0084,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/cache/performance",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0061,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/cache/invalidation/rules",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0078,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "POST",
+      "path": "/cache/invalidation/trigger",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0064,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "POST",
+      "path": "/cache/invalidation/user/{user_id}",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0042,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "POST",
+      "path": "/cache/invalidation/pattern/{pattern}",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.008,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/cache/invalidation/stats",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0114,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/cache/key/{key}",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.004,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "POST",
+      "path": "/cache/key",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0059,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "DELETE",
+      "path": "/cache/key/{key}",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0084,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "POST",
+      "path": "/enhanced-llm/completion",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.004,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/enhanced-llm/providers",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0034,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/enhanced-llm/providers/{provider_id}",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0092,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/enhanced-llm/providers/{provider_id}/metrics",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0038,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/enhanced-llm/health",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0047,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/enhanced-llm/best-provider",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0055,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "POST",
+      "path": "/enhanced-llm/cache/clear",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0066,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/enhanced-llm/task-types",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0054,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/enhanced-llm/routing-criteria",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0105,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/enhanced-llm/metrics/summary",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0083,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/manifest",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0094,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "POST",
+      "path": "/prepare",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0125,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/data",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0053,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/status",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0126,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/degradation-status",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0047,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "POST",
+      "path": "/complete-offline",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.012,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/capabilities",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0037,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/realtime/sse/progress/{task_id}",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0045,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/realtime/sse/dashboard",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.016,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/realtime/status/{task_id}",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0079,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/realtime/status/{task_id}/agents",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0072,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/realtime/status/{task_id}/estimate",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0021,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "POST",
+      "path": "/realtime/cancel/{task_id}",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0065,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/realtime/active",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0021,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/realtime/dashboard",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0047,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/realtime/health",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0021,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/services/status",
+      "status": "ok",
+      "status_code": 200,
+      "response_time": 0.0096,
+      "body_snippet": "{\"services\":[],\"all_healthy\":true,\"message\":\"Services status ready\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/services/health",
+      "status": "ok",
+      "status_code": 200,
+      "response_time": 0.0078,
+      "body_snippet": "{\"status\":\"healthy\",\"services\":[],\"message\":\"Services health check ready\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/database/health",
+      "status": "ok",
+      "status_code": 200,
+      "response_time": 0.024,
+      "body_snippet": "{\"status\":\"healthy\",\"connections\":\"available\",\"message\":\"Database health check ready\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/database/metrics",
+      "status": "ok",
+      "status_code": 200,
+      "response_time": 0.019,
+      "body_snippet": "{\"metrics\":{\"queries\":0,\"connections\":0},\"message\":\"Database metrics ready\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/database/tables",
+      "status": "ok",
+      "status_code": 200,
+      "response_time": 0.0304,
+      "body_snippet": "{\"tables\":[],\"total\":0,\"message\":\"Database tables listing ready\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/database/performance",
+      "status": "ok",
+      "status_code": 200,
+      "response_time": 0.0118,
+      "body_snippet": "{\"performance\":{},\"message\":\"Database performance metrics ready\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/export/jobs",
+      "status": "ok",
+      "status_code": 200,
+      "response_time": 0.0244,
+      "body_snippet": "{\"success\":true,\"data\":[],\"metadata\":{\"total_records\":0,\"page\":1,\"page_size\":100,\"total_pages\":0,\"exported_at\":\"2025-11-12T03:16:06.762818\"}}"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/export/applications",
+      "status": "ok",
+      "status_code": 200,
+      "response_time": 0.026,
+      "body_snippet": "{\"success\":true,\"data\":[],\"metadata\":{\"total_records\":0,\"page\":1,\"page_size\":100,\"total_pages\":0,\"exported_at\":\"2025-11-12T03:16:06.791301\"}}"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/export/full-backup",
+      "status": "ok",
+      "status_code": 200,
+      "response_time": 0.0229,
+      "body_snippet": "PK\u0003\u0004\u0014\u0000\u0000\u0000\b\u0000\u0003Bl[{B\ufffdXo\u0000\u0000\u0000\ufffd\u0000\u0000\u0000\u0011\u0000\u0000\u0000user_profile.json\ufffd\ufffdRPP\ufffdLQ\ufffdR0\ufffd\u00011Ss\u00133s\ufffd<\ufffd\ufffd\ufffd\u0112\ufffd\ufffd\ufffd\u0734\u0122\ufffd\ufffd\ufffd\ufffdT\ufffdt\ufffd\ufffd^r~\ufffd\u0012XaAQ~ZfN*Piu-X\ufffd8\ufffd\ufffd$3/\ufffd\u0018!\ufffd\\\ufffd\ufffdX\ufffd\ufffd\u0012\ufffdX\u00022\ufffd\ufffd\ufffd\ufffdT\ufffd\ufffd\u0010\ufffdB\ufffd\ufffd\ufffd\ufffd\ufffd\ufffdH\ufffd\ufffd\ufffd\ufffd\ufffd\ufffdT\ufffd\ufffd\u0016\u0000PK\u0003\u0004\u0014\u0000\u0000\u0000\b\u0000\u0003Bl[)\ufffdL\r\u0004\u0000\u0000\u0000\u0002\u0000\u0000\u0000\t\u0000\u0000\u0000jobs.json\ufffd\ufffd\u0005\u0000PK"
+    },
+    {
+      "method": "GET",
+      "path": "/external-services/health",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0029,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/external-services/health/{service_name}",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0023,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "POST",
+      "path": "/external-services/health-check",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0021,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "POST",
+      "path": "/external-services/validate",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0027,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/external-services/validation-results",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0048,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "POST",
+      "path": "/external-services/circuit-breaker/{service_name}/reset",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0076,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/external-services/statistics",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0104,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/external-services/configuration",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0054,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/external-services/test/{service_name}",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0106,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/linkedin/jobs/scrape",
+      "status": "ok",
+      "status_code": 400,
+      "response_time": 0.022,
+      "body_snippet": "{\"request_id\":\"e3b0d696-029b-4407-b9c7-90858d72af12\",\"timestamp\":\"2025-11-12T08:16:06.873727\",\"error_code\":\"VALIDATION_ERROR\",\"detail\":\"Validation error in request data\",\"field_errors\":{\"validation_er"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/linkedin/jobs/description",
+      "status": "ok",
+      "status_code": 400,
+      "response_time": 0.0158,
+      "body_snippet": "{\"request_id\":\"a7f8298f-25f0-45c4-bb28-01f2829a9517\",\"timestamp\":\"2025-11-12T08:16:06.895362\",\"error_code\":\"VALIDATION_ERROR\",\"detail\":\"Validation error in request data\",\"field_errors\":{\"validation_er"
+    },
+    {
+      "method": "GET",
+      "path": "/system/status",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0179,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "POST",
+      "path": "/system/initialize",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0142,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/system/health",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0107,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "POST",
+      "path": "/system/analyze",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0088,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/system/workflows/{workflow_id}",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0127,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/system/communication/metrics",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0195,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "POST",
+      "path": "/system/communication/optimize",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0141,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/system/components",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0116,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/system/performance",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0087,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "POST",
+      "path": "/system/shutdown",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0094,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/system/logs",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0093,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "POST",
+      "path": "/system/test/end-to-end",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0115,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/system/ping",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0115,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "POST",
+      "path": "/webhooks/sendgrid/events",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0071,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/webhooks/sendgrid/test",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0082,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "POST",
+      "path": "/webhooks/sendgrid/test-event",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0016,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/webhooks/sendgrid/health",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0039,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/dashboard",
+      "status": "error",
+      "status_code": 500,
+      "response_time": 0.0116,
+      "body_snippet": "{\"request_id\":\"c1a78f4a-8682-4723-b698-544340dc8237\",\"timestamp\":\"2025-11-12T08:16:07.097063\",\"error_code\":\"HTTP_500\",\"detail\":\"Failed to get dashboard data\",\"field_errors\":null,\"suggestions\":null}"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/dashboard/analytics",
+      "status": "ok",
+      "status_code": 200,
+      "response_time": 0.0335,
+      "body_snippet": "{\"success\":true,\"data\":{\"total_jobs\":0,\"total_applications\":0,\"pending_applications\":0,\"interviews_scheduled\":0,\"offers_received\":0,\"recent_applications\":0,\"last_updated\":\"2025-11-12T03:16:07.130254\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/dashboard/recommendations",
+      "status": "error",
+      "status_code": 500,
+      "response_time": 0.0079,
+      "body_snippet": "{\"request_id\":\"bae25fb7-8743-46ca-bebd-879fe7e310d9\",\"timestamp\":\"2025-11-12T08:16:07.137133\",\"error_code\":\"HTTP_500\",\"detail\":\"Failed to get recommendations\",\"field_errors\":null,\"suggestions\":null}"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/dashboard/stats",
+      "status": "ok",
+      "status_code": 200,
+      "response_time": 0.1082,
+      "body_snippet": "{\"success\":true,\"data\":{\"user\":{\"id\":1,\"username\":\"moatasim\",\"email\":\"moatasimfarooque@gmail.com\"},\"applications\":{\"total\":0,\"recent_30_days\":0,\"today\":0,\"by_status\":{},\"active_interviews\":0,\"offers_r"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/dashboard/recent-activity",
+      "status": "ok",
+      "status_code": 200,
+      "response_time": 0.0255,
+      "body_snippet": "{\"success\":true,\"data\":[],\"total_count\":0,\"last_updated\":\"2025-11-12T08:16:07.266354\"}"
+    },
+    {
+      "method": "POST",
+      "path": "/dashboard/refresh",
+      "status": "error",
+      "status_code": 500,
+      "response_time": 0.0228,
+      "body_snippet": "{\"request_id\":\"750af561-2303-4f1c-a38c-b2fa0c821532\",\"timestamp\":\"2025-11-12T08:16:07.289269\",\"error_code\":\"HTTP_500\",\"detail\":\"Failed to refresh dashboard\",\"field_errors\":null,\"suggestions\":null}"
+    },
+    {
+      "method": "GET",
+      "path": "/dashboard/connection-status",
+      "status": "ok",
+      "status_code": 200,
+      "response_time": 0.0118,
+      "body_snippet": "{\"success\":true,\"data\":{\"user_id\":1,\"websocket_connected\":false,\"subscriptions\":[],\"fallback_polling_available\":true,\"recommended_polling_interval\":30,\"last_checked\":\"2025-11-12T08:16:07.304807\"}}"
+    },
+    {
+      "method": "POST",
+      "path": "/dashboard/subscribe",
+      "status": "ok",
+      "status_code": 400,
+      "response_time": 0.0218,
+      "body_snippet": "{\"request_id\":\"ccf8164f-6322-4894-8b6c-04bc080fec3d\",\"timestamp\":\"2025-11-12T08:16:07.325083\",\"error_code\":\"VALIDATION_ERROR\",\"detail\":\"Validation error in request data\",\"field_errors\":{\"validation_er"
+    },
+    {
+      "method": "POST",
+      "path": "/",
+      "status": "ok",
+      "status_code": 405,
+      "response_time": 0.0047,
+      "body_snippet": "{\"detail\":\"Method Not Allowed\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/",
+      "status": "ok",
+      "status_code": 200,
+      "response_time": 0.004,
+      "body_snippet": "{\"message\":\"Career Copilot API\",\"version\":\"1.0.0\",\"status\":\"running\",\"timestamp\":\"2025-11-12T08:16:07.336923\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/types",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0046,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/categories",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0038,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/{template_id}",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0035,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "PUT",
+      "path": "/{template_id}",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0053,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "DELETE",
+      "path": "/{template_id}",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0041,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "POST",
+      "path": "/{template_id}/generate",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0032,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/{template_id}/analyze",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.003,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/{template_id}/stats",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.002,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/{template_id}/generated",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0024,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/generated/",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0034,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/generated/{document_id}",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0066,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "POST",
+      "path": "/initialize-system-templates",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.003,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/jobs/search",
+      "status": "ok",
+      "status_code": 200,
+      "response_time": 0.0292,
+      "body_snippet": "[]"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/jobs/recommendations",
+      "status": "ok",
+      "status_code": 200,
+      "response_time": 0.0171,
+      "body_snippet": "[]"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/jobs/analytics",
+      "status": "ok",
+      "status_code": 200,
+      "response_time": 0.0151,
+      "body_snippet": "{\"timeframe_days\":30,\"total_jobs\":0,\"status_breakdown\":{},\"source_breakdown\":{},\"top_locations\":{},\"remote_jobs\":0,\"remote_percentage\":0}"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/jobs",
+      "status": "ok",
+      "status_code": 200,
+      "response_time": 0.0111,
+      "body_snippet": "[]"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/jobs",
+      "status": "ok",
+      "status_code": 400,
+      "response_time": 0.0104,
+      "body_snippet": "{\"request_id\":\"13c5689b-ac57-445a-94a0-aeab70edf5b2\",\"timestamp\":\"2025-11-12T08:16:07.466792\",\"error_code\":\"VALIDATION_ERROR\",\"detail\":\"Validation error in request data\",\"field_errors\":{\"validation_er"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/jobs/{job_id}",
+      "status": "ok",
+      "status_code": 400,
+      "response_time": 0.0069,
+      "body_snippet": "{\"request_id\":\"deb83a43-a9d6-4baf-9663-cf86c53f752d\",\"timestamp\":\"2025-11-12T08:16:07.472004\",\"error_code\":\"VALIDATION_ERROR\",\"detail\":\"Validation error in request data\",\"field_errors\":{\"validation_er"
+    },
+    {
+      "method": "PUT",
+      "path": "/api/v1/jobs/{job_id}",
+      "status": "ok",
+      "status_code": 400,
+      "response_time": 0.0139,
+      "body_snippet": "{\"request_id\":\"d5cccd80-ef71-4ec2-bdd8-05faa9ecd203\",\"timestamp\":\"2025-11-12T08:16:07.487148\",\"error_code\":\"VALIDATION_ERROR\",\"detail\":\"Validation error in request data\",\"field_errors\":{\"validation_er"
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/v1/jobs/{job_id}",
+      "status": "ok",
+      "status_code": 400,
+      "response_time": 0.0076,
+      "body_snippet": "{\"request_id\":\"d5c0e7ea-3172-4510-bf4f-bc4ec5fdc664\",\"timestamp\":\"2025-11-12T08:16:07.494722\",\"error_code\":\"VALIDATION_ERROR\",\"detail\":\"Validation error in request data\",\"field_errors\":{\"validation_er"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/jobs/sources/analytics",
+      "status": "ok",
+      "status_code": 200,
+      "response_time": 0.0133,
+      "body_snippet": "{\"analytics\":{\"timeframe_days\":30,\"by_source\":{\"linkedin\":{\"jobs_count\":0,\"quality\":9.5},\"indeed\":{\"jobs_count\":0,\"quality\":9.0},\"glassdoor\":{\"jobs_count\":0,\"quality\":8.5},\"dice\":{\"jobs_count\":0,\"qual"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/jobs/sources/recommendations",
+      "status": "ok",
+      "status_code": 200,
+      "response_time": 0.0087,
+      "body_snippet": "{\"recommended_sources\":[\"linkedin\",\"ycombinator\",\"indeed\",\"github_jobs\",\"stackoverflow\"],\"source_performance\":{},\"user_id\":1}"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/jobs/{job_id}/source-info",
+      "status": "ok",
+      "status_code": 400,
+      "response_time": 0.005,
+      "body_snippet": "{\"request_id\":\"cba715e4-eb40-4515-8ee8-7ef1317837bd\",\"timestamp\":\"2025-11-12T08:16:07.522422\",\"error_code\":\"VALIDATION_ERROR\",\"detail\":\"Validation error in request data\",\"field_errors\":{\"validation_er"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/jobs/scrape",
+      "status": "ok",
+      "status_code": 200,
+      "response_time": 14.9351,
+      "body_snippet": "{\"message\":\"Successfully scraped 75 jobs\",\"jobs_found\":75,\"keywords\":[],\"locations\":[\"Remote\",\"United States\"],\"remote_included\":false,\"sources_used\":[\"ScraperManager\",\"Adzuna\",\"Arbeitnow\",\"The Muse\","
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/jobs/sources/available",
+      "status": "ok",
+      "status_code": 200,
+      "response_time": 0.042,
+      "body_snippet": "{\"sources\":[{\"source\":\"linkedin\",\"display_name\":\"LinkedIn Jobs\",\"description\":\"Professional networking platform with extensive job listings across all industries\",\"is_active\":true,\"requires_api_key\":f"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/jobs/sources/performance",
+      "status": "ok",
+      "status_code": 200,
+      "response_time": 0.0258,
+      "body_snippet": "{\"rankings\":[{\"source\":\"linkedin\",\"score\":6.65,\"jobs_count\":0,\"quality\":9.5},{\"source\":\"ycombinator\",\"score\":6.44,\"jobs_count\":0,\"quality\":9.2},{\"source\":\"indeed\",\"score\":6.3,\"jobs_count\":0,\"quality\":"
+    },
+    {
+      "method": "PUT",
+      "path": "/api/v1/jobs/sources/preferences",
+      "status": "ok",
+      "status_code": 200,
+      "response_time": 0.0247,
+      "body_snippet": "{\"message\":\"Source preferences updated successfully\",\"preferences\":{\"preferred_sources\":[],\"disabled_sources\":[],\"source_priorities\":{},\"auto_scraping_enabled\":true,\"max_jobs_per_source\":10,\"min_quali"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/jobs/{job_id}/enrichment",
+      "status": "ok",
+      "status_code": 400,
+      "response_time": 0.0147,
+      "body_snippet": "{\"request_id\":\"b484b7a6-f34b-4896-b555-ec95ccbcca6e\",\"timestamp\":\"2025-11-12T08:16:22.565174\",\"error_code\":\"VALIDATION_ERROR\",\"detail\":\"Validation error in request data\",\"field_errors\":{\"validation_er"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/notifications",
+      "status": "ok",
+      "status_code": 200,
+      "response_time": 0.0143,
+      "body_snippet": "{\"notifications\":[],\"total\":0,\"unread\":0}"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/notifications/preferences",
+      "status": "ok",
+      "status_code": 200,
+      "response_time": 0.0433,
+      "body_snippet": "{\"email\":false,\"push\":true,\"sms\":false}"
+    },
+    {
+      "method": "PUT",
+      "path": "/api/v1/notifications/preferences",
+      "status": "ok",
+      "status_code": 400,
+      "response_time": 0.024,
+      "body_snippet": "{\"request_id\":\"330c6bbb-7322-49ee-a979-05431651fbf1\",\"timestamp\":\"2025-11-12T08:16:22.646136\",\"error_code\":\"VALIDATION_ERROR\",\"detail\":\"Validation error in request data\",\"field_errors\":{\"validation_er"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/notifications/unread",
+      "status": "ok",
+      "status_code": 200,
+      "response_time": 0.0066,
+      "body_snippet": "{\"unread\":[],\"count\":0}"
+    },
+    {
+      "method": "POST",
+      "path": "/groq/optimize/completion",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.008,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/groq/optimize/report",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0045,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "POST",
+      "path": "/groq/optimize/reset",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0055,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "POST",
+      "path": "/groq/route/select",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0044,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/groq/route/statistics",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0035,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "POST",
+      "path": "/groq/route/reset",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0071,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/groq/monitor/dashboard",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0103,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/groq/monitor/cost-report",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0076,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "POST",
+      "path": "/groq/monitor/start",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0085,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "POST",
+      "path": "/groq/monitor/stop",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0073,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/groq/monitor/export",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0087,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/groq/health",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0046,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/analytics/success-rates",
+      "status": "ok",
+      "status_code": 200,
+      "response_time": 0.0128,
+      "body_snippet": "{\"total_applications\":0,\"success_rates\":{\"overall_success\":0.0,\"application_to_interview\":0.0,\"interview_to_offer\":0.0},\"message\":\"Analytics service temporarily unavailable - returning placeholder dat"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/analytics/conversion-funnel",
+      "status": "ok",
+      "status_code": 200,
+      "response_time": 0.0373,
+      "body_snippet": "{\"funnel_stages\":[],\"message\":\"Analytics service temporarily unavailable - returning placeholder data\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/analytics/performance-benchmarks",
+      "status": "ok",
+      "status_code": 200,
+      "response_time": 0.0283,
+      "body_snippet": "{\"user_id\":1,\"period_days\":90,\"user_metrics\":{},\"market_overview\":{},\"insights\":[],\"performance_summary\":{\"applications\":0,\"interviews\":0,\"offers\":0,\"interview_rate\":0}}"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/analytics/predictive-analytics",
+      "status": "ok",
+      "status_code": 200,
+      "response_time": 0.0144,
+      "body_snippet": "{\"predictive_analytics\":{\"success_probability\":0.15,\"estimated_time_to_offer\":45,\"recommended_application_rate\":8},\"recommendations\":[\"Continue current application strategy\",\"Focus on skill developmen"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/analytics/comprehensive-dashboard",
+      "status": "ok",
+      "status_code": 200,
+      "response_time": 0.0289,
+      "body_snippet": "{\"application_trends\":[],\"weekly_performance\":[{\"week\":\"Week 0\",\"applications\":0},{\"week\":\"Week -1\",\"applications\":0},{\"week\":\"Week -2\",\"applications\":0},{\"week\":\"Week -3\",\"applications\":0}],\"generate"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/analytics/performance-trends",
+      "status": "error",
+      "status_code": 500,
+      "response_time": 0.0111,
+      "body_snippet": "{\"request_id\":\"570cd9ae-c776-4eee-8e02-539aaa9ee73e\",\"timestamp\":\"2025-11-12T08:16:22.865277\",\"error_code\":\"HTTP_500\",\"detail\":\"Failed to analyze performance trends: 404: AnalyticsProcessingService.ge"
+    },
+    {
+      "method": "GET",
+      "path": "/articles",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0039,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/categories",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.008,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/articles/{article_id}",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0021,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "POST",
+      "path": "/articles/{article_id}/vote",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0046,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/search",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.007,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/popular",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0024,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/generate",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0014,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/html",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0016,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/download/{fmt}",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0014,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/content",
+      "status": "ok",
+      "status_code": 200,
+      "response_time": 0.006,
+      "body_snippet": "{\"content\":[],\"total\":0,\"message\":\"Content generation system ready\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/content/types",
+      "status": "ok",
+      "status_code": 200,
+      "response_time": 0.0036,
+      "body_snippet": "{\"types\":[\"cover_letter\",\"resume_summary\",\"linkedin_post\",\"email\",\"interview_prep\"],\"message\":\"Content types available\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/briefings/preferences",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0014,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "PUT",
+      "path": "/briefings/preferences",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0012,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "POST",
+      "path": "/briefings/send-morning-briefing",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0021,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "POST",
+      "path": "/briefings/send-evening-summary",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0015,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "POST",
+      "path": "/briefings/track-engagement",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0014,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/briefings/preview/morning-briefing",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0012,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/briefings/preview/evening-summary",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0014,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/briefings/analytics",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0013,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/security/validate",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0014,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/security/status",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0034,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/security/recommendations",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0023,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/security/critical-issues",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0013,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/security/checks",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0013,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/security/categories",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0013,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "POST",
+      "path": "/security/validate/refresh",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0013,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/security/health",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0015,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/cache/stats",
+      "status": "ok",
+      "status_code": 200,
+      "response_time": 0.0086,
+      "body_snippet": "{\"stats\":{\"hits\":0,\"misses\":0},\"message\":\"Cache statistics ready\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/cache/health",
+      "status": "ok",
+      "status_code": 200,
+      "response_time": 0.0048,
+      "body_snippet": "{\"status\":\"healthy\",\"message\":\"Cache health check ready\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/llm/models",
+      "status": "ok",
+      "status_code": 200,
+      "response_time": 0.005,
+      "body_snippet": "{\"models\":[\"gpt-4\",\"gpt-3.5-turbo\",\"claude-3\",\"llama-2\"],\"message\":\"LLM models available\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/llm/stats",
+      "status": "ok",
+      "status_code": 200,
+      "response_time": 0.0095,
+      "body_snippet": "{\"stats\":{\"requests\":0,\"tokens_used\":0},\"message\":\"LLM usage statistics ready\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/file-storage/",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0015,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "POST",
+      "path": "/file-storage/upload",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0027,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/file-storage/{file_id}",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0017,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "PUT",
+      "path": "/file-storage/{file_id}",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0013,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "DELETE",
+      "path": "/file-storage/{file_id}",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0016,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/file-storage/list",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.002,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/file-storage/{file_id}/info",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0012,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/file-storage/{file_id}/versions",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.002,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/file-storage/stats",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0024,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "POST",
+      "path": "/file-storage/cleanup",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0026,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/file-storage/policies",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0027,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "POST",
+      "path": "/file-storage/policies",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0013,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "POST",
+      "path": "/file-storage/start-background-cleanup",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0014,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "POST",
+      "path": "/file-storage/stop-background-cleanup",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0044,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "POST",
+      "path": "/email/send",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0092,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "POST",
+      "path": "/email/send-template",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0098,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "POST",
+      "path": "/email/send-contract-analysis",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0057,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "POST",
+      "path": "/email/send-notification",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0084,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "POST",
+      "path": "/email/send-risk-alert",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0042,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/email/quota/{user_id}",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0041,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/email/templates",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0053,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/email/delivery-status/{message_id}",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0072,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/email/statistics/{user_id}",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0036,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/email/test-connection",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0017,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/email/service-status",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0025,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "POST",
+      "path": "/email/reset-provider-health",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0038,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/skill-gap",
+      "status": "ok",
+      "status_code": 200,
+      "response_time": 0.0336,
+      "body_snippet": "{\"user_skills\":[],\"missing_skills\":[],\"top_market_skills\":[],\"skill_coverage_percentage\":0.0,\"recommendations\":[]}"
+    },
+    {
+      "method": "GET",
+      "path": "/analysis",
+      "status": "ok",
+      "status_code": 200,
+      "response_time": 0.0118,
+      "body_snippet": "{\"user_id\":1,\"skill_analysis\":{},\"learning_recommendations\":[],\"market_insights\":{},\"market_trends\":null,\"generated_at\":\"2025-11-12T03:16:23.106477+00:00\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/market-trends",
+      "status": "ok",
+      "status_code": 200,
+      "response_time": 0.0065,
+      "body_snippet": "{\"trending_skills\":[{\"skill\":\"Python\",\"growth_rate\":15.2,\"demand_score\":8.5},{\"skill\":\"JavaScript\",\"growth_rate\":12.8,\"demand_score\":9.1},{\"skill\":\"React\",\"growth_rate\":18.5,\"demand_score\":8.8},{\"skil"
+    },
+    {
+      "method": "GET",
+      "path": "/learning-recommendations",
+      "status": "error",
+      "status_code": 500,
+      "response_time": 0.0071,
+      "body_snippet": "{\"request_id\":\"ace6ba5e-9a9e-4df5-9f04-cc89af0d4b8f\",\"timestamp\":\"2025-11-12T08:16:23.121852\",\"error_code\":\"HTTP_500\",\"detail\":\"Failed to get learning recommendations: cannot access local variable 'an"
+    },
+    {
+      "method": "GET",
+      "path": "/skill-frequency",
+      "status": "error",
+      "status_code": 500,
+      "response_time": 0.0095,
+      "body_snippet": "{\"request_id\":\"014ac269-e271-4890-b176-c5b214064467\",\"timestamp\":\"2025-11-12T08:16:23.131597\",\"error_code\":\"HTTP_500\",\"detail\":\"Failed to analyze skill frequency: type object 'Job' has no attribute 'd"
+    },
+    {
+      "method": "GET",
+      "path": "/skill-coverage",
+      "status": "ok",
+      "status_code": 200,
+      "response_time": 0.0056,
+      "body_snippet": "{\"message\":\"No skills found in user profile\",\"coverage_percentage\":0,\"recommendations\":[\"Add skills to your profile to get coverage analysis\"]}"
+    },
+    {
+      "method": "POST",
+      "path": "/update-learning-progress",
+      "status": "ok",
+      "status_code": 400,
+      "response_time": 0.0106,
+      "body_snippet": "{\"request_id\":\"1a09855d-9b43-4df8-8347-3bcd2fc4f8c4\",\"timestamp\":\"2025-11-12T08:16:23.143146\",\"error_code\":\"VALIDATION_ERROR\",\"detail\":\"Validation error in request data\",\"field_errors\":{\"validation_er"
+    },
+    {
+      "method": "GET",
+      "path": "/ws/notifications/stats",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0025,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/ws/notifications/status",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.005,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "POST",
+      "path": "/ws/notifications/disconnect",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0043,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/",
+      "status": "ok",
+      "status_code": 200,
+      "response_time": 0.0023,
+      "body_snippet": "{\"message\":\"Career Copilot API\",\"version\":\"1.0.0\",\"status\":\"running\",\"timestamp\":\"2025-11-12T08:16:23.162637\"}"
+    },
+    {
+      "method": "POST",
+      "path": "/",
+      "status": "ok",
+      "status_code": 405,
+      "response_time": 0.0016,
+      "body_snippet": "{\"detail\":\"Method Not Allowed\"}"
+    },
+    {
+      "method": "PUT",
+      "path": "/{layout_id}",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0015,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "PATCH",
+      "path": "/{layout_id}/set-default",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0016,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "DELETE",
+      "path": "/{layout_id}",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0015,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/migrations/status",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0012,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/migrations/plan",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0013,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/migrations/validate",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0064,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/migrations/history",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0016,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "POST",
+      "path": "/migrations/migrate",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0012,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "POST",
+      "path": "/migrations/rollback",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0012,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/migrations/health",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0012,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/analytics/dashboard",
+      "status": "ok",
+      "status_code": 200,
+      "response_time": 0.0063,
+      "body_snippet": "{\"time_range\":\"30d\",\"period_start\":\"2025-10-13T03:16:23.187392\",\"period_end\":\"2025-11-12T03:16:23.187392\",\"summary\":{\"total_jobs_tracked\":0,\"total_applications\":0,\"success_rate\":0,\"response_rate\":0,\"a"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/analytics/performance-metrics",
+      "status": "ok",
+      "status_code": 200,
+      "response_time": 0.0118,
+      "body_snippet": "{\"total_applications\":0,\"conversion_rates\":{\"applied_to_interview\":0,\"interview_to_offer\":0,\"offer_to_accepted\":0},\"average_time_metrics\":{},\"weekly_application_rate\":0}"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/analytics/risk-trends",
+      "status": "ok",
+      "status_code": 200,
+      "response_time": 0.0043,
+      "body_snippet": "{\"risk_level\":\"high\",\"risk_score\":85,\"risk_factors\":[\"No recent applications - job search appears inactive\"],\"recommendations\":[\"Start applying to positions regularly\",\"Set weekly application goals\"]}"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/analytics/success-metrics",
+      "status": "ok",
+      "status_code": 200,
+      "response_time": 0.0058,
+      "body_snippet": "{\"success_summary\":{\"total_applications\":0,\"interviews_secured\":0,\"offers_received\":0,\"jobs_accepted\":0,\"success_rate\":0},\"milestones_achieved\":[],\"next_milestones\":[{\"name\":\"First 10 Applications\",\"p"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/analytics/application-velocity",
+      "status": "ok",
+      "status_code": 200,
+      "response_time": 0.0093,
+      "body_snippet": "{\"period_days\":30,\"total_applications\":0,\"weekly_average\":0.0,\"daily_average\":0.0,\"trend\":\"stable\",\"trend_change_percent\":0,\"daily_breakdown\":{},\"recommendations\":[\"Consider increasing application vol"
+    },
+    {
+      "method": "GET",
+      "path": "/users/{user_id}/preferences",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0017,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "PUT",
+      "path": "/users/{user_id}/preferences",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0067,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/users/{user_id}/behavior",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0022,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "POST",
+      "path": "/users/{user_id}/behavior",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0027,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/jobs/available",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0025,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/status/current",
+      "status": "ok",
+      "status_code": 200,
+      "response_time": 0.0029,
+      "body_snippet": "{\"status\":\"active\",\"message\":\"Current status ready\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/status/updates",
+      "status": "ok",
+      "status_code": 200,
+      "response_time": 0.0058,
+      "body_snippet": "{\"updates\":[],\"message\":\"Status updates ready\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/workflows",
+      "status": "ok",
+      "status_code": 200,
+      "response_time": 0.0028,
+      "body_snippet": "{\"workflows\":[],\"total\":0,\"message\":\"Workflow system ready for implementation\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/workflows/definitions",
+      "status": "ok",
+      "status_code": 200,
+      "response_time": 0.0038,
+      "body_snippet": "{\"definitions\":[],\"message\":\"Workflow definitions endpoint ready\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/workflows/history",
+      "status": "ok",
+      "status_code": 200,
+      "response_time": 0.0026,
+      "body_snippet": "{\"history\":[],\"total\":0,\"message\":\"Workflow history tracking ready\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/notifications/preferences",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0019,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "PUT",
+      "path": "/notifications/preferences",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.003,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "POST",
+      "path": "/notifications/opt-out",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0013,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "POST",
+      "path": "/notifications/opt-in",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0011,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "POST",
+      "path": "/notifications/test/morning-briefing",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0021,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "POST",
+      "path": "/notifications/test/evening-update",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0013,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/notifications/statistics",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0011,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/notifications/valid-types",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0012,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/resources",
+      "status": "ok",
+      "status_code": 200,
+      "response_time": 0.0036,
+      "body_snippet": "{\"resources\":[],\"total\":0,\"message\":\"Career resources system ready\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/resources/categories",
+      "status": "ok",
+      "status_code": 200,
+      "response_time": 0.0012,
+      "body_snippet": "{\"categories\":[\"resume_templates\",\"interview_guides\",\"salary_data\",\"career_advice\"],\"message\":\"Resource categories available\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/resources/bookmarks",
+      "status": "ok",
+      "status_code": 200,
+      "response_time": 0.0046,
+      "body_snippet": "{\"bookmarks\":[],\"total\":0,\"message\":\"User bookmarks ready\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/agent-cache/status",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0013,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/agent-cache/statistics",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0011,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/agent-cache/statistics/{agent_type}",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0015,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "POST",
+      "path": "/agent-cache/invalidate",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0014,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "POST",
+      "path": "/agent-cache/optimize",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0036,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/agent-cache/config/{agent_type}",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.003,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "PUT",
+      "path": "/agent-cache/config/{agent_type}/cache",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0032,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "PUT",
+      "path": "/agent-cache/config/{agent_type}/timeout",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0039,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/agent-cache/timeout/{agent_type}",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0039,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "POST",
+      "path": "/agent-cache/cleanup",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0029,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/agent-cache/health",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0017,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/market-analysis/salary-trends",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0027,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/market-analysis/job-patterns",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0053,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/market-analysis/opportunity-alerts",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.002,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/market-analysis/dashboard",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0013,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/market-analysis/save-analysis",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0015,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/market-analysis/skill-demand-forecast",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0024,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/market-analysis/competitive-analysis",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0015,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/market-analysis/user-analytics",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0017,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/analytics/summary",
+      "status": "ok",
+      "status_code": 200,
+      "response_time": 0.0218,
+      "body_snippet": "{\"total_jobs\":0,\"total_applications\":0,\"pending_applications\":0,\"interviews_scheduled\":0,\"offers_received\":0,\"rejections_received\":0,\"acceptance_rate\":0.0,\"daily_applications_today\":0,\"weekly_applicat"
+    },
+    {
+      "method": "GET",
+      "path": "/analytics/timeline",
+      "status": "ok",
+      "status_code": 200,
+      "response_time": 0.0045,
+      "body_snippet": "[]"
+    },
+    {
+      "method": "GET",
+      "path": "/analytics/status",
+      "status": "ok",
+      "status_code": 200,
+      "response_time": 0.0106,
+      "body_snippet": "{\"breakdown\":[]}"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/analytics/interview-trends",
+      "status": "error",
+      "status_code": null,
+      "response_time": 0.0203,
+      "error": "4 validation errors:\n  {'type': 'missing', 'loc': ('response', 'total_interviews_analyzed'), 'msg': 'Field required', 'input': {'total_interviews': 0, 'avg_preparation_time': 0, 'success_rate': 0.0, 'common_topics': [], 'difficulty_distribution': {}}}\n  {'type': 'missing', 'loc': ('response', 'top_common_questions'), 'msg': 'Field required', 'input': {'total_interviews': 0, 'avg_preparation_time': 0, 'success_rate': 0.0, 'common_topics': [], 'difficulty_distribution': {}}}\n  {'type': 'missing', 'loc': ('response', 'top_skill_areas_discussed'), 'msg': 'Field required', 'input': {'total_interviews': 0, 'avg_preparation_time': 0, 'success_rate': 0.0, 'common_topics': [], 'difficulty_distribution': {}}}\n  {'type': 'missing', 'loc': ('response', 'common_tech_stack_in_interviews'), 'msg': 'Field required', 'input': {'total_interviews': 0, 'avg_preparation_time': 0, 'success_rate': 0.0, 'common_topics': [], 'difficulty_distribution': {}}}\n"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/analytics/comprehensive-dashboard",
+      "status": "ok",
+      "status_code": 200,
+      "response_time": 0.0095,
+      "body_snippet": "{\"application_trends\":[],\"weekly_performance\":[{\"week\":\"Week 0\",\"applications\":0},{\"week\":\"Week -1\",\"applications\":0},{\"week\":\"Week -2\",\"applications\":0},{\"week\":\"Week -3\",\"applications\":0}],\"generate"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/analytics/comprehensive-summary",
+      "status": "ok",
+      "status_code": 200,
+      "response_time": 0.0448,
+      "body_snippet": "{\"total_jobs\":0,\"total_applications\":0,\"application_counts_by_status\":[],\"rates\":{\"interview_rate\":0.0,\"offer_rate\":0.0,\"acceptance_rate\":0.0},\"trends\":{\"daily\":{\"direction\":\"neutral\",\"percentage_chan"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/analytics/trends",
+      "status": "ok",
+      "status_code": 200,
+      "response_time": 0.0138,
+      "body_snippet": "{\"trends\":{\"daily\":{\"direction\":\"neutral\",\"percentage_change\":0.0,\"current_value\":0,\"previous_value\":0},\"weekly\":{\"direction\":\"neutral\",\"percentage_change\":0.0,\"current_value\":0,\"previous_value\":0},\"m"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/analytics/skill-gap-analysis",
+      "status": "ok",
+      "status_code": 200,
+      "response_time": 0.0197,
+      "body_snippet": "{\"analysis\":{\"user_skills\":[],\"market_skills\":[],\"missing_skills\":[],\"skill_coverage_percentage\":0.0,\"recommendations\":[]},\"generated_at\":\"2025-11-12T03:16:23.456264Z\"}"
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/v1/analytics/cache",
+      "status": "ok",
+      "status_code": 200,
+      "response_time": 0.0082,
+      "body_snippet": "{\"message\":\"Analytics cache cleared successfully\",\"entries_cleared\":5}"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/analytics/cache/stats",
+      "status": "error",
+      "status_code": null,
+      "response_time": 0.0116,
+      "error": "No module named 'app.api.services'"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/learning/paths",
+      "status": "ok",
+      "status_code": 200,
+      "response_time": 0.0068,
+      "body_snippet": "{\"paths\":[],\"total\":0,\"message\":\"Learning paths system ready\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/learning/enrollments",
+      "status": "ok",
+      "status_code": 200,
+      "response_time": 0.0029,
+      "body_snippet": "{\"enrollments\":[],\"total\":0,\"message\":\"User enrollments ready\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/learning/progress",
+      "status": "ok",
+      "status_code": 200,
+      "response_time": 0.003,
+      "body_snippet": "{\"progress\":[],\"message\":\"Learning progress tracking ready\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/progress/{task_id}",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0015,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/dashboard",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0013,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/tasks",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0038,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "POST",
+      "path": "/tasks/{task_id}/cancel",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0035,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/queue/status",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0015,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/tasks/{task_id}/history",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0014,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/analytics/performance",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0018,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/performance/metrics",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0014,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/performance/analysis",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0011,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "POST",
+      "path": "/performance/optimize",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0014,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/performance/report",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.003,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "POST",
+      "path": "/security/scan",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0024,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "POST",
+      "path": "/security/validate-input",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0016,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "POST",
+      "path": "/security/validate-headers",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0015,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/monitoring/status",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0012,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/monitoring/health",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0013,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/monitoring/alerts",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0018,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/monitoring/metrics",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0024,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "POST",
+      "path": "/monitoring/configure",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0023,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "POST",
+      "path": "/monitoring/start",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0033,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "POST",
+      "path": "/monitoring/stop",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0016,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/readiness/check",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0017,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/data-security/status",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0013,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "POST",
+      "path": "/data-security/migrate/encryption",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0016,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "POST",
+      "path": "/data-security/migrate/compression",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0014,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "POST",
+      "path": "/data-security/rollback/encryption",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0012,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/data-security/test/encryption",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0012,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/data-security/test/compression",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0014,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/data-security/analytics",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0012,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/email-templates/health",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0012,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "POST",
+      "path": "/email-templates/templates",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0016,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/email-templates/templates",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0012,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/email-templates/templates/{template_id}",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0014,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "POST",
+      "path": "/email-templates/templates/{template_id}/validate",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0015,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "POST",
+      "path": "/email-templates/templates/{template_id}/render",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0025,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "POST",
+      "path": "/email-templates/attachments/upload",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0015,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "POST",
+      "path": "/email-templates/messages/{message_id}/attachments/file",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0015,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "POST",
+      "path": "/email-templates/reports/pdf",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0013,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "POST",
+      "path": "/email-templates/reports/docx-redline",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0012,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "POST",
+      "path": "/email-templates/delivery/track",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0014,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/email-templates/delivery/{tracking_id}",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0019,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/email-templates/statistics/delivery",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0019,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "POST",
+      "path": "/email-templates/bulk/send",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0012,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/email-templates/bulk/{job_id}/status",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0013,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/email-templates/templates/{template_id}/preview",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0012,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "POST",
+      "path": "/email-templates/webhooks/delivery/{provider}",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0014,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/email-templates/webhooks/open/{tracking_id}",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0012,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/health",
+      "status": "ok",
+      "status_code": 200,
+      "response_time": 0.002,
+      "body_snippet": "{\"status\":\"healthy\",\"timestamp\":\"2025-11-12T08:16:23.585396\",\"environment\":\"development\",\"uptime_seconds\":31.139477014541626,\"version\":\"1.0.0\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/enhanced",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0013,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/job/{job_id}/analysis",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0012,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/insights/profile",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0011,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "POST",
+      "path": "/feedback",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0016,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/performance/metrics",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0014,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "POST",
+      "path": "/cache/refresh",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.002,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/bulk/jobs/create",
+      "status": "ok",
+      "status_code": 400,
+      "response_time": 0.0048,
+      "body_snippet": "{\"request_id\":\"a28aae4b-fdec-405c-9714-3800045e07ac\",\"timestamp\":\"2025-11-12T08:16:23.599295\",\"error_code\":\"VALIDATION_ERROR\",\"detail\":\"Validation error in request data\",\"field_errors\":{\"validation_er"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/bulk/applications/create",
+      "status": "ok",
+      "status_code": 400,
+      "response_time": 0.0076,
+      "body_snippet": "{\"request_id\":\"245bb15a-b822-486d-862c-be96d0fddb56\",\"timestamp\":\"2025-11-12T08:16:23.606493\",\"error_code\":\"VALIDATION_ERROR\",\"detail\":\"Validation error in request data\",\"field_errors\":{\"validation_er"
+    },
+    {
+      "method": "PUT",
+      "path": "/api/v1/bulk/jobs/update",
+      "status": "ok",
+      "status_code": 400,
+      "response_time": 0.0073,
+      "body_snippet": "{\"request_id\":\"d1e5eb4b-5cf3-4365-8ca7-d8b1156c95de\",\"timestamp\":\"2025-11-12T08:16:23.614290\",\"error_code\":\"VALIDATION_ERROR\",\"detail\":\"Validation error in request data\",\"field_errors\":{\"validation_er"
+    },
+    {
+      "method": "PUT",
+      "path": "/api/v1/bulk/applications/update",
+      "status": "ok",
+      "status_code": 400,
+      "response_time": 0.0051,
+      "body_snippet": "{\"request_id\":\"aff10b73-f9b8-4ec8-8a46-c463ee29544d\",\"timestamp\":\"2025-11-12T08:16:23.619372\",\"error_code\":\"VALIDATION_ERROR\",\"detail\":\"Validation error in request data\",\"field_errors\":{\"validation_er"
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/v1/bulk/jobs/delete",
+      "status": "ok",
+      "status_code": 400,
+      "response_time": 0.0041,
+      "body_snippet": "{\"request_id\":\"7e62a641-4a45-46a5-8fa7-56cda60b221e\",\"timestamp\":\"2025-11-12T08:16:23.623476\",\"error_code\":\"VALIDATION_ERROR\",\"detail\":\"Validation error in request data\",\"field_errors\":{\"validation_er"
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/v1/bulk/applications/delete",
+      "status": "ok",
+      "status_code": 400,
+      "response_time": 0.0042,
+      "body_snippet": "{\"request_id\":\"d5d3229a-48ea-4f7c-a7c1-db3c6577c759\",\"timestamp\":\"2025-11-12T08:16:23.627798\",\"error_code\":\"VALIDATION_ERROR\",\"detail\":\"Validation error in request data\",\"field_errors\":{\"validation_er"
+    },
+    {
+      "method": "POST",
+      "path": "/job-recommendation-feedback",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0014,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/job-recommendation-feedback",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0012,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "POST",
+      "path": "/jobs/{job_id}/feedback",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0013,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "POST",
+      "path": "/orchestration/execute",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0014,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "POST",
+      "path": "/orchestration/execute-sync",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0012,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/orchestration/status/{workflow_id}",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0014,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "DELETE",
+      "path": "/orchestration/cancel/{workflow_id}",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0014,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/orchestration/metrics",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0013,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "POST",
+      "path": "/orchestration/cleanup",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0017,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/orchestration/cache/stats",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0038,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "DELETE",
+      "path": "/orchestration/cache/clear",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0014,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/progress",
+      "status": "ok",
+      "status_code": 200,
+      "response_time": 0.0039,
+      "body_snippet": "{\"progress\":{\"total\":0,\"completed\":0},\"message\":\"Progress tracking ready\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/progress/daily",
+      "status": "ok",
+      "status_code": 200,
+      "response_time": 0.0035,
+      "body_snippet": "{\"daily_progress\":[],\"message\":\"Daily progress tracking ready\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/database-migrations/status",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0015,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "POST",
+      "path": "/database-migrations/run",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0012,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "POST",
+      "path": "/database-migrations/rollback",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0012,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "POST",
+      "path": "/database-migrations/create",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0015,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/database-migrations/validate",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0017,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/database-migrations/history",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0011,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "POST",
+      "path": "/slack/send-notification",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0011,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "POST",
+      "path": "/slack/send-contract-analysis-alert",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0012,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "POST",
+      "path": "/slack/send-collaborative-workflow",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0015,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/slack/channels",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0012,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "POST",
+      "path": "/slack/channels",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0013,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "POST",
+      "path": "/slack/notification-preferences",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0013,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/slack/notification-preferences",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0013,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "POST",
+      "path": "/slack/test-connection",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0012,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "POST",
+      "path": "/slack/webhook",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0012,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "POST",
+      "path": "/slack/configure",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0013,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "POST",
+      "path": "/slack/send-message",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0025,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "POST",
+      "path": "/slack/send-contract-notification",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0015,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "POST",
+      "path": "/slack/send-risk-alert",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0013,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "POST",
+      "path": "/slack/webhooks/events",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0013,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "POST",
+      "path": "/slack/webhooks/interactions",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0012,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "POST",
+      "path": "/slack/webhooks/commands",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0017,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/slack/analytics/dashboard",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0026,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/slack/analytics/user/{user_id}",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0014,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/slack/analytics/channel/{channel_id}",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0013,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/slack/analytics/commands",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0016,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "POST",
+      "path": "/slack/analytics/report",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.003,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/slack/health",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0019,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "POST",
+      "path": "/slack/upload-file",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0016,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "POST",
+      "path": "/slack/upload-contract",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0012,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "POST",
+      "path": "/slack/create-approval-workflow",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0011,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/slack/status",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0011,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/services/list",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0011,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/services/{service_id}",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0013,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "POST",
+      "path": "/services/action",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0015,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/services/health/system",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0018,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "POST",
+      "path": "/services/health/check",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0013,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/services/metrics",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0013,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/services/discovery/scan",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0017,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/auth/oauth/{provider}/login",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.003,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/auth/oauth/{provider}/callback",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0081,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/auth/oauth/disconnect",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0046,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/auth/oauth/status",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0016,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/auth/oauth/set-password",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0015,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/storage/files",
+      "status": "ok",
+      "status_code": 200,
+      "response_time": 0.0037,
+      "body_snippet": "{\"files\":[],\"total\":0,\"message\":\"File storage system ready\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/storage/stats",
+      "status": "ok",
+      "status_code": 200,
+      "response_time": 0.0033,
+      "body_snippet": "{\"total_size\":0,\"file_count\":0,\"message\":\"Storage statistics ready\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/",
+      "status": "ok",
+      "status_code": 200,
+      "response_time": 0.001,
+      "body_snippet": "{\"message\":\"Career Copilot API\",\"version\":\"1.0.0\",\"status\":\"running\",\"timestamp\":\"2025-11-12T08:16:23.738432\"}"
+    },
+    {
+      "method": "POST",
+      "path": "/",
+      "status": "ok",
+      "status_code": 405,
+      "response_time": 0.0011,
+      "body_snippet": "{\"detail\":\"Method Not Allowed\"}"
+    },
+    {
+      "method": "PATCH",
+      "path": "/{search_id}/last-used",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0011,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "PATCH",
+      "path": "/{search_id}/toggle-default",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0013,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "PUT",
+      "path": "/{search_id}",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0028,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "DELETE",
+      "path": "/{search_id}",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0013,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/vector-store/collections",
+      "status": "ok",
+      "status_code": 200,
+      "response_time": 0.0028,
+      "body_snippet": "{\"collections\":[],\"total\":0,\"message\":\"Vector store collections ready\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/vector-store/stats",
+      "status": "ok",
+      "status_code": 200,
+      "response_time": 0.0024,
+      "body_snippet": "{\"stats\":{\"documents\":0,\"embeddings\":0},\"message\":\"Vector store statistics ready\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/connections/stats",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0013,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/connections/status/{user_id}",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0014,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "POST",
+      "path": "/notifications/system",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0013,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "POST",
+      "path": "/notifications/job-match",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0012,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "POST",
+      "path": "/notifications/application-status",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0036,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "POST",
+      "path": "/connections/disconnect/{user_id}",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0027,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/channels",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0013,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/job-match/thresholds",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0011,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "PUT",
+      "path": "/job-match/thresholds",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0013,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "POST",
+      "path": "/",
+      "status": "ok",
+      "status_code": 405,
+      "response_time": 0.0009,
+      "body_snippet": "{\"detail\":\"Method Not Allowed\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/",
+      "status": "ok",
+      "status_code": 200,
+      "response_time": 0.0011,
+      "body_snippet": "{\"message\":\"Career Copilot API\",\"version\":\"1.0.0\",\"status\":\"running\",\"timestamp\":\"2025-11-12T08:16:23.768672\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/{service_id}",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0016,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "PUT",
+      "path": "/{service_id}",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0012,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "method": "DELETE",
+      "path": "/{service_id}",
+      "status": "ok",
+      "status_code": 404,
+      "response_time": 0.0012,
+      "body_snippet": "{\"detail\":\"Not Found\"}"
+    }
+  ]
+}

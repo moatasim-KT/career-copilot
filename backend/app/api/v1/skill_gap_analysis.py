@@ -16,8 +16,9 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
+from app.dependencies import get_current_user
+
 from ...core.database import get_db
-from ...core.dependencies import get_current_user
 from ...models.user import User
 from ...schemas.skill_gap import SkillGapAnalysisResponse
 
@@ -217,7 +218,11 @@ async def get_market_trends(
 					"medium_impact": ["React", "Node.js", "Python"],
 					"emerging": ["Rust", "Go", "GraphQL"],
 				},
-				"market_insights": {"total_jobs_analyzed": 0, "analysis_period_days": days_back, "data_freshness": "placeholder"},
+				"market_insights": {
+					"total_jobs_analyzed": 0,
+					"analysis_period_days": days_back,
+					"data_freshness": f"Sample data - last updated {datetime.now(timezone.utc).strftime('%Y-%m-%d')}",
+				},
 				"generated_at": datetime.now(timezone.utc).isoformat(),
 				"note": "Skill gap analysis service not available - showing sample data",
 			}

@@ -12,10 +12,26 @@ from typing import Any, Dict, List, Optional
 
 from ..core.config import get_settings
 from ..core.logging import get_logger
-from .docusign_service import DocuSignService
+
+# Optional imports for external services
+try:
+	from .docusign_service import DocuSignService
+
+	DOCUSIGN_AVAILABLE = True
+except ImportError:
+	DocuSignService = None
+	DOCUSIGN_AVAILABLE = False
+
+try:
+	from .google_drive_service import GoogleDriveService
+
+	GOOGLE_DRIVE_AVAILABLE = True
+except ImportError:
+	GoogleDriveService = None
+	GOOGLE_DRIVE_AVAILABLE = False
+
 from .email_service import EmailService
 from .external_service_manager import get_external_service_manager
-from .google_drive_service import GoogleDriveService
 from .slack_service import EnhancedSlackService as SlackService
 from .slack_service import SlackMessage
 from .vector_store_service import get_vector_store_service
@@ -126,6 +142,17 @@ class ExternalServiceValidator:
 		config_result = self._validate_docusign_configuration()
 		results.append(config_result)
 		if config_result.status == ValidationStatus.NOT_CONFIGURED:
+			return self._create_service_report(service_name, results)
+
+		if not DOCUSIGN_AVAILABLE:
+			results.append(
+				ValidationResult(
+					service_name=service_name,
+					test_name="service_availability",
+					status=ValidationStatus.SKIPPED,
+					message="DocuSign service not available",
+				)
+			)
 			return self._create_service_report(service_name, results)
 
 		try:
@@ -552,6 +579,17 @@ class ExternalServiceValidator:
 		config_result = self._validate_google_drive_configuration()
 		results.append(config_result)
 		if config_result.status == ValidationStatus.NOT_CONFIGURED:
+			return self._create_service_report(service_name, results)
+
+		if not GOOGLE_DRIVE_AVAILABLE:
+			results.append(
+				ValidationResult(
+					service_name=service_name,
+					test_name="service_availability",
+					status=ValidationStatus.SKIPPED,
+					message="Google Drive service not available",
+				)
+			)
 			return self._create_service_report(service_name, results)
 
 		try:

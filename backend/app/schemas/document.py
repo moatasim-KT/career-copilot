@@ -248,4 +248,3 @@ SUPPORTED_MIME_TYPES = [
 	"image/png",
 	"image/gif",
 ]
-]

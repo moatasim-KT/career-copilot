@@ -9,13 +9,15 @@ from app.core.database import get_db, Base
 from app.core.security import create_access_token
 
 # Create a new database for testing
-TEST_DATABASE_URL = "sqlite:///./test.db"
+
 
 
 @pytest.fixture(scope="session")
 def db_engine():
-	return create_engine(TEST_DATABASE_URL, connect_args={"check_same_thread": False})
-
+	"""Create a synchronous engine for the test session."""
+	_engine = create_engine(TEST_DATABASE_URL, pool_pre_ping=True)
+	yield _engine
+	_engine.dispose()
 
 @pytest.fixture(scope="session")
 def tables(db_engine):

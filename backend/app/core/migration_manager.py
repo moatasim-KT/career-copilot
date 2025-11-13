@@ -125,14 +125,7 @@ class MigrationManager:
 				pool_timeout=30,
 				echo=getattr(self.settings, "api_debug", False),
 			)
-		else:
-			# SQLite or other database configuration
-			self.engine = create_async_engine(
-				database_url,
-				echo=getattr(self.settings, "api_debug", False),
-				poolclass=StaticPool,
-				connect_args={"check_same_thread": False, "timeout": 60},
-			)
+
 
 	async def check_database_connection(self) -> Dict[str, Any]:
 		"""Check database connection with detailed diagnostics."""
@@ -165,11 +158,7 @@ class MigrationManager:
 					result = await conn.execute(text("SELECT version()"))
 					version_info = result.scalar()
 					connection_info["database_version"] = version_info
-				elif "sqlite" in self.settings.database_url:
-					connection_info["database_type"] = "sqlite"
-					result = await conn.execute(text("SELECT sqlite_version()"))
-					version_info = result.scalar()
-					connection_info["database_version"] = version_info
+
 
 				connection_info["connected"] = True
 				connection_info["connection_time"] = time.time() - start_time
@@ -536,10 +525,7 @@ class MigrationManager:
 		pool_type = type(pool).__name__
 
 		try:
-			if pool_type == "StaticPool":
-				# StaticPool (SQLite) - single connection
-				return {"pool_size": 1, "active_connections": 1, "idle_connections": 0, "pool_type": "StaticPool"}
-			elif hasattr(pool, "size"):
+
 				# QueuePool and other pool types
 				return {
 					"pool_size": pool.size(),

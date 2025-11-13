@@ -565,3 +565,6 @@ class StorageError(ContractAnalysisError):
 
 # Legacy aliases for backward compatibility
 FileProcessingError = DocumentProcessingError
+
+# AppError alias for backward compatibility
+AppError = ContractAnalysisError

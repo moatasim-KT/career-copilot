@@ -162,14 +162,7 @@ class DatabaseOptimizationService:
                 """),
 					{"table_name": table_name},
 				)
-			else:  # SQLite
-				result = db.execute(
-					text("""
-                    SELECT name FROM sqlite_master 
-                    WHERE type='table' AND name=:table_name
-                """),
-					{"table_name": table_name},
-				)
+
 
 			return bool(result.fetchone())
 		except Exception as e:
@@ -189,14 +182,7 @@ class DatabaseOptimizationService:
                 """),
 					{"index_name": index_name},
 				)
-			else:  # SQLite
-				result = db.execute(
-					text("""
-                    SELECT name FROM sqlite_master 
-                    WHERE type='index' AND name=:index_name
-                """),
-					{"index_name": index_name},
-				)
+
 
 			return bool(result.fetchone())
 		except Exception as e:

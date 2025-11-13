@@ -10,12 +10,12 @@ from app.schemas.job import JobCreate
 from datetime import datetime
 
 # Create test database
-TEST_DATABASE_URL = "sqlite:///./test_job_enhancements.db"
+
 
 
 @pytest.fixture(scope="module")
 def db_engine():
-	engine = create_engine(TEST_DATABASE_URL, connect_args={"check_same_thread": False})
+	
 	Base.metadata.create_all(bind=engine)
 	yield engine
 	Base.metadata.drop_all(bind=engine)

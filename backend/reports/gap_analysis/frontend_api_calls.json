@@ -1,0 +1,1380 @@
+{
+  "api_calls": [
+    {
+      "component": "hooks.useApplications",
+      "file_path": "hooks/useApplications.ts",
+      "line_number": 18,
+      "endpoint": "/api/v1/applications",
+      "method": "GET",
+      "parameters": {},
+      "context": "const response = await apiClient.getApplications(skip, limit);",
+      "call_type": "direct"
+    },
+    {
+      "component": "hooks.useJobs",
+      "file_path": "hooks/useJobs.ts",
+      "line_number": 18,
+      "endpoint": "/api/v1/jobs",
+      "method": "GET",
+      "parameters": {},
+      "context": "const response = await apiClient.getJobs(skip, limit);",
+      "call_type": "direct"
+    },
+    {
+      "component": "hooks.useNotificationsQuery",
+      "file_path": "hooks/useNotificationsQuery.ts",
+      "line_number": 29,
+      "endpoint": "/api/v1/notifications",
+      "method": "GET",
+      "parameters": {},
+      "context": "const response = await apiClient.getNotifications(skip, limit);",
+      "call_type": "direct"
+    },
+    {
+      "component": "hooks.useNotificationsQuery",
+      "file_path": "hooks/useNotificationsQuery.ts",
+      "line_number": 47,
+      "endpoint": "/api/v1/notifications/preferences",
+      "method": "GET",
+      "parameters": {},
+      "context": "const response = await apiClient.getNotificationPreferences();",
+      "call_type": "direct"
+    },
+    {
+      "component": "hooks.useNotificationsQuery",
+      "file_path": "hooks/useNotificationsQuery.ts",
+      "line_number": 66,
+      "endpoint": "/api/v1/notifications/{id}/read",
+      "method": "PUT",
+      "parameters": {},
+      "context": "const response = await apiClient.markNotificationAsRead(notificationId);",
+      "call_type": "direct"
+    },
+    {
+      "component": "hooks.useNotificationsQuery",
+      "file_path": "hooks/useNotificationsQuery.ts",
+      "line_number": 115,
+      "endpoint": "/api/v1/notifications/read-all",
+      "method": "PUT",
+      "parameters": {},
+      "context": "const response = await apiClient.markAllNotificationsAsRead();",
+      "call_type": "direct"
+    },
+    {
+      "component": "hooks.useNotificationsQuery",
+      "file_path": "hooks/useNotificationsQuery.ts",
+      "line_number": 159,
+      "endpoint": "/api/v1/notifications/{id}",
+      "method": "DELETE",
+      "parameters": {},
+      "context": "const response = await apiClient.deleteNotification(notificationId);",
+      "call_type": "direct"
+    },
+    {
+      "component": "hooks.useNotificationsQuery",
+      "file_path": "hooks/useNotificationsQuery.ts",
+      "line_number": 204,
+      "endpoint": "/api/v1/notifications/preferences",
+      "method": "PUT",
+      "parameters": {},
+      "context": "const response = await apiClient.updateNotificationPreferences(preferences);",
+      "call_type": "direct"
+    },
+    {
+      "component": "hooks.useOfflineMode",
+      "file_path": "hooks/useOfflineMode.ts",
+      "line_number": 44,
+      "endpoint": "/api/health",
+      "method": "GET",
+      "parameters": {},
+      "context": "const response = await fetch('/api/health', {",
+      "call_type": "direct"
+    },
+    {
+      "component": "hooks.useSearchJobs",
+      "file_path": "hooks/useSearchJobs.ts",
+      "line_number": 19,
+      "endpoint": "/api/v1/jobs/search",
+      "method": "GET",
+      "parameters": {},
+      "context": "const response = await apiClient.searchJobs(query.trim(), 10);",
+      "call_type": "direct"
+    },
+    {
+      "component": "hooks.useUserProfile",
+      "file_path": "hooks/useUserProfile.ts",
+      "line_number": 20,
+      "endpoint": "/api/v1/profile",
+      "method": "GET",
+      "parameters": {},
+      "context": "const response = await apiClient.getUserProfile();",
+      "call_type": "direct"
+    },
+    {
+      "component": "hooks.useUserProfile",
+      "file_path": "hooks/useUserProfile.ts",
+      "line_number": 39,
+      "endpoint": "/api/v1/profile",
+      "method": "PUT",
+      "parameters": {},
+      "context": "const response = await apiClient.updateUserProfile(profileData);",
+      "call_type": "direct"
+    },
+    {
+      "component": "hooks.useUpdateApplication",
+      "file_path": "hooks/useUpdateApplication.ts",
+      "line_number": 12,
+      "endpoint": "/api/v1/applications/{id}",
+      "method": "PUT",
+      "parameters": {},
+      "context": "const response = await apiClient.updateApplication(id, data);",
+      "call_type": "direct"
+    },
+    {
+      "component": "hooks.useNotifications",
+      "file_path": "hooks/useNotifications.ts",
+      "line_number": 55,
+      "endpoint": "/api/v1/notifications",
+      "method": "GET",
+      "parameters": {},
+      "context": "// const response = await apiClient.getNotifications(filter);",
+      "call_type": "direct"
+    },
+    {
+      "component": "hooks.useNotifications",
+      "file_path": "hooks/useNotifications.ts",
+      "line_number": 84,
+      "endpoint": "/api/v1/notifications/{id}/read",
+      "method": "PUT",
+      "parameters": {},
+      "context": "// await apiClient.markNotificationAsRead(id);",
+      "call_type": "direct"
+    },
+    {
+      "component": "hooks.useNotifications",
+      "file_path": "hooks/useNotifications.ts",
+      "line_number": 110,
+      "endpoint": "/api/v1/notifications/{id}/unread",
+      "method": "PUT",
+      "parameters": {},
+      "context": "// await apiClient.markNotificationAsUnread(id);",
+      "call_type": "direct"
+    },
+    {
+      "component": "hooks.useNotifications",
+      "file_path": "hooks/useNotifications.ts",
+      "line_number": 137,
+      "endpoint": "/api/v1/notifications/read-all",
+      "method": "PUT",
+      "parameters": {},
+      "context": "// await apiClient.markAllNotificationsAsRead();",
+      "call_type": "direct"
+    },
+    {
+      "component": "hooks.useNotifications",
+      "file_path": "hooks/useNotifications.ts",
+      "line_number": 162,
+      "endpoint": "/api/v1/notifications/{id}",
+      "method": "DELETE",
+      "parameters": {},
+      "context": "// await apiClient.deleteNotification(id);",
+      "call_type": "direct"
+    },
+    {
+      "component": "hooks.useNotifications",
+      "file_path": "hooks/useNotifications.ts",
+      "line_number": 185,
+      "endpoint": "/api/v1/notifications/bulk-delete",
+      "method": "POST",
+      "parameters": {},
+      "context": "// await apiClient.deleteNotifications(ids);",
+      "call_type": "direct"
+    },
+    {
+      "component": "hooks.useSearchApplications",
+      "file_path": "hooks/useSearchApplications.ts",
+      "line_number": 19,
+      "endpoint": "/api/v1/applications/search",
+      "method": "GET",
+      "parameters": {},
+      "context": "const response = await apiClient.searchApplications(query.trim(), 10);",
+      "call_type": "direct"
+    },
+    {
+      "component": "hooks.useAnalytics",
+      "file_path": "hooks/useAnalytics.ts",
+      "line_number": 19,
+      "endpoint": "/api/v1/analytics/summary",
+      "method": "GET",
+      "parameters": {},
+      "context": "const response = await apiClient.getAnalyticsSummary();",
+      "call_type": "direct"
+    },
+    {
+      "component": "hooks.useAnalytics",
+      "file_path": "hooks/useAnalytics.ts",
+      "line_number": 37,
+      "endpoint": "/api/v1/analytics/comprehensive-dashboard",
+      "method": "GET",
+      "parameters": {},
+      "context": "const response = await apiClient.getComprehensiveAnalytics(days);",
+      "call_type": "direct"
+    },
+    {
+      "component": "lib.optimisticUpdates",
+      "file_path": "lib/optimisticUpdates.ts",
+      "line_number": 54,
+      "endpoint": "/api/v1/applications/{id}",
+      "method": "PUT",
+      "parameters": {},
+      "context": "*   mutationFn: (data) => apiClient.updateApplication(data.id, data),",
+      "call_type": "direct"
+    },
+    {
+      "component": "lib.optimisticUpdates",
+      "file_path": "lib/optimisticUpdates.ts",
+      "line_number": 250,
+      "endpoint": "/api/applications",
+      "method": "GET",
+      "parameters": {},
+      "context": "const response = await fetch('/api/applications', {",
+      "call_type": "direct"
+    },
+    {
+      "component": "lib.prefetch",
+      "file_path": "lib/prefetch.ts",
+      "line_number": 58,
+      "endpoint": "/api/v1/jobs",
+      "method": "GET",
+      "parameters": {},
+      "context": "const response = await apiClient.getJobs(jobId, 1);",
+      "call_type": "direct"
+    },
+    {
+      "component": "lib.prefetch",
+      "file_path": "lib/prefetch.ts",
+      "line_number": 86,
+      "endpoint": "/api/v1/applications",
+      "method": "GET",
+      "parameters": {},
+      "context": "const response = await apiClient.getApplications(applicationId, 1);",
+      "call_type": "direct"
+    },
+    {
+      "component": "lib.prefetch",
+      "file_path": "lib/prefetch.ts",
+      "line_number": 115,
+      "endpoint": "/api/v1/jobs",
+      "method": "GET",
+      "parameters": {},
+      "context": "const response = await apiClient.getJobs(skip, limit);",
+      "call_type": "direct"
+    },
+    {
+      "component": "lib.prefetch",
+      "file_path": "lib/prefetch.ts",
+      "line_number": 144,
+      "endpoint": "/api/v1/applications",
+      "method": "GET",
+      "parameters": {},
+      "context": "const response = await apiClient.getApplications(skip, limit);",
+      "call_type": "direct"
+    },
+    {
+      "component": "lib.prefetch",
+      "file_path": "lib/prefetch.ts",
+      "line_number": 382,
+      "endpoint": "/api/v1/analytics/summary",
+      "method": "GET",
+      "parameters": {},
+      "context": "const response = await apiClient.getAnalyticsSummary();",
+      "call_type": "direct"
+    },
+    {
+      "component": "lib.prefetch",
+      "file_path": "lib/prefetch.ts",
+      "line_number": 410,
+      "endpoint": "/api/v1/analytics/summary",
+      "method": "GET",
+      "parameters": {},
+      "context": "const response = await apiClient.getAnalyticsSummary();",
+      "call_type": "direct"
+    },
+    {
+      "component": "lib.pushNotifications",
+      "file_path": "lib/pushNotifications.ts",
+      "line_number": 175,
+      "endpoint": "/api/push/subscribe",
+      "method": "GET",
+      "parameters": {},
+      "context": "const response = await fetch('/api/push/subscribe', {",
+      "call_type": "direct"
+    },
+    {
+      "component": "lib.swr",
+      "file_path": "lib/swr.ts",
+      "line_number": 188,
+      "endpoint": "/api/jobs",
+      "method": "GET",
+      "parameters": {},
+      "context": "const response = await fetch('/api/jobs?' + new URLSearchParams(filters));",
+      "call_type": "direct"
+    },
+    {
+      "component": "lib.swr",
+      "file_path": "lib/swr.ts",
+      "line_number": 206,
+      "endpoint": "/api/applications",
+      "method": "GET",
+      "parameters": {},
+      "context": "const response = await fetch('/api/applications?' + new URLSearchParams(filters));",
+      "call_type": "direct"
+    },
+    {
+      "component": "lib.swr",
+      "file_path": "lib/swr.ts",
+      "line_number": 224,
+      "endpoint": "/api/profile",
+      "method": "GET",
+      "parameters": {},
+      "context": "const response = await fetch('/api/profile');",
+      "call_type": "direct"
+    },
+    {
+      "component": "lib.swr",
+      "file_path": "lib/swr.ts",
+      "line_number": 243,
+      "endpoint": "/api/analytics/summary",
+      "method": "GET",
+      "parameters": {},
+      "context": "const response = await fetch('/api/analytics/summary');",
+      "call_type": "direct"
+    },
+    {
+      "component": "lib.swr",
+      "file_path": "lib/swr.ts",
+      "line_number": 263,
+      "endpoint": "/api/notifications",
+      "method": "GET",
+      "parameters": {},
+      "context": "const response = await fetch('/api/notifications');",
+      "call_type": "direct"
+    },
+    {
+      "component": "lib.utils.optimistic",
+      "file_path": "lib/utils/optimistic.ts",
+      "line_number": 20,
+      "endpoint": "/api/v1/status/{id}",
+      "method": "PUT",
+      "parameters": {},
+      "context": "*     () => apiClient.updateStatus(id, newStatus),",
+      "call_type": "direct"
+    },
+    {
+      "component": "lib.bulkActions.applicationActions",
+      "file_path": "lib/bulkActions/applicationActions.ts",
+      "line_number": 35,
+      "endpoint": "/api/v1/applications/{id}",
+      "method": "PUT",
+      "parameters": {},
+      "context": "apiClient.updateApplication(appId, { status: 'interested' })",
+      "call_type": "direct"
+    },
+    {
+      "component": "lib.bulkActions.applicationActions",
+      "file_path": "lib/bulkActions/applicationActions.ts",
+      "line_number": 71,
+      "endpoint": "/api/v1/applications/{id}",
+      "method": "PUT",
+      "parameters": {},
+      "context": "apiClient.updateApplication(appId, { status: 'applied' })",
+      "call_type": "direct"
+    },
+    {
+      "component": "lib.bulkActions.applicationActions",
+      "file_path": "lib/bulkActions/applicationActions.ts",
+      "line_number": 107,
+      "endpoint": "/api/v1/applications/{id}",
+      "method": "PUT",
+      "parameters": {},
+      "context": "apiClient.updateApplication(appId, { status: 'interview' })",
+      "call_type": "direct"
+    },
+    {
+      "component": "lib.bulkActions.applicationActions",
+      "file_path": "lib/bulkActions/applicationActions.ts",
+      "line_number": 143,
+      "endpoint": "/api/v1/applications/{id}",
+      "method": "PUT",
+      "parameters": {},
+      "context": "apiClient.updateApplication(appId, { status: 'offer' })",
+      "call_type": "direct"
+    },
+    {
+      "component": "lib.bulkActions.applicationActions",
+      "file_path": "lib/bulkActions/applicationActions.ts",
+      "line_number": 179,
+      "endpoint": "/api/v1/applications/{id}",
+      "method": "PUT",
+      "parameters": {},
+      "context": "apiClient.updateApplication(appId, { status: 'rejected' })",
+      "call_type": "direct"
+    },
+    {
+      "component": "lib.bulkActions.applicationActions",
+      "file_path": "lib/bulkActions/applicationActions.ts",
+      "line_number": 215,
+      "endpoint": "/api/v1/applications/{id}",
+      "method": "PUT",
+      "parameters": {},
+      "context": "apiClient.updateApplication(appId, { status: 'accepted' })",
+      "call_type": "direct"
+    },
+    {
+      "component": "lib.bulkActions.applicationActions",
+      "file_path": "lib/bulkActions/applicationActions.ts",
+      "line_number": 251,
+      "endpoint": "/api/v1/applications/{id}",
+      "method": "PUT",
+      "parameters": {},
+      "context": "apiClient.updateApplication(appId, { archived: true } as any)",
+      "call_type": "direct"
+    },
+    {
+      "component": "lib.bulkActions.applicationActions",
+      "file_path": "lib/bulkActions/applicationActions.ts",
+      "line_number": 338,
+      "endpoint": "/api/v1/applications/{id}",
+      "method": "DELETE",
+      "parameters": {},
+      "context": "apiClient.deleteApplication(appId)",
+      "call_type": "direct"
+    },
+    {
+      "component": "lib.api.examples",
+      "file_path": "lib/api/examples.ts",
+      "line_number": 276,
+      "endpoint": "/api/v1/jobs",
+      "method": "GET",
+      "parameters": {},
+      "context": "const response = await apiClient.getJobs(0, 50);",
+      "call_type": "direct"
+    },
+    {
+      "component": "lib.api.examples",
+      "file_path": "lib/api/examples.ts",
+      "line_number": 61,
+      "endpoint": "/api/v1/auth/refresh",
+      "method": "GET",
+      "parameters": {},
+      "context": "const response = await fetch('http://localhost:8002/api/v1/auth/refresh', {",
+      "call_type": "direct"
+    },
+    {
+      "component": "lib.api.examples",
+      "file_path": "lib/api/examples.ts",
+      "line_number": 130,
+      "endpoint": "/api/v1/auth/refresh",
+      "method": "GET",
+      "parameters": {},
+      "context": "const response = await fetch('/api/v1/auth/refresh', {",
+      "call_type": "direct"
+    },
+    {
+      "component": "lib.api.examples",
+      "file_path": "lib/api/examples.ts",
+      "line_number": 130,
+      "endpoint": "/api/v1/auth/refresh",
+      "method": "GET",
+      "parameters": {},
+      "context": "const response = await fetch('/api/v1/auth/refresh', {",
+      "call_type": "direct"
+    },
+    {
+      "component": "lib.api.examples",
+      "file_path": "lib/api/examples.ts",
+      "line_number": 178,
+      "endpoint": "/api/v1/jobs",
+      "method": "GET",
+      "parameters": {},
+      "context": "degradedMode.registerDegradedEndpoint('/api/v1/jobs', '/api/v1/jobs/cached');",
+      "call_type": "direct"
+    },
+    {
+      "component": "lib.api.examples",
+      "file_path": "lib/api/examples.ts",
+      "line_number": 178,
+      "endpoint": "/api/v1/jobs/cached",
+      "method": "GET",
+      "parameters": {},
+      "context": "degradedMode.registerDegradedEndpoint('/api/v1/jobs', '/api/v1/jobs/cached');",
+      "call_type": "direct"
+    },
+    {
+      "component": "lib.api.examples",
+      "file_path": "lib/api/examples.ts",
+      "line_number": 179,
+      "endpoint": "/api/v1/analytics",
+      "method": "GET",
+      "parameters": {},
+      "context": "degradedMode.registerDegradedEndpoint('/api/v1/analytics', '/api/v1/analytics/summary');",
+      "call_type": "direct"
+    },
+    {
+      "component": "lib.api.examples",
+      "file_path": "lib/api/examples.ts",
+      "line_number": 179,
+      "endpoint": "/api/v1/analytics/summary",
+      "method": "GET",
+      "parameters": {},
+      "context": "degradedMode.registerDegradedEndpoint('/api/v1/analytics', '/api/v1/analytics/summary');",
+      "call_type": "direct"
+    },
+    {
+      "component": "lib.api.config",
+      "file_path": "lib/api/config.ts",
+      "line_number": 150,
+      "endpoint": "/api/v1/jobs",
+      "method": "GET",
+      "parameters": {},
+      "context": "const jobs = await apiClient.getJobs();",
+      "call_type": "direct"
+    },
+    {
+      "component": "lib.api.config",
+      "file_path": "lib/api/config.ts",
+      "line_number": 161,
+      "endpoint": "/api/refresh-token",
+      "method": "GET",
+      "parameters": {},
+      "context": "const response = await fetch('/api/refresh-token', {",
+      "call_type": "direct"
+    },
+    {
+      "component": "lib.api.config",
+      "file_path": "lib/api/config.ts",
+      "line_number": 188,
+      "endpoint": "/api/refresh-token",
+      "method": "GET",
+      "parameters": {},
+      "context": "const response = await fetch('/api/refresh-token');",
+      "call_type": "direct"
+    },
+    {
+      "component": "lib.api.config",
+      "file_path": "lib/api/config.ts",
+      "line_number": 89,
+      "endpoint": "/api/v1/jobs",
+      "method": "GET",
+      "parameters": {},
+      "context": "degradedMode.registerDegradedEndpoint('/api/v1/jobs', '/api/v1/jobs/cached');",
+      "call_type": "direct"
+    },
+    {
+      "component": "lib.api.config",
+      "file_path": "lib/api/config.ts",
+      "line_number": 89,
+      "endpoint": "/api/v1/jobs/cached",
+      "method": "GET",
+      "parameters": {},
+      "context": "degradedMode.registerDegradedEndpoint('/api/v1/jobs', '/api/v1/jobs/cached');",
+      "call_type": "direct"
+    },
+    {
+      "component": "app.sentry-example-page.page",
+      "file_path": "app/sentry-example-page/page.tsx",
+      "line_number": 55,
+      "endpoint": "/api/sentry-example-api",
+      "method": "GET",
+      "parameters": {},
+      "context": "const res = await fetch('/api/sentry-example-api');",
+      "call_type": "direct"
+    },
+    {
+      "component": "app.health.page",
+      "file_path": "app/health/page.tsx",
+      "line_number": 27,
+      "endpoint": "/api/v1/health/comprehensive",
+      "method": "GET",
+      "parameters": {},
+      "context": "const response = await axios.get('/api/v1/health/comprehensive');",
+      "call_type": "direct"
+    },
+    {
+      "component": "app.health.page",
+      "file_path": "app/health/page.tsx",
+      "line_number": 27,
+      "endpoint": "/api/v1/health/comprehensive",
+      "method": "GET",
+      "parameters": {},
+      "context": "const response = await axios.get('/api/v1/health/comprehensive');",
+      "call_type": "direct"
+    },
+    {
+      "component": "components.ui.FileUpload",
+      "file_path": "components/ui/FileUpload.tsx",
+      "line_number": 84,
+      "endpoint": "/api/v1/resume/upload",
+      "method": "POST",
+      "parameters": {},
+      "context": "const response = await apiClient.uploadResume(file);",
+      "call_type": "direct"
+    },
+    {
+      "component": "components.ui.ActivityTimeline",
+      "file_path": "components/ui/ActivityTimeline.tsx",
+      "line_number": 16,
+      "endpoint": "/api/v1/applications",
+      "method": "GET",
+      "parameters": {},
+      "context": "const response = await apiClient.getApplications();",
+      "call_type": "direct"
+    },
+    {
+      "component": "components.settings.NotificationPreferences",
+      "file_path": "components/settings/NotificationPreferences.tsx",
+      "line_number": 260,
+      "endpoint": "/api/v1/notificationsettings/{id}",
+      "method": "PUT",
+      "parameters": {},
+      "context": "// await apiClient.updateNotificationSettings(settings);",
+      "call_type": "direct"
+    },
+    {
+      "component": "components.features.SavedSearches",
+      "file_path": "components/features/SavedSearches.tsx",
+      "line_number": 376,
+      "endpoint": "/api/v1/search/{id}",
+      "method": "DELETE",
+      "parameters": {},
+      "context": "// await apiClient.deleteSearch(searchId);",
+      "call_type": "direct"
+    },
+    {
+      "component": "components.features.InterviewPractice",
+      "file_path": "components/features/InterviewPractice.tsx",
+      "line_number": 101,
+      "endpoint": "/api/v1/jobs",
+      "method": "GET",
+      "parameters": {},
+      "context": "const response = await apiClient.getJobs();",
+      "call_type": "direct"
+    },
+    {
+      "component": "components.features.InterviewPractice",
+      "file_path": "components/features/InterviewPractice.tsx",
+      "line_number": 130,
+      "endpoint": "/api/v1/interview/start",
+      "method": "GET",
+      "parameters": {},
+      "context": "const response = await apiClient.post('/api/v1/interview/start', sessionData);",
+      "call_type": "direct"
+    },
+    {
+      "component": "components.features.ResumeUpload",
+      "file_path": "components/features/ResumeUpload.tsx",
+      "line_number": 114,
+      "endpoint": "/api/v1/resume/upload",
+      "method": "POST",
+      "parameters": {},
+      "context": "const response = await apiClient.uploadResume(file);",
+      "call_type": "direct"
+    },
+    {
+      "component": "components.features.ResumeUpload",
+      "file_path": "components/features/ResumeUpload.tsx",
+      "line_number": 190,
+      "endpoint": "/api/v1/profile",
+      "method": "PUT",
+      "parameters": {},
+      "context": "const response = await apiClient.updateUserProfile(updates);",
+      "call_type": "direct"
+    },
+    {
+      "component": "components.features.ContentGeneration",
+      "file_path": "components/features/ContentGeneration.tsx",
+      "line_number": 60,
+      "endpoint": "/api/v1/jobs",
+      "method": "GET",
+      "parameters": {},
+      "context": "const response = await apiClient.getJobs();",
+      "call_type": "direct"
+    },
+    {
+      "component": "components.features.ContentGeneration",
+      "file_path": "components/features/ContentGeneration.tsx",
+      "line_number": 89,
+      "endpoint": "/api/v1/content/generate",
+      "method": "POST",
+      "parameters": {},
+      "context": "const response = await apiClient.generateContent(contentType, requestData);",
+      "call_type": "direct"
+    },
+    {
+      "component": "components.charts.SalaryDistributionChart",
+      "file_path": "components/charts/SalaryDistributionChart.tsx",
+      "line_number": 132,
+      "endpoint": "/api/v1/jobs",
+      "method": "GET",
+      "parameters": {},
+      "context": "const response = await apiClient.getJobs(0, 1000);",
+      "call_type": "direct"
+    },
+    {
+      "component": "components.charts.SkillsDemandChart",
+      "file_path": "components/charts/SkillsDemandChart.tsx",
+      "line_number": 148,
+      "endpoint": "/api/v1/jobs",
+      "method": "GET",
+      "parameters": {},
+      "context": "const response = await apiClient.getJobs(0, 1000);",
+      "call_type": "direct"
+    },
+    {
+      "component": "components.charts.SuccessRateChart",
+      "file_path": "components/charts/SuccessRateChart.tsx",
+      "line_number": 133,
+      "endpoint": "/api/v1/applications",
+      "method": "GET",
+      "parameters": {},
+      "context": "const response = await apiClient.getApplications(0, 1000);",
+      "call_type": "direct"
+    },
+    {
+      "component": "components.charts.ApplicationTimelineChart",
+      "file_path": "components/charts/ApplicationTimelineChart.tsx",
+      "line_number": 129,
+      "endpoint": "/api/v1/applications",
+      "method": "GET",
+      "parameters": {},
+      "context": "const response = await apiClient.getApplications(0, 1000);",
+      "call_type": "direct"
+    },
+    {
+      "component": "components.charts.ApplicationStatusChart",
+      "file_path": "components/charts/ApplicationStatusChart.tsx",
+      "line_number": 195,
+      "endpoint": "/api/v1/analytics/summary",
+      "method": "GET",
+      "parameters": {},
+      "context": "const response = await apiClient.getAnalyticsSummary();",
+      "call_type": "direct"
+    },
+    {
+      "component": "components.monitoring.HealthMonitor",
+      "file_path": "components/monitoring/HealthMonitor.tsx",
+      "line_number": 76,
+      "endpoint": "/api/health",
+      "method": "GET",
+      "parameters": {},
+      "context": "const response = await axios.get('/api/health');",
+      "call_type": "direct"
+    },
+    {
+      "component": "components.pages.AnalyticsPage",
+      "file_path": "components/pages/AnalyticsPage.tsx",
+      "line_number": 92,
+      "endpoint": "/api/v1/analytics/summary",
+      "method": "GET",
+      "parameters": {},
+      "context": "apiClient.getAnalyticsSummary(),",
+      "call_type": "direct"
+    },
+    {
+      "component": "components.pages.AnalyticsPage",
+      "file_path": "components/pages/AnalyticsPage.tsx",
+      "line_number": 93,
+      "endpoint": "/api/v1/analytics/comprehensive-dashboard",
+      "method": "GET",
+      "parameters": {},
+      "context": "apiClient.getComprehensiveAnalytics(timeframe),",
+      "call_type": "direct"
+    },
+    {
+      "component": "components.pages.Dashboard",
+      "file_path": "components/pages/Dashboard.tsx",
+      "line_number": 35,
+      "endpoint": "/api/v1/analytics/summary",
+      "method": "GET",
+      "parameters": {},
+      "context": "apiClient.getAnalyticsSummary(),",
+      "call_type": "direct"
+    },
+    {
+      "component": "components.pages.Dashboard",
+      "file_path": "components/pages/Dashboard.tsx",
+      "line_number": 36,
+      "endpoint": "/api/v1/applications",
+      "method": "GET",
+      "parameters": {},
+      "context": "apiClient.getApplications(0, 5),",
+      "call_type": "direct"
+    },
+    {
+      "component": "components.pages.Dashboard",
+      "file_path": "components/pages/Dashboard.tsx",
+      "line_number": 60,
+      "endpoint": "/api/v1/analytics/summary",
+      "method": "GET",
+      "parameters": {},
+      "context": "apiClient.getAnalyticsSummary(),",
+      "call_type": "direct"
+    },
+    {
+      "component": "components.pages.Dashboard",
+      "file_path": "components/pages/Dashboard.tsx",
+      "line_number": 61,
+      "endpoint": "/api/v1/applications",
+      "method": "GET",
+      "parameters": {},
+      "context": "apiClient.getApplications(0, 5),",
+      "call_type": "direct"
+    },
+    {
+      "component": "components.pages.ApplicationKanban",
+      "file_path": "components/pages/ApplicationKanban.tsx",
+      "line_number": 56,
+      "endpoint": "/api/v1/applications",
+      "method": "GET",
+      "parameters": {},
+      "context": "const response = await apiClient.getApplications(0, 1000);",
+      "call_type": "direct"
+    },
+    {
+      "component": "components.pages.RecommendationsPage",
+      "file_path": "components/pages/RecommendationsPage.tsx",
+      "line_number": 35,
+      "endpoint": "/api/v1/recommendations",
+      "method": "GET",
+      "parameters": {},
+      "context": "const recommendationsResponse = await apiClient.getRecommendations(0, 10);",
+      "call_type": "direct"
+    },
+    {
+      "component": "components.pages.RecommendationsPage",
+      "file_path": "components/pages/RecommendationsPage.tsx",
+      "line_number": 42,
+      "endpoint": "/api/v1/skill-gap",
+      "method": "GET",
+      "parameters": {},
+      "context": "const skillGapResponse = await apiClient.getSkillGapAnalysis();",
+      "call_type": "direct"
+    },
+    {
+      "component": "components.pages.EnhancedDashboard",
+      "file_path": "components/pages/EnhancedDashboard.tsx",
+      "line_number": 46,
+      "endpoint": "/api/v1/analytics/summary",
+      "method": "GET",
+      "parameters": {},
+      "context": "const response = await apiClient.getAnalyticsSummary();",
+      "call_type": "direct"
+    },
+    {
+      "component": "components.pages.ApplicationsPage",
+      "file_path": "components/pages/ApplicationsPage.tsx",
+      "line_number": 117,
+      "endpoint": "/api/v1/applications/{id}",
+      "method": "PUT",
+      "parameters": {},
+      "context": "return apiClient.updateApplication(appId as number, prevApp);",
+      "call_type": "direct"
+    },
+    {
+      "component": "components.pages.ApplicationsPage",
+      "file_path": "components/pages/ApplicationsPage.tsx",
+      "line_number": 167,
+      "endpoint": "/api/v1/applications",
+      "method": "GET",
+      "parameters": {},
+      "context": "const response = await apiClient.getApplications();",
+      "call_type": "direct"
+    },
+    {
+      "component": "components.pages.ApplicationsPage",
+      "file_path": "components/pages/ApplicationsPage.tsx",
+      "line_number": 184,
+      "endpoint": "/api/v1/applications/{id}",
+      "method": "PUT",
+      "parameters": {},
+      "context": "const response = await apiClient.updateApplication(appId, { status: newStatus as any });",
+      "call_type": "direct"
+    },
+    {
+      "component": "components.pages.ApplicationsPage",
+      "file_path": "components/pages/ApplicationsPage.tsx",
+      "line_number": 209,
+      "endpoint": "/api/v1/applications/{id}",
+      "method": "PUT",
+      "parameters": {},
+      "context": "? await apiClient.updateApplication(editingApplication.id, formData)",
+      "call_type": "direct"
+    },
+    {
+      "component": "components.pages.ApplicationsPage",
+      "file_path": "components/pages/ApplicationsPage.tsx",
+      "line_number": 210,
+      "endpoint": "/api/v1/applications",
+      "method": "POST",
+      "parameters": {},
+      "context": ": await apiClient.createApplication(formData);",
+      "call_type": "direct"
+    },
+    {
+      "component": "components.help.FeedbackWidget",
+      "file_path": "components/help/FeedbackWidget.tsx",
+      "line_number": 148,
+      "endpoint": "/api/feedback",
+      "method": "GET",
+      "parameters": {},
+      "context": "await fetch('/api/feedback', {",
+      "call_type": "direct"
+    },
+    {
+      "component": "components.analytics.AnalyticsDashboard",
+      "file_path": "components/analytics/AnalyticsDashboard.tsx",
+      "line_number": 126,
+      "endpoint": "/api/v1/",
+      "method": "GET",
+      "parameters": {},
+      "context": "const response = await apiClient.get('/api/v1/analytics/summary');",
+      "call_type": "direct"
+    },
+    {
+      "component": "components.analytics.AnalyticsDashboard",
+      "file_path": "components/analytics/AnalyticsDashboard.tsx",
+      "line_number": 126,
+      "endpoint": "/api/v1/analytics/summary",
+      "method": "GET",
+      "parameters": {},
+      "context": "const response = await apiClient.get('/api/v1/analytics/summary');",
+      "call_type": "direct"
+    }
+  ],
+  "feature_requirements": [
+    {
+      "feature_name": "useApplications",
+      "required_endpoints": [
+        "GET /api/v1/applications"
+      ],
+      "priority": "low",
+      "components": [
+        "hooks.useApplications"
+      ],
+      "description": "Feature requiring 1 API endpoints"
+    },
+    {
+      "feature_name": "useJobs",
+      "required_endpoints": [
+        "GET /api/v1/jobs"
+      ],
+      "priority": "low",
+      "components": [
+        "hooks.useJobs"
+      ],
+      "description": "Feature requiring 1 API endpoints"
+    },
+    {
+      "feature_name": "useNotificationsQuery",
+      "required_endpoints": [
+        "DELETE /api/v1/notifications/{id}",
+        "GET /api/v1/notifications",
+        "GET /api/v1/notifications/preferences",
+        "PUT /api/v1/notifications/preferences",
+        "PUT /api/v1/notifications/read-all",
+        "PUT /api/v1/notifications/{id}/read"
+      ],
+      "priority": "medium",
+      "components": [
+        "hooks.useNotificationsQuery"
+      ],
+      "description": "Feature requiring 6 API endpoints"
+    },
+    {
+      "feature_name": "useOfflineMode",
+      "required_endpoints": [
+        "GET /api/health"
+      ],
+      "priority": "low",
+      "components": [
+        "hooks.useOfflineMode"
+      ],
+      "description": "Feature requiring 1 API endpoints"
+    },
+    {
+      "feature_name": "useSearchJobs",
+      "required_endpoints": [
+        "GET /api/v1/jobs/search"
+      ],
+      "priority": "low",
+      "components": [
+        "hooks.useSearchJobs"
+      ],
+      "description": "Feature requiring 1 API endpoints"
+    },
+    {
+      "feature_name": "useUserProfile",
+      "required_endpoints": [
+        "GET /api/v1/profile",
+        "PUT /api/v1/profile"
+      ],
+      "priority": "low",
+      "components": [
+        "hooks.useUserProfile"
+      ],
+      "description": "Feature requiring 2 API endpoints"
+    },
+    {
+      "feature_name": "useUpdateApplication",
+      "required_endpoints": [
+        "PUT /api/v1/applications/{id}"
+      ],
+      "priority": "low",
+      "components": [
+        "hooks.useUpdateApplication"
+      ],
+      "description": "Feature requiring 1 API endpoints"
+    },
+    {
+      "feature_name": "useNotifications",
+      "required_endpoints": [
+        "DELETE /api/v1/notifications/{id}",
+        "GET /api/v1/notifications",
+        "POST /api/v1/notifications/bulk-delete",
+        "PUT /api/v1/notifications/read-all",
+        "PUT /api/v1/notifications/{id}/read",
+        "PUT /api/v1/notifications/{id}/unread"
+      ],
+      "priority": "medium",
+      "components": [
+        "hooks.useNotifications"
+      ],
+      "description": "Feature requiring 6 API endpoints"
+    },
+    {
+      "feature_name": "useSearchApplications",
+      "required_endpoints": [
+        "GET /api/v1/applications/search"
+      ],
+      "priority": "low",
+      "components": [
+        "hooks.useSearchApplications"
+      ],
+      "description": "Feature requiring 1 API endpoints"
+    },
+    {
+      "feature_name": "useAnalytics",
+      "required_endpoints": [
+        "GET /api/v1/analytics/comprehensive-dashboard",
+        "GET /api/v1/analytics/summary"
+      ],
+      "priority": "low",
+      "components": [
+        "hooks.useAnalytics"
+      ],
+      "description": "Feature requiring 2 API endpoints"
+    },
+    {
+      "feature_name": "optimisticUpdates",
+      "required_endpoints": [
+        "GET /api/applications",
+        "PUT /api/v1/applications/{id}"
+      ],
+      "priority": "low",
+      "components": [
+        "lib.optimisticUpdates"
+      ],
+      "description": "Feature requiring 2 API endpoints"
+    },
+    {
+      "feature_name": "prefetch",
+      "required_endpoints": [
+        "GET /api/v1/analytics/summary",
+        "GET /api/v1/applications",
+        "GET /api/v1/jobs"
+      ],
+      "priority": "medium",
+      "components": [
+        "lib.prefetch"
+      ],
+      "description": "Feature requiring 3 API endpoints"
+    },
+    {
+      "feature_name": "pushNotifications",
+      "required_endpoints": [
+        "GET /api/push/subscribe"
+      ],
+      "priority": "low",
+      "components": [
+        "lib.pushNotifications"
+      ],
+      "description": "Feature requiring 1 API endpoints"
+    },
+    {
+      "feature_name": "swr",
+      "required_endpoints": [
+        "GET /api/analytics/summary",
+        "GET /api/applications",
+        "GET /api/jobs",
+        "GET /api/notifications",
+        "GET /api/profile"
+      ],
+      "priority": "medium",
+      "components": [
+        "lib.swr"
+      ],
+      "description": "Feature requiring 5 API endpoints"
+    },
+    {
+      "feature_name": "optimistic",
+      "required_endpoints": [
+        "PUT /api/v1/status/{id}"
+      ],
+      "priority": "low",
+      "components": [
+        "lib.utils.optimistic"
+      ],
+      "description": "Feature requiring 1 API endpoints"
+    },
+    {
+      "feature_name": "bulkActions",
+      "required_endpoints": [
+        "DELETE /api/v1/applications/{id}",
+        "PUT /api/v1/applications/{id}"
+      ],
+      "priority": "low",
+      "components": [
+        "lib.bulkActions.applicationActions"
+      ],
+      "description": "Feature requiring 2 API endpoints"
+    },
+    {
+      "feature_name": "api",
+      "required_endpoints": [
+        "GET /api/refresh-token",
+        "GET /api/v1/analytics",
+        "GET /api/v1/analytics/summary",
+        "GET /api/v1/auth/refresh",
+        "GET /api/v1/jobs",
+        "GET /api/v1/jobs/cached"
+      ],
+      "priority": "medium",
+      "components": [
+        "lib.api.config",
+        "lib.api.examples"
+      ],
+      "description": "Feature requiring 6 API endpoints"
+    },
+    {
+      "feature_name": "app",
+      "required_endpoints": [
+        "GET /api/sentry-example-api",
+        "GET /api/v1/health/comprehensive"
+      ],
+      "priority": "low",
+      "components": [
+        "app.health.page",
+        "app.sentry-example-page.page"
+      ],
+      "description": "Feature requiring 2 API endpoints"
+    },
+    {
+      "feature_name": "ui",
+      "required_endpoints": [
+        "GET /api/v1/applications",
+        "POST /api/v1/resume/upload"
+      ],
+      "priority": "low",
+      "components": [
+        "components.ui.ActivityTimeline",
+        "components.ui.FileUpload"
+      ],
+      "description": "Feature requiring 2 API endpoints"
+    },
+    {
+      "feature_name": "settings",
+      "required_endpoints": [
+        "PUT /api/v1/notificationsettings/{id}"
+      ],
+      "priority": "medium",
+      "components": [
+        "components.settings.NotificationPreferences"
+      ],
+      "description": "Feature requiring 1 API endpoints"
+    },
+    {
+      "feature_name": "SavedSearches",
+      "required_endpoints": [
+        "DELETE /api/v1/search/{id}"
+      ],
+      "priority": "low",
+      "components": [
+        "components.features.SavedSearches"
+      ],
+      "description": "Feature requiring 1 API endpoints"
+    },
+    {
+      "feature_name": "InterviewPractice",
+      "required_endpoints": [
+        "GET /api/v1/interview/start",
+        "GET /api/v1/jobs"
+      ],
+      "priority": "low",
+      "components": [
+        "components.features.InterviewPractice"
+      ],
+      "description": "Feature requiring 2 API endpoints"
+    },
+    {
+      "feature_name": "ResumeUpload",
+      "required_endpoints": [
+        "POST /api/v1/resume/upload",
+        "PUT /api/v1/profile"
+      ],
+      "priority": "low",
+      "components": [
+        "components.features.ResumeUpload"
+      ],
+      "description": "Feature requiring 2 API endpoints"
+    },
+    {
+      "feature_name": "ContentGeneration",
+      "required_endpoints": [
+        "GET /api/v1/jobs",
+        "POST /api/v1/content/generate"
+      ],
+      "priority": "low",
+      "components": [
+        "components.features.ContentGeneration"
+      ],
+      "description": "Feature requiring 2 API endpoints"
+    },
+    {
+      "feature_name": "charts",
+      "required_endpoints": [
+        "GET /api/v1/analytics/summary",
+        "GET /api/v1/applications",
+        "GET /api/v1/jobs"
+      ],
+      "priority": "medium",
+      "components": [
+        "components.charts.ApplicationStatusChart",
+        "components.charts.ApplicationTimelineChart",
+        "components.charts.SalaryDistributionChart",
+        "components.charts.SkillsDemandChart",
+        "components.charts.SuccessRateChart"
+      ],
+      "description": "Feature requiring 3 API endpoints"
+    },
+    {
+      "feature_name": "monitoring",
+      "required_endpoints": [
+        "GET /api/health"
+      ],
+      "priority": "low",
+      "components": [
+        "components.monitoring.HealthMonitor"
+      ],
+      "description": "Feature requiring 1 API endpoints"
+    },
+    {
+      "feature_name": "AnalyticsPage",
+      "required_endpoints": [
+        "GET /api/v1/analytics/comprehensive-dashboard",
+        "GET /api/v1/analytics/summary"
+      ],
+      "priority": "low",
+      "components": [
+        "components.pages.AnalyticsPage"
+      ],
+      "description": "Feature requiring 2 API endpoints"
+    },
+    {
+      "feature_name": "Dashboard",
+      "required_endpoints": [
+        "GET /api/v1/analytics/summary",
+        "GET /api/v1/applications"
+      ],
+      "priority": "low",
+      "components": [
+        "components.pages.Dashboard"
+      ],
+      "description": "Feature requiring 2 API endpoints"
+    },
+    {
+      "feature_name": "ApplicationKanban",
+      "required_endpoints": [
+        "GET /api/v1/applications"
+      ],
+      "priority": "low",
+      "components": [
+        "components.pages.ApplicationKanban"
+      ],
+      "description": "Feature requiring 1 API endpoints"
+    },
+    {
+      "feature_name": "RecommendationsPage",
+      "required_endpoints": [
+        "GET /api/v1/recommendations",
+        "GET /api/v1/skill-gap"
+      ],
+      "priority": "low",
+      "components": [
+        "components.pages.RecommendationsPage"
+      ],
+      "description": "Feature requiring 2 API endpoints"
+    },
+    {
+      "feature_name": "EnhancedDashboard",
+      "required_endpoints": [
+        "GET /api/v1/analytics/summary"
+      ],
+      "priority": "low",
+      "components": [
+        "components.pages.EnhancedDashboard"
+      ],
+      "description": "Feature requiring 1 API endpoints"
+    },
+    {
+      "feature_name": "ApplicationsPage",
+      "required_endpoints": [
+        "GET /api/v1/applications",
+        "POST /api/v1/applications",
+        "PUT /api/v1/applications/{id}"
+      ],
+      "priority": "medium",
+      "components": [
+        "components.pages.ApplicationsPage"
+      ],
+      "description": "Feature requiring 3 API endpoints"
+    },
+    {
+      "feature_name": "help",
+      "required_endpoints": [
+        "GET /api/feedback"
+      ],
+      "priority": "low",
+      "components": [
+        "components.help.FeedbackWidget"
+      ],
+      "description": "Feature requiring 1 API endpoints"
+    },
+    {
+      "feature_name": "analytics",
+      "required_endpoints": [
+        "GET /api/v1/",
+        "GET /api/v1/analytics/summary"
+      ],
+      "priority": "high",
+      "components": [
+        "components.analytics.AnalyticsDashboard"
+      ],
+      "description": "Feature requiring 2 API endpoints"
+    }
+  ],
+  "statistics": {
+    "total_api_calls": 95,
+    "total_features": 34,
+    "unique_endpoints": 42
+  }
+}

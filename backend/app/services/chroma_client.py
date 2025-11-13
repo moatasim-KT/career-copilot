@@ -589,7 +589,39 @@ async def get_chroma_client() -> ChromaDBClient:
 	global _chroma_client
 	if _chroma_client is None:
 		_chroma_client = ChromaDBClient()
-		await _chroma_client.initialize()
+		try:
+			await _chroma_client.initialize()
+		except Exception as e:
+			logger.error(f"Failed to initialize ChromaDB client: {e}")
+
+			# Fallback to a disabled/no-op client to avoid crashing health checks or startup
+			class DisabledChromaClient:
+				def __init__(self, error: Exception):
+					self._error = error
+
+				async def initialize(self):
+					return
+
+				async def health_check(self) -> dict:
+					return {"status": "unhealthy", "error": str(self._error), "timestamp": datetime.now(timezone.utc).isoformat()}
+
+				async def get_stats(self) -> dict:
+					return {"error": "chroma not available", "timestamp": datetime.now(timezone.utc).isoformat()}
+
+				async def list_collections(self) -> list:
+					return []
+
+				async def get_or_create_collection(self, name: str, metadata: Optional[Dict[str, Any]] = None):
+					raise VectorStoreError("ChromaDB unavailable")
+
+				async def delete_collection(self, name: str) -> bool:
+					return False
+
+				async def close(self):
+					return
+
+			_disabled = DisabledChromaClient(e)
+			_chroma_client = _disabled  # type: ignore
 	return _chroma_client
 
 

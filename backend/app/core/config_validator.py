@@ -114,10 +114,10 @@ class ConfigurationValidator:
         else:
             try:
                 parsed = urlparse(database_url)
-                if parsed.scheme not in ["sqlite", "sqlite+aiosqlite", "postgresql", "postgresql+asyncpg", "mysql"]:
+                if parsed.scheme not in ["postgresql", "postgresql+asyncpg", "mysql"]:
                     self._add_issue("warning", "invalid", "DATABASE_URL", f"Unsupported database scheme: {parsed.scheme}", "Use sqlite, postgresql, or mysql")
             except Exception as e:
-                self._add_issue("error", "invalid", "DATABASE_URL", f"Invalid database URL format: {e}", "Example: sqlite+aiosqlite:///./data/app.db")
+                self._add_issue("error", "invalid", "DATABASE_URL", f"Invalid database URL format: {e}", "Example: postgresql+asyncpg://user:pass@host:port/db")
 
     def _validate_ai_services(self):
         openai_key = self._get_value("OPENAI_API_KEY")

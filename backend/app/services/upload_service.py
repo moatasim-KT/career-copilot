@@ -11,17 +11,18 @@ from pathlib import Path
 from typing import Dict, Optional, Tuple
 
 from fastapi import HTTPException
-from ..core.logging import get_logger
+
 from ..core.file_handler import temp_file_handler
-from ..models.upload_models import (
-	UploadSession,
-	UploadProgress,
-	UploadStatus,
+from ..core.logging import get_logger
+from ..schemas.upload_models import (
 	ChunkInfo,
 	ChunkStatus,
-	FileValidationResult,
-	UploadRequest,
 	DuplicateFileInfo,
+	FileValidationResult,
+	UploadProgress,
+	UploadRequest,
+	UploadSession,
+	UploadStatus,
 )
 from ..utils.security import file_validator
 

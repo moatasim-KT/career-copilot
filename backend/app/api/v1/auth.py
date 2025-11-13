@@ -13,7 +13,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from ...core.config import get_settings
 from ...core.database import get_db
-from ...core.dependencies import get_current_user
+from app.dependencies import get_current_user
 from ...core.logging import get_logger
 from ...models.user import User
 from ...schemas.user import OAuthUserCreate, UserCreate, UserResponse, UserUpdate

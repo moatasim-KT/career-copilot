@@ -1,15 +1,11 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
-// Placeholder for API client
-const deleteJob = async (id: string) => {
-  // Replace with actual API call
-  return id;
-};
+import { JobsService } from '../lib/api/client';
 
 export const useDeleteJob = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: deleteJob,
+    mutationFn: (id: number) => JobsService.delete(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['jobs'] });
     },

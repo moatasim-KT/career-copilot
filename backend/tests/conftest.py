@@ -7,6 +7,7 @@ import asyncio
 import os
 import sys
 from typing import AsyncGenerator, Generator
+from unittest.mock import patch
 
 import pytest
 import pytest_asyncio
@@ -44,8 +45,8 @@ def engine():
 	"""Create a synchronous engine for the test session."""
 	# PostgreSQL doesn't need check_same_thread
 	_engine = create_engine(TEST_DATABASE_URL, pool_pre_ping=True)
-
 	# Create all tables
+	Base.metadata.drop_all(bind=_engine)
 	Base.metadata.create_all(bind=_engine)
 
 	yield _engine
@@ -62,6 +63,7 @@ async def async_engine():
 
 	# Create all tables
 	async with _engine.begin() as conn:
+		await conn.run_sync(Base.metadata.drop_all)
 		await conn.run_sync(Base.metadata.create_all)
 
 	yield _engine
@@ -74,7 +76,7 @@ async def async_engine():
 
 
 @pytest.fixture(scope="function")
-def db(engine) -> Generator[Session, None, None]:
+def db(engine, monkeypatch) -> Generator[Session, None, None]:
 	"""
 	Create a new database session for each test (synchronous).
 	Provides a clean database state for each test.
@@ -94,7 +96,7 @@ def db(engine) -> Generator[Session, None, None]:
 
 
 @pytest_asyncio.fixture(scope="function")
-async def async_db(async_engine) -> AsyncGenerator[AsyncSession, None]:
+async def async_db(async_engine, monkeypatch) -> AsyncGenerator[AsyncSession, None]:
 	"""
 	Create a new async database session for each test.
 	Provides a clean database state for each test.
@@ -125,7 +127,7 @@ def _ensure_test_user(session: Session) -> User:
 			id=1,
 			username="test_user",
 			email="test@example.com",
-			hashed_password=get_password_hash("testpass123"),
+			hashed_password="mock_hashed_password", # Hardcoded for tests
 			skills=["Python", "FastAPI", "JavaScript", "React"],
 			preferred_locations=["Remote", "San Francisco", "New York"],
 			experience_level="senior",
@@ -157,7 +159,7 @@ async def _ensure_test_user_async(session: AsyncSession) -> User:
 			id=1,
 			username="test_user",
 			email="test@example.com",
-			hashed_password=get_password_hash("testpass123"),
+			hashed_password="mock_hashed_password", # Hardcoded for tests
 			skills=["Python", "FastAPI", "JavaScript", "React"],
 			preferred_locations=["Remote", "San Francisco", "New York"],
 			experience_level="senior",

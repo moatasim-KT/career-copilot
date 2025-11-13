@@ -5,10 +5,11 @@ SQLAlchemy database models for analysis history and agent execution.
 from datetime import datetime
 from uuid import uuid4
 
-from sqlalchemy import Column, String, DateTime, Text, Integer, Numeric, Boolean, ForeignKey, JSON
+from sqlalchemy import JSON, Boolean, Column, DateTime, ForeignKey, Integer, Numeric, String, Text
 from sqlalchemy.dialects.postgresql import UUID as PostgresUUID
-from ..core.database import Base
 from sqlalchemy.orm import relationship
+
+from ..core.database import Base
 
 
 class AnalysisHistory(Base):
@@ -85,6 +86,72 @@ class AgentExecution(Base):
 
 	# Relationships
 	analysis = relationship("AnalysisHistory", back_populates="agent_executions")
+
+
+class UserSettings(Base):
+	"""User settings database model."""
+
+	__tablename__ = "user_settings"
+
+	id = Column(PostgresUUID(as_uuid=True), primary_key=True, default=uuid4)
+	user_id = Column(Integer, ForeignKey("users.id"), nullable=False, unique=True, index=True)
+	daily_application_goal = Column(Integer, default=10, nullable=False)
+	preferred_industries = Column(JSON, default=list, nullable=False)
+	preferred_locations = Column(JSON, default=list, nullable=False)
+	experience_level = Column(String(50), nullable=True)
+	risk_thresholds = Column(JSON, default=dict, nullable=False)
+	notification_preferences = Column(JSON, default=dict, nullable=False)
+	ai_model_preference = Column(String(50), default="groq", nullable=False)
+
+	# Timestamps
+	created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+	updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
+
+	# Relationships
+	user = relationship("User", back_populates="settings")
+
+
+class AuditLog(Base):
+	"""Audit log database model."""
+
+	__tablename__ = "audit_logs"
+
+	id = Column(PostgresUUID(as_uuid=True), primary_key=True, default=uuid4)
+	user_id = Column(Integer, ForeignKey("users.id"), nullable=True, index=True)
+	event_type = Column(String(100), nullable=False, index=True)
+	event_description = Column(Text, nullable=False)
+	ip_address = Column(String(45), nullable=True)  # IPv4 or IPv6
+	user_agent = Column(Text, nullable=True)
+	session_id = Column(String(255), nullable=True)
+	resource_type = Column(String(100), nullable=True)
+	resource_id = Column(String(255), nullable=True)
+	old_values = Column(JSON, nullable=True)
+	new_values = Column(JSON, nullable=True)
+	event_metadata = Column(JSON, nullable=True)
+	severity = Column(String(20), default="info", nullable=False)
+
+	# Timestamps
+	created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+
+
+class SecurityEvent(Base):
+	"""Security event database model."""
+
+	__tablename__ = "security_events"
+
+	id = Column(PostgresUUID(as_uuid=True), primary_key=True, default=uuid4)
+	user_id = Column(Integer, ForeignKey("users.id"), nullable=True, index=True)
+	event_type = Column(String(100), nullable=False, index=True)
+	description = Column(Text, nullable=False)
+	ip_address = Column(String(45), nullable=True)
+	user_agent = Column(Text, nullable=True)
+	session_id = Column(String(255), nullable=True)
+	risk_score = Column(Integer, default=0, nullable=False)
+	blocked = Column(Boolean, default=False, nullable=False)
+	event_metadata = Column(JSON, nullable=True)
+
+	# Timestamps
+	created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
 
 
 class ContractAnalysis(Base):

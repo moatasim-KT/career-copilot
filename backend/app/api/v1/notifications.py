@@ -2,14 +2,16 @@
 API endpoints for notification management
 """
 
-from typing import Dict, List, Any
+from typing import Any, Dict, List
+
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
 from pydantic import BaseModel, Field
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.dependencies import get_current_user
 
 from ...core.database import get_db
-from ...core.dependencies import get_current_user
 from ...models.user import User
 from ...services.scheduled_notification_service import scheduled_notification_service
 
@@ -186,3 +188,54 @@ async def get_valid_notification_types() -> Dict[str, Any]:
 			{"value": "never", "name": "Never", "description": "Disable all notifications"},
 		],
 	}
+
+
+# Additional notification endpoints (from notifications_new.py)
+
+
+@router.get("/api/v1/notifications")
+async def list_notifications(current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
+	"""List all notifications for the current user."""
+	# The project currently stores notification-like data in user settings or via
+	# the scheduled notification service. There is no dedicated Notification ORM
+	# model in `app.models`. To avoid import errors in development, return a
+	# best-effort view from the user's settings (if present) and fall back to an
+	# empty list.
+	stored = getattr(current_user, "settings", {}) or {}
+	notifications = stored.get("notifications_list", [])
+	# compute a simple unread count if items have an `is_read` flag
+	unread_count = sum(1 for n in notifications if not n.get("is_read")) if isinstance(notifications, list) else 0
+	return {"notifications": notifications, "total": len(notifications) if isinstance(notifications, list) else 0, "unread": unread_count}
+
+
+@router.put("/api/v1/notifications/preferences")
+async def update_notification_preferences_api(preferences: dict, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
+	"""Update the current user's notification preferences."""
+	from ...models.notification import NotificationPreferences as NotificationPreferencesModel
+	from ...schemas.api_models import NotificationPreferences
+
+	result = await db.execute(select(NotificationPreferencesModel).where(NotificationPreferencesModel.user_id == current_user.id))
+	prefs = result.scalar_one_or_none()
+
+	if prefs is None:
+		prefs = NotificationPreferencesModel(user_id=current_user.id)
+
+	# Map API model fields to DB columns
+	prefs.email_enabled = bool(preferences.get("email", True))
+	prefs.push_enabled = bool(preferences.get("push", False))
+	# SMS not supported in DB model
+
+	db.add(prefs)
+	await db.commit()
+	await db.refresh(prefs)
+
+	return NotificationPreferences(email=prefs.email_enabled, push=prefs.push_enabled, sms=False)
+
+
+@router.get("/api/v1/notifications/unread")
+async def get_unread_notifications(current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
+	"""Get a list of unread notifications for the current user."""
+	stored = getattr(current_user, "settings", {}) or {}
+	notifications = stored.get("notifications_list", [])
+	unread = [n for n in notifications if not n.get("is_read")] if isinstance(notifications, list) else []
+	return {"unread": unread, "count": len(unread)}

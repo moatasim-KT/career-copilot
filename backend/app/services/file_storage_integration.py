@@ -1,28 +1,274 @@
 """
 File Storage Integration
 
-Integrates the new file storage service with existing upload and contract services.
+Integrates the ChromaDB storage service with existing upload and contract services.
 Provides migration utilities and compatibility layer.
 """
 
-from typing import Dict, List, Optional, Tuple, Any
-from datetime import datetime, timezone
+import hashlib
+from pathlib import Path
+from typing import Any, Dict, List, Optional, Tuple
 
-from .file_storage_service import file_storage_service, FileRecord
-from .upload_service import upload_service
+from ..core.exceptions import StorageError, ValidationError
 from ..core.file_handler import temp_file_handler
 from ..core.logging import get_logger
+from .database_storage_service import ChromaStorageService
+
+logger = get_logger(__name__)
+
+
+class SimpleFileValidator:
+	"""Simple file validation for ChromaDB storage."""
+
+	def __init__(self):
+		self.allowed_extensions = {".pdf", ".doc", ".docx", ".txt", ".rtf", ".jpg", ".jpeg", ".png", ".gif"}
+		self.max_file_size = 100 * 1024 * 1024  # 100MB
+
+	def validate_file(self, content: bytes, filename: str) -> Dict[str, Any]:
+		"""Simple file validation."""
+		# Check file size
+		if len(content) > self.max_file_size:
+			raise ValidationError(f"File too large: {len(content)} bytes (max {self.max_file_size})")
+
+		# Check file extension
+		file_ext = Path(filename).suffix.lower()
+		if file_ext not in self.allowed_extensions:
+			raise ValidationError(f"File type not allowed: {file_ext}")
+
+		# Calculate hash
+		file_hash = hashlib.sha256(content).hexdigest()
+
+		# Detect MIME type (simple)
+		mime_types = {
+			".pdf": "application/pdf",
+			".doc": "application/msword",
+			".docx": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+			".txt": "text/plain",
+			".rtf": "application/rtf",
+			".jpg": "image/jpeg",
+			".jpeg": "image/jpeg",
+			".png": "image/png",
+			".gif": "image/gif",
+		}
+		mime_type = mime_types.get(file_ext, "application/octet-stream")
+
+		return {
+			"is_valid": True,
+			"mime_type": mime_type,
+			"file_size": len(content),
+			"file_hash": file_hash,
+			"safe_filename": filename,  # Simplified - no sanitization
+			"original_filename": filename,
+		}
+
+
+class FileStorageIntegration:
+	"""Integration layer between ChromaDB storage and existing services."""
+
+	def __init__(self):
+		self.storage_service = None
+		self.validator = SimpleFileValidator()
+		self.temp_handler = temp_file_handler
+		self._initialized = False
+
+	async def _ensure_initialized(self):
+		"""Ensure the storage service is initialized."""
+		if not self._initialized:
+			self.storage_service = ChromaStorageService()
+			self._initialized = True
+
+	async def store_uploaded_file(
+		self, content: bytes, filename: str, user_id: Optional[int] = None, analysis_options: Optional[Dict] = None
+	) -> Dict[str, Any]:
+		"""Store an uploaded file using the ChromaDB storage system."""
+		await self._ensure_initialized()
+
+		try:
+			# Validate file using simple validator
+			validation_result = self.validator.validate_file(content, filename)
+
+			# Store file in ChromaDB
+			stored_filename = await self.storage_service.store_file(
+				user_id=user_id or 1,  # Default user if not provided
+				file_content=content,
+				original_filename=validation_result["safe_filename"],
+				document_type="upload",
+				mime_type=validation_result["mime_type"],
+			)
+
+			# Return file info
+			file_info = {
+				"stored_filename": stored_filename,
+				"original_filename": validation_result["safe_filename"],
+				"file_size": validation_result["file_size"],
+				"mime_type": validation_result["mime_type"],
+				"user_id": user_id,
+			}
+
+			logger.info(f"Stored uploaded file: {filename} -> {stored_filename}")
+			return file_info
+
+		except Exception as e:
+			logger.error(f"Failed to store uploaded file {filename}: {e}")
+			raise StorageError(f"Failed to store file: {e!s}")
+
+	async def get_file_for_analysis(self, stored_filename: str) -> Tuple[bytes, str, Dict[str, Any]]:
+		"""Get file content and metadata for analysis."""
+		try:
+			content = await self.storage_service.get_file(stored_filename)
+			if not content:
+				raise StorageError(f"File not found: {stored_filename}")
+
+			# Get metadata
+			metadata = await self.storage_service.get_file_metadata(stored_filename)
+			if not metadata:
+				raise StorageError(f"Metadata not found for file: {stored_filename}")
+
+			# Extract analysis-relevant metadata
+			analysis_metadata = {
+				"stored_filename": stored_filename,
+				"original_filename": metadata.get("original_filename", ""),
+				"mime_type": metadata.get("mime_type"),
+				"file_size": metadata.get("file_size"),
+				"user_id": metadata.get("user_id"),
+				"document_type": metadata.get("document_type"),
+			}
+
+			return content, metadata.get("original_filename", stored_filename), analysis_metadata
+
+		except Exception as e:
+			logger.error(f"Failed to get file for analysis {stored_filename}: {e}")
+			raise StorageError(f"Failed to retrieve file for analysis: {e!s}")
+
+	async def search_documents(self, query: str, user_id: Optional[int] = None, limit: int = 10) -> List[Dict[str, Any]]:
+		"""Search documents using ChromaDB vector search."""
+		await self._ensure_initialized()
+
+		try:
+			return await self.storage_service.search_documents(query=query, user_id=user_id, limit=limit)
+		except Exception as e:
+			logger.error(f"Failed to search documents: {e}")
+			return []
+
+	async def list_user_files(self, user_id: int, document_type: Optional[str] = None) -> List[Dict[str, Any]]:
+		"""List files for a user."""
+		await self._ensure_initialized()
+
+		try:
+			return await self.storage_service.list_user_files(user_id=user_id, document_type=document_type)
+		except Exception as e:
+			logger.error(f"Failed to list files for user {user_id}: {e}")
+			return []
+
+	async def delete_file(self, stored_filename: str) -> bool:
+		"""Delete a file."""
+		await self._ensure_initialized()
+
+		try:
+			return await self.storage_service.delete_file(stored_filename)
+		except Exception as e:
+			logger.error(f"Failed to delete file {stored_filename}: {e}")
+			return False
+
+	async def get_file_metadata(self, stored_filename: str) -> Optional[Dict[str, Any]]:
+		"""Get metadata for a file."""
+		await self._ensure_initialized()
+
+		try:
+			return await self.storage_service.get_file_metadata(stored_filename)
+		except Exception as e:
+			logger.error(f"Failed to get metadata for {stored_filename}: {e}")
+			return None
+
+
+# Global integration instance
+file_storage_integration = FileStorageIntegration()
+
+import hashlib
+import os
+from datetime import datetime, timezone
+from pathlib import Path
+from typing import Any, Dict, List, Optional, Tuple
+
 from ..core.exceptions import StorageError, ValidationError
+from ..core.file_handler import temp_file_handler
+from ..core.logging import get_logger
+from .database_storage_service import ChromaStorageService
+
+logger = get_logger(__name__)
+
+
+class SimpleFileValidator:
+	"""Simple file validation for database storage."""
+
+	def __init__(self):
+		self.allowed_extensions = {".pdf", ".doc", ".docx", ".txt", ".rtf", ".jpg", ".jpeg", ".png", ".gif"}
+		self.max_file_size = 100 * 1024 * 1024  # 100MB
+
+	def validate_file(self, content: bytes, filename: str) -> Dict[str, Any]:
+		"""Simple file validation."""
+		# Check file size
+		if len(content) > self.max_file_size:
+			raise ValidationError(f"File too large: {len(content)} bytes (max {self.max_file_size})")
+
+		# Check file extension
+		file_ext = Path(filename).suffix.lower()
+		if file_ext not in self.allowed_extensions:
+			raise ValidationError(f"File type not allowed: {file_ext}")
+
+		# Calculate hash
+		file_hash = hashlib.sha256(content).hexdigest()
+
+		# Detect MIME type (simple)
+		mime_types = {
+			".pdf": "application/pdf",
+			".doc": "application/msword",
+			".docx": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+			".txt": "text/plain",
+			".rtf": "application/rtf",
+			".jpg": "image/jpeg",
+			".jpeg": "image/jpeg",
+			".png": "image/png",
+			".gif": "image/gif",
+		}
+		mime_type = mime_types.get(file_ext, "application/octet-stream")
+
+		return {
+			"is_valid": True,
+			"mime_type": mime_type,
+			"file_size": len(content),
+			"file_hash": file_hash,
+			"safe_filename": filename,  # Simplified - no sanitization
+			"original_filename": filename,
+		}
+
+
+class FileStorageIntegration:
+	"""Integration layer between database storage and existing services."""
+
+	def __init__(self):
+		self.storage_service = DatabaseStorageService()
+		self.validator = SimpleFileValidator()
+		self.temp_handler = temp_file_handler
+
+
+from datetime import datetime, timezone
+from typing import Any, Dict, List, Optional, Tuple
+
+from ..core.exceptions import StorageError, ValidationError
+from ..core.file_handler import temp_file_handler
+from ..core.logging import get_logger
+from .database_storage_service import DatabaseStorageService
 
 logger = get_logger(__name__)
 
 
 class FileStorageIntegration:
-	"""Integration layer between new file storage and existing services."""
+	"""Integration layer between database storage and existing services."""
 
 	def __init__(self):
-		self.storage_service = file_storage_service
-		self.upload_service = upload_service
+		self.storage_service = DatabaseStorageService()
+		self.validator = SimpleFileValidator()
 		self.temp_handler = temp_file_handler
 
 	async def migrate_temp_files_to_storage(self) -> Dict[str, Any]:
@@ -78,61 +324,65 @@ class FileStorageIntegration:
 			return migration_stats
 
 	async def store_uploaded_file(
-		self, content: bytes, filename: str, user_id: Optional[str] = None, analysis_options: Optional[Dict] = None
-	) -> FileRecord:
-		"""Store an uploaded file using the new storage system."""
+		self, content: bytes, filename: str, user_id: Optional[int] = None, analysis_options: Optional[Dict] = None
+	) -> Dict[str, Any]:
+		"""Store an uploaded file using the database storage system."""
 		try:
-			# Validate file using existing upload service validation
-			validation_result = await self.upload_service.validate_file_content(content, filename)
+			# Validate file using simple validator
+			validation_result = self.validator.validate_file(content, filename)
 
-			if not validation_result.is_valid:
-				raise ValidationError(f"File validation failed: {validation_result.error_message}")
+			# Store file in database
+			stored_filename = await self.storage_service.store_file(
+				user_id=user_id or 1,  # Default user if not provided
+				file_content=content,
+				original_filename=validation_result["safe_filename"],
+				document_type="upload",
+				mime_type=validation_result["mime_type"],
+			)
 
-			# Prepare metadata
-			metadata = {
-				"mime_type": validation_result.mime_type,
-				"file_hash": validation_result.file_hash,
-				"uploaded_by": user_id,
-				"upload_source": "contract_upload",
-				"analysis_options": analysis_options or {},
-				"validation_result": {
-					"safe_filename": validation_result.safe_filename,
-					"file_size": validation_result.file_size,
-					"is_duplicate": validation_result.is_duplicate,
-				},
+			# Return file info
+			file_info = {
+				"stored_filename": stored_filename,
+				"original_filename": validation_result["safe_filename"],
+				"file_size": validation_result["file_size"],
+				"mime_type": validation_result["mime_type"],
+				"user_id": user_id,
 			}
 
-			# Store file
-			file_record = await self.storage_service.store_file(content=content, filename=validation_result.safe_filename, metadata=metadata)
-
-			logger.info(f"Stored uploaded file: {filename} -> {file_record.file_id}")
-			return file_record
+			logger.info(f"Stored uploaded file: {filename} -> {stored_filename}")
+			return file_info
 
 		except Exception as e:
 			logger.error(f"Failed to store uploaded file {filename}: {e}")
-			raise StorageError(f"Failed to store file: {e}")
+			raise StorageError(f"Failed to store file: {e!s}")
 
-	async def get_file_for_analysis(self, file_id: str) -> Tuple[bytes, str, Dict[str, Any]]:
+	async def get_file_for_analysis(self, stored_filename: str) -> Tuple[bytes, str, Dict[str, Any]]:
 		"""Get file content and metadata for analysis."""
 		try:
-			content, version = await self.storage_service.get_file(file_id)
+			content = await self.storage_service.get_file(stored_filename)
+			if not content:
+				raise StorageError(f"File not found: {stored_filename}")
+
+			# Get metadata
+			metadata = await self.storage_service.get_file_metadata(stored_filename)
+			if not metadata:
+				raise StorageError(f"Metadata not found for file: {stored_filename}")
 
 			# Extract analysis-relevant metadata
 			analysis_metadata = {
-				"file_id": file_id,
-				"version_id": version.version_id,
-				"filename": version.original_filename,
-				"mime_type": version.mime_type,
-				"file_size": version.file_size,
-				"file_hash": version.file_hash,
-				"upload_metadata": version.metadata,
+				"stored_filename": stored_filename,
+				"original_filename": metadata.get("original_filename", ""),
+				"mime_type": metadata.get("mime_type"),
+				"file_size": metadata.get("file_size"),
+				"user_id": metadata.get("user_id"),
+				"document_type": metadata.get("document_type"),
 			}
 
-			return content, version.original_filename, analysis_metadata
+			return content, metadata.get("original_filename", stored_filename), analysis_metadata
 
 		except Exception as e:
-			logger.error(f"Failed to get file for analysis {file_id}: {e}")
-			raise StorageError(f"Failed to retrieve file for analysis: {e}")
+			logger.error(f"Failed to get file for analysis {stored_filename}: {e}")
+			raise StorageError(f"Failed to retrieve file for analysis: {e!s}")
 
 	async def create_file_backup(self, file_id: str, backup_reason: str = "manual") -> str:
 		"""Create a backup version of a file."""
@@ -284,4 +534,12 @@ class FileStorageIntegration:
 
 
 # Global integration instance
-file_storage_integration = FileStorageIntegration()
+_file_storage_integration: Optional[FileStorageIntegration] = None
+
+
+async def get_file_storage_integration() -> FileStorageIntegration:
+	"""Get the global file storage integration instance."""
+	global _file_storage_integration
+	if _file_storage_integration is None:
+		_file_storage_integration = FileStorageIntegration()
+	return _file_storage_integration

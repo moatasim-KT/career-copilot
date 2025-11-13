@@ -219,10 +219,21 @@ async def preview_weekly_report(db: AsyncSession = Depends(get_db)):
 	Useful for users to see what they'll receive before subscribing to reports.
 	"""
 	try:
-		# Generate basic analytics for preview
+		# Generate basic analytics for preview using the synchronous analytics service.
+		# The analytics service uses the blocking SQLAlchemy Session API, so run it
+		# in a threadpool against a sync session from the DatabaseManager.
+		from starlette.concurrency import run_in_threadpool
+
+		from ...core.database import get_db_manager
 		from ...services.advanced_user_analytics_service import advanced_user_analytics_service
 
-		success_rates = advanced_user_analytics_service.calculate_detailed_success_rates(db, MOATASIM_USER_ID, days=7)
+		db_manager = get_db_manager()
+
+		def _calc_preview():
+			with db_manager.get_sync_session() as session:
+				return advanced_user_analytics_service.calculate_detailed_success_rates(session, MOATASIM_USER_ID, days=7)
+
+		success_rates = await run_in_threadpool(_calc_preview)
 
 		if "error" in success_rates:
 			return {"preview_available": False, "message": "Insufficient data for preview - submit some applications first"}
@@ -262,10 +273,19 @@ async def preview_monthly_report(db: AsyncSession = Depends(get_db)):
 	Useful for users to see what they'll receive before subscribing to reports.
 	"""
 	try:
-		# Generate basic analytics for preview
+		# Generate basic analytics for preview using the blocking analytics service
+		from starlette.concurrency import run_in_threadpool
+
+		from ...core.database import get_db_manager
 		from ...services.advanced_user_analytics_service import advanced_user_analytics_service
 
-		success_rates = advanced_user_analytics_service.calculate_detailed_success_rates(db, MOATASIM_USER_ID, days=30)
+		db_manager = get_db_manager()
+
+		def _calc_preview_month():
+			with db_manager.get_sync_session() as session:
+				return advanced_user_analytics_service.calculate_detailed_success_rates(session, MOATASIM_USER_ID, days=30)
+
+		success_rates = await run_in_threadpool(_calc_preview_month)
 
 		if "error" in success_rates:
 			return {"preview_available": False, "message": "Insufficient data for preview - submit some applications first"}

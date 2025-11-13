@@ -10,8 +10,8 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(
 from app.core.database import engine
 from app.models import User, Job
 from app.services.recommendation_engine import RecommendationEngine
-from app.services.cache_service import get_cache_service
-from app.security.password import get_password_hash
+from app.core.cache import cache_service
+from app.core.security import get_password_hash
 import logging
 import time
 
@@ -29,10 +29,7 @@ def db_session():
     finally:
         db.close()
 
-@pytest.fixture(scope="module")
-def cache_service():
-    """Fixture to provide a cache service instance for testing."""
-    return get_cache_service()
+
 
 @pytest.fixture(scope="module")
 def test_user(db_session):

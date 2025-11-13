@@ -4,7 +4,7 @@ Unified Health Monitoring Service
 Consolidates multiple health and monitoring capabilities behind a single interface:
 - Logging health checks
 - ChromaDB health checks
-- PostgreSQL/SQLite database connectivity
+- PostgreSQL database connectivity
 - Redis connectivity
 - Basic system/uptime summary
 
@@ -178,7 +178,7 @@ class HealthMonitoringService:
 				return await monitor.get_health_summary()
 			except Exception as e:
 				return {"status": "error", "error": str(e)}
-		elif component in {"database", "db", "postgres", "postgresql", "sqlite"}:
+		elif component in {"database", "db", "postgres", "postgresql"}:
 			db_manager = self._get_db_manager()
 			if not db_manager:
 				return {"status": "unavailable", "error": "database manager not available"}

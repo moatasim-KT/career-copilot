@@ -1,19 +1,15 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
-// Placeholder for API client
-const updateJob = async (updatedJob: any) => {
-  // Replace with actual API call
-  return updatedJob;
-};
+import { JobsService } from '../lib/api/client';
 
 export const useUpdateJob = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: updateJob,
-    onSuccess: (data) => {
+    mutationFn: ({ id, data }: { id: number; data: any }) => JobsService.update(id, data),
+    onSuccess: (data, variables) => {
       queryClient.invalidateQueries({ queryKey: ['jobs'] });
       // Optionally, update a single job in the cache
-      queryClient.setQueryData(['job', data.id], data);
+      queryClient.setQueryData(['job', variables.id], data);
     },
   });
 };
