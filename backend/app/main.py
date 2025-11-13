@@ -322,7 +322,8 @@ def create_app() -> FastAPI:
 		scheduled_reports,
 		services_admin,
 		skill_gap_analysis,
-		slack_admin,
+		slack,
+		slack_integration,
 		social,
 		status_admin,
 		storage_admin,
@@ -388,7 +389,8 @@ def create_app() -> FastAPI:
 	# Integration & External Services
 	app.include_router(linkedin_jobs.router)
 	app.include_router(email_admin.router)
-	app.include_router(slack_admin.router)
+	app.include_router(slack.router, prefix="/api/v1")
+	app.include_router(slack_integration.router, prefix="/api/v1")
 	app.include_router(services_admin.router)
 	app.include_router(integrations_admin.router, prefix="/api/v1/integrations", tags=["integrations"])
 	app.include_router(groq.router, prefix="/api/v1")
