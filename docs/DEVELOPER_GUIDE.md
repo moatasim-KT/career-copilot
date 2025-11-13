@@ -236,6 +236,271 @@ career-copilot/
    - Error handling
    - Type-safe endpoints
 
+### Consolidated Service Architecture
+
+Career Copilot uses a **singleton service pattern** for all production services to ensure consistent state management, prevent duplicate instances, and optimize resource usage.
+
+#### Key Architectural Principles
+
+1. **Single Responsibility**: Each service handles one domain (analytics, cache, notifications, etc.)
+2. **Singleton Pattern**: Services are instantiated once and reused throughout the application lifecycle
+3. **Dependency Injection**: Services receive dependencies (database sessions, configs) via constructor
+4. **Async-First**: All I/O operations use async/await for optimal performance
+5. **Unified Configuration**: Single source of truth via `UnifiedSettings` class
+
+#### Service Lifecycle
+
+```python
+# Backend service initialization (app/main.py)
+from app.services.analytics_service import AnalyticsService
+from app.services.cache_service import CacheService
+from app.core.database import get_db
+
+# Services are initialized on application startup
+@app.on_event("startup")
+async def startup_event():
+    # Initialize singleton services
+    cache_service = CacheService.get_instance()
+    await cache_service.initialize()
+    
+    # Services auto-connect to shared resources
+    logger.info("All services initialized")
+
+# Usage in endpoints
+@router.get("/analytics/trends")
+async def get_trends(db: Session = Depends(get_db)):
+    # Service instances are accessed via get_instance()
+    analytics_service = AnalyticsService(db)
+    return await analytics_service.calculate_application_trends(user_id=1, days=30)
+```
+
+#### Core Services
+
+**1. AnalyticsService** (`backend/app/services/analytics_service.py`)
+- Comprehensive analytics calculations
+- Trend analysis (daily, weekly, monthly)
+- Skill gap analysis with caching
+- Performance benchmarking
+- Report generation
+
+```python
+# Key methods
+async def calculate_application_trends(user_id: int, days: int = 30)
+async def analyze_skill_gaps(user_id: int, limit: int = 100)
+async def generate_performance_benchmarks(user_id: int)
+```
+
+**2. CacheService** (`backend/app/services/cache_service.py`)
+- Redis-based caching with fallback to in-memory
+- Automatic serialization/deserialization
+- TTL management
+- Cache invalidation patterns
+
+```python
+# Usage
+cache = CacheService.get_instance()
+await cache.set("user:123:profile", user_data, ttl=3600)
+cached_data = await cache.get("user:123:profile")
+```
+
+**3. NotificationService** (`backend/app/services/notification_service.py`)
+- Real-time notifications via WebSocket
+- Persistent notification storage
+- Multi-channel support (WebSocket, email, Slack)
+- Offline queue management
+
+```python
+# Send notification
+await notification_service.create_and_send_notification(
+    user_id=123,
+    title="New Job Match",
+    message="Found 5 new matching jobs",
+    notification_type="job_match"
+)
+```
+
+**4. LLMService** (`backend/app/services/llm_service.py`)
+- Multi-provider LLM integration (OpenAI, Groq, Anthropic)
+- Intelligent fallback and rate limiting
+- Cost optimization and provider routing
+- Prompt template management
+
+```python
+# Generate AI content
+response = await llm_service.generate_completion(
+    prompt="Analyze this job description...",
+    task_category="analysis",
+    max_tokens=2000
+)
+```
+
+**5. WebSocketNotificationService** (`backend/app/services/websocket_notifications.py`)
+- Manages WebSocket connections
+- Heartbeat monitoring
+- Connection pooling
+- Channel-based broadcasting
+
+#### Database Management
+
+Career Copilot uses **dual database engine approach**:
+
+```python
+# backend/app/core/database.py
+class DatabaseManager:
+    """Manages both sync and async database engines"""
+    
+    # Synchronous engine (for Celery, scripts)
+    sync_engine = create_engine(DATABASE_URL)
+    
+    # Async engine (for FastAPI endpoints)
+    async_engine = create_async_engine(DATABASE_URL_ASYNC)
+
+# Dependency injection for sync operations
+def get_db() -> Generator[Session, None, None]:
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
+
+# Dependency injection for async operations  
+async def get_async_db() -> AsyncGenerator[AsyncSession, None]:
+    async with AsyncSessionLocal() as session:
+        yield session
+```
+
+**Migration Strategy:**
+- Alembic for schema migrations
+- Both sync and async SQLAlchemy support
+- Performance indexes for analytics queries
+- Composite indexes for complex queries
+
+#### Unified Configuration System
+
+All configuration is managed through `UnifiedSettings`:
+
+```python
+# backend/app/core/unified_config.py
+from app.core.config import get_settings
+
+settings = get_settings()
+
+# Access any configuration
+api_key = settings.openai_api_key
+db_url = settings.database_url
+redis_url = settings.redis_url
+
+# Environment-specific overrides
+if settings.environment == "production":
+    # Production-specific config
+    pass
+```
+
+Configuration sources (in priority order):
+1. Environment variables (`.env` file)
+2. Config files (`config/application.yaml`)
+3. Default values in `UnifiedSettings`
+
+#### Async Patterns
+
+**Recommended async patterns:**
+
+```python
+# ✅ CORRECT: Async database operations
+async def get_user_stats(user_id: int, db: AsyncSession):
+    result = await db.execute(
+        select(Application).where(Application.user_id == user_id)
+    )
+    return result.scalars().all()
+
+# ✅ CORRECT: Parallel async operations
+async def get_dashboard_data(user_id: int, db: AsyncSession):
+    # Run multiple queries in parallel
+    results = await asyncio.gather(
+        get_user_stats(user_id, db),
+        get_recent_jobs(user_id, db),
+        get_notifications(user_id, db)
+    )
+    return {
+        "stats": results[0],
+        "jobs": results[1],
+        "notifications": results[2]
+    }
+
+# ❌ WRONG: Mixing sync and async
+def bad_example(db: Session):
+    # Don't call async functions from sync code without proper handling
+    result = get_user_stats(user_id, db)  # This will fail!
+```
+
+#### Celery Background Tasks
+
+All long-running operations use Celery:
+
+```python
+# backend/app/tasks/job_ingestion_tasks.py
+from celery import shared_task
+
+@shared_task(bind=True, name="app.tasks.job_ingestion_tasks.ingest_jobs", max_retries=3)
+def ingest_jobs(self, user_ids: List[int] = None):
+    """Background job scraping task"""
+    try:
+        # Long-running job scraping logic
+        pass
+    except Exception as exc:
+        # Retry with exponential backoff
+        raise self.retry(exc=exc, countdown=60 * (2 ** self.request.retries))
+
+# Trigger from endpoint
+from app.celery import celery_app
+result = celery_app.send_task("app.tasks.job_ingestion_tasks.ingest_jobs", args=[[1, 2, 3]])
+```
+
+**Scheduled tasks** (defined in `backend/app/celery.py`):
+- Daily job scraping at 4:00 AM UTC
+- Weekly analytics report generation
+- Periodic cache cleanup
+- Database backup tasks
+
+#### Service Testing Patterns
+
+**Unit tests for services:**
+
+```python
+# backend/tests/test_analytics_service.py
+import pytest
+from app.services.analytics_service import AnalyticsService
+
+@pytest.mark.asyncio
+async def test_skill_gap_analysis(async_db: AsyncSession, test_user: User):
+    service = AnalyticsService(async_db)
+    
+    result = await service.analyze_skill_gaps(
+        user_id=test_user.id,
+        limit=10
+    )
+    
+    assert "skill_gaps" in result
+    assert "recommendations" in result
+    assert result["total_jobs_analyzed"] >= 0
+```
+
+**Integration tests:**
+
+```python
+# backend/tests/test_integration.py
+from httpx import AsyncClient
+
+@pytest.mark.asyncio
+async def test_analytics_endpoint_integration(client: AsyncClient):
+    response = await client.get("/api/v1/analytics/trends?days=30")
+    
+    assert response.status_code == 200
+    data = response.json()
+    assert "daily_trends" in data
+    assert "overall_trend" in data
+```
+
 
 ## Coding Conventions
 
