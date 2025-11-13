@@ -82,12 +82,28 @@ export function useGracefulDegradation(
 
       // Log to monitoring service
       if (logToMonitoring && process.env.NODE_ENV === 'production') {
-        // TODO: Send to Sentry or similar
-        console.error('[Error Monitoring]', {
-          error: error.message,
-          stack: error.stack,
-          critical,
-        });
+        // Send to Sentry
+        if (typeof window !== 'undefined' && (window as any).Sentry) {
+          const Sentry = (window as any).Sentry;
+          Sentry.captureException(error, {
+            level: critical ? 'error' : 'warning',
+            tags: {
+              feature: 'graceful-degradation',
+              critical: critical ? 'yes' : 'no',
+            },
+            extra: {
+              errorMessage: error.message,
+              stack: error.stack,
+            },
+          });
+        } else {
+          // Fallback to console if Sentry not loaded
+          console.error('[Error Monitoring]', {
+            error: error.message,
+            stack: error.stack,
+            critical,
+          });
+        }
       }
 
       // Call custom error handler

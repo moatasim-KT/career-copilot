@@ -8,8 +8,8 @@ for the ChromaDB vector store service.
 import asyncio
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta, timezone
-from typing import Any, Dict, List, Optional, Callable
 from enum import Enum
+from typing import Any, Callable, Dict, List, Optional
 
 from ..core.logging import get_logger
 from .chroma_client import get_chroma_client
@@ -301,9 +301,68 @@ async def log_alert(health_report: HealthReport):
 
 
 async def slack_alert(health_report: HealthReport):
-	"""Send health alerts to Slack (placeholder implementation)."""
-	# This would integrate with your Slack service
-	logger.info(f"Would send Slack alert for ChromaDB health status: {health_report.overall_status.value}")
+	"""Send health alerts to Slack webhook."""
+	import aiohttp
+
+	from ..core.config import get_settings
+
+	settings = get_settings()
+	slack_webhook_url = getattr(settings, "slack_webhook_url", None)
+
+	if not slack_webhook_url:
+		logger.debug("Slack webhook URL not configured, skipping alert")
+		return
+
+	# Determine color based on status
+	color_map = {
+		"healthy": "#36a64f",  # green
+		"warning": "#ff9900",  # orange
+		"critical": "#ff0000",  # red
+	}
+	color = color_map.get(health_report.overall_status.value, "#808080")
+
+	# Build Slack message
+	status_emoji = {
+		"healthy": "✅",
+		"warning": "⚠️",
+		"critical": "🚨",
+	}
+	emoji = status_emoji.get(health_report.overall_status.value, "i")
+
+	# Format metric details
+	metric_details = []
+	for metric in health_report.metrics:
+		status_icon = "✅" if metric.is_healthy else "❌"
+		metric_details.append(f"{status_icon} *{metric.name}*: {metric.message}")
+
+	metrics_text = "\n".join(metric_details[:10])  # Limit to 10 metrics
+
+	slack_payload = {
+		"attachments": [
+			{
+				"color": color,
+				"title": f"{emoji} ChromaDB Health Alert",
+				"text": f"*Status*: {health_report.overall_status.value.upper()}",
+				"fields": [
+					{"title": "Details", "value": metrics_text, "short": False},
+					{"title": "Timestamp", "value": health_report.timestamp.isoformat(), "short": True},
+				],
+				"footer": "Career Copilot Monitoring",
+				"ts": int(health_report.timestamp.timestamp()),
+			}
+		]
+	}
+
+	try:
+		async with aiohttp.ClientSession() as session:
+			async with session.post(slack_webhook_url, json=slack_payload) as response:
+				if response.status == 200:
+					logger.info(f"Slack alert sent successfully for ChromaDB status: {health_report.overall_status.value}")
+				else:
+					error_text = await response.text()
+					logger.error(f"Failed to send Slack alert: {response.status} - {error_text}")
+	except Exception as e:
+		logger.error(f"Error sending Slack alert: {e!s}")
 
 
 # Global health monitor instance
