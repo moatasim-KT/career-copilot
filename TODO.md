@@ -18,12 +18,13 @@ The following consolidation and build optimization phases (`Phase 0` and `Phase 
 - [x] `[consolidation]` `[backend]` Update import statements across the codebase after service consolidation.
 - [x] `[consolidation]` `[backend]` Fix all remaining import issues (83/83 production services now import successfully; test files excluded).
 
-### 0.2. API Route Cleanup
-- [] `[consolidation]` `[backend]` Audit all API endpoints for duplication (across analytics and notifications routes).
-- [] `[consolidation]` `[backend]` Merge analytics routes into a single, unified `analytics.py` file.
-- [] `[consolidation]` `[backend]` Consolidate notification routes (unify, ensure proper versioning).
-- [] `[consolidation]` `[backend]` Remove deprecated route versions.
-- [] `[consolidation]` `[backend]` Update OpenAPI documentation after route consolidation.
+### 0.2. API Route Cleanup ✅ COMPLETED
+- [x] `[consolidation]` `[backend]` Audit all API endpoints for duplication (across analytics and notifications routes). **(Completed: Phases 1-3, 6)**
+- [x] `[consolidation]` `[backend]` Merge analytics routes into a single, unified `analytics.py` file. **(Completed: Phase 1.1)**
+- [x] `[consolidation]` `[backend]` Consolidate notification routes (unify, ensure proper versioning). **(Completed: Phase 1.3)**
+- [x] `[consolidation]` `[backend]` Remove deprecated route versions. **(Completed: Phase 3.3 - removed 5 orphaned routes)**
+- [x] `[consolidation]` `[backend]` Remove orphaned services and dead code. **(Completed: Phases 2-6 - removed 5 orphaned services, 169 lines)**
+- [ ] `[consolidation]` `[backend]` Update OpenAPI documentation after route consolidation.
 
 ## Phase 0.5: Build Optimization (Week 3)
 **Objective:** Significantly reduce frontend build times and bundle size, improving developer productivity and user experience.
