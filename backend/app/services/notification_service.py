@@ -473,24 +473,115 @@ class UnifiedNotificationService:
 		return True
 
 	async def _generate_morning_briefing_content(self, user_id: int) -> Dict[str, Any]:
-		"""Generate morning briefing content."""
-		# Placeholder implementation
-		return {
-			"greeting": "Good morning!",
-			"job_matches": 5,
-			"applications_due": 2,
-			"interviews_scheduled": 1,
-		}
+		"""Generate morning briefing content with real user data."""
+		from datetime import date, timedelta
+		from sqlalchemy import select, and_, func
+		from ..models.interview import InterviewSession, InterviewStatus
+		from ..core.database import get_db
+		
+		# Use sync database session
+		db = next(get_db())
+		try:
+			# Count new job matches (jobs added in last 24 hours)
+			yesterday = datetime.utcnow() - timedelta(days=1)
+			job_matches = db.execute(
+				select(func.count(Job.id))
+				.where(and_(Job.user_id == user_id, Job.created_at >= yesterday))
+			).scalar() or 0
+			
+			# Count applications with upcoming follow-ups (next 3 days)
+			today = date.today()
+			three_days_out = today + timedelta(days=3)
+			applications_due = db.execute(
+				select(func.count(Application.id))
+				.where(and_(
+					Application.user_id == user_id,
+					Application.follow_up_date >= today,
+					Application.follow_up_date <= three_days_out
+				))
+			).scalar() or 0
+			
+			# Count scheduled interviews (today and future)
+			interviews_scheduled = db.execute(
+				select(func.count(Application.id))
+				.where(and_(
+					Application.user_id == user_id,
+					Application.interview_date >= datetime.utcnow(),
+					Application.status == "interview"
+				))
+			).scalar() or 0
+			
+			# Personalized greeting based on time
+			hour = datetime.now().hour
+			if hour < 12:
+				greeting = "Good morning! ☀️"
+			elif hour < 17:
+				greeting = "Good afternoon! 👋"
+			else:
+				greeting = "Good evening! 🌙"
+			
+			return {
+				"greeting": greeting,
+				"job_matches": job_matches,
+				"applications_due": applications_due,
+				"interviews_scheduled": interviews_scheduled,
+			}
+		finally:
+			db.close()
 
 	async def _generate_evening_update_content(self, user_id: int) -> Dict[str, Any]:
-		"""Generate evening update content."""
-		# Placeholder implementation
-		return {
-			"summary": "Here's your daily activity summary",
-			"new_jobs": 3,
-			"applications_submitted": 1,
-			"responses_received": 2,
-		}
+		"""Generate evening update content with real daily statistics."""
+		from datetime import date
+		from sqlalchemy import select, and_, func
+		from ..core.database import get_db
+		
+		# Use sync database session
+		db = next(get_db())
+		try:
+			today = date.today()
+			
+			# Count new jobs added today
+			new_jobs = db.execute(
+				select(func.count(Job.id))
+				.where(and_(
+					Job.user_id == user_id,
+					func.date(Job.created_at) == today
+				))
+			).scalar() or 0
+			
+			# Count applications submitted today
+			applications_submitted = db.execute(
+				select(func.count(Application.id))
+				.where(and_(
+					Application.user_id == user_id,
+					Application.applied_date == today,
+					Application.status.in_(["applied", "interview", "offer"])
+				))
+			).scalar() or 0
+			
+			# Count responses received today (status changed to interview, offer, or rejected)
+			responses_received = db.execute(
+				select(func.count(Application.id))
+				.where(and_(
+					Application.user_id == user_id,
+					Application.response_date == today
+				))
+			).scalar() or 0
+			
+			# Generate summary message
+			if new_jobs > 0 or applications_submitted > 0 or responses_received > 0:
+				summary = f"You've had a productive day with {new_jobs} new matches and {applications_submitted} applications!"
+			else:
+				summary = "No new activity today, but tomorrow is a fresh start! 💪"
+			
+			return {
+				"summary": summary,
+				"new_jobs": new_jobs,
+				"applications_submitted": applications_submitted,
+				"responses_received": responses_received,
+			}
+		finally:
+			db.close()
 
 	async def _get_email_service(self):
 		"""Lazy load email service."""

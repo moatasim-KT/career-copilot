@@ -474,18 +474,17 @@ class TemplateService:
 		if not template:
 			raise HTTPException(status_code=404, detail="Template not found")
 
-		# Basic analysis (in a real implementation, this would use ML/NLP)
-		analysis = TemplateAnalysis(
-			ats_compatibility=85,  # Placeholder score
-			readability_score=90,  # Placeholder score
-			keyword_density={},
-			suggestions=[
-				"Consider adding more quantified achievements",
-				"Include relevant industry keywords",
-				"Ensure consistent formatting throughout",
-			],
-			missing_sections=[],
-		)
+		# Calculate ATS compatibility score (0-100)
+		ats_score = self._calculate_ats_score(template)
+		
+		# Calculate readability score (0-100)
+		readability_score = self._calculate_readability_score(template)
+		
+		# Extract keyword density
+		keyword_density = self._extract_keyword_density(template)
+		
+		# Generate suggestions based on analysis
+		suggestions = self._generate_suggestions(template, ats_score, readability_score)
 
 		# Check for common sections
 		sections = template.template_structure.get("sections", [])
@@ -493,9 +492,122 @@ class TemplateService:
 
 		recommended_sections = ["header", "summary", "experience", "skills", "education"]
 		missing = [section for section in recommended_sections if section not in section_ids]
-		analysis.missing_sections = missing
+
+		analysis = TemplateAnalysis(
+			ats_compatibility=ats_score,
+			readability_score=readability_score,
+			keyword_density=keyword_density,
+			suggestions=suggestions,
+			missing_sections=missing,
+		)
 
 		return analysis
+	
+	def _calculate_ats_score(self, template) -> int:
+		"""Calculate ATS compatibility score based on resume structure and content"""
+		score = 100
+		sections = template.template_structure.get("sections", [])
+		content = str(template.template_structure)
+		
+		# Penalize for missing critical sections (-15 points each)
+		required_sections = {"header", "experience", "skills"}
+		section_ids = {section.get("id", "") for section in sections}
+		missing_required = required_sections - section_ids
+		score -= len(missing_required) * 15
+		
+		# Penalize for complex formatting that ATS can't parse (-10 points)
+		if "table" in content.lower() or "column" in content.lower():
+			score -= 10
+		
+		# Penalize for images/graphics in main content (-5 points)
+		if "image" in content.lower() or "graphic" in content.lower():
+			score -= 5
+		
+		# Bonus for standard section names (+5 points)
+		standard_names = ["experience", "education", "skills", "summary"]
+		if any(name in section_ids for name in standard_names):
+			score += 5
+		
+		# Bonus for bullet points (ATS-friendly) (+5 points)
+		if "•" in content or "bullet" in content.lower():
+			score += 5
+		
+		return max(0, min(100, score))
+	
+	def _calculate_readability_score(self, template) -> int:
+		"""Calculate readability score based on content structure"""
+		score = 100
+		sections = template.template_structure.get("sections", [])
+		
+		# Penalize for too many sections (-5 points per excess section)
+		if len(sections) > 8:
+			score -= (len(sections) - 8) * 5
+		
+		# Penalize for missing section headers (-10 points)
+		sections_without_headers = sum(1 for s in sections if not s.get("title"))
+		score -= sections_without_headers * 10
+		
+		# Bonus for consistent structure (+10 points)
+		has_consistent_fields = all("fields" in s for s in sections)
+		if has_consistent_fields:
+			score += 10
+		
+		# Bonus for proper hierarchy (+5 points)
+		if len(sections) >= 3:
+			score += 5
+		
+		return max(0, min(100, score))
+	
+	def _extract_keyword_density(self, template) -> Dict[str, float]:
+		"""Extract keyword frequency from template content"""
+		content = str(template.template_structure).lower()
+		
+		# Common keywords to track
+		keywords = ["experience", "skills", "education", "project", "achievement", 
+		           "leadership", "team", "management", "development", "analysis"]
+		
+		keyword_density = {}
+		word_count = len(content.split())
+		
+		for keyword in keywords:
+			count = content.count(keyword)
+			if count > 0:
+				density = round((count / word_count) * 100, 2)
+				keyword_density[keyword] = density
+		
+		return keyword_density
+	
+	def _generate_suggestions(self, template, ats_score: int, readability_score: int) -> List[str]:
+		"""Generate improvement suggestions based on scores"""
+		suggestions = []
+		sections = template.template_structure.get("sections", [])
+		section_ids = [s.get("id", "") for s in sections]
+		
+		# ATS-related suggestions
+		if ats_score < 70:
+			suggestions.append("Improve ATS compatibility by using standard section names")
+			suggestions.append("Avoid complex tables and graphics that ATS systems can't parse")
+		
+		if "experience" not in section_ids:
+			suggestions.append("Add an 'Experience' section to highlight your work history")
+		
+		if "skills" not in section_ids:
+			suggestions.append("Add a 'Skills' section with relevant technical and soft skills")
+		
+		# Readability suggestions
+		if readability_score < 70:
+			suggestions.append("Simplify template structure for better readability")
+			suggestions.append("Ensure all sections have clear headers")
+		
+		if len(sections) > 8:
+			suggestions.append("Consider consolidating sections for a more focused resume")
+		
+		# General suggestions
+		suggestions.append("Use quantified achievements (e.g., 'Increased sales by 30%')")
+		suggestions.append("Include relevant industry keywords throughout your resume")
+		suggestions.append("Keep formatting consistent across all sections")
+		
+		return suggestions[:5]  # Return top 5 suggestions
 
 	def get_template_usage_stats(self, template_id: int, user_id: Optional[int] = None) -> TemplateUsageStats:
 		"""Get usage statistics for a template"""
