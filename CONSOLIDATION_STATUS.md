@@ -2,7 +2,7 @@
 
 **Date:** November 13, 2025  
 **Branch:** features-consolidation  
-**Status:** Phase 1.2 Complete - Analytics Services Consolidated ✅
+**Status:** Phase 1.3 Complete - Notification Routes Consolidated ✅
 
 ## Progress Summary
 
@@ -35,7 +35,7 @@ See [[analytics-routes-consolidation-summary]] for full details.
 
 #### Phase 1.2: Analytics Services Consolidation (COMPLETE)
 **Date Completed:** November 13, 2025  
-**Commit:** 98bf92a
+**Commit:** 98bf92a, 705a7f9
 
 **Results:**
 - ✅ Consolidated 6 duplicate analytics services into single AnalyticsService
@@ -45,6 +45,7 @@ See [[analytics-routes-consolidation-summary]] for full details.
 - ✅ Updated all imports and tests
 - ✅ All 28 analytics API routes still working
 - ✅ Backward compatibility maintained
+- ✅ Auto-formatted with consistent indentation
 
 **Services Removed (5 files):**
 - `analytics_processing_service.py` (316 lines)
@@ -66,6 +67,44 @@ See [[analytics-routes-consolidation-summary]] for full details.
 - Reduction: 1,302 lines (47% saved)
 
 See [[analytics-services-consolidation-summary]] for full details.
+
+#### Phase 1.3: Notification Routes Consolidation (COMPLETE)
+**Date Completed:** November 13, 2025  
+**Commit:** 80bc278
+
+**Results:**
+- ✅ Merged 2 notification route files into 1 canonical implementation
+- ✅ Eliminated 54 lines of duplicate code (7.2% reduction) + 1 file removed
+- ✅ Fixed naming violation (removed v2 suffix)
+- ✅ Organized 21 endpoints into 7 logical sections
+- ✅ All functionality preserved (CRUD, bulk ops, preferences, opt-in/out, testing, statistics)
+- ✅ Backward compatibility maintained with legacy endpoints
+- ✅ Added deprecation warnings for legacy paths
+- ✅ Updated main.py with router registration
+
+**Files Removed:**
+- `backend/app/api/v1/notifications_v2.py` (naming violation - v2 suffix)
+
+**Files Updated:**
+- `backend/app/api/v1/notifications.py` (canonical - 692 lines, 21 endpoints)
+- `backend/app/main.py` (added notifications router import and registration)
+
+**Endpoint Organization:**
+- Section 1: CRUD Operations (5 endpoints)
+- Section 2: Bulk Operations (4 endpoints)
+- Section 3: Notification Preferences (3 endpoints)
+- Section 4: Opt-In/Opt-Out Controls (3 endpoints)
+- Section 5: Scheduled Notification Testing (2 endpoints)
+- Section 6: Statistics (2 endpoints: user + admin)
+- Section 7: Legacy Endpoints (3 deprecated endpoints with warnings)
+
+**Code Reduction:**
+- Before: 746 lines across 2 files
+- After: 692 lines in 1 file
+- Reduction: 54 lines (7.2%) + eliminated 1 file
+- Naming violations: -1 (v2 suffix removed)
+
+See [[notification-routes-consolidation-summary]] for full details.
 
 ---
 
@@ -94,7 +133,20 @@ See [[analytics-services-consolidation-summary]] for full details.
 
 **Status:** ✅ COMPLETE - Single source of truth established
 
-### 2. Massive Duplication Confirmed
+### 2. Notification System - FULLY CONSOLIDATED ✅
+
+**Route Files:**
+- ✅ `backend/app/api/v1/notifications.py` (canonical - 692 lines, 21 endpoints)
+- ✅ No duplicates remaining
+- ✅ No naming violations
+
+**Service Files:**
+- ✅ `scheduled_notification_service.py` (scheduled notifications)
+- ✅ Various notification support services maintained
+
+**Status:** ✅ COMPLETE - Single canonical routes file, all features preserved
+
+### 3. Massive Duplication Confirmed
 
 #### Job Management (NEXT TARGET)
 - **Services:** 7+ job-related services with significant overlap
