@@ -1,3 +1,5 @@
+import { logger } from '@/lib/logger';
+
 /**
  * WebSocket Service with Auto-Reconnection
  * 
@@ -53,7 +55,7 @@ export class WebSocketService {
      */
     connect(token: string): void {
         if (this.ws && this.connected) {
-            console.warn('WebSocket already connected');
+            logger.warn('WebSocket already connected');
             return;
         }
 
@@ -65,7 +67,7 @@ export class WebSocketService {
             this.ws = new WebSocket(wsUrl);
 
             this.ws.onopen = () => {
-                console.log('WebSocket connected');
+                logger.info('WebSocket connected');
                 this.connected = true;
                 this.reconnectAttempts = 0;
                 this.startHeartbeat();
@@ -77,12 +79,12 @@ export class WebSocketService {
                     const data = JSON.parse(event.data);
                     this.handleMessage(data);
                 } catch (error) {
-                    console.error('Failed to parse WebSocket message:', error);
+                    logger.error('Failed to parse WebSocket message:', error);
                 }
             };
 
             this.ws.onclose = (event) => {
-                console.log('WebSocket closed:', event.code, event.reason);
+                logger.info('WebSocket closed:', event.code, event.reason);
                 this.connected = false;
                 this.stopHeartbeat();
                 this.notifyDisconnectHandlers();
@@ -93,14 +95,14 @@ export class WebSocketService {
             };
 
             this.ws.onerror = (event) => {
-                console.error('WebSocket error:', event);
+                logger.error('WebSocket error:', event);
                 this.notifyErrorHandlers(event);
 
                 // Connection will be retried in onclose
                 this.connected = false;
             };
         } catch (error) {
-            console.error('Failed to create WebSocket:', error);
+            logger.error('Failed to create WebSocket:', error);
             this.reconnect();
         }
     }
@@ -126,7 +128,7 @@ export class WebSocketService {
      */
     send(type: string, data: any = {}): void {
         if (!this.ws || !this.connected) {
-            console.warn('WebSocket not connected, cannot send message');
+            logger.warn('WebSocket not connected, cannot send message');
             return;
         }
 
@@ -134,7 +136,7 @@ export class WebSocketService {
             const message = JSON.stringify({ type, data });
             this.ws.send(message);
         } catch (error) {
-            console.error('Failed to send WebSocket message:', error);
+            logger.error('Failed to send WebSocket message:', error);
         }
     }
 
@@ -218,7 +220,7 @@ export class WebSocketService {
                 try {
                     handler(payload);
                 } catch (error) {
-                    console.error(`Error in message handler for type "${type}":`, error);
+                    logger.error(`Error in message handler for type "${type}":`, error);
                 }
             });
         }
@@ -230,7 +232,7 @@ export class WebSocketService {
                 try {
                     handler(data);
                 } catch (error) {
-                    console.error('Error in wildcard message handler:', error);
+                    logger.error('Error in wildcard message handler:', error);
                 }
             });
         }
@@ -245,7 +247,7 @@ export class WebSocketService {
         }
 
         if (this.reconnectAttempts >= this.config.maxReconnectAttempts) {
-            console.error('Max reconnection attempts reached');
+            logger.error('Max reconnection attempts reached');
             this.notifyErrorHandlers(new Event('max_reconnect_attempts'));
             return;
         }
@@ -256,7 +258,7 @@ export class WebSocketService {
             this.config.maxReconnectDelay,
         );
 
-        console.log(`Reconnecting in ${delay}ms (attempt ${this.reconnectAttempts + 1}/${this.config.maxReconnectAttempts})`);
+        logger.info(`Reconnecting in ${delay}ms (attempt ${this.reconnectAttempts + 1}/${this.config.maxReconnectAttempts})`);
 
         this.reconnectTimer = setTimeout(() => {
             this.reconnectAttempts++;
@@ -307,7 +309,7 @@ export class WebSocketService {
             try {
                 handler();
             } catch (error) {
-                console.error('Error in connect handler:', error);
+                logger.error('Error in connect handler:', error);
             }
         });
     }
@@ -320,7 +322,7 @@ export class WebSocketService {
             try {
                 handler();
             } catch (error) {
-                console.error('Error in disconnect handler:', error);
+                logger.error('Error in disconnect handler:', error);
             }
         });
     }
@@ -333,7 +335,7 @@ export class WebSocketService {
             try {
                 handler(error);
             } catch (handlerError) {
-                console.error('Error in error handler:', handlerError);
+                logger.error('Error in error handler:', handlerError);
             }
         });
     }

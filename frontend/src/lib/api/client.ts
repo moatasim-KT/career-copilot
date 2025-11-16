@@ -7,13 +7,14 @@
  * @module lib/api/client
  */
 
+import { logger } from '@/lib/logger';
+
 import {
-    classifyError,
-    getErrorMessage,
     handleError,
     retryWithBackoff,
-    shouldRetry,
 } from '../errorHandling';
+
+export type { Job as JobResponse, Application as ApplicationResponse } from './api';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8002';
 const API_VERSION = '/api/v1';
@@ -97,15 +98,12 @@ async function fetchApi<T = any>(
 
                     if (!response.ok) {
                         const error: any = new Error(
-                            (data as any)?.detail || `HTTP ${response.status}: ${response.statusText}`
+                            (data as any)?.detail || `HTTP ${response.status}: ${response.statusText}`,
                         );
                         error.status = response.status;
                         error.response = { status: response.status, data };
 
                         // Intercept and handle specific errors
-                        const errorType = classifyError(error);
-                        const errorMessage = getErrorMessage(error);
-
                         // Handle authentication errors
                         if (response.status === 401) {
                             handleError(error, {
@@ -171,9 +169,9 @@ async function fetchApi<T = any>(
             (attemptNumber, error) => {
                 // Log retry attempts in development
                 if (process.env.NODE_ENV === 'development') {
-                    console.log(`Retry attempt ${attemptNumber} for ${endpoint}`, error);
+                    logger.info(`Retry attempt ${attemptNumber} for ${endpoint}`, error);
                 }
-            }
+            },
         );
     } catch (error: any) {
         // Final error after all retries
@@ -209,10 +207,11 @@ export const apiClient = {
         logout: () =>
             fetchApi('/auth/logout', {
                 method: 'POST',
+                requiresAuth: true,
             }),
 
         me: () =>
-            fetchApi('/auth/me'),
+            fetchApi('/auth/me', { requiresAuth: true }),
     },
 
     // ============================================================================
@@ -296,10 +295,14 @@ export const apiClient = {
         algorithmInfo: () =>
             fetchApi('/recommendations/algorithm-info'),
 
-        feedback: (jobId: number, userId: number, isPositive: boolean, reason?: string) =>
+        feedback: (jobId: number, isPositive: boolean, reason?: string) =>
             fetchApi(`/recommendations/${jobId}/feedback`, {
                 method: 'POST',
-                body: JSON.stringify({ user_id: userId, is_positive: isPositive, reason }),
+                body: JSON.stringify({
+                    is_positive: isPositive,
+                    reason,
+                }),
+                requiresAuth: true,
             }),
     },
 
@@ -308,21 +311,23 @@ export const apiClient = {
     // ============================================================================
     personalization: {
         getPreferences: (userId: number) =>
-            fetchApi(`/users/${userId}/preferences`),
+            fetchApi(`/users/${userId}/preferences`, { requiresAuth: true }),
 
         updatePreferences: (userId: number, preferences: any) =>
             fetchApi(`/users/${userId}/preferences`, {
                 method: 'PUT',
                 body: JSON.stringify(preferences),
+                requiresAuth: true,
             }),
 
         getBehavior: (userId: number) =>
-            fetchApi(`/users/${userId}/behavior`),
+            fetchApi(`/users/${userId}/behavior`, { requiresAuth: true }),
 
         trackBehavior: (userId: number, action: string, jobId: string) =>
             fetchApi(`/users/${userId}/behavior`, {
                 method: 'POST',
                 body: JSON.stringify({ action, job_id: jobId }),
+                requiresAuth: true,
             }),
     },
 
@@ -416,5 +421,8 @@ export const SocialService = apiClient.social;
 export const AnalyticsService = apiClient.analytics;
 export const UserService = apiClient.user;
 export const HealthService = apiClient.health;
+
+// Export fetchApi for direct use when needed
+export { fetchApi };
 
 export default apiClient;

@@ -6,7 +6,6 @@
 'use client';
 
 import { formatDistanceToNow } from 'date-fns';
-import { motion, AnimatePresence } from 'framer-motion';
 import {
   Bell,
   X,
@@ -19,6 +18,7 @@ import Link from 'next/link';
 import { useState, useRef, useEffect } from 'react';
 
 import { useRoutePrefetch } from '@/hooks/useRoutePrefetch';
+import { m, AnimatePresence } from '@/lib/motion';
 import {
   getCategoryIcon,
   getCategoryColor,
@@ -125,7 +125,7 @@ function NotificationItem({
   };
 
   return (
-    <motion.div
+    <m.div
       initial={{ opacity: 0, y: -10 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, x: 20 }}
@@ -220,7 +220,7 @@ function NotificationItem({
           )}
         </div>
       </div>
-    </motion.div>
+    </m.div>
   );
 }
 
@@ -300,20 +300,20 @@ export default function NotificationCenter({ className }: NotificationCenterProp
         
         {/* Unread Badge */}
         {unreadCount > 0 && (
-          <motion.span
+          <m.span
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
             className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs font-bold rounded-full flex items-center justify-center"
           >
             {unreadCount > 9 ? '9+' : unreadCount}
-          </motion.span>
+          </m.span>
         )}
       </button>
 
       {/* Dropdown Panel */}
       <AnimatePresence>
         {isOpen && (
-          <motion.div
+          <m.div
             ref={dropdownRef}
             initial={{ opacity: 0, y: -10, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -394,7 +394,7 @@ export default function NotificationCenter({ className }: NotificationCenterProp
                 </Link>
               </div>
             )}
-          </motion.div>
+          </m.div>
         )}
       </AnimatePresence>
     </div>
