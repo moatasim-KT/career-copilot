@@ -407,6 +407,147 @@ export const apiClient = {
         comprehensive: () =>
             fetchApi('/health/comprehensive', { requiresAuth: false }),
     },
+
+    // ============================================================================
+    // Calendar Integration
+    // ============================================================================
+    calendar: {
+        // OAuth Authorization
+        getAuthUrl: (provider: 'google' | 'outlook', redirectUri: string) =>
+            fetchApi(`/calendar/oauth/${provider}/authorize`, {
+                params: { redirect_uri: redirectUri },
+                requiresAuth: true,
+            }),
+
+        handleCallback: (provider: 'google' | 'outlook', code: string, redirectUri: string) =>
+            fetchApi(`/calendar/oauth/${provider}/callback`, {
+                method: 'POST',
+                body: JSON.stringify({ code, redirect_uri: redirectUri }),
+                requiresAuth: true,
+            }),
+
+        disconnect: (provider: 'google' | 'outlook') =>
+            fetchApi(`/calendar/credentials/${provider}`, {
+                method: 'DELETE',
+                requiresAuth: true,
+            }),
+
+        getCredentials: () =>
+            fetchApi('/calendar/credentials', { requiresAuth: true }),
+
+        // Event Management
+        createEvent: (data: {
+            application_id?: number;
+            title: string;
+            description?: string;
+            location?: string;
+            start_time: string;
+            end_time: string;
+            timezone?: string;
+            reminder_15min?: boolean;
+            reminder_1hour?: boolean;
+            reminder_1day?: boolean;
+            provider: 'google' | 'outlook';
+        }) =>
+            fetchApi('/calendar/events', {
+                method: 'POST',
+                body: JSON.stringify(data),
+                requiresAuth: true,
+            }),
+
+        listEvents: (params?: { application_id?: number; skip?: number; limit?: number }) =>
+            fetchApi('/calendar/events', { params, requiresAuth: true }),
+
+        getEvent: (id: number) =>
+            fetchApi(`/calendar/events/${id}`, { requiresAuth: true }),
+
+        updateEvent: (id: number, data: {
+            title?: string;
+            description?: string;
+            location?: string;
+            start_time?: string;
+            end_time?: string;
+            timezone?: string;
+            reminder_15min?: boolean;
+            reminder_1hour?: boolean;
+            reminder_1day?: boolean;
+        }) =>
+            fetchApi(`/calendar/events/${id}`, {
+                method: 'PATCH',
+                body: JSON.stringify(data),
+                requiresAuth: true,
+            }),
+
+        deleteEvent: (id: number) =>
+            fetchApi(`/calendar/events/${id}`, {
+                method: 'DELETE',
+                requiresAuth: true,
+            }),
+    },
+
+    // ============================================================================
+    // Dashboard Customization
+    // ============================================================================
+    dashboard: {
+        getLayout: () =>
+            fetchApi('/dashboard/layout', { requiresAuth: true }),
+
+        saveLayout: (layoutConfig: {
+            widgets: Array<{
+                i: string;
+                x: number;
+                y: number;
+                w: number;
+                h: number;
+                minW?: number;
+                minH?: number;
+                maxW?: number;
+                maxH?: number;
+                static?: boolean;
+                visible?: boolean;
+            }>;
+            columns?: number;
+            rowHeight?: number;
+            breakpoints?: { lg: number; md: number; sm: number; xs: number };
+            cols?: { lg: number; md: number; sm: number; xs: number };
+        }) =>
+            fetchApi('/dashboard/layout', {
+                method: 'POST',
+                body: JSON.stringify({ layout_config: layoutConfig }),
+                requiresAuth: true,
+            }),
+
+        updateLayout: (layoutConfig: Partial<{
+            widgets: Array<{
+                i: string;
+                x: number;
+                y: number;
+                w: number;
+                h: number;
+                minW?: number;
+                minH?: number;
+                maxW?: number;
+                maxH?: number;
+                static?: boolean;
+                visible?: boolean;
+            }>;
+            columns?: number;
+            rowHeight?: number;
+            breakpoints?: { lg: number; md: number; sm: number; xs: number };
+            cols?: { lg: number; md: number; sm: number; xs: number };
+        }>) =>
+            fetchApi('/dashboard/layout', {
+                method: 'PATCH',
+                body: JSON.stringify({ layout_config: layoutConfig }),
+                requiresAuth: true,
+            }),
+
+        resetLayout: () =>
+            fetchApi('/dashboard/layout', {
+                method: 'DELETE',
+                requiresAuth: true,
+            }),
+    },
 };
 
 /**
@@ -421,6 +562,8 @@ export const SocialService = apiClient.social;
 export const AnalyticsService = apiClient.analytics;
 export const UserService = apiClient.user;
 export const HealthService = apiClient.health;
+export const CalendarService = apiClient.calendar;
+export const DashboardService = apiClient.dashboard;
 
 // Export fetchApi for direct use when needed
 export { fetchApi };
