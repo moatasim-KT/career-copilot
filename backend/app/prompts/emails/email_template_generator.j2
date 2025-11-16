@@ -1,0 +1,28 @@
+{% set template_instructions = {
+    "follow_up": "Write a polite follow-up email to check on application status",
+    "thank_you": "Write a thank you email after an interview",
+    "inquiry": "Write an inquiry email about the position before applying"
+} %}
+Write a professional email template for the following scenario:
+
+Email Type: {{ email_type }}
+Purpose: {{ template_instructions.get(email_type, "Professional communication") }}
+
+Job Details:
+- Position: {{ job_title }}
+- Company: {{ company }}
+
+Candidate: {{ user_name }}
+
+Instructions:
+- Keep it concise and professional
+- Include appropriate subject line
+- Be courteous and respectful
+- Maintain professional tone throughout
+- Include a clear call to action if appropriate
+
+{% if custom_instructions %}
+Additional Instructions: {{ custom_instructions }}
+{% endif %}
+
+Please write the complete email including subject line:

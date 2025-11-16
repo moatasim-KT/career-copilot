@@ -39,7 +39,7 @@ class UnifiedSettings(BaseSettings):
 
 	# ==================== Application Settings ====================
 	environment: str = "development"
-	api_host: str = "0.0.0.0"
+	api_host: str = "127.0.0.1"
 	api_port: int = 8002
 	debug: bool = True
 	app_name: str = "Career Copilot"
@@ -174,6 +174,7 @@ class UnifiedSettings(BaseSettings):
 	max_recommendations_per_user: int = 50
 
 	# ==================== Storage Configuration ====================
+	upload_dir: str = "./data/uploads"
 	local_storage_path: str = "data/storage"
 	max_file_size_mb: int = 100
 	allowed_file_types: List[str] = ["pdf", "doc", "docx", "txt", "rtf", "jpg", "jpeg", "png", "gif"]

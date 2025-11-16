@@ -4,17 +4,46 @@ This guide provides technical documentation for developers working on Career Cop
 
 ## Related Documents
 
-- [[../README.md]] - Project overview and setup
-- [[../TODO.md]] - Current development tasks
-- [[../PLAN.md]] - Implementation plan
-- [[../CONTRIBUTING.md]] - Contribution guidelines
-- [[USER_GUIDE.md]] - User documentation
-- [[FRONTEND_QUICK_START.md]] - Frontend development setup
+**Getting Started**:
+- [[career-copilot/README|Project README]] - Project overview
+- [[LOCAL_SETUP]] - Local development setup
+- [[PROJECT_STATUS]] - Architecture and current status
+- [[career-copilot/CONTRIBUTING|Contributing Guidelines]] - Contribution guidelines
+
+**Architecture & Design**:
+- [[docs/index|Documentation Hub]] - Documentation hub
+- [[ARCHITECTURE]] - System architecture
+- [[database-schema]] - Database schema
+- [[job-services-architecture]] - Job services architecture
+- [[security-architecture]] - Security architecture
+- [[API]] - API reference
+
+**Development**:
+- [[backend/README|Backend README]] - Backend development guide
+- [[frontend/README|Frontend README]] - Frontend development guide
+- [[DEVELOPMENT]] - Development workflow
+- [[testing-strategies]] - Testing strategies
+- [[code-patterns]] - Code patterns
+
+**Setup & Configuration**:
+- [[INSTALLATION]] - Installation guide
+- [[CONFIGURATION]] - Configuration guide
+- [[FRONTEND_QUICK_START]] - Frontend quick start
+
+**Troubleshooting**:
+- [[COMMON_ISSUES]] - Common issues
+- [[RUNBOOK]] - Runbook
+
+**User Documentation**:
+- [[USER_GUIDE]] - User guide
+- [[DEMO_VIDEO_GUIDE]] - Demo guide
 
 ## Table of Contents
 
+- [Development Environment](#development-environment)
 - [Project Structure](#project-structure)
 - [Architecture Overview](#architecture-overview)
+- [Development Tools & Scripts](#development-tools--scripts)
 - [Coding Conventions](#coding-conventions)
 - [Component Patterns](#component-patterns)
 - [State Management](#state-management)
@@ -22,6 +51,52 @@ This guide provides technical documentation for developers working on Career Cop
 - [Testing Guidelines](#testing-guidelines)
 - [Performance Optimization](#performance-optimization)
 - [Deployment](#deployment)
+
+## Development Environment
+
+### Quick Start (Docker)
+
+```bash
+docker-compose up -d
+```
+
+This command bootstraps PostgreSQL, Redis, the FastAPI backend, Celery workers, and the Next.js frontend using the production-like configuration defined in `docker-compose.yml`. Use `docker-compose logs -f <service>` to inspect any container.
+
+### Local Development Workflow
+
+```bash
+make install       # Python deps + pre-commit + frontend deps
+make dev-setup     # Installs hooks, seeds demo data, runs quality fixers
+
+# Backend only
+cd backend && uvicorn app.main:app --reload --port 8000
+
+# Frontend only
+cd frontend && npm run dev
+
+# Celery workers (background tasks + scheduler)
+celery -A app.core.celery_app worker --loglevel=info --concurrency=2
+celery -A app.core.celery_app beat --loglevel=info
+```
+
+### Quality & Security Gates
+
+- `make quality-check` – Runs linting, type-checking, and `make security`.
+- `make ci-check` – Executes the full CI matrix (quality + backend/frontend tests).
+- `make security` – Bandit, Safety, `pip-audit`, Semgrep, and `npm audit` (outputs JSON artifacts in `reports/`).
+- `pre-commit install` – Ensures Ruff (lint+format) and ESLint hooks gate every commit locally.
+
+### Design System Guardrails
+
+- Reuse tokens from `frontend/src/app/globals.css` and helper exports in `frontend/src/lib/designTokens.ts`.
+- Prefer the shadcn-inspired primitives in `frontend/src/components/ui/`.
+- All net-new interactive elements should use `Button2`; panels/containers must use `Card2` to inherit animations, elevation, and density tokens.
+
+### AI & Feature Configuration
+
+- LLM routing, rate limits, and provider priorities live in `config/llm_config.json` and are accessed via `app.services.llm_service.LLMService`.
+- Feature flags live in `config/feature_flags.json`; use `app.core.feature_flags` helpers rather than environment branching.
+- When adding secrets or provider keys, update `.env.example` and the appropriate entry in `UnifiedSettings` (`backend/app/core/unified_config.py`).
 
 ## Project Structure
 
@@ -76,7 +151,7 @@ career-copilot/
 ├── docs/                       # Documentation
 ├── config/                     # Configuration files
 ├── deployment/                 # Deployment configs
-├── scripts/                    # Utility scripts
+├── scripts/                    # Utility scripts ([[../scripts/README|Scripts Directory]])
 └── docker-compose.yml          # Docker Compose configuration
 ```
 
@@ -270,6 +345,87 @@ async def startup_event():
 @router.get("/analytics/trends")
 async def get_trends(db: Session = Depends(get_db)):
     # Service instances are accessed via get_instance()
+```
+
+## Development Tools & Scripts
+
+Career Copilot includes a comprehensive suite of development utilities to automate common tasks.
+
+**Complete Scripts Documentation**: [[../scripts/README|Scripts Directory]]
+
+### Analysis Tools
+
+- **[[../scripts/analyze_api_endpoints.py|API Endpoint Analyzer]]** - Generates comprehensive API documentation from FastAPI routes
+  ```bash
+  python scripts/analyze_api_endpoints.py
+  # Output: reports/endpoint_map.json
+  ```
+
+- **[[../scripts/analyze_database_schema.py|Database Schema Analyzer]]** - Creates ERD diagrams and schema documentation
+  ```bash
+  python scripts/analyze_database_schema.py
+  # Output: docs/architecture/database-schema.md
+  ```
+
+- **[[../scripts/analyze-components.ts|Component Analyzer]]** - Analyzes React component structure and dependencies
+  ```bash
+  npm run analyze-components
+  ```
+
+### Code Generation
+
+- **[[../scripts/generate_openapi_docs.py|OpenAPI Generator]]** - Generates OpenAPI 3.0 specification
+  ```bash
+  python scripts/generate_openapi_docs.py
+  # Output: frontend/openapi.json
+  ```
+
+- **[[../scripts/create_missing_routers.py|Router Scaffolder]]** - Creates missing API router boilerplate
+  ```bash
+  python scripts/create_missing_routers.py
+  ```
+
+### Documentation Tools
+
+- **[[../scripts/check_wikilinks.py|WikiLink Validator]]** - Validates documentation links and network health
+  ```bash
+  python scripts/check_wikilinks.py
+  # Output: docs/wikilink-report.md, docs/wikilink-network.md
+  # Health Score: Measures documentation interconnectedness
+  ```
+
+- **[[../scripts/monitor_docs_health.py|Documentation Monitor]]** - Monitors documentation completeness
+  ```bash
+  python scripts/monitor_docs_health.py
+  ```
+
+- **[[../scripts/update_architecture_diagrams.py|Diagram Updater]]** - Updates Mermaid architecture diagrams
+  ```bash
+  python scripts/update_architecture_diagrams.py
+  ```
+
+### Testing Tools
+
+- **[[../scripts/test_all_apis.py|API Test Suite]]** - Comprehensive endpoint testing
+  ```bash
+  python scripts/test_all_apis.py
+  # Tests all API endpoints and validates responses
+  ```
+
+- **[[../scripts/runtime-smoke.js|Runtime Smoke Tests]]** - Frontend runtime validation
+  ```bash
+  node scripts/runtime-smoke.js
+  ```
+
+### Specialized Script Categories
+
+For organized script collections, see:
+- **[[../scripts/setup/|Setup Scripts]]** - Initial setup and configuration
+- **[[../scripts/database/|Database Scripts]]** - Migrations and seeding
+- **[[../scripts/testing/|Testing Scripts]]** - Test automation
+- **[[../scripts/security/|Security Scripts]]** - Security audits
+- **[[../scripts/performance/|Performance Scripts]]** - Performance profiling
+- **[[../scripts/services/|Service Scripts]]** - Celery and background services
     analytics_service = AnalyticsService(db)
     return await analytics_service.calculate_application_trends(user_id=1, days=30)
 ```
@@ -1176,6 +1332,23 @@ export const jobsAPI = {
     apiClient.post<{ coverLetter: string }>(`/jobs/${id}/generate-cover-letter`),
 };
 ```
+
+#### Job preview & recommendation feedback endpoints
+
+Career Copilot now exposes lightweight preview data and authenticated feedback hooks that power the personalized recommendations flow:
+
+- `GET /api/v1/jobs/available` returns the preview collection used by `frontend/src/features/personalization/PersonalizationEngine.tsx`. The engine calls `apiClient.jobs.available` and normalizes each entry via `normalizeJobPreview` before scoring.
+- `POST /api/v1/recommendations/{job_id}/feedback` accepts `{ "is_positive": boolean, "reason"?: string }` and is invoked from `frontend/src/components/recommendations/SmartRecommendations.tsx` through `apiClient.recommendations.feedback` to capture user sentiment.
+
+```typescript
+import apiClient from '@/lib/api/client';
+
+const { data: previews } = await apiClient.jobs.available({ limit: 100 });
+
+await apiClient.recommendations.feedback(job.id, true, 'Great culture fit');
+```
+
+Both endpoints require a valid auth token (set via the unified API client), ensuring frontend and backend stay in sync on personalized content.
 
 ## Testing Guidelines
 

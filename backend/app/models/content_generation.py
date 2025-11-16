@@ -1,9 +1,10 @@
 """Content Generation model"""
 
-from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, Text
+from sqlalchemy import Column, DateTime, ForeignKey, Integer, String, Text
 from sqlalchemy.orm import relationship
-from datetime import datetime
+
 from ..core.database import Base
+from ..utils import utc_now
 
 
 class ContentGeneration(Base):
@@ -25,8 +26,8 @@ class ContentGeneration(Base):
 	# Status tracking
 	status = Column(String, default="generated")  # generated, modified, approved, used
 
-	created_at = Column(DateTime, default=datetime.utcnow)
-	updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+	created_at = Column(DateTime, default=utc_now)
+	updated_at = Column(DateTime, default=utc_now, onupdate=utc_now)
 
 	# Relationships
 	user = relationship("User")

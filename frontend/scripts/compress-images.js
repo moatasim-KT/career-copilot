@@ -24,16 +24,9 @@ const sharp = require('sharp');
 
 // Configuration
 const MAX_SIZE_KB = 100;
-const MAX_SIZE_BYTES = MAX_SIZE_KB * 1024;
 const PUBLIC_DIR = path.join(__dirname, '..', 'public');
 const IMAGE_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.webp'];
 
-// Quality settings for different formats
-const QUALITY_SETTINGS = {
-  jpeg: { quality: 75 },
-  png: { quality: 75, compressionLevel: 9 },
-  webp: { quality: 75 },
-};
 
 /**
  * Get all image files recursively from a directory
@@ -76,7 +69,7 @@ async function compressImage(filePath) {
   const originalSize = getFileSizeKB(filePath);
   const ext = path.extname(filePath).toLowerCase();
   const fileName = path.basename(filePath);
-  
+
   console.log(`\nProcessing: ${fileName}`);
   console.log(`Original size: ${originalSize} KB`);
 
@@ -142,7 +135,7 @@ async function compressImage(filePath) {
         // Success! Replace original with compressed version
         fs.renameSync(tempPath, filePath);
         compressed = true;
-        
+
         const newSize = getFileSizeKB(filePath);
         const saved = parseFloat(originalSize) - parseFloat(newSize);
         const savedPercent = ((saved / parseFloat(originalSize)) * 100).toFixed(1);
@@ -167,7 +160,7 @@ async function compressImage(filePath) {
           // If quality is too low, try resizing
           const newWidth = Math.floor(metadata.width * 0.8);
           console.log(`Quality too low, trying resize to ${newWidth}px width`);
-          
+
           image = sharp(filePath)
             .resize(newWidth, null, {
               fit: 'inside',
@@ -177,11 +170,11 @@ async function compressImage(filePath) {
 
           await image.toFile(tempPath);
           const resizedSize = getFileSizeKB(tempPath);
-          
+
           if (parseFloat(resizedSize) <= MAX_SIZE_KB) {
             fs.renameSync(tempPath, filePath);
             compressed = true;
-            
+
             const newSize = getFileSizeKB(filePath);
             const saved = parseFloat(originalSize) - parseFloat(newSize);
             const savedPercent = ((saved / parseFloat(originalSize)) * 100).toFixed(1);
@@ -208,7 +201,7 @@ async function compressImage(filePath) {
     if (!compressed) {
       console.log(`⚠ Could not compress below ${MAX_SIZE_KB}KB`);
       console.log(`Consider manually optimizing this image or using a smaller version`);
-      
+
       return {
         file: fileName,
         originalSize: parseFloat(originalSize),
@@ -306,9 +299,10 @@ async function main() {
   // Check if sharp is installed
   try {
     require.resolve('sharp');
-  } catch (e) {
+  } catch (error) {
     console.error('\n✗ Error: sharp is not installed');
     console.error('Please install it with: npm install --save-dev sharp');
+    console.error(error);
     process.exit(1);
   }
 

@@ -3,14 +3,14 @@
  * Handles push notification events and click actions
  */
 
-/* eslint-disable no-restricted-globals */
+
 
 // Service worker version
 const VERSION = '1.0.0';
 const CACHE_NAME = `career-copilot-${VERSION}`;
 
 // Install event
-self.addEventListener('install', (event) => {
+self.addEventListener('install', (_event) => {
   console.log('[Service Worker] Installing version:', VERSION);
   self.skipWaiting();
 });
@@ -95,7 +95,7 @@ self.addEventListener('notificationclick', (event) => {
 
   // Open or focus the app
   event.waitUntil(
-    clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
+    self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
       // Check if there's already a window open
       for (const client of clientList) {
         if (client.url.includes(self.location.origin) && 'focus' in client) {
@@ -110,8 +110,8 @@ self.addEventListener('notificationclick', (event) => {
       }
 
       // No window open, open a new one
-      if (clients.openWindow) {
-        return clients.openWindow(url);
+      if (self.clients.openWindow) {
+        return self.clients.openWindow(url);
       }
     })
   );
@@ -120,7 +120,7 @@ self.addEventListener('notificationclick', (event) => {
 // Notification close event
 self.addEventListener('notificationclose', (event) => {
   console.log('[Service Worker] Notification closed:', event);
-  
+
   // Track notification dismissal if needed
   const data = event.notification.data || {};
   if (data.trackDismissal) {

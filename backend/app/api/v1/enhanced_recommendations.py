@@ -144,6 +144,7 @@ async def get_job_recommendation_analysis(
 	"""
 	try:
 		from app.models.job import Job  # type: ignore[import-untyped]
+		from app.services.job_service import JobManagementSystem
 
 		result = await db.execute(select(Job).where(Job.id == job_id))
 
@@ -151,17 +152,42 @@ async def get_job_recommendation_analysis(
 		if not job:
 			raise HTTPException(status_code=404, detail="Job not found")
 
-		# Generate detailed analysis
-		# TODO: Implement generate_enhanced_recommendation in JobManagementSystem
-		# analysis = job_service.generate_enhanced_recommendation(user_id=current_user.id, job=job)
+		# Generate detailed analysis using JobManagementSystem
+		job_service = JobManagementSystem(db=db)
+
+		# Calculate match score based on user skills and job requirements
+		user_skills = set(current_user.skills) if hasattr(current_user, "skills") and current_user.skills else set()
+		job_requirements = set(job.required_skills) if hasattr(job, "required_skills") and job.required_skills else set()
+
+		# Calculate skill overlap
+		matching_skills = user_skills.intersection(job_requirements)
+		match_score = len(matching_skills) / len(job_requirements) * 100 if job_requirements else 0.0
+
+		# Generate reasoning based on match
+		if match_score >= 80:
+			recommendation = "Highly recommended - Strong skill match"
+			reasoning = f"You have {len(matching_skills)} out of {len(job_requirements)} required skills"
+		elif match_score >= 60:
+			recommendation = "Good fit - Consider applying"
+			reasoning = f"You match {len(matching_skills)} key skills, worth exploring further"
+		elif match_score >= 40:
+			recommendation = "Potential fit - Review requirements carefully"
+			reasoning = f"Partial skill match ({len(matching_skills)} skills), may need additional qualifications"
+		else:
+			recommendation = "Skills gap identified - Consider upskilling"
+			reasoning = f"Limited skill overlap ({len(matching_skills)} skills), may require significant development"
+
 		analysis = {
 			"job_id": job.id,
 			"title": job.title,
 			"company": job.company,
-			"match_score": getattr(job, "match_score", 0.0),
-			"reasoning": "Enhanced analysis not yet implemented in consolidated service",
-			"recommendation": "Consider applying if skills match",
+			"match_score": round(match_score, 2),
+			"reasoning": reasoning,
+			"recommendation": recommendation,
+			"matching_skills": list(matching_skills),
+			"missing_skills": list(job_requirements - user_skills) if job_requirements else [],
 		}
+
 		if not analysis:
 			raise HTTPException(status_code=500, detail="Failed to generate job analysis")
 

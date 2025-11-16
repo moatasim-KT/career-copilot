@@ -4,11 +4,24 @@ Thank you for your interest in contributing to Career Copilot! We welcome contri
 
 ## Related Documents
 
-- [[./README.md]] - Project overview and setup
-- [[TODO.md]] - Current development tasks
-- [[PLAN.md]] - Implementation plan
-- [[docs/DEVELOPER_GUIDE.md|Developer Guide]] - Development documentation
-- [[docs/FRONTEND_QUICK_START.md|Frontend Quick Start]] - Frontend setup
+**Getting Started**:
+- [README.md](README.md) - Project overview
+- [LOCAL_SETUP.md](LOCAL_SETUP.md) - Local development setup
+- [PROJECT_STATUS.md](PROJECT_STATUS.md) - Current project status
+
+**Development**:
+- [docs/DEVELOPER_GUIDE.md](docs/DEVELOPER_GUIDE.md) - Developer documentation
+- [docs/development/DEVELOPMENT.md](docs/development/DEVELOPMENT.md) - Development workflow
+- [docs/development/code-patterns.md](docs/development/code-patterns.md) - Code patterns
+- [docs/development/testing-strategies.md](docs/development/testing-strategies.md) - Testing guide
+- [backend/README.md](backend/README.md) - Backend development
+- [frontend/README.md](frontend/README.md) - Frontend development
+
+**Reference**:
+- [docs/index.md](docs/index.md) - Documentation hub
+- [docs/architecture/ARCHITECTURE.md](docs/architecture/ARCHITECTURE.md) - System architecture
+- [docs/api/API.md](docs/api/API.md) - API reference
+- [docs/troubleshooting/COMMON_ISSUES.md](docs/troubleshooting/COMMON_ISSUES.md) - Common issues
 
 ## Table of Contents
 
@@ -464,30 +477,28 @@ Add screenshots here
 
 ## AI Agent Contributors
 
-For AI agents working on this project:
+For AI or automation agents collaborating on this repo:
 
-1. **Read Documentation**
-   - [.agents/START_HERE.md](.agents/START_HERE.md) - Quick start guide
-   - [.agents/coordination-rules.md](.agents/coordination-rules.md) - Coordination rules
-   - [.agents/task-partition-plan.md](.agents/task-partition-plan.md) - Task assignments
+1. **Start with shared planning docs**
+   - `TODO.md` – authoritative task board with phase/priority tags
+   - `PLAN.md` & `PROJECT_STATUS.md` – historical decisions and context
+   - `RESEARCH.md` – backlog of potential enhancements
 
-2. **Check Task Assignments**
-   - Review [.agents/task-assignments.json](.agents/task-assignments.json)
-   - Ensure your assigned tasks are clear
-   - Avoid working on tasks assigned to other agents
+2. **Claim work visibly**
+   - Reference the related TODO section (or GitHub issue) in your PR/commit message
+   - Update `TODO.md` checkboxes or notes after each significant milestone
 
-3. **Follow Agent-Specific Instructions**
-   - Gemini agents: See `.agents/gemini/`
-   - Copilot agents: See `.agents/copilot/`
+3. **Branching**
+   - Use descriptive branches (e.g., `feature/multi-user-auth`, `chore/ruff-fixes`)
+   - Rebase frequently to stay aligned with `features-consolidation` / `main`
 
-4. **Use Designated Branches**
-   - Gemini: `agent/gemini/*`
-   - Copilot: `agent/copilot/*`
+4. **Quality gates**
+   - Run targeted lint/tests (`make quality-check`, `npm run lint`, `ruff check`, etc.) before hand-off
+   - Attach logs for any intentional exceptions or known flaky tests
 
-5. **Run Sync Checks**
-   ```bash
-   .agents/shared/sync-check.sh
-   ```
+5. **Handoff etiquette**
+   - Leave breadcrumbs in PR descriptions or `TODO.md`
+   - Prefer smaller, well-documented PRs to keep review cycles fast
 
 ## Getting Help
 

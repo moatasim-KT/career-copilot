@@ -8,7 +8,7 @@ recommendations, deduplication, and user notifications.
 """
 
 import asyncio
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional
 
 import aiohttp
@@ -31,6 +31,7 @@ from app.services.quota_manager import QuotaManager
 from app.services.rss_feed_service import RSSFeedService
 from app.services.scraping import ScraperManager, ScrapingConfig
 from app.services.skill_matching_service import SkillMatchingService
+from app.utils.datetime import utc_now
 from celery import current_task
 
 logger = get_logger(__name__)
@@ -102,7 +103,13 @@ class JobManagementSystem:
 				enable_berlinstartupjobs=getattr(settings, "SCRAPING_ENABLE_BERLINSTARTUPJOBS", True),
 				enable_relocateme=getattr(settings, "SCRAPING_ENABLE_RELOCATEME", True),
 				enable_eures=getattr(settings, "SCRAPING_ENABLE_EURES", True),
+				enable_landingjobs=getattr(settings, "SCRAPING_ENABLE_LANDINGJOBS", True),
+				enable_eutechjobs=getattr(settings, "SCRAPING_ENABLE_EUTECHJOBS", True),
+				enable_eurotechjobs=getattr(settings, "SCRAPING_ENABLE_EUROTECHJOBS", True),
+				enable_aijobsnet=getattr(settings, "SCRAPING_ENABLE_AIJOBSNET", True),
+				enable_datacareer=getattr(settings, "SCRAPING_ENABLE_DATACAREER", True),
 				enable_firecrawl=getattr(settings, "SCRAPING_ENABLE_FIRECRAWL", True),
+				enable_eu_company_playwright=getattr(settings, "SCRAPING_ENABLE_EU_PLAYWRIGHT", False),
 				rate_limit_min_delay=settings.SCRAPING_RATE_LIMIT_MIN,
 				rate_limit_max_delay=settings.SCRAPING_RATE_LIMIT_MAX,
 				deduplication_enabled=True,
@@ -253,7 +260,7 @@ class JobManagementSystem:
 		Returns:
 			Summary dictionary with jobs_found, jobs_saved, duplicates_filtered, errors, processing_time
 		"""
-		start = datetime.now(timezone.utc)
+		start = utc_now()
 		result: Dict[str, Any] = {
 			"jobs_found": 0,
 			"jobs_saved": 0,
@@ -328,33 +335,33 @@ class JobManagementSystem:
 
 			self.db.commit()
 			result["jobs_saved"] = saved
-			result["processing_time"] = (datetime.now(timezone.utc) - start).total_seconds()
+			result["processing_time"] = (utc_now() - start).total_seconds()
 			return result
 
 		except Exception as e:
 			logger.error(f"Job ingestion error for user {user_id}: {e}")
 			result["errors"].append(str(e))
-			result["processing_time"] = (datetime.now(timezone.utc) - start).total_seconds()
+			result["processing_time"] = (utc_now() - start).total_seconds()
 			return result
 
 	def _scrape_sync(self, prefs: Dict[str, Any]) -> List[Dict[str, Any]]:
-		"""Helper to call async scrape_jobs synchronously."""
+		"""Helper to call async scrape_jobs synchronously without deprecated loop access."""
 		import asyncio
 
 		async def _run():
 			return await self.scrape_jobs(prefs)
 
 		try:
-			loop = asyncio.get_event_loop()
-			if loop.is_running():
-				# If there's already a running loop, we need to handle this differently
-				import nest_asyncio
-
-				nest_asyncio.apply()
-			return loop.run_until_complete(_run())
+			loop = asyncio.get_running_loop()
 		except RuntimeError:
-			# No event loop, create a new one
+			# No running loop in this thread; safely create a temporary one
 			return asyncio.run(_run())
+		else:
+			# Re-use running loop (e.g., inside notebook) by enabling nested awaits
+			import nest_asyncio
+
+			nest_asyncio.apply(loop)
+			return loop.run_until_complete(_run())
 
 	# Deduplication Methods (from JobDeduplicationService)
 
@@ -467,7 +474,7 @@ class JobManagementSystem:
 			if hasattr(job, field):
 				setattr(job, field, value)
 
-		job.updated_at = datetime.now(timezone.utc)
+		job.updated_at = utc_now()
 		self.db.commit()
 		self.db.refresh(job)
 		return job
@@ -671,7 +678,7 @@ class JobManagementSystem:
 		# Recent jobs (last 30 days)
 		from datetime import timedelta
 
-		recent_cutoff = datetime.now(timezone.utc) - timedelta(days=30)
+		recent_cutoff = utc_now() - timedelta(days=30)
 		recent_jobs = self.db.query(Job).filter(Job.user_id == user_id, Job.created_at >= recent_cutoff).count()
 
 		return {"total_jobs": total_jobs, "recent_jobs": recent_jobs, "jobs_by_source": dict(jobs_by_source), "jobs_by_type": dict(jobs_by_type)}

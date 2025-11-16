@@ -1,6 +1,6 @@
 """
 Integration Tests for Job Management Services
-Tests the interaction between JobManagementSystem, JobScrapingService, and JobRecommendationService
+Tests the interaction between JobManagementSystem, JobManagementSystem, and JobRecommendationService
 """
 
 from unittest.mock import AsyncMock, MagicMock, patch
@@ -10,7 +10,7 @@ from app.models.job import Job
 from app.models.user import User
 from app.schemas.job import JobCreate
 from app.services.job_recommendation_service import JobRecommendationService
-from app.services.job_scraping_service import JobScrapingService
+from app.services.job_service import JobManagementSystem
 from app.services.job_service import JobManagementSystem
 from sqlalchemy.orm import Session
 
@@ -30,8 +30,8 @@ class TestJobManagementIntegration:
 
 	@pytest.fixture
 	def job_scraping(self, mock_db):
-		"""Create JobScrapingService instance"""
-		return JobScrapingService(db=mock_db)
+		"""Create JobManagementSystem instance"""
+		return JobManagementSystem(db=mock_db)
 
 	@pytest.fixture
 	def job_recommendation(self, mock_db):
@@ -151,8 +151,8 @@ class TestJobScrapingToManagementFlow:
 
 	@pytest.fixture
 	def job_scraping(self, mock_db):
-		"""Create JobScrapingService instance"""
-		return JobScrapingService(db=mock_db)
+		"""Create JobManagementSystem instance"""
+		return JobManagementSystem(db=mock_db)
 
 	def test_scraped_jobs_saved_to_database(self, job_management, job_scraping, mock_db):
 		"""Test that scraped jobs are properly saved"""
@@ -418,7 +418,7 @@ class TestServiceInteroperability:
 		"""Create all service instances"""
 		return {
 			"management": JobManagementSystem(db=mock_db),
-			"scraping": JobScrapingService(db=mock_db),
+			"scraping": JobManagementSystem(db=mock_db),
 			"recommendation": JobRecommendationService(db=mock_db),
 		}
 

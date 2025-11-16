@@ -6,10 +6,11 @@
 
 'use client';
 
-import { motion, AnimatePresence } from 'framer-motion';
 import { Sun, Moon } from 'lucide-react';
+
 import { useDarkMode } from '@/hooks/useDarkMode';
 import { useKeyboardShortcut } from '@/hooks/useKeyboardShortcut';
+import { m, AnimatePresence } from '@/lib/motion';
 
 interface ThemeToggleProps {
   className?: string;
@@ -20,7 +21,7 @@ interface ThemeToggleProps {
 export function ThemeToggle({ 
   className = '', 
   showLabel = false,
-  showTooltip = true 
+  showTooltip = true, 
 }: ThemeToggleProps) {
   const { isDark, toggle } = useDarkMode();
   
@@ -49,7 +50,7 @@ export function ThemeToggle({
       <div className="relative w-5 h-5">
         <AnimatePresence mode="wait" initial={false}>
           {isDark ? (
-            <motion.div
+            <m.div
               key="moon"
               initial={{ scale: 0, rotate: -180, opacity: 0 }}
               animate={{ scale: 1, rotate: 0, opacity: 1 }}
@@ -58,9 +59,9 @@ export function ThemeToggle({
               className="absolute inset-0 flex items-center justify-center"
             >
               <Moon className="w-5 h-5" />
-            </motion.div>
+            </m.div>
           ) : (
-            <motion.div
+            <m.div
               key="sun"
               initial={{ scale: 0, rotate: 180, opacity: 0 }}
               animate={{ scale: 1, rotate: 0, opacity: 1 }}
@@ -69,7 +70,7 @@ export function ThemeToggle({
               className="absolute inset-0 flex items-center justify-center"
             >
               <Sun className="w-5 h-5" />
-            </motion.div>
+            </m.div>
           )}
         </AnimatePresence>
       </div>
@@ -96,7 +97,7 @@ export function ThemeToggleDropdown({ className = '' }: ThemeToggleDropdownProps
   const options = [
     { value: 'light' as const, label: 'Light', icon: Sun },
     { value: 'dark' as const, label: 'Dark', icon: Moon },
-    { value: 'system' as const, label: 'System', icon: Sun }
+    { value: 'system' as const, label: 'System', icon: Sun },
   ];
   
   return (

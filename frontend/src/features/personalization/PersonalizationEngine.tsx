@@ -10,6 +10,7 @@
 import { useState, useEffect, useCallback } from 'react';
 
 import apiClient from '@/lib/api/client';
+import { logger } from '@/lib/logger';
 
 export interface UserPreferences {
     industries: string[];
@@ -42,71 +43,198 @@ export interface UserBehavior {
     clickPatterns: Record<string, number>;
 }
 
+const DEFAULT_PREFERENCES: UserPreferences = {
+    industries: [],
+    locations: [],
+    salaryRange: { min: 0, max: 200000 },
+    jobTypes: ['full-time'],
+    experienceLevel: 'mid',
+    skills: [],
+    companySize: ['medium', 'large'],
+};
+
+function normalizePreferences(preferences?: Partial<UserPreferences> | null): UserPreferences {
+    const merged = {
+        ...DEFAULT_PREFERENCES,
+        ...(preferences || {}),
+    } as Partial<UserPreferences>;
+
+    const industries = merged.industries ?? DEFAULT_PREFERENCES.industries;
+    const locations = merged.locations ?? DEFAULT_PREFERENCES.locations;
+    const salaryRange = merged.salaryRange ?? DEFAULT_PREFERENCES.salaryRange;
+    const jobTypes = merged.jobTypes && merged.jobTypes.length > 0
+        ? merged.jobTypes
+        : DEFAULT_PREFERENCES.jobTypes;
+    const skills = merged.skills ?? DEFAULT_PREFERENCES.skills;
+    const companySize = merged.companySize ?? DEFAULT_PREFERENCES.companySize;
+
+    return {
+        industries: [...industries],
+        locations: [...locations],
+        salaryRange: {
+            min: salaryRange.min ?? DEFAULT_PREFERENCES.salaryRange.min,
+            max: salaryRange.max ?? DEFAULT_PREFERENCES.salaryRange.max,
+        },
+        jobTypes: [...jobTypes],
+        experienceLevel: merged.experienceLevel ?? DEFAULT_PREFERENCES.experienceLevel,
+        skills: [...skills],
+        companySize: [...companySize],
+    };
+}
+
+interface JobPreviewApiResponse {
+    id: number;
+    title: string;
+    company: { name: string; logo?: string | null } | string;
+    location?: string | null;
+    salary?: {
+        min?: number | null;
+        max?: number | null;
+        currency?: string | null;
+    } | null;
+    type?: string | null;
+    tags?: string[];
+    tech_stack?: string[];
+    source?: string | null;
+}
+
+interface NormalizedJob {
+    id: string;
+    company: string;
+    position: string;
+    location?: string | null;
+    salaryValue?: number;
+    salaryRange?: {
+        min?: number | null;
+        max?: number | null;
+        currency?: string | null;
+    } | null;
+    jobType?: UserPreferences['jobTypes'][number] | null;
+    tags: string[];
+    source?: string | null;
+}
+
+const JOB_TYPE_VALUES: UserPreferences['jobTypes'][number][] = ['full-time', 'part-time', 'contract', 'remote'];
+
+function isJobTypeValue(value: string): value is UserPreferences['jobTypes'][number] {
+    return JOB_TYPE_VALUES.includes(value as UserPreferences['jobTypes'][number]);
+}
+
+function normalizeJobPreview(job: JobPreviewApiResponse): NormalizedJob {
+    const companyName = typeof job.company === 'string'
+        ? job.company
+        : job.company?.name ?? 'Unknown company';
+
+    const salaryMin = job.salary?.min ?? null;
+    const salaryMax = job.salary?.max ?? null;
+    let salaryValue: number | undefined;
+    if (typeof salaryMin === 'number' && typeof salaryMax === 'number') {
+        salaryValue = Math.round((salaryMin + salaryMax) / 2);
+    } else if (typeof salaryMax === 'number') {
+        salaryValue = salaryMax;
+    } else if (typeof salaryMin === 'number') {
+        salaryValue = salaryMin;
+    }
+
+    const rawType = job.type?.toLowerCase() ?? null;
+    const normalizedType = rawType && isJobTypeValue(rawType) ? rawType : null;
+
+    const tags = job.tags ?? job.tech_stack ?? [];
+
+    return {
+        id: String(job.id),
+        company: companyName,
+        position: job.title || 'Untitled role',
+        location: job.location,
+        salaryValue,
+        salaryRange: job.salary ?? null,
+        jobType: normalizedType,
+        tags,
+        source: job.source ?? null,
+    };
+}
+
+function evaluateSkillMatch(job: NormalizedJob, preferences: UserPreferences) {
+    const jobSkills = job.tags || [];
+    const preferenceSkills = preferences.skills.map(skill => skill.toLowerCase());
+
+    const matchedSkills = jobSkills.filter(skill =>
+        preferenceSkills.includes(skill.toLowerCase()),
+    );
+    const missingSkills = jobSkills.filter(skill =>
+        !preferenceSkills.includes(skill.toLowerCase()),
+    );
+
+    const matchRatio = jobSkills.length > 0
+        ? matchedSkills.length / jobSkills.length
+        : 0;
+
+    return { matchedSkills, missingSkills, matchRatio };
+}
+
 /**
  * Calculate job match score based on user preferences
  */
 function calculateMatchScore(
-    job: any,
+    job: NormalizedJob,
     preferences: UserPreferences,
     behavior: UserBehavior,
+    skillMatchRatio: number,
 ): number {
     let score = 0;
     const weights = {
-        industry: 0.2,
-        location: 0.15,
-        salary: 0.2,
-        skills: 0.25,
-        jobType: 0.1,
-        companySize: 0.1,
+        location: 0.25,
+        salary: 0.25,
+        skills: 0.35,
+        jobType: 0.15,
     };
 
-    // Industry match
-    if (preferences.industries.some(ind =>
-        job.industry?.toLowerCase().includes(ind.toLowerCase()),
-    )) {
-        score += weights.industry * 100;
-    }
-
-    // Location match
-    if (preferences.locations.some(loc =>
-        job.location?.toLowerCase().includes(loc.toLowerCase()),
-    )) {
-        score += weights.location * 100;
+    // Location match (fallback to neutral score when missing)
+    if (preferences.locations.length > 0) {
+        if (job.location && preferences.locations.some(loc =>
+            job.location?.toLowerCase().includes(loc.toLowerCase()),
+        )) {
+            score += weights.location * 100;
+        } else if (!job.location) {
+            score += weights.location * 50;
+        }
+    } else {
+        score += weights.location * 50;
     }
 
     // Salary match
-    if (job.salary) {
-        if (job.salary >= preferences.salaryRange.min &&
-            job.salary <= preferences.salaryRange.max) {
+    if (typeof job.salaryValue === 'number') {
+        if (job.salaryValue >= preferences.salaryRange.min &&
+            job.salaryValue <= preferences.salaryRange.max) {
             score += weights.salary * 100;
         } else {
-            // Partial credit for close matches
             const distance = Math.min(
-                Math.abs(job.salary - preferences.salaryRange.min),
-                Math.abs(job.salary - preferences.salaryRange.max),
+                Math.abs(job.salaryValue - preferences.salaryRange.min),
+                Math.abs(job.salaryValue - preferences.salaryRange.max),
             );
-            const maxDistance = preferences.salaryRange.max - preferences.salaryRange.min;
+            const maxDistance = Math.max(preferences.salaryRange.max - preferences.salaryRange.min, 1);
             score += weights.salary * 100 * (1 - Math.min(distance / maxDistance, 1));
         }
+    } else {
+        score += weights.salary * 50;
     }
 
-    // Skills match
-    const jobSkills = job.requiredSkills || [];
-    const matchedSkills = jobSkills.filter((skill: string) =>
-        preferences.skills.some(ps => ps.toLowerCase() === skill.toLowerCase()),
-    );
-    if (jobSkills.length > 0) {
-        score += weights.skills * 100 * (matchedSkills.length / jobSkills.length);
+    // Skills match (use neutral score when skills are missing)
+    if (job.tags.length > 0) {
+        score += weights.skills * 100 * skillMatchRatio;
+    } else {
+        score += weights.skills * 50;
     }
 
     // Job type match
-    if (preferences.jobTypes.includes(job.type)) {
-        score += weights.jobType * 100;
-    }
-
-    // Company size match
-    if (preferences.companySize.includes(job.companySize)) {
-        score += weights.companySize * 100;
+    if (job.jobType) {
+        if (preferences.jobTypes.includes(job.jobType)) {
+            score += weights.jobType * 100;
+        } else {
+            score += weights.jobType * 50;
+        }
+    } else {
+        score += weights.jobType * 50;
     }
 
     // Behavioral boost
@@ -127,45 +255,36 @@ function calculateMatchScore(
  * Generate match reasons based on score components
  */
 function generateMatchReasons(
-    job: any,
+    job: NormalizedJob,
     preferences: UserPreferences,
     score: number,
+    matchedSkillsCount: number,
+    totalSkills: number,
 ): string[] {
     const reasons: string[] = [];
 
-    // Industry match
-    if (preferences.industries.some(ind =>
-        job.industry?.toLowerCase().includes(ind.toLowerCase()),
-    )) {
-        reasons.push(`Matches your interest in ${job.industry}`);
-    }
-
     // Location match
-    if (preferences.locations.some(loc =>
+    if (job.location && preferences.locations.some(loc =>
         job.location?.toLowerCase().includes(loc.toLowerCase()),
     )) {
         reasons.push(`Located in your preferred area: ${job.location}`);
     }
 
     // Salary match
-    if (job.salary &&
-        job.salary >= preferences.salaryRange.min &&
-        job.salary <= preferences.salaryRange.max) {
+    if (typeof job.salaryValue === 'number' &&
+        job.salaryValue >= preferences.salaryRange.min &&
+        job.salaryValue <= preferences.salaryRange.max) {
         reasons.push('Salary within your target range');
     }
 
     // Skills match
-    const jobSkills = job.requiredSkills || [];
-    const matchedSkills = jobSkills.filter((skill: string) =>
-        preferences.skills.some(ps => ps.toLowerCase() === skill.toLowerCase()),
-    );
-    if (matchedSkills.length > 0) {
-        reasons.push(`You have ${matchedSkills.length} of ${jobSkills.length} required skills`);
+    if (totalSkills > 0 && matchedSkillsCount > 0) {
+        reasons.push(`You match ${matchedSkillsCount} of ${totalSkills} highlighted skills`);
     }
 
-    // Experience level
-    if (job.experienceLevel === preferences.experienceLevel) {
-        reasons.push('Perfect match for your experience level');
+    // Job type match
+    if (job.jobType && preferences.jobTypes.includes(job.jobType)) {
+        reasons.push(`Matches your preferred job type (${job.jobType.replace('-', ' ')})`);
     }
 
     if (score >= 80) {
@@ -214,31 +333,13 @@ export function usePersonalization(userId: string) {
             try {
                 const response = await apiClient.personalization.getPreferences(parseInt(userId));
                 if (response.data) {
-                    setPreferences(response.data);
+                    setPreferences(normalizePreferences(response.data as Partial<UserPreferences>));
                 } else {
-                    // Use default preferences
-                    setPreferences({
-                        industries: [],
-                        locations: [],
-                        salaryRange: { min: 0, max: 200000 },
-                        jobTypes: ['full-time'],
-                        experienceLevel: 'mid',
-                        skills: [],
-                        companySize: ['medium', 'large'],
-                    });
+                    setPreferences(normalizePreferences(null));
                 }
             } catch (error) {
-                console.error('Failed to load preferences:', error);
-                // Use default preferences
-                setPreferences({
-                    industries: [],
-                    locations: [],
-                    salaryRange: { min: 0, max: 200000 },
-                    jobTypes: ['full-time'],
-                    experienceLevel: 'mid',
-                    skills: [],
-                    companySize: ['medium', 'large'],
-                });
+                logger.error('Failed to load preferences:', error);
+                setPreferences(normalizePreferences(null));
             }
         }
 
@@ -249,7 +350,7 @@ export function usePersonalization(userId: string) {
                     setBehavior(response.data);
                 }
             } catch (error) {
-                console.error('Failed to load behavior:', error);
+                logger.error('Failed to load behavior:', error);
             }
         }
 
@@ -266,29 +367,29 @@ export function usePersonalization(userId: string) {
             try {
                 // Fetch available jobs
                 const response = await apiClient.jobs.available({ limit: 100 });
-                const jobs = response.data || [];
+                const jobs = (response.data || []) as JobPreviewApiResponse[];
 
                 // Score and rank jobs
                 // preferences is guarded by the outer early return, but avoid `!` by narrowing
                 const prefs = preferences as UserPreferences;
-                const scored = jobs.map((job: any) => {
-                    const score = calculateMatchScore(job, prefs, behavior);
-                    const reasons = generateMatchReasons(job, prefs, score);
-
-                    const jobSkills = job.requiredSkills || [];
-                    const matchedSkills = jobSkills.filter((skill: string) =>
-                        prefs.skills.some(ps => ps.toLowerCase() === skill.toLowerCase()),
-                    );
-                    const missingSkills = jobSkills.filter((skill: string) =>
-                        !prefs.skills.some(ps => ps.toLowerCase() === skill.toLowerCase()),
+                const scored = jobs.map((job) => {
+                    const normalized = normalizeJobPreview(job);
+                    const { matchedSkills, missingSkills, matchRatio } = evaluateSkillMatch(normalized, prefs);
+                    const score = calculateMatchScore(normalized, prefs, behavior, matchRatio);
+                    const reasons = generateMatchReasons(
+                        normalized,
+                        prefs,
+                        score,
+                        matchedSkills.length,
+                        normalized.tags.length,
                     );
 
                     return {
-                        id: job.id,
-                        company: job.company,
-                        position: job.position,
-                        location: job.location,
-                        salary: job.salary,
+                        id: normalized.id,
+                        company: normalized.company,
+                        position: normalized.position,
+                        location: normalized.location || 'Remote',
+                        salary: normalized.salaryValue,
                         score,
                         reasons,
                         matchedSkills,
@@ -303,7 +404,7 @@ export function usePersonalization(userId: string) {
 
                 setRecommendations(topRecommendations);
             } catch (error) {
-                console.error('Failed to generate recommendations:', error);
+                logger.error('Failed to generate recommendations:', error);
             } finally {
                 setLoading(false);
             }
@@ -318,13 +419,17 @@ export function usePersonalization(userId: string) {
     const updatePreferences = useCallback(async (
         updates: Partial<UserPreferences>,
     ) => {
-        const newPreferences = { ...preferences, ...updates } as UserPreferences;
+        const basePreferences = preferences ?? DEFAULT_PREFERENCES;
+        const newPreferences = normalizePreferences({
+            ...basePreferences,
+            ...updates,
+        });
         setPreferences(newPreferences);
 
         try {
             await apiClient.personalization.updatePreferences(parseInt(userId), newPreferences);
         } catch (error) {
-            console.error('Failed to update preferences:', error);
+            logger.error('Failed to update preferences:', error);
         }
     }, [preferences, userId]);
 
@@ -365,7 +470,7 @@ export function usePersonalization(userId: string) {
         try {
             await apiClient.personalization.trackBehavior(parseInt(userId), action, jobId);
         } catch (error) {
-            console.error('Failed to track behavior:', error);
+            logger.error('Failed to track behavior:', error);
         }
     }, [behavior, userId]);
 

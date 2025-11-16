@@ -1,3 +1,5 @@
+import { logger } from '@/lib/logger';
+
 /**
  * DataTable Performance Benchmark Utility
  * 
@@ -24,7 +26,7 @@ interface BenchmarkResult {
   };
 }
 
-interface PerformanceMetrics {
+interface _PerformanceMetrics {
   fps: number[];
   renderTimes: number[];
   scrollFPS: number[];
@@ -142,7 +144,7 @@ function getMemoryUsage() {
  */
 async function simulateScroll(
   container: HTMLElement,
-  duration: number = 3000
+  duration: number = 3000,
 ): Promise<number[]> {
   const fpsMonitor = new FPSMonitor();
   fpsMonitor.start();
@@ -181,7 +183,7 @@ async function simulateScroll(
 export async function runBenchmark(
   datasetSize: number,
   virtualized: boolean,
-  containerSelector: string = '[data-testid="datatable-container"]'
+  containerSelector: string = '[data-testid="datatable-container"]',
 ): Promise<BenchmarkResult> {
   const container = document.querySelector(containerSelector) as HTMLElement;
   if (!container) {
@@ -212,7 +214,7 @@ export async function runBenchmark(
     datasetSize,
     virtualized,
     averageFPS: Math.round(
-      initialFPS.reduce((a, b) => a + b, 0) / initialFPS.length
+      initialFPS.reduce((a, b) => a + b, 0) / initialFPS.length,
     ),
     minFPS: Math.min(...initialFPS),
     maxFPS: Math.max(...initialFPS),
@@ -220,7 +222,7 @@ export async function runBenchmark(
     maxRenderTime: renderMonitor.getMaxRenderTime(),
     scrollPerformance: {
       averageFPS: Math.round(
-        scrollFPS.reduce((a, b) => a + b, 0) / scrollFPS.length
+        scrollFPS.reduce((a, b) => a + b, 0) / scrollFPS.length,
       ),
       minFPS: Math.min(...scrollFPS),
     },
@@ -234,23 +236,23 @@ export async function runBenchmark(
  * Run comprehensive benchmark suite
  */
 export async function runBenchmarkSuite(
-  containerSelector?: string
+  containerSelector?: string,
 ): Promise<BenchmarkResult[]> {
   const testSizes = [100, 500, 1000, 2000, 5000];
   const results: BenchmarkResult[] = [];
 
   for (const size of testSizes) {
-    console.log(`Running benchmark for ${size} rows (virtualized)...`);
+    logger.info(`Running benchmark for ${size} rows (virtualized)...`);
     const virtualizedResult = await runBenchmark(size, true, containerSelector);
     results.push(virtualizedResult);
 
     // Only test non-virtualized for smaller datasets
     if (size <= 500) {
-      console.log(`Running benchmark for ${size} rows (non-virtualized)...`);
+      logger.info(`Running benchmark for ${size} rows (non-virtualized)...`);
       const nonVirtualizedResult = await runBenchmark(
         size,
         false,
-        containerSelector
+        containerSelector,
       );
       results.push(nonVirtualizedResult);
     }
@@ -275,10 +277,10 @@ export function formatBenchmarkResults(results: BenchmarkResult[]): string {
 
     if (result.memoryUsage) {
       const usedMB = (result.memoryUsage.usedJSHeapSize / 1024 / 1024).toFixed(
-        2
+        2,
       );
       const totalMB = (result.memoryUsage.totalJSHeapSize / 1024 / 1024).toFixed(
-        2
+        2,
       );
       output += `Memory Usage: ${usedMB}MB / ${totalMB}MB\n`;
     }
@@ -297,7 +299,7 @@ export function formatBenchmarkResults(results: BenchmarkResult[]): string {
  */
 export function comparePerformance(
   virtualizedResult: BenchmarkResult,
-  nonVirtualizedResult: BenchmarkResult
+  nonVirtualizedResult: BenchmarkResult,
 ): string {
   const fpsImprovement =
     ((virtualizedResult.scrollPerformance.averageFPS -
@@ -313,11 +315,11 @@ export function comparePerformance(
 
   let output = '\n=== Virtualization Performance Comparison ===\n\n';
   output += `Dataset Size: ${virtualizedResult.datasetSize} rows\n\n`;
-  output += `Scroll FPS:\n`;
+  output += 'Scroll FPS:\n';
   output += `  Non-virtualized: ${nonVirtualizedResult.scrollPerformance.averageFPS}\n`;
   output += `  Virtualized: ${virtualizedResult.scrollPerformance.averageFPS}\n`;
   output += `  Improvement: ${fpsImprovement > 0 ? '+' : ''}${fpsImprovement.toFixed(1)}%\n\n`;
-  output += `Render Time:\n`;
+  output += 'Render Time:\n';
   output += `  Non-virtualized: ${nonVirtualizedResult.averageRenderTime.toFixed(2)}ms\n`;
   output += `  Virtualized: ${virtualizedResult.averageRenderTime.toFixed(2)}ms\n`;
   output += `  Improvement: ${renderTimeImprovement > 0 ? '+' : ''}${renderTimeImprovement.toFixed(1)}%\n\n`;
@@ -331,7 +333,7 @@ export function comparePerformance(
         virtualizedResult.memoryUsage.usedJSHeapSize) /
         nonVirtualizedResult.memoryUsage.usedJSHeapSize) *
       100;
-    output += `Memory Usage:\n`;
+    output += 'Memory Usage:\n';
     output += `  Non-virtualized: ${(nonVirtualizedResult.memoryUsage.usedJSHeapSize / 1024 / 1024).toFixed(2)}MB\n`;
     output += `  Virtualized: ${(virtualizedResult.memoryUsage.usedJSHeapSize / 1024 / 1024).toFixed(2)}MB\n`;
     output += `  Reduction: ${memoryReduction > 0 ? '+' : ''}${memoryReduction.toFixed(1)}%\n`;
@@ -345,7 +347,7 @@ export function comparePerformance(
  */
 export function exportBenchmarkResults(
   results: BenchmarkResult[],
-  filename: string = 'datatable-benchmark-results.json'
+  filename: string = 'datatable-benchmark-results.json',
 ): void {
   const json = JSON.stringify(results, null, 2);
   const blob = new Blob([json], { type: 'application/json' });

@@ -1,6 +1,5 @@
 'use client';
 
-import { motion, AnimatePresence } from 'framer-motion';
 import {
   FileText,
   Calendar,
@@ -22,7 +21,7 @@ import { useState, useEffect, useCallback, useMemo } from 'react';
 import { FilterChips, removeRuleFromQuery } from '@/components/features/FilterChips';
 import { RecentSearches } from '@/components/features/RecentSearches';
 import { SavedSearches, useSavedSearches } from '@/components/features/SavedSearches';
-import { 
+import {
   LazyAdvancedSearch,
   LazyModal,
   LazyModalFooter,
@@ -32,7 +31,7 @@ import {
   LazyUndoToast,
 } from '@/components/lazy';
 import Button2 from '@/components/ui/Button2';
-import Card, { CardContent } from '@/components/ui/Card';
+import Card2, { CardContent } from '@/components/ui/Card2';
 import { ExportDropdown } from '@/components/ui/ExportDropdown';
 import Input from '@/components/ui/Input';
 import Select from '@/components/ui/Select';
@@ -44,6 +43,7 @@ import { staggerContainer, staggerItem, fadeVariants, springConfigs } from '@/li
 import { apiClient, type Application } from '@/lib/api';
 import { createApplicationBulkActions } from '@/lib/bulkActions/applicationActions';
 import { logger } from '@/lib/logger';
+import { m, AnimatePresence } from '@/lib/motion';
 import { APPLICATION_SEARCH_FIELDS } from '@/lib/searchFields';
 import { applySearchQuery, countSearchResults, createEmptyQuery, hasSearchCriteria, queryToSearchParams } from '@/lib/searchUtils';
 import { handleApplicationStatusUpdate } from '@/lib/websocket/applications';
@@ -79,7 +79,7 @@ export default function ApplicationsPage() {
   const [editingApplication, setEditingApplication] = useState<Application | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
-  
+
   // Advanced Search state
   const [showAdvancedSearch, setShowAdvancedSearch] = useState(false);
   const [advancedSearchQuery, setAdvancedSearchQuery] = useState<SearchGroup>(createEmptyQuery());
@@ -108,7 +108,7 @@ export default function ApplicationsPage() {
     onUndo: async (state) => {
       // Restore previous state
       const { previousState, affectedIds } = state;
-      
+
       // Restore applications to their previous state
       await Promise.all(
         affectedIds.map((appId) => {
@@ -306,11 +306,11 @@ export default function ApplicationsPage() {
   // Apply advanced search if active
   const handleApplyAdvancedSearch = (query: SearchGroup) => {
     setAdvancedSearchQuery(query);
-    
+
     // Add to recent searches
     const resultCount = countSearchResults(applications, query);
     addRecentSearch(query, resultCount);
-    
+
     // Update URL with search params
     const params = queryToSearchParams(query);
     window.history.pushState({}, '', `?${params.toString()}`);
@@ -324,7 +324,7 @@ export default function ApplicationsPage() {
   const handleRemoveFilter = (ruleId: string) => {
     const updatedQuery = removeRuleFromQuery(advancedSearchQuery, ruleId);
     setAdvancedSearchQuery(updatedQuery);
-    
+
     // Update URL
     if (hasSearchCriteria(updatedQuery)) {
       const params = queryToSearchParams(updatedQuery);
@@ -386,7 +386,7 @@ export default function ApplicationsPage() {
     try {
       await action.action(selectedApplicationIds);
     } catch (error) {
-      console.error('Bulk action failed:', error);
+      logger.error('Bulk action failed:', error);
     }
   };
 
@@ -468,13 +468,13 @@ export default function ApplicationsPage() {
           <div className="h-8 bg-neutral-200 rounded w-1/4 mb-6"></div>
           <div className="space-y-4">
             {[...Array(3)].map((_, i) => (
-              <Card key={i}>
+              <Card2 key={i}>
                 <CardContent className="p-6">
                   <div className="h-4 bg-neutral-200 rounded w-3/4 mb-2"></div>
                   <div className="h-4 bg-neutral-200 rounded w-1/2 mb-4"></div>
                   <div className="h-4 bg-neutral-200 rounded w-1/4"></div>
                 </CardContent>
-              </Card>
+              </Card2>
             ))}
           </div>
         </div>
@@ -484,31 +484,31 @@ export default function ApplicationsPage() {
 
   return (
     <div className="space-y-6">
-      <motion.div
+      <m.div
         className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4"
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3 }}
       >
         <div>
-          <motion.h1
+          <m.h1
             className="text-3xl font-bold text-neutral-900"
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.1 }}
           >
             Applications
-          </motion.h1>
-          <motion.p
+          </m.h1>
+          <m.p
             className="text-neutral-600 mt-1"
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.2 }}
           >
             Track your job applications and their progress
-          </motion.p>
+          </m.p>
           {lastUpdated && (
-            <motion.p
+            <m.p
               className="text-sm text-neutral-500 mt-1"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -516,16 +516,16 @@ export default function ApplicationsPage() {
               key={lastUpdated.toISOString()}
             >
               Last updated: {lastUpdated.toLocaleTimeString()}
-            </motion.p>
+            </m.p>
           )}
         </div>
-        <motion.div
+        <m.div
           className="flex items-center space-x-3"
           initial={{ opacity: 0, x: 20 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ delay: 0.2 }}
         >
-          <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+          <m.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
             <ExportDropdown
               data={filteredAndSortedApplications}
               selectedIds={selectedApplicationIds}
@@ -576,8 +576,8 @@ export default function ApplicationsPage() {
                 setTimeout(() => setErrorMessage(''), 5000);
               }}
             />
-          </motion.div>
-          <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+          </m.div>
+          <m.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
             <Button2
               variant="outline"
               onClick={loadApplications}
@@ -587,44 +587,44 @@ export default function ApplicationsPage() {
               <FileText className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
               <span>{isLoading ? 'Loading...' : 'Refresh'}</span>
             </Button2>
-          </motion.div>
-          <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+          </m.div>
+          <m.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
             <Button2 onClick={openAddModal} className="flex items-center space-x-2">
               <Plus className="h-4 w-4" />
               <span>Add Application</span>
             </Button2>
-          </motion.div>
-        </motion.div>
-      </motion.div>
+          </m.div>
+        </m.div>
+      </m.div>
 
       <AnimatePresence>
         {error && (
-          <motion.div
+          <m.div
             initial={{ opacity: 0, y: -10, height: 0 }}
             animate={{ opacity: 1, y: 0, height: 'auto' }}
             exit={{ opacity: 0, y: -10, height: 0 }}
             transition={{ duration: 0.2 }}
           >
-            <Card className="border-red-200 bg-red-50">
+            <Card2 className="border-red-200 bg-red-50">
               <CardContent className="flex items-center p-4">
                 <AlertCircle className="h-5 w-5 text-red-400 flex-shrink-0" />
                 <p className="text-sm text-red-800 ml-3">{error}</p>
               </CardContent>
-            </Card>
-          </motion.div>
+            </Card2>
+          </m.div>
         )}
       </AnimatePresence>
 
       {/* Search and Filters */}
-      <motion.div
+      <m.div
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.2 }}
       >
-        <Card>
+        <Card2>
           <CardContent className="p-4">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <motion.div
+              <m.div
                 className="relative"
                 initial={{ opacity: 0, x: -10 }}
                 animate={{ opacity: 1, x: 0 }}
@@ -639,9 +639,9 @@ export default function ApplicationsPage() {
                   className="pl-10"
                   disabled={hasSearchCriteria(advancedSearchQuery)}
                 />
-              </motion.div>
+              </m.div>
 
-              <motion.div
+              <m.div
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.35 }}
@@ -655,9 +655,9 @@ export default function ApplicationsPage() {
                   ]}
                   disabled={hasSearchCriteria(advancedSearchQuery)}
                 />
-              </motion.div>
+              </m.div>
 
-              <motion.div
+              <m.div
                 initial={{ opacity: 0, x: 10 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: 0.4 }}
@@ -667,11 +667,11 @@ export default function ApplicationsPage() {
                   onChange={(e) => setSortBy(e.target.value)}
                   options={SORT_OPTIONS}
                 />
-              </motion.div>
+              </m.div>
             </div>
 
             {/* Advanced Search Controls */}
-            <motion.div
+            <m.div
               className="mt-4 flex items-center space-x-2"
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
@@ -697,11 +697,11 @@ export default function ApplicationsPage() {
                 onLoad={handleLoadRecentSearch}
                 context="applications"
               />
-            </motion.div>
+            </m.div>
 
             {/* Active Filter Chips */}
             {hasSearchCriteria(advancedSearchQuery) && (
-              <motion.div
+              <m.div
                 className="mt-4 pt-4 border-t border-neutral-200 dark:border-neutral-700"
                 initial={{ opacity: 0, height: 0 }}
                 animate={{ opacity: 1, height: 'auto' }}
@@ -712,10 +712,10 @@ export default function ApplicationsPage() {
                   onRemoveFilter={handleRemoveFilter}
                   onClearAll={handleClearAdvancedSearch}
                 />
-              </motion.div>
+              </m.div>
             )}
 
-            <motion.div
+            <m.div
               className="mt-4 pt-4 border-t border-neutral-200"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -738,7 +738,7 @@ export default function ApplicationsPage() {
                     </span>
                   )}
                 </div>
-                <motion.div
+                <m.div
                   className="text-sm text-neutral-600"
                   key={`${filteredAndSortedApplications.length}-${statusFilter}`}
                   initial={{ opacity: 0, y: 5 }}
@@ -747,12 +747,12 @@ export default function ApplicationsPage() {
                 >
                   Showing {filteredAndSortedApplications.length} of {applications.length} applications
                   {statusFilter !== 'all' && ` with status: ${statusFilter}`}
-                </motion.div>
+                </m.div>
               </div>
-            </motion.div>
+            </m.div>
           </CardContent>
-        </Card>
-      </motion.div>
+        </Card2>
+      </m.div>
 
       {/* Application Form Modal */}
       <LazyModal
@@ -833,7 +833,7 @@ export default function ApplicationsPage() {
       </LazyModal>
 
       {filteredAndSortedApplications.length > 0 ? (
-        <motion.div
+        <m.div
           className="space-y-4"
           variants={staggerContainer}
           initial="hidden"
@@ -841,7 +841,7 @@ export default function ApplicationsPage() {
         >
           <AnimatePresence mode="popLayout">
             {filteredAndSortedApplications.map((application) => (
-              <motion.div
+              <m.div
                 key={application.id}
                 variants={staggerItem}
                 layout
@@ -858,7 +858,7 @@ export default function ApplicationsPage() {
                 }}
                 transition={springConfigs.smooth}
               >
-                <Card hover className="transition-all duration-200">
+                <Card2 hover className="transition-all duration-200">
                   <CardContent className="p-6">
                     <div className="flex items-start justify-between">
                       <div className="flex items-start space-x-3 flex-1">
@@ -870,99 +870,99 @@ export default function ApplicationsPage() {
                         />
                         <div className="flex-1">
                           <div className="flex items-center space-x-3 mb-2">
-                          <h3 className="text-lg font-semibold text-neutral-900">
-                            {application.job?.title || 'Unknown Position'}
-                          </h3>
-                          <div className="flex items-center space-x-1">
-                            <motion.div
-                              key={`icon-${application.status}`}
-                              initial={{ scale: 0.8, opacity: 0 }}
-                              animate={{ scale: 1, opacity: 1 }}
-                              transition={springConfigs.bouncy}
-                            >
-                              {getStatusIcon(application.status)}
-                            </motion.div>
-                            <motion.span
-                              key={`badge-${application.status}`}
-                              initial={{ opacity: 0, scale: 0.9, y: -5 }}
-                              animate={{ opacity: 1, scale: 1, y: 0 }}
-                              transition={springConfigs.bouncy}
-                              className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(application.status)}`}
-                            >
-                              {application.status.charAt(0).toUpperCase() + application.status.slice(1)}
-                            </motion.span>
+                            <h3 className="text-lg font-semibold text-neutral-900">
+                              {application.job?.title || 'Unknown Position'}
+                            </h3>
+                            <div className="flex items-center space-x-1">
+                              <m.div
+                                key={`icon-${application.status}`}
+                                initial={{ scale: 0.8, opacity: 0 }}
+                                animate={{ scale: 1, opacity: 1 }}
+                                transition={springConfigs.bouncy}
+                              >
+                                {getStatusIcon(application.status)}
+                              </m.div>
+                              <m.span
+                                key={`badge-${application.status}`}
+                                initial={{ opacity: 0, scale: 0.9, y: -5 }}
+                                animate={{ opacity: 1, scale: 1, y: 0 }}
+                                transition={springConfigs.bouncy}
+                                className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(application.status)}`}
+                              >
+                                {application.status.charAt(0).toUpperCase() + application.status.slice(1)}
+                              </m.span>
+                            </div>
+                          </div>
+
+                          <div className="flex flex-wrap items-center gap-4 text-sm text-neutral-600 mb-3">
+                            <div className="flex items-center space-x-1">
+                              <Building className="h-4 w-4" />
+                              <span>{application.job?.company || 'Unknown Company'}</span>
+                            </div>
+                            {application.job?.location && (
+                              <div className="flex items-center space-x-1">
+                                <MapPin className="h-4 w-4" />
+                                <span>{application.job.location}</span>
+                              </div>
+                            )}
+                            {application.applied_date && (
+                              <div className="flex items-center space-x-1">
+                                <Clock className="h-4 w-4" />
+                                <span>Applied {new Date(application.applied_date).toLocaleDateString()}</span>
+                              </div>
+                            )}
+                          </div>
+
+                          {application.notes && (
+                            <p className="text-sm text-neutral-600 mb-3">
+                              <strong>Notes:</strong> {application.notes}
+                            </p>
+                          )}
+
+                          <div className="flex flex-wrap items-center gap-4 text-sm text-neutral-500">
+                            {application.interview_date && (
+                              <span>Interview: {new Date(application.interview_date).toLocaleDateString()}</span>
+                            )}
+                            {application.response_date && (
+                              <span>Response: {new Date(application.response_date).toLocaleDateString()}</span>
+                            )}
                           </div>
                         </div>
 
-                        <div className="flex flex-wrap items-center gap-4 text-sm text-neutral-600 mb-3">
-                          <div className="flex items-center space-x-1">
-                            <Building className="h-4 w-4" />
-                            <span>{application.job?.company || 'Unknown Company'}</span>
-                          </div>
-                          {application.job?.location && (
-                            <div className="flex items-center space-x-1">
-                              <MapPin className="h-4 w-4" />
-                              <span>{application.job.location}</span>
-                            </div>
-                          )}
-                          {application.applied_date && (
-                            <div className="flex items-center space-x-1">
-                              <Clock className="h-4 w-4" />
-                              <span>Applied {new Date(application.applied_date).toLocaleDateString()}</span>
-                            </div>
-                          )}
-                        </div>
-
-                        {application.notes && (
-                          <p className="text-sm text-neutral-600 mb-3">
-                            <strong>Notes:</strong> {application.notes}
-                          </p>
-                        )}
-
-                        <div className="flex flex-wrap items-center gap-4 text-sm text-neutral-500">
-                          {application.interview_date && (
-                            <span>Interview: {new Date(application.interview_date).toLocaleDateString()}</span>
-                          )}
-                          {application.response_date && (
-                            <span>Response: {new Date(application.response_date).toLocaleDateString()}</span>
-                          )}
-                        </div>
-                      </div>
-
-                      <div className="flex items-center space-x-2 ml-4">
-                        <motion.div
-                          whileHover={{ scale: 1.05 }}
-                          whileTap={{ scale: 0.95 }}
-                        >
-                          <Button2
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => startEdit(application)}
-                            title="Edit Application"
+                        <div className="flex items-center space-x-2 ml-4">
+                          <m.div
+                            whileHover={{ scale: 1.05 }}
+                            whileTap={{ scale: 0.95 }}
                           >
-                            <Edit className="h-4 w-4" />
-                          </Button2>
-                        </motion.div>
+                            <Button2
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => startEdit(application)}
+                              title="Edit Application"
+                            >
+                              <Edit className="h-4 w-4" />
+                            </Button2>
+                          </m.div>
 
-                        <motion.div
-                          initial={{ opacity: 0, x: 10 }}
-                          animate={{ opacity: 1, x: 0 }}
-                          transition={{ delay: 0.1 }}
-                        >
-                          <Select
-                            value={application.status}
-                            onChange={(e) => updateApplicationStatus(application.id, e.target.value)}
-                            options={STATUS_OPTIONS}
-                            className="w-32"
-                          />
-                        </motion.div>
-                      </div>
+                          <m.div
+                            initial={{ opacity: 0, x: 10 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ delay: 0.1 }}
+                          >
+                            <Select
+                              value={application.status}
+                              onChange={(e) => updateApplicationStatus(application.id, e.target.value)}
+                              options={STATUS_OPTIONS}
+                              className="w-32"
+                            />
+                          </m.div>
+                        </div>
                       </div>
                     </div>
 
                     {/* Interview Feedback Section */}
                     {application.interview_feedback && (
-                      <motion.div
+                      <m.div
                         className="mt-4 pt-4 border-t border-neutral-200"
                         initial={{ opacity: 0, height: 0 }}
                         animate={{ opacity: 1, height: 'auto' }}
@@ -971,7 +971,7 @@ export default function ApplicationsPage() {
                         <h4 className="text-sm font-medium text-neutral-900 mb-2">Interview Feedback</h4>
 
                         {application.interview_feedback.questions && application.interview_feedback.questions.length > 0 && (
-                          <motion.div
+                          <m.div
                             className="mb-2"
                             initial={{ opacity: 0, y: 10 }}
                             animate={{ opacity: 1, y: 0 }}
@@ -980,7 +980,7 @@ export default function ApplicationsPage() {
                             <p className="text-xs font-medium text-neutral-700">Questions Asked:</p>
                             <div className="flex flex-wrap gap-1 mt-1">
                               {application.interview_feedback.questions.map((question, idx) => (
-                                <motion.span
+                                <m.span
                                   key={idx}
                                   className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full"
                                   initial={{ opacity: 0, scale: 0.8 }}
@@ -988,14 +988,14 @@ export default function ApplicationsPage() {
                                   transition={{ delay: 0.2 + idx * 0.05 }}
                                 >
                                   {question}
-                                </motion.span>
+                                </m.span>
                               ))}
                             </div>
-                          </motion.div>
+                          </m.div>
                         )}
 
                         {application.interview_feedback.skill_areas && application.interview_feedback.skill_areas.length > 0 && (
-                          <motion.div
+                          <m.div
                             className="mb-2"
                             initial={{ opacity: 0, y: 10 }}
                             animate={{ opacity: 1, y: 0 }}
@@ -1004,7 +1004,7 @@ export default function ApplicationsPage() {
                             <p className="text-xs font-medium text-neutral-700">Skill Areas Discussed:</p>
                             <div className="flex flex-wrap gap-1 mt-1">
                               {application.interview_feedback.skill_areas.map((skill, idx) => (
-                                <motion.span
+                                <m.span
                                   key={idx}
                                   className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full"
                                   initial={{ opacity: 0, scale: 0.8 }}
@@ -1012,28 +1012,28 @@ export default function ApplicationsPage() {
                                   transition={{ delay: 0.25 + idx * 0.05 }}
                                 >
                                   {skill}
-                                </motion.span>
+                                </m.span>
                               ))}
                             </div>
-                          </motion.div>
+                          </m.div>
                         )}
 
                         {application.interview_feedback.notes && (
-                          <motion.div
+                          <m.div
                             initial={{ opacity: 0, y: 10 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: 0.25 }}
                           >
                             <p className="text-xs font-medium text-neutral-700">Notes:</p>
                             <p className="text-sm text-neutral-600 mt-1">{application.interview_feedback.notes}</p>
-                          </motion.div>
+                          </m.div>
                         )}
-                      </motion.div>
+                      </m.div>
                     )}
 
                     {/* Job Tech Stack */}
                     {application.job?.tech_stack && application.job.tech_stack.length > 0 && (
-                      <motion.div
+                      <m.div
                         className="mt-4 pt-4 border-t border-neutral-200"
                         initial={{ opacity: 0, height: 0 }}
                         animate={{ opacity: 1, height: 'auto' }}
@@ -1042,7 +1042,7 @@ export default function ApplicationsPage() {
                         <p className="text-xs font-medium text-neutral-700 mb-2">Required Tech Stack:</p>
                         <div className="flex flex-wrap gap-1">
                           {application.job.tech_stack.slice(0, 10).map((tech, idx) => (
-                            <motion.span
+                            <m.span
                               key={tech}
                               className="px-2 py-1 bg-neutral-100 text-neutral-700 text-xs rounded-full"
                               initial={{ opacity: 0, scale: 0.8 }}
@@ -1051,44 +1051,44 @@ export default function ApplicationsPage() {
                               whileHover={{ scale: 1.05 }}
                             >
                               {tech}
-                            </motion.span>
+                            </m.span>
                           ))}
                           {application.job.tech_stack.length > 10 && (
-                            <motion.span
+                            <m.span
                               className="px-2 py-1 bg-neutral-100 text-neutral-600 text-xs rounded-full"
                               initial={{ opacity: 0, scale: 0.8 }}
                               animate={{ opacity: 1, scale: 1 }}
                               transition={{ delay: 0.5 }}
                             >
                               +{application.job.tech_stack.length - 10} more
-                            </motion.span>
+                            </m.span>
                           )}
                         </div>
-                      </motion.div>
+                      </m.div>
                     )}
                   </CardContent>
-                </Card>
-              </motion.div>
+                </Card2>
+              </m.div>
             ))}
           </AnimatePresence>
-        </motion.div>
+        </m.div>
       ) : (
-        <motion.div
+        <m.div
           variants={fadeVariants}
           initial="hidden"
           animate="visible"
           exit="exit"
         >
-          <Card>
+          <Card2>
             <CardContent className="text-center py-12">
-              <motion.div
+              <m.div
                 initial={{ scale: 0.8, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
                 transition={{ delay: 0.1, ...springConfigs.gentle }}
               >
                 <FileText className="h-12 w-12 text-neutral-400 mx-auto mb-4" />
-              </motion.div>
-              <motion.h3
+              </m.div>
+              <m.h3
                 className="text-lg font-medium text-neutral-900 mb-2"
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -1098,8 +1098,8 @@ export default function ApplicationsPage() {
                   ? 'No applications found'
                   : 'No applications yet'
                 }
-              </motion.h3>
-              <motion.p
+              </m.h3>
+              <m.p
                 className="text-neutral-600 mb-4"
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -1109,9 +1109,9 @@ export default function ApplicationsPage() {
                   ? 'Try adjusting your search terms or filters'
                   : 'Start by adding jobs and creating applications to track your progress'
                 }
-              </motion.p>
+              </m.p>
               {!searchTerm && statusFilter === 'all' && (
-                <motion.div
+                <m.div
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.4 }}
@@ -1119,11 +1119,11 @@ export default function ApplicationsPage() {
                   <Button2 onClick={openAddModal}>
                     Add Your First Application
                   </Button2>
-                </motion.div>
+                </m.div>
               )}
             </CardContent>
-          </Card>
-        </motion.div>
+          </Card2>
+        </m.div>
       )}
 
       {/* Advanced Search Panel */}
@@ -1196,23 +1196,23 @@ export default function ApplicationsPage() {
       {/* Success/Error Messages */}
       {successMessage && (
         <div className="fixed top-4 right-4 z-50">
-          <Card className="border-green-200 bg-green-50">
+          <Card2 className="border-green-200 bg-green-50">
             <CardContent className="flex items-center p-4">
               <CheckCircle className="h-5 w-5 text-green-400 flex-shrink-0" />
               <p className="text-sm text-green-800 ml-3">{successMessage}</p>
             </CardContent>
-          </Card>
+          </Card2>
         </div>
       )}
 
       {errorMessage && (
         <div className="fixed top-4 right-4 z-50">
-          <Card className="border-red-200 bg-red-50">
+          <Card2 className="border-red-200 bg-red-50">
             <CardContent className="flex items-center p-4">
               <AlertCircle className="h-5 w-5 text-red-400 flex-shrink-0" />
               <p className="text-sm text-red-800 ml-3">{errorMessage}</p>
             </CardContent>
-          </Card>
+          </Card2>
         </div>
       )}
     </div>

@@ -286,13 +286,13 @@ export default function ResponsiveImagesDemo() {
           <ol className="list-decimal list-inside space-y-2 text-blue-800 dark:text-blue-200">
             <li>Open Chrome DevTools (F12)</li>
             <li>Go to the Network tab</li>
-            <li>Filter by "Img" to see only images</li>
+            <li>Filter by &quot;Img&quot; to see only images</li>
             <li>Clear the network log</li>
             <li>Resize your browser window</li>
             <li>Reload the page</li>
             <li>Observe which image sizes are loaded for different viewport widths</li>
-            <li>Check the "Size" column to see actual file sizes</li>
-            <li>Verify WebP or AVIF format is being served (check "Type" column)</li>
+            <li>Check the &quot;Size&quot; column to see actual file sizes</li>
+            <li>Verify WebP or AVIF format is being served (check &quot;Type&quot; column)</li>
           </ol>
         </section>
 

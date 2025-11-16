@@ -15,7 +15,7 @@ interface ApplicationTimelineProps {
 export function ApplicationTimeline({ events }: ApplicationTimelineProps) {
   return (
     <div className="relative border-l border-gray-200 dark:border-gray-700 ml-4">
-      {events.map((event, index) => (
+      {events.map((event) => (
         <div key={event.id} className="mb-8 flex items-start">
           <div className={`flex items-center justify-center w-8 h-8 rounded-full ring-8 ring-white dark:ring-gray-900 bg-${event.color || 'blue'}-100 dark:bg-${event.color || 'blue'}-900 text-${event.color || 'blue'}-800 dark:text-${event.color || 'blue'}-300 flex-shrink-0`}>
             {event.icon || (

@@ -93,7 +93,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 router.push('/dashboard');
             }
         },
-        [router]
+        [router],
     );
 
     const register = useCallback(
@@ -119,7 +119,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 router.push('/dashboard');
             }
         },
-        [router]
+        [router],
     );
 
     const logout = useCallback(async () => {

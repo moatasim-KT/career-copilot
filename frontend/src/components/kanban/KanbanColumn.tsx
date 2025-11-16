@@ -10,8 +10,8 @@ import {
   SortableContext,
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
-import { motion } from 'framer-motion';
 
+import { m } from '@/lib/motion';
 import { KanbanColumn } from '@/types/application';
 
 import { ApplicationCard } from './ApplicationCard';
@@ -43,11 +43,10 @@ export function KanbanColumnComponent({ column }: KanbanColumnProps) {
   return (
     <div
       ref={setNodeRef}
-      className={`rounded-lg border-2 transition-colors ${
-        isOver
+      className={`rounded-lg border-2 transition-colors ${isOver
           ? 'border-blue-500 dark:border-blue-400 bg-blue-50 dark:bg-blue-900/20'
           : 'border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800/50'
-      }`}
+        }`}
     >
       {/* Column Header */}
       <div
@@ -73,7 +72,7 @@ export function KanbanColumnComponent({ column }: KanbanColumnProps) {
         >
           {column.applications.length > 0 ? (
             column.applications.map((application) => (
-              <motion.div
+              <m.div
                 key={application.id}
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -81,7 +80,7 @@ export function KanbanColumnComponent({ column }: KanbanColumnProps) {
                 transition={{ duration: 0.2 }}
               >
                 <ApplicationCard application={application} />
-              </motion.div>
+              </m.div>
             ))
           ) : (
             <div className="text-center py-8 text-neutral-500 dark:text-neutral-400">

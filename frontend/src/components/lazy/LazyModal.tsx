@@ -16,7 +16,7 @@ const Modal = dynamic(
   {
     loading: () => <ModalSkeleton />,
     ssr: false,
-  }
+  },
 );
 
 // Lazy load ModalFooter
@@ -24,7 +24,7 @@ export const LazyModalFooter = dynamic(
   () => import('@/components/ui/Modal').then((mod) => ({ default: mod.ModalFooter })),
   {
     ssr: false,
-  }
+  },
 );
 
 // Simple skeleton for modal loading state

@@ -4,8 +4,9 @@
 
 'use client';
 
-import { motion, AnimatePresence } from 'framer-motion';
 import React, { useState, useRef, useCallback, ChangeEvent, DragEvent } from 'react';
+
+import { m, AnimatePresence } from '@/lib/motion';
 
 // ============================================================================
 // Types
@@ -62,7 +63,7 @@ export function FileUpload({
     };
 
     // Validate file
-    const validateFile = (file: File): string | null => {
+    const validateFile = useCallback((file: File): string | null => {
         if (maxSize && file.size > maxSize) {
             return `File size exceeds ${formatFileSize(maxSize)}`;
         }
@@ -88,7 +89,7 @@ export function FileUpload({
         }
 
         return null;
-    };
+    }, [accept, maxSize]);
 
     // Create file preview
     const createPreview = (file: File): Promise<string | undefined> => {
@@ -167,7 +168,7 @@ export function FileUpload({
                 );
             }
         }
-    }, [files.length, maxFiles, multiple, onUpload, showPreview]);
+    }, [files.length, maxFiles, multiple, onUpload, showPreview, validateFile]);
 
     // Handle file input change
     const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
@@ -305,7 +306,7 @@ export function FileUpload({
 
                     <AnimatePresence>
                         {files.map((file) => (
-                            <motion.div
+                            <m.div
                                 key={file.id}
                                 initial={{ opacity: 0, y: -10 }}
                                 animate={{ opacity: 1, y: 0 }}
@@ -381,7 +382,7 @@ export function FileUpload({
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                                     </svg>
                                 </button>
-                            </motion.div>
+                            </m.div>
                         ))}
                     </AnimatePresence>
                 </div>

@@ -11,7 +11,6 @@
 
 'use client';
 
-import { useState } from 'react';
 import {
   Key,
   Shield,
@@ -24,13 +23,15 @@ import {
   Check,
   X,
 } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { useState } from 'react';
 
 import Button2 from '@/components/ui/Button2';
 import Card2 from '@/components/ui/Card2';
 import Input2 from '@/components/ui/Input2';
-import { cn } from '@/lib/utils';
 import { apiClient } from '@/lib/api/client';
+import { logger } from '@/lib/logger';
+import { m } from '@/lib/motion';
+import { cn } from '@/lib/utils';
 
 interface Session {
   id: string;
@@ -94,7 +95,7 @@ export default function AccountSettingsPage() {
 
   const passwordStrength = (password: string): { strength: number; label: string; color: string } => {
     if (!password) return { strength: 0, label: '', color: '' };
-    
+
     let strength = 0;
     if (password.length >= 8) strength++;
     if (password.length >= 12) strength++;
@@ -119,7 +120,7 @@ export default function AccountSettingsPage() {
     try {
       await apiClient.user.changePassword(
         passwordData.currentPassword,
-        passwordData.newPassword
+        passwordData.newPassword,
       );
 
       // Reset form
@@ -130,9 +131,9 @@ export default function AccountSettingsPage() {
       });
 
       // Show success message
-      console.log('Password changed successfully');
+      logger.info('Password changed successfully');
     } catch (error) {
-      console.error('Failed to change password:', error);
+      logger.error('Failed to change password:', error);
     } finally {
       setIsChangingPassword(false);
     }
@@ -140,21 +141,21 @@ export default function AccountSettingsPage() {
 
   const handleLogoutSession = (sessionId: string) => {
     setSessions(prev => prev.filter(s => s.id !== sessionId));
-    console.log('Logged out session:', sessionId);
+    logger.info('Logged out session:', sessionId);
   };
 
   const handleLogoutAllDevices = () => {
     if (confirm('Are you sure you want to log out of all devices? You will need to log in again.')) {
       setSessions(prev => prev.filter(s => s.current));
-      console.log('Logged out of all devices');
+      logger.info('Logged out of all devices');
     }
   };
 
   const handleConnectAccount = (accountId: string) => {
     setAccounts(prev =>
       prev.map(acc =>
-        acc.id === accountId ? { ...acc, connected: !acc.connected } : acc
-      )
+        acc.id === accountId ? { ...acc, connected: !acc.connected } : acc,
+      ),
     );
   };
 
@@ -238,7 +239,7 @@ export default function AccountSettingsPage() {
               <div className="mt-2">
                 <div className="flex items-center gap-2 mb-1">
                   <div className="flex-1 h-2 bg-neutral-200 dark:bg-neutral-700 rounded-full overflow-hidden">
-                    <motion.div
+                    <m.div
                       initial={{ width: 0 }}
                       animate={{ width: `${(strength.strength / 5) * 100}%` }}
                       className={cn(
@@ -246,7 +247,7 @@ export default function AccountSettingsPage() {
                         strength.strength <= 2 && 'bg-red-500',
                         strength.strength === 3 && 'bg-yellow-500',
                         strength.strength === 4 && 'bg-blue-500',
-                        strength.strength === 5 && 'bg-green-500'
+                        strength.strength === 5 && 'bg-green-500',
                       )}
                     />
                   </div>
@@ -359,7 +360,7 @@ export default function AccountSettingsPage() {
                   'w-10 h-10 rounded-full flex items-center justify-center',
                   account.provider === 'google' && 'bg-red-100 dark:bg-red-900/30',
                   account.provider === 'linkedin' && 'bg-blue-100 dark:bg-blue-900/30',
-                  account.provider === 'github' && 'bg-neutral-100 dark:bg-neutral-800'
+                  account.provider === 'github' && 'bg-neutral-100 dark:bg-neutral-800',
                 )}>
                   <span className="text-lg font-bold">
                     {account.provider === 'google' && 'G'}
@@ -400,7 +401,7 @@ export default function AccountSettingsPage() {
                 Active Sessions
               </h3>
               <p className="text-sm text-neutral-600 dark:text-neutral-400">
-                Manage devices where you're currently logged in
+                Manage devices where you&apos;re currently logged in
               </p>
             </div>
           </div>

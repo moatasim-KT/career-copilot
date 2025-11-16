@@ -1,9 +1,10 @@
 """Content Version model for tracking content history and rollback functionality"""
 
-from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, Text
+from sqlalchemy import Column, DateTime, ForeignKey, Integer, String, Text
 from sqlalchemy.orm import relationship
-from datetime import datetime
+
 from ..core.database import Base
+from ..utils import utc_now
 
 
 class ContentVersion(Base):
@@ -19,7 +20,7 @@ class ContentVersion(Base):
 	change_type = Column(String, nullable=False)  # generated, user_modified, ai_improved
 
 	# Metadata
-	created_at = Column(DateTime, default=datetime.utcnow)
+	created_at = Column(DateTime, default=utc_now)
 	created_by = Column(String, default="system")  # system, user, ai
 
 	# Relationships

@@ -1,18 +1,19 @@
 """
-Unit Tests for Job Scraping Service
+Unit Tests for Job Management System (formerly Job Scraping Service)
 Tests the consolidated job scraping service (job scraper + ingestion + API integration)
 """
 
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
-from app.models.job import Job
-from app.schemas.job import JobCreate
-from app.services.job_scraping_service import JobScrapingService
 from sqlalchemy.orm import Session
 
+from app.models.job import Job
+from app.schemas.job import JobCreate
+from app.services.job_service import JobManagementSystem
 
-class TestJobScrapingServiceInitialization:
+
+class TestJobManagementSystemInitialization:
 	"""Test service initialization"""
 
 	@pytest.fixture
@@ -23,7 +24,7 @@ class TestJobScrapingServiceInitialization:
 	def test_initialization_with_db(self, mock_db):
 		"""Test service initialization with database"""
 		# Execute
-		service = JobScrapingService(db=mock_db)
+		service = JobManagementSystem(db=mock_db)
 
 		# Verify
 		assert service.db == mock_db
@@ -35,7 +36,7 @@ class TestJobScrapingServiceInitialization:
 	def test_initialization_without_db(self):
 		"""Test service initialization without database"""
 		# Execute
-		service = JobScrapingService(db=None)
+		service = JobManagementSystem(db=None)
 
 		# Verify
 		assert service.db is None
@@ -44,7 +45,7 @@ class TestJobScrapingServiceInitialization:
 	def test_api_configurations(self, mock_db):
 		"""Test API configurations are properly set"""
 		# Execute
-		service = JobScrapingService(db=mock_db)
+		service = JobManagementSystem(db=mock_db)
 
 		# Verify
 		assert "adzuna" in service.apis
@@ -60,409 +61,192 @@ class TestJobScrapingServiceInitialization:
 			assert "base_url" in api_config
 
 
-class TestJobScrapingServiceAPIs:
-	"""Test API integration methods"""
+class TestJobManagementSystemScrapers:
+	"""Tests focused on the new ScraperManager-driven architecture."""
 
 	@pytest.fixture
 	def mock_db(self):
-		"""Create mock database session"""
 		return MagicMock(spec=Session)
 
 	@pytest.fixture
 	def service(self, mock_db):
-		"""Create JobScrapingService instance"""
-		return JobScrapingService(db=mock_db)
+		return JobManagementSystem(db=mock_db)
 
 	@pytest.mark.asyncio
-	@patch("app.services.job_scraping_service.httpx.AsyncClient")
-	async def test_scrape_adzuna_api_success(self, mock_client_class, service):
-		"""Test successful Adzuna API scraping"""
-		# Setup
-		mock_response = MagicMock()
-		mock_response.status_code = 200
-		mock_response.json.return_value = {
-			"results": [
-				{
-					"title": "Python Developer",
-					"company": {"display_name": "Tech Corp"},
-					"location": {"display_name": "San Francisco"},
-					"description": "Great Python job",
-					"redirect_url": "https://example.com/job1",
-					"salary_min": 100000,
-					"salary_max": 150000,
-					"contract_type": "permanent",
-				}
-			]
-		}
+	async def test_scrape_adzuna_api_success(self, service):
+		"""Ensure the private Adzuna scraper normalizes API payloads via aiohttp."""
+		service.apis["adzuna"].update({"enabled": True, "app_id": "id", "app_key": "key"})
+		preferences = {"skills": ["python"], "locations": ["Berlin"]}
 
-		mock_client = MagicMock()
-		mock_client.get = AsyncMock(return_value=mock_response)
-		mock_client_class.return_value.__aenter__.return_value = mock_client
-
-		# Enable Adzuna API
-		service.apis["adzuna"]["enabled"] = True
-		service.apis["adzuna"]["app_id"] = "test_id"
-		service.apis["adzuna"]["app_key"] = "test_key"
-
-		# Execute - we'll need to check if the method exists
-		if hasattr(service, "scrape_adzuna_api"):
-			result = await service.scrape_adzuna_api(keywords=["python"], location="San Francisco")
-
-			# Verify
-			assert isinstance(result, list)
-			if len(result) > 0:
-				assert "title" in result[0] or "Python Developer" in str(result[0])
-
-	@pytest.mark.asyncio
-	async def test_scrape_with_disabled_api(self, service):
-		"""Test scraping with disabled API"""
-		# Setup
-		service.apis["adzuna"]["enabled"] = False
-
-		# Execute - assuming method returns empty list when API disabled
-		if hasattr(service, "scrape_adzuna_api"):
-			result = await service.scrape_adzuna_api(keywords=["python"], location="San Francisco")
-
-			# Verify - should return empty or skip
-			assert result is not None
-
-
-class TestJobScrapingServiceRSSFeeds:
-	"""Test RSS feed scraping methods"""
-
-	@pytest.fixture
-	def mock_db(self):
-		"""Create mock database session"""
-		return MagicMock(spec=Session)
-
-	@pytest.fixture
-	def service(self, mock_db):
-		"""Create JobScrapingService instance"""
-		return JobScrapingService(db=mock_db)
-
-	@patch("app.services.job_scraping_service.feedparser")
-	def test_scrape_rss_feed_success(self, mock_feedparser, service):
-		"""Test successful RSS feed scraping"""
-		# Setup
-		mock_feedparser.parse.return_value = {
-			"entries": [
-				{
-					"title": "Remote Python Job",
-					"link": "https://example.com/job1",
-					"summary": "Great remote job",
-					"published": "Mon, 01 Jan 2024 12:00:00 GMT",
-				}
-			]
-		}
-
-		# Execute - check if method exists
-		if hasattr(service, "scrape_rss_feed"):
-			result = service.scrape_rss_feed(url="https://example.com/feed.rss")
-
-			# Verify
-			assert isinstance(result, list)
-			mock_feedparser.parse.assert_called_once()
-
-
-class TestJobScrapingServiceDataNormalization:
-	"""Test data normalization and deduplication"""
-
-	@pytest.fixture
-	def mock_db(self):
-		"""Create mock database session"""
-		return MagicMock(spec=Session)
-
-	@pytest.fixture
-	def service(self, mock_db):
-		"""Create JobScrapingService instance"""
-		return JobScrapingService(db=mock_db)
-
-	def test_deduplicate_against_db(self, service, mock_db):
-		"""Test deduplication against existing database jobs"""
-		# Setup
-		existing_job = Job(
-			id=1,
-			title="Software Engineer",
-			company="Tech Corp",
-			location="San Francisco",
-			user_id=1,
-			url="https://example.com/job1",
+		mock_resp = MagicMock()
+		mock_resp.status = 200
+		mock_resp.json = AsyncMock(
+			return_value={
+				"results": [
+					{
+						"title": "Python Developer",
+						"company": {"display_name": "Tech Corp"},
+						"location": {"display_name": "Berlin, Germany"},
+						"description": "A great role",
+						"redirect_url": "https://example.com/job1",
+						"salary_min": 90000,
+						"salary_max": 120000,
+					}
+				]
+			}
 		)
 
-		mock_query = MagicMock()
-		mock_db.query.return_value = mock_query
-		mock_query.filter.return_value = mock_query
-		mock_query.all.return_value = [existing_job]
+		with patch("app.services.job_service.aiohttp.ClientSession") as mock_session_class:
+			mock_session = MagicMock()
+			mock_session_class.return_value.__aenter__.return_value = mock_session
+			mock_ctx = MagicMock()
+			mock_ctx.__aenter__.return_value = mock_resp
+			mock_session.get.return_value = mock_ctx
 
-		scraped_jobs = [
-			JobCreate(
-				title="Software Engineer",  # Duplicate
-				company="Tech Corp",
-				location="San Francisco",
-				url="https://example.com/job1",
-				source="linkedin",
-			),
-			JobCreate(
-				title="Data Scientist",  # New
-				company="Data Inc",
-				location="New York",
-				url="https://example.com/job2",
-				source="indeed",
-			),
-		]
+			result = await service._scrape_adzuna(preferences)
 
-		# Execute
-		if hasattr(service, "deduplicate_against_db"):
-			result = service.deduplicate_against_db(scraped_jobs, user_id=1)
+		assert len(result) == 1
+		assert result[0]["title"] == "Python Developer"
+		assert result[0]["company"] == "Tech Corp"
 
-			# Verify - should filter out duplicate
-			assert isinstance(result, list)
+	@pytest.mark.asyncio
+	async def test_scrape_remoteok_api_success(self, service):
+		"""RemoteOK scraper should parse JSON payloads via aiohttp."""
+		mock_resp = MagicMock()
+		mock_resp.status = 200
+		mock_resp.json = AsyncMock(
+			return_value=[
+				{
+					"position": "ML Engineer",
+					"company": "AI Labs",
+					"location": "Remote, EU",
+					"description": "Research role",
+					"url": "https://example.com/ml",
+				}
+			]
+		)
+
+		with patch("app.services.job_service.aiohttp.ClientSession") as mock_session_class:
+			mock_session = MagicMock()
+			mock_session_class.return_value.__aenter__.return_value = mock_session
+			mock_ctx = MagicMock()
+			mock_ctx.__aenter__.return_value = mock_resp
+			mock_session.get.return_value = mock_ctx
+
+			result = await service._scrape_remoteok({})
+
+		assert result[0]["title"] == "ML Engineer"
+		assert result[0]["source"] == "remoteok"
+
+	@pytest.mark.asyncio
+	async def test_scrape_jobs_prefers_scraper_manager_results(self, service, monkeypatch):
+		"""scrape_jobs should return ScraperManager output (converted to dicts)."""
+		job = JobCreate(company="Data Co", title="Data Scientist", location="Berlin")
+		monkeypatch.setattr(service, "_ingest_from_scrapers", AsyncMock(return_value=[job]))
+		service.apis["adzuna"]["enabled"] = False
+		service.apis["remoteok"]["enabled"] = False
+
+		result = await service.scrape_jobs({"skills": ["data"], "locations": ["Berlin"], "max_jobs": 10})
+
+		assert len(result) == 1
+		assert result[0]["title"] == "Data Scientist"
+
+	@pytest.mark.asyncio
+	async def test_scrape_jobs_handles_scraper_errors(self, service, monkeypatch):
+		"""Errors from ScraperManager should be logged and not crash scraping."""
+		monkeypatch.setattr(service, "_ingest_from_scrapers", AsyncMock(side_effect=RuntimeError("boom")))
+		service.apis["adzuna"]["enabled"] = False
+		service.apis["remoteok"]["enabled"] = False
+
+		result = await service.scrape_jobs({"skills": [], "locations": [], "max_jobs": 10})
+
+		assert result == []
 
 
-class TestJobScrapingServiceQuotaManagement:
-	"""Test quota and rate limiting"""
+class TestJobManagementSystemDeduplication:
+	"""Ensure wrapper methods delegate to JobDeduplicationService."""
 
 	@pytest.fixture
 	def mock_db(self):
-		"""Create mock database session"""
 		return MagicMock(spec=Session)
 
 	@pytest.fixture
 	def service(self, mock_db):
-		"""Create JobScrapingService instance"""
-		return JobScrapingService(db=mock_db)
+		return JobManagementSystem(db=mock_db)
 
-	def test_quota_tracking_initialization(self, service):
-		"""Test quota tracking is initialized"""
-		# Verify
-		assert hasattr(service, "api_quotas")
-		assert hasattr(service, "last_request_times")
-		assert isinstance(service.api_quotas, dict)
-		assert isinstance(service.last_request_times, dict)
+	def test_deduplicate_against_db_delegates(self, service):
+		jobs = [{"title": "Engineer", "company": "Tech", "location": "Berlin"}]
+		with patch.object(service.deduplication_service, "deduplicate_against_db", return_value=jobs) as mock_dedupe:
+			result = service.deduplicate_against_db(jobs, user_id=42)
 
-	def test_rate_limit_check(self, service):
-		"""Test rate limiting functionality"""
-		# Setup - check if method exists
-		if hasattr(service, "check_rate_limit"):
-			# Execute
-			result = service.check_rate_limit(api_name="adzuna")
+		mock_dedupe.assert_called_once_with(jobs, 42)
+		assert result == jobs
 
-			# Verify - should return boolean or allow/deny decision
-			assert result is not None
+	def test_filter_duplicate_jobs(self, service):
+		jobs = [{"title": "Engineer", "company": "Tech"}]
+		with patch.object(service.deduplication_service, "filter_duplicate_jobs", return_value=jobs) as mock_filter:
+			result = service.filter_duplicate_jobs(jobs)
+
+		mock_filter.assert_called_once()
+		assert result == jobs
 
 
-class TestJobScrapingServiceErrorHandling:
-	"""Test error handling and resilience"""
+class TestJobManagementSystemDataNormalization:
+	"""Validate helper normalization routines."""
 
 	@pytest.fixture
 	def mock_db(self):
-		"""Create mock database session"""
 		return MagicMock(spec=Session)
 
 	@pytest.fixture
 	def service(self, mock_db):
-		"""Create JobScrapingService instance"""
-		return JobScrapingService(db=mock_db)
+		return JobManagementSystem(db=mock_db)
 
-	@pytest.mark.asyncio
-	@patch("app.services.job_scraping_service.httpx.AsyncClient")
-	async def test_api_request_timeout(self, mock_client_class, service):
-		"""Test handling of API request timeout"""
-		# Setup
-		mock_client = MagicMock()
-		mock_client.get = AsyncMock(side_effect=TimeoutError("Request timeout"))
-		mock_client_class.return_value.__aenter__.return_value = mock_client
+	def test_normalize_adzuna_job(self, service):
+		job = {
+			"title": "Engineer",
+			"company": {"display_name": "Tech"},
+			"location": {"display_name": "Berlin"},
+			"description": "desc",
+			"redirect_url": "https://example.com",
+		}
+		result = service._normalize_adzuna_job(job)
+		assert result["company"] == "Tech"
+		assert result["source"] == "adzuna"
 
-		# Enable API
-		service.apis["remoteok"]["enabled"] = True
-
-		# Execute - check if method exists
-		if hasattr(service, "scrape_remoteok_api"):
-			try:
-				result = await service.scrape_remoteok_api(keywords=["python"])
-				# Should handle timeout gracefully
-				assert result is not None
-			except TimeoutError:
-				# Expected - timeout should be caught or propagated appropriately
-				pass
-
-	@pytest.mark.asyncio
-	@patch("app.services.job_scraping_service.httpx.AsyncClient")
-	async def test_api_request_http_error(self, mock_client_class, service):
-		"""Test handling of HTTP errors"""
-		# Setup
-		mock_response = MagicMock()
-		mock_response.status_code = 500
-		mock_response.raise_for_status.side_effect = Exception("Server Error")
-
-		mock_client = MagicMock()
-		mock_client.get = AsyncMock(return_value=mock_response)
-		mock_client_class.return_value.__aenter__.return_value = mock_client
-
-		# Execute - check if method exists
-		if hasattr(service, "_make_api_request"):
-			try:
-				result = await service._make_api_request(url="https://example.com/api")
-				# Should handle error gracefully
-				assert result is not None
-			except Exception:
-				# Expected - error should be caught or propagated
-				pass
-
-	@pytest.mark.asyncio
-	async def test_invalid_json_response(self, service):
-		"""Test handling of invalid JSON response"""
-		# Setup
-		with patch("app.services.job_scraping_service.httpx.AsyncClient") as mock_client_class:
-			mock_response = MagicMock()
-			mock_response.status_code = 200
-			mock_response.json.side_effect = ValueError("Invalid JSON")
-
-			mock_client = MagicMock()
-			mock_client.get = AsyncMock(return_value=mock_response)
-			mock_client_class.return_value.__aenter__.return_value = mock_client
-
-			# Execute - check if method exists
-			if hasattr(service, "scrape_github_jobs"):
-				try:
-					result = await service.scrape_github_jobs(keywords=["python"])
-					# Should handle invalid JSON gracefully
-					assert result is not None
-				except (ValueError, Exception):
-					# Expected
-					pass
+	def test_normalize_remoteok_job(self, service):
+		job = {
+			"position": "Data Engineer",
+			"company": "Data Corp",
+			"location": "Remote",
+			"description": "desc",
+			"url": "https://example.com",
+		}
+		result = service._normalize_remoteok_job(job)
+		assert result["title"] == "Data Engineer"
+		assert result["source"] == "remoteok"
 
 
-class TestJobScrapingServiceIntegration:
-	"""Test integration with other services"""
+class TestJobManagementSystemIntegration:
+	"""Retain lightweight integration tests for composed services."""
 
 	@pytest.fixture
 	def mock_db(self):
-		"""Create mock database session"""
 		return MagicMock(spec=Session)
 
 	@pytest.fixture
 	def service(self, mock_db):
-		"""Create JobScrapingService instance"""
-		return JobScrapingService(db=mock_db)
+		return JobManagementSystem(db=mock_db)
 
 	def test_notification_service_integration(self, service):
-		"""Test integration with notification service"""
-		# Verify
 		assert service.notification_service is not None
 		assert hasattr(service.notification_service, "create_notification")
 
 	def test_skill_matcher_integration(self, service):
-		"""Test integration with skill matching service"""
-		# Verify
 		assert service.skill_matcher is not None
 
 	def test_quota_manager_integration(self, service):
-		"""Test integration with quota manager"""
-		# Verify
 		assert service.quota_manager is not None
-
-
-class TestJobScrapingServiceDataTransformation:
-	"""Test data transformation and parsing"""
-
-	@pytest.fixture
-	def mock_db(self):
-		"""Create mock database session"""
-		return MagicMock(spec=Session)
-
-	@pytest.fixture
-	def service(self, mock_db):
-		"""Create JobScrapingService instance"""
-		return JobScrapingService(db=mock_db)
-
-	def test_transform_api_response_to_job_create(self, service):
-		"""Test transformation of API response to JobCreate schema"""
-		# Setup
-		api_response = {
-			"title": "Python Developer",
-			"company": {"display_name": "Tech Corp"},
-			"location": {"display_name": "San Francisco"},
-			"description": "Great job",
-			"redirect_url": "https://example.com/job1",
-		}
-
-		# Execute - check if transformation method exists
-		if hasattr(service, "transform_to_job_create"):
-			result = service.transform_to_job_create(api_response, source="adzuna")
-
-			# Verify
-			assert isinstance(result, (JobCreate, dict))
-			if isinstance(result, JobCreate):
-				assert result.title == "Python Developer"
-				assert result.source == "adzuna"
-
-	def test_parse_salary_information(self, service):
-		"""Test parsing of salary information"""
-		# Check if salary parsing method exists
-		if hasattr(service, "parse_salary"):
-			# Test various salary formats
-			assert service.parse_salary(min=100000, max=150000) is not None
-			assert service.parse_salary(text="$100k-$150k") is not None
-
-
-class TestJobScrapingServiceBatchOperations:
-	"""Test batch scraping operations"""
-
-	@pytest.fixture
-	def mock_db(self):
-		"""Create mock database session"""
-		return MagicMock(spec=Session)
-
-	@pytest.fixture
-	def service(self, mock_db):
-		"""Create JobScrapingService instance"""
-		return JobScrapingService(db=mock_db)
-
-	@pytest.mark.asyncio
-	async def test_search_all_apis(self, service):
-		"""Test searching across all enabled APIs"""
-		# Setup - mock all API methods
-		with (
-			patch.object(service, "scrape_adzuna_api", new_callable=AsyncMock, return_value=[]) as mock_adzuna,
-			patch.object(service, "scrape_github_jobs", new_callable=AsyncMock, return_value=[]) as mock_github,
-		):
-			# Execute - check if method exists
-			if hasattr(service, "search_all_apis"):
-				result = await service.search_all_apis(keywords=["python"], location="Remote")
-
-				# Verify
-				assert isinstance(result, list)
-
-
-class TestJobScrapingServiceSourceMetadata:
-	"""Test job source metadata and quality tracking"""
-
-	@pytest.fixture
-	def mock_db(self):
-		"""Create mock database session"""
-		return MagicMock(spec=Session)
-
-	@pytest.fixture
-	def service(self, mock_db):
-		"""Create JobScrapingService instance"""
-		return JobScrapingService(db=mock_db)
-
-	def test_source_metadata_structure(self, service):
-		"""Test job source metadata is properly structured"""
-		# Check if source metadata exists
-		if hasattr(service, "source_metadata"):
-			metadata = service.source_metadata
-
-			# Verify structure
-			assert isinstance(metadata, dict)
-			for source_name, source_info in metadata.items():
-				if isinstance(source_info, dict):
-					# Check common metadata fields
-					expected_fields = ["display_name", "description", "data_quality"]
-					for field in expected_fields:
-						# Not all sources may have all fields
-						pass  # Flexible validation
 
 
 if __name__ == "__main__":

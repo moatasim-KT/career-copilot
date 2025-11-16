@@ -12,8 +12,9 @@ import os
 import sys
 import time
 from dataclasses import asdict, dataclass
-from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional, Tuple
+
+from app.utils.datetime import utc_now
 
 # Add backend to path
 sys.path.append(os.path.join(os.path.dirname(__file__), "..", ".."))
@@ -526,7 +527,7 @@ class CostEfficiencyValidator:
 			"current_resource_usage": [asdict(usage) for usage in current_resource_usage],
 			"optimization_opportunities": optimization_opportunities,
 			"recommendations": recommendations,
-			"timestamp": datetime.utcnow().isoformat(),
+			"timestamp": utc_now().isoformat(),
 		}
 
 		# Log summary
@@ -616,7 +617,7 @@ class CostEfficiencyValidator:
 	def save_report(self, report: Dict[str, Any], filename: str | None = None) -> str:
 		"""Save cost analysis report to file with path traversal protection"""
 		if filename is None:
-			timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+			timestamp = utc_now().strftime("%Y%m%d_%H%M%S")
 			filename = f"cost_efficiency_report_{timestamp}.json"
 
 		# Security: Sanitize filename to prevent path traversal attacks (CWE-22)

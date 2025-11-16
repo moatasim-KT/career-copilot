@@ -18,7 +18,7 @@ const CommandPalette = dynamic(
   {
     loading: () => <CommandPaletteSkeleton />,
     ssr: false, // Command palette is client-side only
-  }
+  },
 );
 
 interface LazyCommandPaletteProps {

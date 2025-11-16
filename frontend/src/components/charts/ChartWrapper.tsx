@@ -1,22 +1,23 @@
 'use client';
 
-import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Maximize, Minimize, Download, FileDown, Image as ImageIcon, AlertCircle, X } from 'lucide-react';
+import { Maximize, Minimize, Download, FileDown, Image as ImageIcon, AlertCircle } from 'lucide-react';
+import { useState, ReactNode } from 'react';
+
+import Button2 from '@/components/ui/Button2';
 import { Card2 } from '@/components/ui/Card2';
-import { Button2 } from '@/components/ui/Button2';
-import { Tooltip } from '@/components/ui/Tooltip';
 import { Modal2 } from '@/components/ui/Modal2';
+import Tooltip from '@/components/ui/Tooltip';
+import { m, AnimatePresence } from '@/lib/motion';
 
 interface ChartWrapperProps {
   title: string;
   description?: string;
   isLoading?: boolean;
   error?: string | null;
-  children: React.ReactNode;
+  children: ReactNode;
   onExportCSV?: () => void;
   onExportPNG?: () => void;
-  actions?: React.ReactNode;
+  actions?: ReactNode;
   className?: string;
 }
 
@@ -126,7 +127,7 @@ export const ChartWrapper: React.FC<ChartWrapperProps> = ({
           {/* Action Buttons */}
           <div className="flex items-center space-x-2 ml-4">
             {actions}
-            
+
             {/* Export Menu */}
             {(onExportCSV || onExportPNG) && (
               <div className="relative">
@@ -149,9 +150,9 @@ export const ChartWrapper: React.FC<ChartWrapperProps> = ({
                         className="fixed inset-0 z-40"
                         onClick={() => setShowExportMenu(false)}
                       />
-                      
+
                       {/* Menu */}
-                      <motion.div
+                      <m.div
                         initial={{ opacity: 0, scale: 0.95, y: -10 }}
                         animate={{ opacity: 1, scale: 1, y: 0 }}
                         exit={{ opacity: 0, scale: 0.95, y: -10 }}
@@ -176,7 +177,7 @@ export const ChartWrapper: React.FC<ChartWrapperProps> = ({
                             <span>Export as PNG</span>
                           </button>
                         )}
-                      </motion.div>
+                      </m.div>
                     </>
                   )}
                 </AnimatePresence>
@@ -213,10 +214,9 @@ export const ChartWrapper: React.FC<ChartWrapperProps> = ({
   if (isFullScreen) {
     return (
       <Modal2
-        isOpen={isFullScreen}
+        open={isFullScreen}
         onClose={() => setIsFullScreen(false)}
         title={title}
-        size="full"
       >
         <div className="h-full">
           {chartContent}

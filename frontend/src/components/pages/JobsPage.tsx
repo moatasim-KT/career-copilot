@@ -7,7 +7,6 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 'use client';
 
-import { AnimatePresence } from 'framer-motion';
 import {
   Plus,
   Search,
@@ -39,7 +38,7 @@ import { SavedSearches, useSavedSearches } from '@/components/features/SavedSear
 import { QuickFilterChips } from '@/components/filters/QuickFilterChips';
 import { SavedFilters } from '@/components/filters/SavedFilters';
 import { StickyFilterPanel } from '@/components/filters/StickyFilterPanel';
-import { 
+import {
   LazyAdvancedSearch,
   LazyModal,
   LazyModalFooter,
@@ -49,15 +48,21 @@ import {
   LazyUndoToast,
 } from '@/components/lazy';
 import Button2 from '@/components/ui/Button2';
-import Card, { CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
+import Card2, { CardHeader, CardTitle, CardContent } from '@/components/ui/Card2';
 import { ExportDropdown } from '@/components/ui/ExportDropdown';
 import Input from '@/components/ui/Input';
 import Select from '@/components/ui/Select';
 import Textarea from '@/components/ui/Textarea';
+import { useBulkUndo } from '@/hooks/useBulkUndo';
 import { useLocalStorage } from '@/hooks/useLocalStorage';
 import { useRecentSearches } from '@/hooks/useRecentSearches';
-import { useBulkUndo } from '@/hooks/useBulkUndo';
 import { ApplicationsService, JobsService } from '@/lib/api/client';
+import { createJobBulkActions } from '@/lib/bulkActions/jobActions';
+import { logger } from '@/lib/logger';
+import { AnimatePresence } from '@/lib/motion';
+import { JOB_SEARCH_FIELDS } from '@/lib/searchFields';
+import { applySearchQuery, countSearchResults, createEmptyQuery, hasSearchCriteria, queryToSearchParams, searchParamsToQuery } from '@/lib/searchUtils';
+import type { SearchGroup, SavedSearch } from '@/types/search';
 
 // Type definitions
 export interface JobCreate {
@@ -82,10 +87,6 @@ export interface JobResponse extends JobCreate {
   salary_min?: number;
   salary_max?: number;
 }
-import { createJobBulkActions } from '@/lib/bulkActions/jobActions';
-import { JOB_SEARCH_FIELDS } from '@/lib/searchFields';
-import { applySearchQuery, countSearchResults, createEmptyQuery, hasSearchCriteria, queryToSearchParams, searchParamsToQuery } from '@/lib/searchUtils';
-import type { SearchGroup, SavedSearch } from '@/types/search';
 
 import { JobComparisonView } from './JobComparisonView';
 import { JobListView } from './JobListView';
@@ -143,7 +144,7 @@ export default function JobsPage() {
   const [showComparisonView, setShowComparisonView] = useState(false);
   const [savedFilters, setSavedFilters] = useLocalStorage<any[]>('savedJobFilters', []);
   const [showImportModal, setShowImportModal] = useState(false);
-  
+
   // Advanced Search state
   const [showAdvancedSearch, setShowAdvancedSearch] = useState(false);
   const [advancedSearchQuery, setAdvancedSearchQuery] = useState<SearchGroup>(createEmptyQuery());
@@ -171,7 +172,7 @@ export default function JobsPage() {
     onUndo: async (state) => {
       // Restore previous state
       const { previousState, affectedIds } = state;
-      
+
       // Restore jobs to their previous state
       await Promise.all(
         affectedIds.map((jobId) => {
@@ -217,6 +218,19 @@ export default function JobsPage() {
     );
   };
 
+  // Load jobs function - must be declared before useBulkUndo
+  const loadJobs = async () => {
+    setIsLoading(true);
+    try {
+      const response = await JobsService.list();
+      setJobs(response.data || []);
+    } catch (err) {
+      setError('Failed to load jobs');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   // Create bulk actions
   const bulkActions = createJobBulkActions({
     jobs,
@@ -253,7 +267,7 @@ export default function JobsPage() {
     try {
       await action.action(selectedJobIds);
     } catch (error) {
-      console.error('Bulk action failed:', error);
+      logger.error('Bulk action failed:', error);
     }
   };
 
@@ -294,18 +308,6 @@ export default function JobsPage() {
     loadJobs();
   }, []);
 
-  const loadJobs = async () => {
-    setIsLoading(true);
-    try {
-      const response = await JobsService.list();
-      setJobs(response.data || []);
-    } catch (err) {
-      setError('Failed to load jobs');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   const handleScrapeJobs = async () => {
     setIsScraping(true);
     try {
@@ -314,7 +316,7 @@ export default function JobsPage() {
       // Refresh jobs list after scraping
       loadJobs();
     } catch (error) {
-      console.error('Error starting job scraping:', error);
+      logger.error('Error starting job scraping:', error);
       alert('Failed to start job scraping');
     } finally {
       setIsScraping(false);
@@ -499,11 +501,11 @@ export default function JobsPage() {
   // Apply advanced search if active
   const handleApplyAdvancedSearch = (query: SearchGroup) => {
     setAdvancedSearchQuery(query);
-    
+
     // Add to recent searches
     const resultCount = countSearchResults(jobs, query);
     addRecentSearch(query, resultCount);
-    
+
     // Update URL with search params
     const params = queryToSearchParams(query);
     window.history.pushState({}, '', `?${params.toString()}`);
@@ -517,7 +519,7 @@ export default function JobsPage() {
   const handleRemoveFilter = (ruleId: string) => {
     const updatedQuery = removeRuleFromQuery(advancedSearchQuery, ruleId);
     setAdvancedSearchQuery(updatedQuery);
-    
+
     // Update URL
     if (hasSearchCriteria(updatedQuery)) {
       const params = queryToSearchParams(updatedQuery);
@@ -677,7 +679,7 @@ export default function JobsPage() {
             }}
             variant="outline"
             onExportStart={(type) => {
-              console.log('Export started', { type });
+              logger.info('Export started', { type });
             }}
             onExportComplete={(type) => {
               setSuccessMessage(`Export completed successfully (${type})`);
@@ -713,206 +715,178 @@ export default function JobsPage() {
       </div>
 
       {error && (
-        <Card className="border-red-200 bg-red-50">
+        <Card2 className="border-red-200 bg-red-50">
           <CardContent className="flex items-center p-4">
             <AlertCircle className="h-5 w-5 text-red-400 flex-shrink-0" />
             <p className="text-sm text-red-800 ml-3">{error}</p>
           </CardContent>
-        </Card>
+        </Card2>
       )}
 
       {/* Search and Filters */}
-      <StickyFilterPanel>
-        <Card>
-          <CardContent className="p-4">
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-              <div className="md:col-span-2">
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-neutral-400" />
-                  <Input
-                    type="text"
-                    placeholder="Search jobs by title, company, location, or tech stack..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="pl-10"
-                    disabled={hasSearchCriteria(advancedSearchQuery)}
-                  />
-                </div>
-              </div>
-
-              <Select
-                value={sourceFilter}
-                onChange={(e) => setSourceFilter(e.target.value)}
-                options={[
-                  { value: 'all', label: 'All Sources' },
-                  ...JOB_SOURCES,
-                ]}
-                disabled={hasSearchCriteria(advancedSearchQuery)}
-              />
-
-              <Select
-                value={typeFilter}
-                onChange={(e) => setTypeFilter(e.target.value)}
-                options={[
-                  { value: 'all', label: 'All Types' },
-                  ...JOB_TYPES,
-                ]}
-                disabled={hasSearchCriteria(advancedSearchQuery)}
-              />
-            </div>
-
-            {/* Advanced Search Controls */}
-            <div className="mt-4 flex items-center space-x-2">
-              <Button2
-                type="button"
-                variant="outline"
-                onClick={() => setShowAdvancedSearch(true)}
-                className="flex items-center space-x-2"
-              >
-                <Filter className="h-4 w-4" />
-                <span>Advanced Search</span>
-              </Button2>
-
-              <SavedSearches
-                onLoad={handleLoadSavedSearch}
-                onSave={saveSearch}
-                context="jobs"
-              />
-
-              <RecentSearches
-                onLoad={handleLoadRecentSearch}
-                context="jobs"
-              />
-            </div>
-
-            {/* Active Filter Chips */}
-            {hasSearchCriteria(advancedSearchQuery) && (
-              <div className="mt-4 pt-4 border-t border-neutral-200 dark:border-neutral-700">
-                <FilterChips
-                  query={advancedSearchQuery}
-                  onRemoveFilter={handleRemoveFilter}
-                  onClearAll={handleClearAdvancedSearch}
+      <Card2>
+        <CardContent className="p-4">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div className="md:col-span-2">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-neutral-400" />
+                <Input
+                  type="text"
+                  placeholder="Search jobs by title, company, location, or tech stack..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10"
+                  disabled={hasSearchCriteria(advancedSearchQuery)}
                 />
               </div>
-            )}
+            </div>
 
-            <div className="mt-4">
-              <QuickFilterChips
-                filters={[
-                  { label: 'Remote', value: 'remote' },
-                  { label: 'Full-time', value: 'full-time' },
-                  { label: 'React', value: 'react' },
-                ]}
-                activeFilters={activeQuickFilters}
-                onFilterChange={(filterValue) => {
-                  setActiveQuickFilters(prev =>
-                    prev.includes(filterValue)
-                      ? prev.filter(f => f !== filterValue)
-                      : [...prev, filterValue],
-                  );
+            <Select
+              value={sourceFilter}
+              onChange={(e) => setSourceFilter(e.target.value)}
+              options={[
+                { value: 'all', label: 'All Sources' },
+                ...JOB_SOURCES,
+              ]}
+              disabled={hasSearchCriteria(advancedSearchQuery)}
+            />
+
+            <Select
+              value={typeFilter}
+              onChange={(e) => setTypeFilter(e.target.value)}
+              options={[
+                { value: 'all', label: 'All Types' },
+                ...JOB_TYPES,
+              ]}
+              disabled={hasSearchCriteria(advancedSearchQuery)}
+            />
+          </div>
+
+          {/* Advanced Search Controls */}
+          <div className="mt-4 flex items-center space-x-2">
+            <Button2
+              type="button"
+              variant="outline"
+              onClick={() => setShowAdvancedSearch(true)}
+              className="flex items-center space-x-2"
+            >
+              <Filter className="h-4 w-4" />
+              <span>Advanced Search</span>
+            </Button2>
+
+            <SavedSearches
+              onLoad={handleLoadSavedSearch}
+              onSave={saveSearch}
+              context="jobs"
+            />
+
+            <RecentSearches
+              onLoad={handleLoadRecentSearch}
+              context="jobs"
+            />
+          </div>
+
+          {/* Active Filter Chips */}
+          {hasSearchCriteria(advancedSearchQuery) && (
+            <div className="mt-4 pt-4 border-t border-neutral-200 dark:border-neutral-700">
+              <FilterChips
+                query={advancedSearchQuery}
+                onRemoveFilter={handleRemoveFilter}
+                onClearAll={handleClearAdvancedSearch}
+              />
+            </div>
+          )}
+
+          <div className="mt-4 flex items-center justify-between">
+            <div className="flex items-center space-x-2">
+              <input
+                type="checkbox"
+                className="rounded border-neutral-300 text-blue-600 focus:ring-blue-500"
+                checked={selectedJobIds.length === filteredAndSortedJobs.length && filteredAndSortedJobs.length > 0}
+                onChange={() => {
+                  if (selectedJobIds.length === filteredAndSortedJobs.length) {
+                    setSelectedJobIds([]);
+                  } else {
+                    setSelectedJobIds(filteredAndSortedJobs.map(job => job.id || 0));
+                  }
                 }}
               />
+              <label className="text-sm font-medium text-neutral-700">Select All</label>
             </div>
-
-            <div className="mt-4">
-              <SavedFilters
-                filters={savedFilters}
-                onSave={handleSaveFilter}
-                onApply={handleApplyFilter}
-                onDelete={handleDeleteFilter}
-              />
-            </div>
-
-            <div className="mt-4 flex items-center justify-between">
-              <div className="flex items-center space-x-2">
-                <input
-                  type="checkbox"
-                  className="rounded border-neutral-300 text-blue-600 focus:ring-blue-500"
-                  checked={selectedJobIds.length === filteredAndSortedJobs.length && filteredAndSortedJobs.length > 0}
-                  onChange={() => {
-                    if (selectedJobIds.length === filteredAndSortedJobs.length) {
-                      setSelectedJobIds([]);
-                    } else {
-                      setSelectedJobIds(filteredAndSortedJobs.map(job => job.id || 0));
-                    }
-                  }}
-                />
-                <label className="text-sm font-medium text-neutral-700">Select All</label>
-              </div>
-              {selectedJobIds.length > 0 && (
-                <div className="flex space-x-2">
-                  {selectedJobIds.length >= 2 && (
-                    <Button2
-                      variant="outline"
-                      onClick={() => setShowComparisonView(true)}
-                      className="flex items-center space-x-2"
-                    >
-                      <span>Compare Selected ({selectedJobIds.length})</span>
-                    </Button2>
-                  )}
+            {selectedJobIds.length > 0 && (
+              <div className="flex space-x-2">
+                {selectedJobIds.length >= 2 && (
                   <Button2
-                    variant="destructive"
-                    onClick={handleBulkDelete}
+                    variant="outline"
+                    onClick={() => setShowComparisonView(true)}
                     className="flex items-center space-x-2"
                   >
-                    <Trash2 className="h-4 w-4" />
-                    <span>Delete Selected ({selectedJobIds.length})</span>
+                    <span>Compare Selected ({selectedJobIds.length})</span>
                   </Button2>
-                </div>
-              )}
-            </div>
+                )}
+                <Button2
+                  variant="destructive"
+                  onClick={handleBulkDelete}
+                  className="flex items-center space-x-2"
+                >
+                  <Trash2 className="h-4 w-4" />
+                  <span>Delete Selected ({selectedJobIds.length})</span>
+                </Button2>
+              </div>
+            )}
+          </div>
 
-            <div className="flex items-center justify-between mt-4 pt-4 border-t border-neutral-200">              <div className="text-sm text-neutral-600">
-              Showing {filteredAndSortedJobs.length} of {jobs.length} jobs
-            </div>
+          <div className="flex items-center justify-between mt-4 pt-4 border-t border-neutral-200">              <div className="text-sm text-neutral-600">
+            Showing {filteredAndSortedJobs.length} of {jobs.length} jobs
+          </div>
 
-              <div className="flex items-center space-x-2">
-                <Select
-                  value={sortBy}
-                  onChange={(e) => setSortBy(e.target.value)}
-                  options={SORT_OPTIONS}
-                  className="w-48"
-                />
-                <div className="flex rounded-md shadow-sm">
-                  <button
-                    type="button"
-                    onClick={() => setCurrentView('list')}
-                    className={`
+            <div className="flex items-center space-x-2">
+              <Select
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value)}
+                options={SORT_OPTIONS}
+                className="w-48"
+              />
+              <div className="flex rounded-md shadow-sm">
+                <button
+                  type="button"
+                  onClick={() => setCurrentView('list')}
+                  className={`
                       px-3 py-2 rounded-l-md border border-neutral-300 bg-background text-sm font-medium
                       ${currentView === 'list' ? 'text-blue-600 bg-blue-50' : 'text-neutral-700 hover:bg-neutral-50'}
                     `}
-                    title="List View"
-                  >
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                      <path fillRule="evenodd" d="M3 5a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 9a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 13a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clipRule="evenodd" />
-                    </svg>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setCurrentView('table')}
-                    className={`
+                  title="List View"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M3 5a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 9a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 13a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clipRule="evenodd" />
+                  </svg>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setCurrentView('table')}
+                  className={`
                       px-3 py-2 rounded-r-md border border-neutral-300 bg-background text-sm font-medium
                       ${currentView === 'table' ? 'text-blue-600 bg-blue-50' : 'text-neutral-700 hover:bg-neutral-50'}
                     `}
-                    title="Table View"
-                  >
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                      <path fillRule="evenodd" d="M5 4a1 1 0 00-1 1v4a1 1 0 001 1h10a1 1 0 001-1V5a1 1 0 00-1-1H5zm0 6a1 1 0 00-1 1v4a1 1 0 001 1h10a1 1 0 001-1v-4a1 1 0 00-1-1H5z" clipRule="evenodd" />
-                    </svg>
-                  </button>
-                </div>
+                  title="Table View"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M5 4a1 1 0 00-1 1v4a1 1 0 001 1h10a1 1 0 001-1V5a1 1 0 00-1-1H5zm0 6a1 1 0 00-1 1v4a1 1 0 001 1h10a1 1 0 001-1v-4a1 1 0 00-1-1H5z" clipRule="evenodd" />
+                  </svg>
+                </button>
               </div>
             </div>
-          </CardContent>
-        </Card>
-      </StickyFilterPanel>
+          </div>
+        </CardContent>
+      </Card2>
 
       {showComparisonView && (
         <JobComparisonView
           jobs={jobs.filter(job => job.id && selectedJobIds.includes(job.id))}
           onClose={() => setShowComparisonView(false)}
         />
-      )}
+      )
+      }
 
       {/* Job Form Modal */}
       <LazyModal
@@ -1076,7 +1050,7 @@ export default function JobsPage() {
           description="Upload a CSV file to bulk import job listings. Download the template below to see the required format."
           validator={(data) => {
             const errors: string[] = [];
-            
+
             // Validate job types
             const validJobTypes = ['full-time', 'part-time', 'contract', 'internship'];
             data.forEach((row, index) => {
@@ -1094,39 +1068,41 @@ export default function JobsPage() {
       </LazyModal>
 
       {/* Jobs List */}
-      {isLoading ? (
-        <div className="space-y-4">
-          {[...Array(3)].map((_, i) => (
-            <Card key={i} className="animate-pulse">
-              <CardContent className="p-6">
-                <div className="h-4 bg-neutral-200 rounded w-1/4 mb-2"></div>
-                <div className="h-6 bg-neutral-200 rounded w-1/2 mb-4"></div>
-                <div className="h-4 bg-neutral-200 rounded w-3/4"></div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      ) : (
-        <AnimatePresence mode="wait">
-          {currentView === 'list' ? (
-            <JobListView
-              key={listKey}
-              jobs={filteredAndSortedJobs}
-              onJobClick={(jobId) => console.log('View job:', jobId)}
-              selectedJobIds={selectedJobIds}
-              onSelectJob={handleSelectJob}
-            />
-          ) : (
-            <JobTableView
-              key={listKey}
-              jobs={filteredAndSortedJobs}
-              onJobClick={(jobId) => console.log('View job:', jobId)}
-              selectedJobIds={selectedJobIds}
-              onSelectJob={handleSelectJob}
-            />
-          )}
-        </AnimatePresence>
-      )}
+      {
+        isLoading ? (
+          <div className="space-y-4">
+            {[...Array(3)].map((_, i) => (
+              <Card2 key={i} className="animate-pulse">
+                <CardContent className="p-6">
+                  <div className="h-4 bg-neutral-200 rounded w-1/4 mb-2"></div>
+                  <div className="h-6 bg-neutral-200 rounded w-1/2 mb-4"></div>
+                  <div className="h-4 bg-neutral-200 rounded w-3/4"></div>
+                </CardContent>
+              </Card2>
+            ))}
+          </div>
+        ) : (
+          <AnimatePresence mode="wait">
+            {currentView === 'list' ? (
+              <JobListView
+                key={listKey}
+                jobs={filteredAndSortedJobs}
+                onJobClick={(jobId) => logger.info('View job:', jobId)}
+                selectedJobIds={selectedJobIds}
+                onSelectJob={handleSelectJob}
+              />
+            ) : (
+              <JobTableView
+                key={listKey}
+                jobs={filteredAndSortedJobs}
+                onJobClick={(jobId) => logger.info('View job:', jobId)}
+                selectedJobIds={selectedJobIds}
+                onSelectJob={handleSelectJob}
+              />
+            )}
+          </AnimatePresence>
+        )
+      }
 
       {/* Advanced Search Panel */}
       <LazyAdvancedSearch
@@ -1141,17 +1117,19 @@ export default function JobsPage() {
       />
 
       {/* Bulk Action Bar */}
-      {selectedJobIds.length > 0 && (
-        <LazyBulkActionBar
-          selectedCount={selectedJobIds.length}
-          selectedIds={selectedJobIds}
-          actions={bulkActions.map(action => ({
-            ...action,
-            action: () => handleBulkAction(action),
-          }))}
-          onClearSelection={() => setSelectedJobIds([])}
-        />
-      )}
+      {
+        selectedJobIds.length > 0 && (
+          <LazyBulkActionBar
+            selectedCount={selectedJobIds.length}
+            selectedIds={selectedJobIds}
+            actions={bulkActions.map(action => ({
+              ...action,
+              action: () => handleBulkAction(action),
+            }))}
+            onClearSelection={() => setSelectedJobIds([])}
+          />
+        )
+      }
 
       {/* Confirmation Dialog */}
       <LazyConfirmBulkAction
@@ -1196,27 +1174,31 @@ export default function JobsPage() {
       />
 
       {/* Success/Error Messages */}
-      {successMessage && (
-        <div className="fixed top-4 right-4 z-50">
-          <Card className="border-green-200 bg-green-50">
-            <CardContent className="flex items-center p-4">
-              <CheckCircle className="h-5 w-5 text-green-400 flex-shrink-0" />
-              <p className="text-sm text-green-800 ml-3">{successMessage}</p>
-            </CardContent>
-          </Card>
-        </div>
-      )}
+      {
+        successMessage && (
+          <div className="fixed top-4 right-4 z-50">
+            <Card2 className="border-green-200 bg-green-50">
+              <CardContent className="flex items-center p-4">
+                <CheckCircle className="h-5 w-5 text-green-400 flex-shrink-0" />
+                <p className="text-sm text-green-800 ml-3">{successMessage}</p>
+              </CardContent>
+            </Card2>
+          </div>
+        )
+      }
 
-      {errorMessage && (
-        <div className="fixed top-4 right-4 z-50">
-          <Card className="border-red-200 bg-red-50">
-            <CardContent className="flex items-center p-4">
-              <AlertCircle className="h-5 w-5 text-red-400 flex-shrink-0" />
-              <p className="text-sm text-red-800 ml-3">{errorMessage}</p>
-            </CardContent>
-          </Card>
-        </div>
-      )}
-    </div>
+      {
+        errorMessage && (
+          <div className="fixed top-4 right-4 z-50">
+            <Card2 className="border-red-200 bg-red-50">
+              <CardContent className="flex items-center p-4">
+                <AlertCircle className="h-5 w-5 text-red-400 flex-shrink-0" />
+                <p className="text-sm text-red-800 ml-3">{errorMessage}</p>
+              </CardContent>
+            </Card2>
+          </div>
+        )
+      }
+    </div >
   );
 }

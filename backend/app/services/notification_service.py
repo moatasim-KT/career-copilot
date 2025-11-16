@@ -31,6 +31,7 @@ from ..models.notification import Notification, NotificationPriority, Notificati
 from ..models.notification import NotificationPreferences as NotificationPreferencesModel
 from ..models.user import User
 from ..repositories.user_repository import UserRepository
+from ..utils.datetime import utc_now
 
 logger = get_logger(__name__)
 settings = get_settings()
@@ -196,7 +197,7 @@ class UnifiedNotificationService:
 
 		if notification:
 			notification.is_read = True
-			notification.read_at = datetime.now()
+			notification.read_at = utc_now()
 			await self.db.commit()
 			return True
 		return False
@@ -210,7 +211,7 @@ class UnifiedNotificationService:
 
 		if notification:
 			notification.is_read = True
-			notification.read_at = datetime.now()
+			notification.read_at = utc_now()
 			self.db.commit()
 			return True
 		return False
@@ -358,7 +359,7 @@ class UnifiedNotificationService:
 
 			if user_id:
 				# Send welcome message
-				await websocket.send_json({"type": "connection_established", "user_id": user_id, "timestamp": datetime.now().isoformat()})
+				await websocket.send_json({"type": "connection_established", "user_id": user_id, "timestamp": utc_now().isoformat()})
 
 				# Send any queued offline notifications
 				await self._send_queued_notifications(websocket, user_id)
@@ -380,7 +381,7 @@ class UnifiedNotificationService:
 						del self._heartbeat_tasks[user_id]
 			else:
 				# Anonymous connection - limited functionality
-				await websocket.send_json({"type": "connection_established", "anonymous": True, "timestamp": datetime.now().isoformat()})
+				await websocket.send_json({"type": "connection_established", "anonymous": True, "timestamp": utc_now().isoformat()})
 
 				# Keep connection alive briefly then close
 				await asyncio.sleep(30)
@@ -475,113 +476,103 @@ class UnifiedNotificationService:
 	async def _generate_morning_briefing_content(self, user_id: int) -> Dict[str, Any]:
 		"""Generate morning briefing content with real user data."""
 		from datetime import date, timedelta
-		from sqlalchemy import select, and_, func
+
+		from sqlalchemy import and_, func, select
+
 		from ..models.interview import InterviewSession, InterviewStatus
-		from ..core.database import get_db
-		
-		# Use sync database session
-		db = next(get_db())
-		try:
-			# Count new job matches (jobs added in last 24 hours)
-			yesterday = datetime.utcnow() - timedelta(days=1)
-			job_matches = db.execute(
-				select(func.count(Job.id))
-				.where(and_(Job.user_id == user_id, Job.created_at >= yesterday))
-			).scalar() or 0
-			
-			# Count applications with upcoming follow-ups (next 3 days)
-			today = date.today()
-			three_days_out = today + timedelta(days=3)
-			applications_due = db.execute(
-				select(func.count(Application.id))
-				.where(and_(
-					Application.user_id == user_id,
-					Application.follow_up_date >= today,
-					Application.follow_up_date <= three_days_out
-				))
-			).scalar() or 0
-			
-			# Count scheduled interviews (today and future)
-			interviews_scheduled = db.execute(
-				select(func.count(Application.id))
-				.where(and_(
-					Application.user_id == user_id,
-					Application.interview_date >= datetime.utcnow(),
-					Application.status == "interview"
-				))
-			).scalar() or 0
-			
-			# Personalized greeting based on time
-			hour = datetime.now().hour
-			if hour < 12:
-				greeting = "Good morning! ☀️"
-			elif hour < 17:
-				greeting = "Good afternoon! 👋"
-			else:
-				greeting = "Good evening! 🌙"
-			
-			return {
-				"greeting": greeting,
-				"job_matches": job_matches,
-				"applications_due": applications_due,
-				"interviews_scheduled": interviews_scheduled,
-			}
-		finally:
-			db.close()
+
+		# Use the database session passed to the service
+		db = self.db
+		if not db:
+			raise ValueError("Database session required for notification content generation")
+
+		# Count new job matches (jobs added in last 24 hours)
+		yesterday = utc_now() - timedelta(days=1)
+		job_matches = db.execute(select(func.count(Job.id)).where(and_(Job.user_id == user_id, Job.created_at >= yesterday))).scalar() or 0
+
+		# Count applications with upcoming follow-ups (next 3 days)
+		today = date.today()
+		three_days_out = today + timedelta(days=3)
+		applications_due = (
+			db.execute(
+				select(func.count(Application.id)).where(
+					and_(Application.user_id == user_id, Application.follow_up_date >= today, Application.follow_up_date <= three_days_out)
+				)
+			).scalar()
+			or 0
+		)
+
+		# Count scheduled interviews (today and future)
+		interviews_scheduled = (
+			db.execute(
+				select(func.count(Application.id)).where(
+					and_(Application.user_id == user_id, Application.interview_date >= utc_now(), Application.status == "interview")
+				)
+			).scalar()
+			or 0
+		)
+
+		# Personalized greeting based on time
+		hour = utc_now().hour
+		if hour < 12:
+			greeting = "Good morning! ☀️"
+		elif hour < 17:
+			greeting = "Good afternoon! 👋"
+		else:
+			greeting = "Good evening! 🌙"
+
+		return {
+			"greeting": greeting,
+			"job_matches": job_matches,
+			"applications_due": applications_due,
+			"interviews_scheduled": interviews_scheduled,
+		}
 
 	async def _generate_evening_update_content(self, user_id: int) -> Dict[str, Any]:
 		"""Generate evening update content with real daily statistics."""
 		from datetime import date
-		from sqlalchemy import select, and_, func
-		from ..core.database import get_db
-		
-		# Use sync database session
-		db = next(get_db())
-		try:
-			today = date.today()
-			
-			# Count new jobs added today
-			new_jobs = db.execute(
-				select(func.count(Job.id))
-				.where(and_(
-					Job.user_id == user_id,
-					func.date(Job.created_at) == today
-				))
-			).scalar() or 0
-			
-			# Count applications submitted today
-			applications_submitted = db.execute(
-				select(func.count(Application.id))
-				.where(and_(
-					Application.user_id == user_id,
-					Application.applied_date == today,
-					Application.status.in_(["applied", "interview", "offer"])
-				))
-			).scalar() or 0
-			
-			# Count responses received today (status changed to interview, offer, or rejected)
-			responses_received = db.execute(
-				select(func.count(Application.id))
-				.where(and_(
-					Application.user_id == user_id,
-					Application.response_date == today
-				))
-			).scalar() or 0
-			
-			# Generate summary message
-			if new_jobs > 0 or applications_submitted > 0 or responses_received > 0:
-				summary = f"You've had a productive day with {new_jobs} new matches and {applications_submitted} applications!"
-			else:
-				summary = "No new activity today, but tomorrow is a fresh start! 💪"
-			
-			return {
-				"summary": summary,
-				"new_jobs": new_jobs,
-				"applications_submitted": applications_submitted,
-				"responses_received": responses_received,
-			}
-		finally:
-			db.close()
+
+		from sqlalchemy import and_, func, select
+
+		# Use the database session passed to the service
+		db = self.db
+		if not db:
+			raise ValueError("Database session required for notification content generation")
+
+		# Use UTC date to match database timestamps
+		today = utc_now().date()
+
+		# Count new jobs added today
+		new_jobs = db.execute(select(func.count(Job.id)).where(and_(Job.user_id == user_id, func.date(Job.created_at) == today))).scalar() or 0
+
+		# Count applications submitted today
+		applications_submitted = (
+			db.execute(
+				select(func.count(Application.id)).where(
+					and_(Application.user_id == user_id, Application.applied_date == today, Application.status.in_(["applied", "interview", "offer"]))
+				)
+			).scalar()
+			or 0
+		)
+
+		# Count responses received today (status changed to interview, offer, or rejected)
+		responses_received = (
+			db.execute(select(func.count(Application.id)).where(and_(Application.user_id == user_id, Application.response_date == today))).scalar()
+			or 0
+		)
+
+		# Generate summary message
+		if new_jobs > 0 or applications_submitted > 0 or responses_received > 0:
+			summary = f"You've had a productive day with {new_jobs} new matches and {applications_submitted} applications!"
+		else:
+			summary = "No new activity today, but tomorrow is a fresh start! 💪"
+
+		return {
+			"summary": summary,
+			"new_jobs": new_jobs,
+			"applications_submitted": applications_submitted,
+			"responses_received": responses_received,
+		}
 
 	async def _get_email_service(self):
 		"""Lazy load email service."""
@@ -623,7 +614,7 @@ class UnifiedNotificationService:
 			while True:
 				await asyncio.sleep(30)  # 30 second intervals
 				try:
-					await websocket.send_json({"type": "ping", "timestamp": datetime.now().isoformat()})
+					await websocket.send_json({"type": "ping", "timestamp": utc_now().isoformat()})
 				except Exception:
 					# Connection likely closed
 					break
@@ -635,7 +626,7 @@ class UnifiedNotificationService:
 		message_type = data.get("type")
 
 		if message_type == "ping":
-			await websocket.send_json({"type": "pong", "timestamp": datetime.now().isoformat()})
+			await websocket.send_json({"type": "pong", "timestamp": utc_now().isoformat()})
 		elif message_type == "mark_read":
 			notification_id = data.get("notification_id")
 			if notification_id:

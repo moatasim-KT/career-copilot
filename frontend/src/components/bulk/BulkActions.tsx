@@ -5,8 +5,11 @@
 
 'use client';
 
-import { motion, AnimatePresence } from 'framer-motion';
-import React, { useState, useEffect } from 'react';
+import { useState } from 'react';
+import type { ReactNode } from 'react';
+
+import { logger } from '@/lib/logger';
+import { m, AnimatePresence } from '@/lib/motion';
 
 // ============================================================================
 // Types
@@ -15,7 +18,7 @@ import React, { useState, useEffect } from 'react';
 export interface BulkAction {
     id: string;
     label: string;
-    icon: React.ReactNode;
+    icon: ReactNode;
     variant: 'primary' | 'secondary' | 'danger';
     onClick: (selectedIds: string[]) => void | Promise<void>;
     requiresConfirmation?: boolean;
@@ -62,7 +65,7 @@ export function BulkActionsBar({
             setProcessingAction(action.id);
             await action.onClick(selectedIds);
         } catch (error) {
-            console.error(`Failed to execute bulk action: ${action.id}`, error);
+            logger.error(`Failed to execute bulk action: ${action.id}`, error);
         } finally {
             setIsProcessing(false);
             setProcessingAction(null);
@@ -72,7 +75,7 @@ export function BulkActionsBar({
     return (
         <AnimatePresence>
             {hasSelection && (
-                <motion.div
+                <m.div
                     initial={{ y: 100, opacity: 0 }}
                     animate={{ y: 0, opacity: 1 }}
                     exit={{ y: 100, opacity: 0 }}
@@ -118,7 +121,7 @@ export function BulkActionsBar({
                             </div>
                         </div>
                     </div>
-                </motion.div>
+                </m.div>
             )}
         </AnimatePresence>
     );
@@ -267,7 +270,7 @@ export const jobBulkActions: BulkAction[] = [
         ),
         onClick: async (selectedIds) => {
             // Implement save logic
-            console.log('Saving jobs:', selectedIds);
+            logger.info('Saving jobs:', selectedIds);
         },
     },
     {
@@ -280,7 +283,7 @@ export const jobBulkActions: BulkAction[] = [
             </svg>
         ),
         onClick: async (selectedIds) => {
-            console.log('Applying to jobs:', selectedIds);
+            logger.info('Applying to jobs:', selectedIds);
         },
     },
     {
@@ -293,7 +296,7 @@ export const jobBulkActions: BulkAction[] = [
             </svg>
         ),
         onClick: async (selectedIds) => {
-            console.log('Exporting jobs:', selectedIds);
+            logger.info('Exporting jobs:', selectedIds);
         },
     },
     {
@@ -308,7 +311,7 @@ export const jobBulkActions: BulkAction[] = [
         requiresConfirmation: true,
         confirmationMessage: 'Are you sure you want to remove the selected jobs? This action cannot be undone.',
         onClick: async (selectedIds) => {
-            console.log('Deleting jobs:', selectedIds);
+            logger.info('Deleting jobs:', selectedIds);
         },
     },
 ];

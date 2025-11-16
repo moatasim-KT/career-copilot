@@ -15,7 +15,6 @@ import sys
 import tempfile
 import time
 from dataclasses import asdict, dataclass
-from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
@@ -29,6 +28,7 @@ from app.core.database import engine, get_db
 from app.models.analytics import Analytics
 from app.models.job import Job
 from app.models.user import User
+from app.utils.datetime import utc_now
 from sqlalchemy import create_engine, inspect, text
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import QueuePool
@@ -87,15 +87,25 @@ class PerformanceOptimizationSuite:
 		self.test_results: List[PerformanceMetrics] = []
 		self.cost_analysis: Optional[CostMetrics] = None
 		self.optimization_recommendations: List[Dict[str, Any]] = []
+		self.backend_available = False
+		self.db_engine = None
 
-		# Configure session with retries
+		# Configure session with retries (but fewer retries to fail faster)
 		from requests.adapters import HTTPAdapter
 		from urllib3.util.retry import Retry
 
-		retry_strategy = Retry(total=3, status_forcelist=[429, 500, 502, 503, 504], allowed_methods=["HEAD", "GET", "OPTIONS", "POST", "PUT"])
+		retry_strategy = Retry(
+			total=2, status_forcelist=[429, 500, 502, 503, 504], allowed_methods=["HEAD", "GET", "OPTIONS", "POST", "PUT"], backoff_factor=0.3
+		)
 		adapter = HTTPAdapter(max_retries=retry_strategy)
 		self.session.mount("http://", adapter)
 		self.session.mount("https://", adapter)
+
+		# Check backend availability
+		self._check_backend_availability()
+
+		# Initialize database engine
+		self._initialize_database()
 
 	def _validate_backend_url(self, url: str) -> str:
 		"""Validate backend URL to prevent SSRF attacks
@@ -149,6 +159,40 @@ class PerformanceOptimizationSuite:
 		except Exception as e:
 			raise ValueError(f"Invalid backend URL: {e}")
 
+	def _check_backend_availability(self) -> None:
+		"""Check if backend API is available"""
+		try:
+			# Try API docs endpoint instead of broken /health endpoint
+			response = self.session.get(f"{self.backend_url}/docs", timeout=5, allow_redirects=True)
+			if response.status_code == 200:
+				self.backend_available = True
+				logger.info(f"✅ Backend API available at {self.backend_url}")
+			else:
+				logger.warning(f"⚠️  Backend API returned status {response.status_code}")
+				# Even if API check fails, if database is available we can run DB tests
+				logger.info("📊 Will attempt database-only performance tests")
+		except Exception as e:
+			logger.warning(f"❌ Backend API not available at {self.backend_url}: {e}")
+			logger.info("📊 Will attempt database-only performance tests if database is available")
+
+	def _initialize_database(self) -> None:
+		"""Initialize database engine with fallback handling"""
+		try:
+			# Try to use the existing engine
+			if engine is not None:
+				# Test the connection
+				with engine.connect() as conn:
+					conn.execute(text("SELECT 1"))
+				self.db_engine = engine
+				logger.info("✅ Database connection established")
+			else:
+				logger.warning("❌ Database engine not initialized")
+				logger.warning("Database tests will be skipped. Ensure DATABASE_URL is set in .env")
+		except Exception as e:
+			logger.warning(f"❌ Database connection failed: {e}")
+			logger.warning("Database tests will be skipped")
+			self.db_engine = None
+
 	def get_system_metrics(self) -> Dict[str, float]:
 		"""Get current system resource usage"""
 		try:
@@ -176,9 +220,35 @@ class PerformanceOptimizationSuite:
 			index = len(sorted_data) - 1
 		return sorted_data[index]
 
+	def _create_skipped_metrics(self, test_name: str, reason: str) -> PerformanceMetrics:
+		"""Create metrics object for skipped tests"""
+		return PerformanceMetrics(
+			test_name=test_name,
+			start_time=time.time(),
+			end_time=time.time(),
+			duration=0.0,
+			success_count=0,
+			error_count=0,
+			total_requests=0,
+			avg_response_time=0.0,
+			median_response_time=0.0,
+			p95_response_time=0.0,
+			p99_response_time=0.0,
+			throughput=0.0,
+			error_rate=0.0,
+			memory_usage_mb=0.0,
+			cpu_usage_percent=0.0,
+			additional_metrics={"skipped": True, "reason": reason},
+		)
+
 	def test_concurrent_user_load(self, num_users: int = 50, requests_per_user: int = 10) -> PerformanceMetrics:
 		"""Test system performance under concurrent user load"""
 		logger.info(f"Testing concurrent load: {num_users} users, {requests_per_user} requests each")
+
+		# Check if backend is available
+		if not self.backend_available:
+			logger.error("❌ Backend API not available - skipping concurrent load test")
+			return self._create_skipped_metrics("Concurrent User Load", "Backend API not available")
 
 		start_time = time.time()
 		start_metrics = self.get_system_metrics()
@@ -300,6 +370,11 @@ class PerformanceOptimizationSuite:
 		"""Test and optimize database query performance"""
 		logger.info("Testing database query performance")
 
+		# Check if database is available
+		if self.db_engine is None:
+			logger.error("❌ Database not available - skipping database performance test")
+			return self._create_skipped_metrics("Database Query Performance", "Database not available")
+
 		start_time = time.time()
 		start_metrics = self.get_system_metrics()
 
@@ -338,7 +413,7 @@ class PerformanceOptimizationSuite:
 				query_start = time.time()
 
 				try:
-					with engine.connect() as conn:
+					with self.db_engine.connect() as conn:
 						result = conn.execute(text(query))
 						rows = result.fetchall()
 
@@ -412,8 +487,14 @@ class PerformanceOptimizationSuite:
 
 		index_analysis = {"existing_indexes": [], "missing_indexes": [], "unused_indexes": [], "recommendations": []}
 
+		# Check if database is available
+		if self.db_engine is None:
+			logger.warning("❌ Database not available - skipping index analysis")
+			index_analysis["error"] = "Database not available"
+			return index_analysis
+
 		try:
-			inspector = inspect(engine)
+			inspector = inspect(self.db_engine)
 
 			# Get existing indexes for each table
 			tables = ["users", "jobs", "analytics"]
@@ -731,6 +812,24 @@ class PerformanceOptimizationSuite:
 	def run_comprehensive_performance_tests(self) -> Dict[str, Any]:
 		"""Run all performance tests and generate comprehensive report"""
 		logger.info("Starting comprehensive performance testing suite")
+		logger.info("=" * 60)
+		logger.info("ENVIRONMENT CHECK")
+		logger.info("=" * 60)
+		logger.info(f"Backend URL: {self.backend_url}")
+		logger.info(f"Backend Available: {'✅' if self.backend_available else '❌'}")
+		logger.info(f"Database Available: {'✅' if self.db_engine is not None else '❌'}")
+
+		if not self.backend_available:
+			logger.warning("")
+			logger.warning("⚠️  To run API tests, start the backend server:")
+			logger.warning("   cd backend && uvicorn app.main:app --reload")
+			logger.warning("")
+
+		if self.db_engine is None:
+			logger.warning("")
+			logger.warning("⚠️  To run database tests, ensure DATABASE_URL is configured:")
+			logger.warning("   export DATABASE_URL='postgresql://user:pass@localhost/dbname'")
+			logger.warning("")
 
 		start_time = time.time()
 
@@ -772,10 +871,16 @@ class PerformanceOptimizationSuite:
 			"cost_analysis": asdict(cost_metrics),
 			"database_analysis": index_analysis,
 			"optimization_recommendations": recommendations,
-			"timestamp": datetime.utcnow().isoformat(),
+			"timestamp": utc_now().isoformat(),
 			"test_environment": {
 				"backend_url": self.backend_url,
-				"database_url": str(engine.url).replace(engine.url.password or "", "***") if engine.url.password else str(engine.url),
+				"backend_available": self.backend_available,
+				"database_available": self.db_engine is not None,
+				"database_url": str(self.db_engine.url).replace(self.db_engine.url.password or "", "***")
+				if self.db_engine and self.db_engine.url.password
+				else str(self.db_engine.url)
+				if self.db_engine
+				else "Not configured",
 				"python_version": sys.version,
 				"system_info": self.get_system_metrics(),
 			},
@@ -833,7 +938,7 @@ class PerformanceOptimizationSuite:
 		from pathlib import Path
 
 		if filename is None:
-			timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+			timestamp = utc_now().strftime("%Y%m%d_%H%M%S")
 			filename = f"performance_optimization_report_{timestamp}.json"
 
 		# Security: Sanitize filename to prevent path traversal attacks (CWE-22)
@@ -893,14 +998,27 @@ def main():
 		print("\n" + "=" * 80)
 		print("PERFORMANCE OPTIMIZATION SUMMARY")
 		print("=" * 80)
+		print(f"Backend Available: {'✅' if suite.backend_available else '❌'}")
+		print(f"Database Available: {'✅' if suite.db_engine is not None else '❌'}")
 		print(f"Performance Score: {report['summary']['overall_performance_score']:.1f}/100")
 		print(f"Free Tier Compliant: {'✅' if report['summary']['free_tier_compliant'] else '❌'}")
 		print(f"Estimated Monthly Cost: ${report['summary']['estimated_monthly_cost']:.2f}")
 		print(f"Optimization Recommendations: {report['summary']['recommendations_generated']}")
 		print(f"Report saved to: {report_file}")
 
+		# Check if tests were skipped
+		skipped_tests = [m for m in suite.test_results if m.additional_metrics.get("skipped")]
+		if skipped_tests:
+			print("\n⚠️  Some tests were skipped:")
+			for test in skipped_tests:
+				print(f"   - {test.test_name}: {test.additional_metrics.get('reason', 'Unknown')}")
+			print("\nRefer to the logs above for instructions on enabling skipped tests.")
+
 		# Exit with appropriate code
-		if report["summary"]["overall_performance_score"] >= 75:
+		if not suite.backend_available or suite.db_engine is None:
+			print("\n⚠️  Performance testing incomplete - some services unavailable")
+			sys.exit(2)
+		elif report["summary"]["overall_performance_score"] >= 75:
 			print("\n✅ Performance tests passed!")
 			sys.exit(0)
 		else:
@@ -909,6 +1027,9 @@ def main():
 
 	except Exception as e:
 		logger.error(f"Performance testing failed: {e}")
+		import traceback
+
+		logger.debug(traceback.format_exc())
 		sys.exit(1)
 
 

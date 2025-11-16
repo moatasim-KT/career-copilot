@@ -1,11 +1,11 @@
 'use client';
 
-import { useEffect, useState } from 'react';
 import { Wifi, WifiOff, RefreshCw } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { useEffect, useState } from 'react';
 
-import { getWebSocketClient, type ConnectionStatus as WSConnectionStatus } from '@/lib/websocket';
+import { m, AnimatePresence } from '@/lib/motion';
 import { cn } from '@/lib/utils';
+import { getWebSocketClient, type ConnectionStatus as WSConnectionStatus } from '@/lib/websocket';
 
 /**
  * ConnectionStatus Component
@@ -118,7 +118,7 @@ export function ConnectionStatus({ className, showLabel = false }: ConnectionSta
           />
           {/* Pulse animation for connecting/reconnecting */}
           {config.pulse && (
-            <motion.div
+            <m.div
               className={cn('absolute inset-0 rounded-full', config.color)}
               initial={{ scale: 1, opacity: 0.5 }}
               animate={{ scale: 2, opacity: 0 }}
@@ -166,7 +166,7 @@ export function ConnectionStatus({ className, showLabel = false }: ConnectionSta
       {/* Tooltip */}
       <AnimatePresence>
         {isTooltipVisible && (
-          <motion.div
+          <m.div
             initial={{ opacity: 0, y: 5 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 5 }}
@@ -215,7 +215,7 @@ export function ConnectionStatus({ className, showLabel = false }: ConnectionSta
                 )}
               </div>
             </div>
-          </motion.div>
+          </m.div>
         )}
       </AnimatePresence>
     </div>

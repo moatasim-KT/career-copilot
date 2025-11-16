@@ -1,9 +1,10 @@
 """Application model"""
 
-from sqlalchemy import Column, Integer, String, Text, DateTime, ForeignKey, Date, JSON
+from sqlalchemy import JSON, Column, Date, DateTime, ForeignKey, Integer, String, Text
 from sqlalchemy.orm import relationship
-from datetime import datetime, timezone
+
 from ..core.database import Base
+from ..utils import utc_now, utc_today
 
 APPLICATION_STATUSES = ["interested", "applied", "interview", "offer", "rejected", "accepted", "declined"]
 
@@ -15,15 +16,15 @@ class Application(Base):
 	user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
 	job_id = Column(Integer, ForeignKey("jobs.id"), nullable=False, index=True)
 	status = Column(String, default="interested", index=True)  # interested, applied, interview, offer, rejected, accepted, declined
-	applied_date = Column(Date, default=lambda: datetime.now(timezone.utc).date())
+	applied_date = Column(Date, default=utc_today)
 	response_date = Column(Date)
 	interview_date = Column(DateTime)
 	offer_date = Column(Date)
 	notes = Column(Text)
 	interview_feedback = Column(JSON, nullable=True)
 	follow_up_date = Column(Date)
-	created_at = Column(DateTime, default=datetime.utcnow, index=True)
-	updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+	created_at = Column(DateTime, default=utc_now, index=True)
+	updated_at = Column(DateTime, default=utc_now, onupdate=utc_now)
 
 	user = relationship("User", back_populates="applications")
 	job = relationship("Job", back_populates="applications")

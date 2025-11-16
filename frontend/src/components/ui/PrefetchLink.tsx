@@ -45,8 +45,8 @@ export function PrefetchLink({
     typeof href === 'string' ? href : href.pathname || '',
     { 
       enabled: prefetch,
-      delay: prefetchDelay 
-    }
+      delay: prefetchDelay, 
+    },
   );
 
   return (

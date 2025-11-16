@@ -48,7 +48,14 @@ security-python: ## Run Python security checks (bandit, safety)
 	@echo "Running bandit..."
 	bandit -r $(PYTHON_DIRS) -f json -o bandit-report.json || true
 	@echo "Running safety..."
-	safety check --json --output safety-report.json || true
+	@mkdir -p reports
+	safety check --output json > reports/safety-report.json || true
+	@echo "Running pip-audit (dependency scan)..."
+	@if command -v pip-audit >/dev/null 2>&1; then \
+		pip-audit -f json -o reports/pip_audit_report.json || true; \
+	else \
+		echo "pip-audit not installed. Run 'pip install pip-audit' to enable Python dependency scanning."; \
+	fi
 
 # Frontend linting and formatting
 lint-frontend: ## Run frontend linting (ESLint)
@@ -73,6 +80,17 @@ format: format-python format-frontend ## Format all code
 type-check: type-check-python type-check-frontend ## Run all type checking
 
 security: security-python ## Run all security checks
+	@echo "Running Semgrep (SAST)..."
+	@mkdir -p reports
+	@if command -v semgrep >/dev/null 2>&1; then \
+		semgrep --config=p/ci --error --json > reports/semgrep-report.json || true; \
+	elif [ -x "$(HOME)/.local/bin/semgrep" ]; then \
+		$(HOME)/.local/bin/semgrep --config=p/ci --error --json > reports/semgrep-report.json || true; \
+	else \
+		echo "semgrep not installed. Install via 'pip install semgrep' (virtualenv) or 'pipx install semgrep'"; \
+	fi
+	@echo "Running npm audit (frontend dependency scan)..."
+	@cd $(FRONTEND_DIR) && npm audit --audit-level=high --omit=dev --json > ../reports/npm_audit_report.json || true
 
 test-python: ## Run Python tests
 	@echo "Running Python tests..."
@@ -81,6 +99,7 @@ test-python: ## Run Python tests
 test-frontend: ## Run frontend tests
 	@echo "Running frontend tests..."
 	cd $(FRONTEND_DIR) && npm run test:coverage
+	cd $(FRONTEND_DIR) && npm run test:a11y
 
 test: test-python test-frontend ## Run all tests
 
@@ -134,7 +153,8 @@ clean: ## Clean up generated files
 	find . -type d -name ".pytest_cache" -exec rm -rf {} +
 	find . -type d -name ".mypy_cache" -exec rm -rf {} +
 	find . -type d -name ".ruff_cache" -exec rm -rf {} +
-	rm -f bandit-report.json safety-report.json
+	rm -f bandit-report.json
+	rm -f reports/safety-report.json reports/pip_audit_report.json reports/semgrep-report.json reports/npm_audit_report.json
 	cd $(FRONTEND_DIR) && rm -rf .next build dist coverage
 	@echo "✅ Cleanup completed!"
 

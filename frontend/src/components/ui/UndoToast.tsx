@@ -1,8 +1,9 @@
 'use client';
 
-import { motion, AnimatePresence } from 'framer-motion';
 import { Undo2, X } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
+
+import { m, AnimatePresence } from '@/lib/motion';
 
 import Button2 from './Button2';
 
@@ -50,7 +51,7 @@ export function UndoToast({
   return (
     <AnimatePresence>
       {isVisible && (
-        <motion.div
+        <m.div
           initial={{ y: 100, opacity: 0, scale: 0.95 }}
           animate={{ y: 0, opacity: 1, scale: 1 }}
           exit={{ y: 100, opacity: 0, scale: 0.95 }}
@@ -75,7 +76,7 @@ export function UndoToast({
           >
             {/* Progress Bar */}
             <div className="absolute top-0 left-0 right-0 h-1 bg-neutral-700">
-              <motion.div
+              <m.div
                 className="h-full bg-blue-500"
                 initial={{ width: '100%' }}
                 animate={{ width: `${progress}%` }}
@@ -86,7 +87,7 @@ export function UndoToast({
             {/* Content */}
             <div className="flex items-center justify-between p-4 pt-5">
               <div className="flex items-center space-x-3 flex-1">
-                <motion.div
+                <m.div
                   initial={{ rotate: -180, opacity: 0 }}
                   animate={{ rotate: 0, opacity: 1 }}
                   transition={{
@@ -96,12 +97,12 @@ export function UndoToast({
                   }}
                 >
                   <Undo2 className="h-5 w-5 text-blue-400" />
-                </motion.div>
+                </m.div>
                 <p className="text-sm font-medium">{message}</p>
               </div>
 
               <div className="flex items-center space-x-2 ml-4">
-                <motion.div
+                <m.div
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                 >
@@ -119,9 +120,9 @@ export function UndoToast({
                   >
                     Undo
                   </Button2>
-                </motion.div>
+                </m.div>
 
-                <motion.button
+                <m.button
                   whileHover={{ scale: 1.1 }}
                   whileTap={{ scale: 0.9 }}
                   onClick={onDismiss}
@@ -139,11 +140,11 @@ export function UndoToast({
                   aria-label="Dismiss"
                 >
                   <X className="h-4 w-4" />
-                </motion.button>
+                </m.button>
               </div>
             </div>
           </div>
-        </motion.div>
+        </m.div>
       )}
     </AnimatePresence>
   );

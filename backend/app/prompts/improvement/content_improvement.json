@@ -1,0 +1,26 @@
+{
+    "name": "content_improvement",
+    "version": "1.0.0",
+    "description": "Improve existing content based on user feedback",
+    "category": "improvement",
+    "author": "career_copilot",
+    "tags": [
+        "improvement",
+        "feedback",
+        "revision"
+    ],
+    "variables": [
+        "content_type",
+        "original_content",
+        "feedback"
+    ],
+    "default_values": {
+        "content_type": "cover_letter"
+    },
+    "validation_rules": {
+        "original_content": "required",
+        "feedback": "required"
+    },
+    "created_at": "2025-11-16T00:00:00Z",
+    "last_updated": "2025-11-16T00:00:00Z"
+}

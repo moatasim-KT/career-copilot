@@ -6,7 +6,7 @@ Enhanced with comprehensive job application tracking and system performance metr
 import time
 from contextlib import asynccontextmanager
 from typing import Dict, Optional, Any, Union
-from datetime import datetime, timezone
+from ..utils.datetime import utc_now
 from enum import Enum
 
 from prometheus_client import Counter, Histogram, Gauge, Info, CollectorRegistry, generate_latest
@@ -391,7 +391,7 @@ class MetricsCollector:
 				"version": "1.0.0",
 				"environment": getattr(settings, "environment", "development"),
 				"python_version": "3.11+",
-				"build_time": datetime.now(timezone.utc).isoformat(),
+				"build_time": utc_now().isoformat(),
 				"git_commit": "unknown",  # Could be populated from CI/CD
 				"features_enabled": "ai_analysis,security_scanning,monitoring",
 			}
@@ -880,7 +880,7 @@ class MetricsCollector:
 			disk = psutil.disk_usage("/")
 
 			return {
-				"timestamp": datetime.now(timezone.utc).isoformat(),
+				"timestamp": utc_now().isoformat(),
 				"uptime_seconds": time.time() - self._start_time,
 				"http_requests": {
 					"total": self._get_counter_total(self.http_requests_total),
@@ -937,7 +937,7 @@ class MetricsCollector:
 
 		except Exception as e:
 			logger.error(f"Error getting metrics summary: {e}")
-			return {"error": str(e), "timestamp": datetime.now(timezone.utc).isoformat()}
+			return {"error": str(e), "timestamp": utc_now().isoformat()}
 
 	def _get_counter_total(self, counter) -> float:
 		"""Safely get total value from a counter metric."""
@@ -964,7 +964,7 @@ class MetricsCollector:
 		"""Get performance-focused metrics summary."""
 		try:
 			return {
-				"timestamp": datetime.now(timezone.utc).isoformat(),
+				"timestamp": utc_now().isoformat(),
 				"response_times": {
 					"http_avg_ms": "calculated_by_prometheus",
 					"contract_analysis_avg_s": "calculated_by_prometheus",
@@ -1000,7 +1000,7 @@ class MetricsCollector:
 			disk = psutil.disk_usage("/")
 
 			return {
-				"timestamp": datetime.now(timezone.utc).isoformat(),
+				"timestamp": utc_now().isoformat(),
 				"healthy": True,
 				"uptime_seconds": time.time() - self._start_time,
 				"system_health": {"cpu_healthy": psutil.cpu_percent() < 80, "memory_healthy": memory.percent < 85, "disk_healthy": disk.percent < 90},
@@ -1017,7 +1017,7 @@ class MetricsCollector:
 			}
 		except Exception as e:
 			logger.error(f"Error getting health metrics: {e}")
-			return {"healthy": False, "error": str(e), "timestamp": datetime.now(timezone.utc).isoformat()}
+			return {"healthy": False, "error": str(e), "timestamp": utc_now().isoformat()}
 
 	def get_metrics(self) -> str:
 		"""Get all metrics in Prometheus format."""
@@ -1033,7 +1033,7 @@ class MetricsCollector:
 		"""Get comprehensive metrics summary."""
 		try:
 			return {
-				"timestamp": datetime.now(timezone.utc).isoformat(),
+				"timestamp": utc_now().isoformat(),
 				"uptime_seconds": time.time() - self._start_time,
 				"http": {
 					"total_requests": self._get_counter_total(self.http_requests_total),
@@ -1069,7 +1069,7 @@ class MetricsCollector:
 			}
 		except Exception as e:
 			logger.error(f"Error getting metrics summary: {e}")
-			return {"error": str(e), "timestamp": datetime.now(timezone.utc).isoformat()}
+			return {"error": str(e), "timestamp": utc_now().isoformat()}
 
 	def get_performance_summary(self) -> Dict[str, Any]:
 		"""Get performance-focused metrics summary."""
@@ -1078,7 +1078,7 @@ class MetricsCollector:
 			self.update_system_metrics()
 
 			return {
-				"timestamp": datetime.now(timezone.utc).isoformat(),
+				"timestamp": utc_now().isoformat(),
 				"response_times": {
 					"http_avg_ms": self._get_histogram_avg(self.http_request_duration) * 1000,
 					"analysis_avg_ms": self._get_histogram_avg(self.contract_analysis_duration) * 1000,
@@ -1109,7 +1109,7 @@ class MetricsCollector:
 			}
 		except Exception as e:
 			logger.error(f"Error getting performance summary: {e}")
-			return {"error": str(e), "timestamp": datetime.now(timezone.utc).isoformat()}
+			return {"error": str(e), "timestamp": utc_now().isoformat()}
 
 	def get_metrics_for_export(self, format_type: str) -> Union[str, Dict[str, Any]]:
 		"""Export metrics in specified format."""
@@ -1129,7 +1129,7 @@ class MetricsCollector:
 			if format_type == "prometheus":
 				return f"# Error exporting metrics: {e}\n"
 			else:
-				return {"error": str(e), "timestamp": datetime.now(timezone.utc).isoformat()}
+				return {"error": str(e), "timestamp": utc_now().isoformat()}
 
 	def _get_counter_total(self, counter) -> float:
 		"""Get total value from a counter metric."""

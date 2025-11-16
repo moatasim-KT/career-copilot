@@ -20,7 +20,6 @@
 
 'use client';
 
-import { motion, AnimatePresence } from 'framer-motion';
 import {
   MessageSquare,
   Star,
@@ -32,6 +31,8 @@ import {
 import { useState, useRef } from 'react';
 
 import { Modal2 } from '@/components/ui/Modal2';
+import { logger } from '@/lib/logger';
+import { m, AnimatePresence } from '@/lib/motion';
 import { cn } from '@/lib/utils';
 
 interface FeedbackData {
@@ -57,17 +58,17 @@ export interface FeedbackWidgetProps {
    * Position of the floating button
    */
   position?: 'bottom-right' | 'bottom-left' | 'inline';
-  
+
   /**
    * Custom className for the button
    */
   className?: string;
-  
+
   /**
    * Callback when feedback is submitted
    */
   onSubmit?: (feedback: FeedbackData) => Promise<void>;
-  
+
   /**
    * Whether to show the screenshot option
    */
@@ -123,7 +124,7 @@ export function FeedbackWidget({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!rating || !category || !comment.trim()) {
       return;
     }
@@ -155,13 +156,13 @@ export function FeedbackWidget({
       }
 
       setIsSubmitted(true);
-      
+
       // Auto-close after 2 seconds
       setTimeout(() => {
         handleClose();
       }, 2000);
     } catch (error) {
-      console.error('Failed to submit feedback:', error);
+      logger.error('Failed to submit feedback:', error);
       alert('Failed to submit feedback. Please try again.');
     } finally {
       setIsSubmitting(false);
@@ -179,7 +180,7 @@ export function FeedbackWidget({
   return (
     <>
       {/* Floating Button */}
-      <motion.button
+      <m.button
         onClick={handleOpen}
         className={cn(
           positionStyles[position],
@@ -197,7 +198,7 @@ export function FeedbackWidget({
       >
         <MessageSquare className="h-5 w-5" />
         <span className="hidden sm:inline">Feedback</span>
-      </motion.button>
+      </m.button>
 
       {/* Feedback Modal */}
       <Modal2
@@ -209,30 +210,30 @@ export function FeedbackWidget({
         <AnimatePresence mode="wait">
           {isSubmitted ? (
             // Success State
-            <motion.div
+            <m.div
               key="success"
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.9 }}
               className="py-8 text-center"
             >
-              <motion.div
+              <m.div
                 initial={{ scale: 0 }}
                 animate={{ scale: 1 }}
                 transition={{ type: 'spring', stiffness: 200, damping: 15 }}
               >
                 <CheckCircle className="h-16 w-16 text-green-500 mx-auto mb-4" />
-              </motion.div>
+              </m.div>
               <h3 className="text-xl font-bold text-neutral-900 dark:text-neutral-100 mb-2">
                 Feedback Received!
               </h3>
               <p className="text-neutral-600 dark:text-neutral-400">
                 Thank you for helping us improve Career Copilot.
               </p>
-            </motion.div>
+            </m.div>
           ) : (
             // Feedback Form
-            <motion.form
+            <m.form
               key="form"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -430,7 +431,7 @@ export function FeedbackWidget({
                   )}
                 </button>
               </div>
-            </motion.form>
+            </m.form>
           )}
         </AnimatePresence>
       </Modal2>

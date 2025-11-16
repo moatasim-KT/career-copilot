@@ -1,3 +1,5 @@
+import { logger } from '@/lib/logger';
+
 
 const MAX_RETRIES = 5;
 const INITIAL_DELAY = 1000; // 1 second
@@ -6,7 +8,7 @@ export class Reconnector {
   private retries = 0;
   private timeoutId: NodeJS.Timeout | null = null;
 
-  constructor(private connect: () => Promise<void>) {}
+  constructor(private connect: () => Promise<void>) { }
 
   start() {
     this.connectWithBackoff();
@@ -29,7 +31,7 @@ export class Reconnector {
         this.timeoutId = setTimeout(() => this.connectWithBackoff(), delay);
         this.retries++;
       } else {
-        console.__error('Max retries reached. Could not connect to WebSocket.');
+        logger.error('Max retries reached. Could not connect to WebSocket.');
       }
     }
   }

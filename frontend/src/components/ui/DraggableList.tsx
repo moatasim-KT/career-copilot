@@ -5,7 +5,6 @@
 
 'use client';
 
-import React, { ReactNode } from 'react';
 import {
   DndContext,
   closestCenter,
@@ -27,6 +26,7 @@ import {
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { GripVertical } from 'lucide-react';
+import React, { ReactNode } from 'react';
 
 import {
   useDragDropAnnouncements,

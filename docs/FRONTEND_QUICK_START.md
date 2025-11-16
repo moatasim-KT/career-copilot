@@ -1,11 +1,22 @@
 # Frontend Upgrade - Quick Start Guide
 
-## Related Documents
+**Quick Links**: [[docs/index|Documentation Hub]] | [[frontend/README|Frontend README]] | [[frontend/docs/README|Frontend Features Hub]] | [[LOCAL_SETUP]] | [[DEVELOPER_GUIDE]]
 
-- [[../README.md]] - Project overview and setup
-- [[../CONTRIBUTING.md]] - Contribution guidelines
-- [[DEVELOPER_GUIDE.md]] - Developer documentation
-- [[USER_GUIDE.md]] - User guide
+**Related**:
+- [[career-copilot/README|Project README]] - Project overview
+- [[career-copilot/CONTRIBUTING|Contributing Guidelines]] - Contribution guidelines
+- [[USER_GUIDE]] - User guide
+- [[frontend/docs/README|Frontend Features Hub]] - **Frontend Features & Documentation Hub**
+- [[ARCHITECTURE]] - System architecture
+- [[code-patterns]] - Code patterns
+- [[testing-strategies]] - Testing strategies
+
+**Frontend Features Documented**:
+- [[frontend/src/components/lazy/README|Lazy Loading & Code Splitting]]
+- [[frontend/src/components/ui/loading/README|Loading States]]
+- [[frontend/src/components/ui/DataTable/README|DataTable Component]]
+- [[frontend/src/lib/SENTRY_INTEGRATION_GUIDE|Sentry Error Monitoring]]
+- [[frontend/src/components/ui/__tests__/DARK_MODE_TEST_REPORT|Dark Mode Tests]]
 
 ## 🚀 Start Here: Week 1 Implementation
 

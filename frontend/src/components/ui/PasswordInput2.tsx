@@ -1,10 +1,10 @@
 'use client';
 
-import { motion, AnimatePresence } from 'framer-motion';
 import { Eye, EyeOff, Check, X } from 'lucide-react';
 import { forwardRef, InputHTMLAttributes, useState, useEffect } from 'react';
 
 import { errorMessageVariants, shakeVariants } from '@/lib/animations';
+import { m, AnimatePresence } from '@/lib/motion';
 import { cn } from '@/lib/utils';
 
 export interface PasswordInput2Props extends Omit<InputHTMLAttributes<HTMLInputElement>, 'type'> {
@@ -92,7 +92,7 @@ export const PasswordInput2 = forwardRef<HTMLInputElement, PasswordInput2Props>(
         return (
             <div className={cn('w-full', className)}>
                 {label && (
-                    <motion.label 
+                    <m.label 
                         htmlFor={props.id} 
                         className="mb-1.5 block text-sm font-medium text-neutral-700"
                         initial={{ opacity: 0, y: -5 }}
@@ -101,10 +101,10 @@ export const PasswordInput2 = forwardRef<HTMLInputElement, PasswordInput2Props>(
                     >
                         {label}
                         {required && <span className="ml-1 text-error-500">*</span>}
-                    </motion.label>
+                    </m.label>
                 )}
 
-                <motion.div 
+                <m.div 
                     className="relative"
                     animate={shouldShake ? 'shake' : 'default'}
                     variants={shakeVariants}
@@ -128,7 +128,7 @@ export const PasswordInput2 = forwardRef<HTMLInputElement, PasswordInput2Props>(
                         {...props}
                     />
 
-                    <motion.button
+                    <m.button
                         type="button"
                         onClick={() => setShowPassword(!showPassword)}
                         className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-600 transition-colors"
@@ -139,7 +139,7 @@ export const PasswordInput2 = forwardRef<HTMLInputElement, PasswordInput2Props>(
                     >
                         <AnimatePresence mode="wait">
                             {showPassword ? (
-                                <motion.div
+                                <m.div
                                     key="eyeoff"
                                     initial={{ opacity: 0, rotate: -90 }}
                                     animate={{ opacity: 1, rotate: 0 }}
@@ -147,9 +147,9 @@ export const PasswordInput2 = forwardRef<HTMLInputElement, PasswordInput2Props>(
                                     transition={{ duration: 0.15 }}
                                 >
                                     <EyeOff className="h-4 w-4" />
-                                </motion.div>
+                                </m.div>
                             ) : (
-                                <motion.div
+                                <m.div
                                     key="eye"
                                     initial={{ opacity: 0, rotate: -90 }}
                                     animate={{ opacity: 1, rotate: 0 }}
@@ -157,16 +157,16 @@ export const PasswordInput2 = forwardRef<HTMLInputElement, PasswordInput2Props>(
                                     transition={{ duration: 0.15 }}
                                 >
                                     <Eye className="h-4 w-4" />
-                                </motion.div>
+                                </m.div>
                             )}
                         </AnimatePresence>
-                    </motion.button>
-                </motion.div>
+                    </m.button>
+                </m.div>
 
                 {/* Strength meter */}
                 <AnimatePresence>
                     {showStrength && passwordValue && (
-                        <motion.div 
+                        <m.div 
                             className="mt-2"
                             initial={{ opacity: 0, height: 0 }}
                             animate={{ opacity: 1, height: 'auto' }}
@@ -174,7 +174,7 @@ export const PasswordInput2 = forwardRef<HTMLInputElement, PasswordInput2Props>(
                             transition={{ duration: 0.2, ease: 'easeOut' }}
                         >
                             <div className="h-1.5 bg-neutral-200 rounded-full overflow-hidden">
-                                <motion.div
+                                <m.div
                                     className={cn(
                                         'h-full',
                                         strengthColors[strength],
@@ -184,22 +184,22 @@ export const PasswordInput2 = forwardRef<HTMLInputElement, PasswordInput2Props>(
                                     transition={{ duration: 0.3, ease: 'easeOut' }}
                                 />
                             </div>
-                            <motion.p 
+                            <m.p 
                                 className="mt-1 text-xs text-neutral-600 capitalize"
                                 initial={{ opacity: 0 }}
                                 animate={{ opacity: 1 }}
                                 transition={{ delay: 0.1, duration: 0.2 }}
                             >
                                 Password strength: <span className="font-medium">{strength}</span>
-                            </motion.p>
-                        </motion.div>
+                            </m.p>
+                        </m.div>
                     )}
                 </AnimatePresence>
 
                 {/* Requirements checklist */}
                 <AnimatePresence>
                     {showRequirements && passwordValue && isFocused && (
-                        <motion.div 
+                        <m.div 
                             className="mt-3 p-3 bg-neutral-50 rounded-lg space-y-1.5"
                             initial={{ opacity: 0, height: 0, y: -10 }}
                             animate={{ opacity: 1, height: 'auto', y: 0 }}
@@ -207,14 +207,14 @@ export const PasswordInput2 = forwardRef<HTMLInputElement, PasswordInput2Props>(
                             transition={{ duration: 0.2, ease: 'easeOut' }}
                         >
                             {requirements.map((req, index) => (
-                                <motion.div 
+                                <m.div 
                                     key={index} 
                                     className="flex items-center gap-2 text-xs"
                                     initial={{ opacity: 0, x: -10 }}
                                     animate={{ opacity: 1, x: 0 }}
                                     transition={{ delay: index * 0.05, duration: 0.2 }}
                                 >
-                                    <motion.div
+                                    <m.div
                                         initial={{ scale: 0 }}
                                         animate={{ scale: 1 }}
                                         transition={{ delay: index * 0.05 + 0.1, duration: 0.2, type: 'spring' }}
@@ -224,19 +224,19 @@ export const PasswordInput2 = forwardRef<HTMLInputElement, PasswordInput2Props>(
                                         ) : (
                                             <X className="h-3 w-3 text-neutral-400 flex-shrink-0" />
                                         )}
-                                    </motion.div>
+                                    </m.div>
                                     <span className={cn(req.met ? 'text-success-600' : 'text-neutral-600')}>
                                         {req.label}
                                     </span>
-                                </motion.div>
+                                </m.div>
                             ))}
-                        </motion.div>
+                        </m.div>
                     )}
                 </AnimatePresence>
 
                 <AnimatePresence mode="wait">
                     {message && (
-                        <motion.p 
+                        <m.p 
                             key={message}
                             className={cn('mt-1.5 text-sm overflow-hidden', messageColor)}
                             initial="hidden"
@@ -245,7 +245,7 @@ export const PasswordInput2 = forwardRef<HTMLInputElement, PasswordInput2Props>(
                             variants={errorMessageVariants}
                         >
                             {message}
-                        </motion.p>
+                        </m.p>
                     )}
                 </AnimatePresence>
             </div>

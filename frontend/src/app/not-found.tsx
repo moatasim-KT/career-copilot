@@ -6,6 +6,8 @@
  * @module app/not-found
  */
 
+'use client';
+
 import { FileQuestion, Home, Search, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 
@@ -28,7 +30,7 @@ export default function NotFound() {
           Page Not Found
         </h1>
         <p className="text-lg text-gray-600 dark:text-gray-300 mb-8">
-          Sorry, we couldn't find the page you're looking for. It might have been moved or deleted.
+          Sorry, we couldn&apos;t find the page you&apos;re looking for. It might have been moved or deleted.
         </p>
 
         {/* Search bar */}

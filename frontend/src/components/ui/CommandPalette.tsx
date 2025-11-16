@@ -8,7 +8,6 @@
 'use client';
 
 import { Command } from 'cmdk';
-import { motion, AnimatePresence } from 'framer-motion';
 import { Search, Clock, X, Briefcase, FileText, Loader2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState, useCallback } from 'react';
@@ -28,6 +27,7 @@ import {
   clearRecentCommands,
   type Command as CommandType,
 } from '@/lib/commands';
+import { m, AnimatePresence } from '@/lib/motion';
 
 interface CommandPaletteProps {
   isOpen: boolean;
@@ -127,7 +127,7 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
       {isOpen && (
         <>
           {/* Backdrop */}
-          <motion.div
+          <m.div
             variants={backdropVariants}
             initial="hidden"
             animate="visible"
@@ -138,7 +138,7 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
 
           {/* Command Palette */}
           <div className="fixed inset-0 z-[1050] flex items-start justify-center pt-[15vh] px-4">
-            <motion.div
+            <m.div
               variants={modalVariants}
               initial="hidden"
               animate="visible"
@@ -299,7 +299,7 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
                   </div>
                 </div>
               </Command>
-            </motion.div>
+            </m.div>
           </div>
         </>
       )}

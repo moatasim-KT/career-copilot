@@ -1,14 +1,15 @@
 'use client';
 
+import { TrendingUp, Award, AlertCircle } from 'lucide-react';
 import React, { useState, useEffect, useCallback } from 'react';
 import { FunnelChart, Funnel, Tooltip, LabelList, ResponsiveContainer, Cell } from 'recharts';
-import { motion } from 'framer-motion';
-import { TrendingUp, Award, AlertCircle } from 'lucide-react';
 
-import { ChartWrapper } from './ChartWrapper';
 import { Button } from '@/components/ui/Button2';
 import { apiClient } from '@/lib/api';
 import { logger } from '@/lib/logger';
+import { m } from '@/lib/motion';
+
+import { ChartWrapper } from './ChartWrapper';
 
 interface SuccessRateData {
   name: string;
@@ -27,7 +28,7 @@ const CustomTooltip: React.FC<CustomTooltipProps> = ({ active, payload }) => {
   if (active && payload && payload.length) {
     const data = payload[0].payload;
     return (
-      <motion.div
+      <m.div
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
         className="bg-white dark:bg-neutral-800 p-3 rounded-lg shadow-lg border border-neutral-200 dark:border-neutral-700"
@@ -67,7 +68,7 @@ const CustomTooltip: React.FC<CustomTooltipProps> = ({ active, payload }) => {
             </div>
           )}
         </div>
-      </motion.div>
+      </m.div>
     );
   }
   return null;

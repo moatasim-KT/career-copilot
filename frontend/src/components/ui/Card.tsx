@@ -1,9 +1,8 @@
 'use client';
 
-import { motion } from 'framer-motion';
 import { ReactNode, memo } from 'react';
 
-
+import { m } from '@/lib/motion';
 import { cn } from '@/lib/utils';
 
 interface CardProps {
@@ -27,16 +26,17 @@ const Card = memo(({
   ...rest
 }: CardProps) => {
   return (
-    <motion.div
+    <m.div
       className={cn(
         'bg-white rounded-lg border border-gray-200 shadow-sm',
         paddingClasses[padding],
+        hover && 'transition-shadow duration-200 hover:shadow-md',
         className,
       )}
-      
+
       {...rest}
     >      {children}
-    </motion.div>
+    </m.div>
   );
 });
 

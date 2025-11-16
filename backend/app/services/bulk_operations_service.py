@@ -72,7 +72,7 @@ class BulkOperationsService:
                         errors.append(
                             OperationError(
                                 index=index,
-                                error=f"Validation error: {str(e)}",
+                                error=f"Validation error: {e!s}",
                                 details={"job_data": job_data.model_dump()}
                             )
                         )
@@ -82,7 +82,7 @@ class BulkOperationsService:
                         errors.append(
                             OperationError(
                                 index=index,
-                                error=f"Unexpected error: {str(e)}",
+                                error=f"Unexpected error: {e!s}",
                                 details={"job_data": job_data.model_dump()}
                             )
                         )
@@ -184,7 +184,7 @@ class BulkOperationsService:
                         errors.append(
                             OperationError(
                                 index=index,
-                                error=f"Validation error: {str(e)}",
+                                error=f"Validation error: {e!s}",
                                 details={"application_data": app_data.model_dump()}
                             )
                         )
@@ -194,7 +194,7 @@ class BulkOperationsService:
                         errors.append(
                             OperationError(
                                 index=index,
-                                error=f"Unexpected error: {str(e)}",
+                                error=f"Unexpected error: {e!s}",
                                 details={"application_data": app_data.model_dump()}
                             )
                         )
@@ -291,7 +291,7 @@ class BulkOperationsService:
                             OperationError(
                                 index=index,
                                 id=job_id,
-                                error=f"Validation error: {str(e)}",
+                                error=f"Validation error: {e!s}",
                                 details={"update_data": job_update.model_dump(exclude_unset=True)}
                             )
                         )
@@ -302,7 +302,7 @@ class BulkOperationsService:
                             OperationError(
                                 index=index,
                                 id=job_id,
-                                error=f"Unexpected error: {str(e)}",
+                                error=f"Unexpected error: {e!s}",
                                 details={"update_data": job_update.model_dump(exclude_unset=True)}
                             )
                         )
@@ -402,7 +402,7 @@ class BulkOperationsService:
                             OperationError(
                                 index=index,
                                 id=app_id,
-                                error=f"Validation error: {str(e)}",
+                                error=f"Validation error: {e!s}",
                                 details={"update_data": app_update.model_dump(exclude_unset=True)}
                             )
                         )
@@ -413,7 +413,7 @@ class BulkOperationsService:
                             OperationError(
                                 index=index,
                                 id=app_id,
-                                error=f"Unexpected error: {str(e)}",
+                                error=f"Unexpected error: {e!s}",
                                 details={"update_data": app_update.model_dump(exclude_unset=True)}
                             )
                         )
@@ -499,7 +499,7 @@ class BulkOperationsService:
                             OperationError(
                                 index=index,
                                 id=job_id,
-                                error=f"Integrity error: {str(e)}",
+                                error=f"Integrity error: {e!s}",
                                 details={"job_id": job_id}
                             )
                         )
@@ -510,7 +510,7 @@ class BulkOperationsService:
                             OperationError(
                                 index=index,
                                 id=job_id,
-                                error=f"Unexpected error: {str(e)}",
+                                error=f"Unexpected error: {e!s}",
                                 details={"job_id": job_id}
                             )
                         )
@@ -597,7 +597,7 @@ class BulkOperationsService:
                             OperationError(
                                 index=index,
                                 id=app_id,
-                                error=f"Integrity error: {str(e)}",
+                                error=f"Integrity error: {e!s}",
                                 details={"application_id": app_id}
                             )
                         )
@@ -608,7 +608,7 @@ class BulkOperationsService:
                             OperationError(
                                 index=index,
                                 id=app_id,
-                                error=f"Unexpected error: {str(e)}",
+                                error=f"Unexpected error: {e!s}",
                                 details={"application_id": app_id}
                             )
                         )

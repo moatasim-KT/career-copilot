@@ -25,6 +25,7 @@ from app.schemas.export import (
 	ExportType,
 	JobExportData,
 )
+from app.utils.datetime import utc_now
 
 logger = get_logger(__name__)
 
@@ -115,7 +116,7 @@ class ExportService:
 					"page": page,
 					"page_size": page_size,
 					"total_pages": (total_count + page_size - 1) // page_size,
-					"exported_at": datetime.utcnow().isoformat(),
+					"exported_at": utc_now().isoformat(),
 				},
 			}
 
@@ -192,7 +193,7 @@ class ExportService:
 					"page": page,
 					"page_size": page_size,
 					"total_pages": (total_count + page_size - 1) // page_size,
-					"exported_at": datetime.utcnow().isoformat(),
+					"exported_at": utc_now().isoformat(),
 				},
 			}
 
@@ -418,7 +419,7 @@ class ExportService:
 			elements.append(title)
 
 			# Metadata
-			metadata_text = f"Generated: {datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S UTC')}<br/>Total Jobs: {len(jobs)}"
+			metadata_text = f"Generated: {utc_now().strftime('%Y-%m-%d %H:%M:%S UTC')}<br/>Total Jobs: {len(jobs)}"
 			elements.append(Paragraph(metadata_text, styles["Normal"]))
 			elements.append(Spacer(1, 0.3 * inch))
 
@@ -567,7 +568,7 @@ class ExportService:
 			for app in applications:
 				status_counts[app.status] = status_counts.get(app.status, 0) + 1
 
-			metadata_text = f"Generated: {datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S UTC')}<br/>Total Applications: {len(applications)}"
+			metadata_text = f"Generated: {utc_now().strftime('%Y-%m-%d %H:%M:%S UTC')}<br/>Total Applications: {len(applications)}"
 			elements.append(Paragraph(metadata_text, styles["Normal"]))
 			elements.append(Spacer(1, 0.2 * inch))
 
@@ -747,7 +748,7 @@ class ExportService:
 
 				# Add metadata
 				metadata = {
-					"export_date": datetime.utcnow().isoformat(),
+					"export_date": utc_now().isoformat(),
 					"export_version": "2.0",
 					"user_id": user_id,
 					"total_jobs": len(jobs),

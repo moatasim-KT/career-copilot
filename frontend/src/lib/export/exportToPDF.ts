@@ -6,6 +6,9 @@
 import jsPDF from 'jspdf';
 import autoTable, { type RowInput } from 'jspdf-autotable';
 
+import { colors } from '@/lib/designTokens';
+import { logger } from '@/lib/logger';
+
 /**
  * PDF export options
  */
@@ -59,21 +62,8 @@ const DEFAULT_OPTIONS: Required<PDFExportOptions> = {
   includeTimestamp: true,
   footerText: 'Career Copilot',
   theme: 'striped',
-  primaryColor: '#3b82f6', // blue-500
+  primaryColor: colors.primary[500],
 };
-
-/**
- * Format date for display
- */
-function formatDate(date: Date): string {
-  return date.toLocaleDateString('en-US', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-  });
-}
 
 /**
  * Convert hex color to RGB array
@@ -88,6 +78,25 @@ function hexToRgb(hex: string): [number, number, number] {
     parseInt(result[2], 16),
     parseInt(result[3], 16),
   ];
+}
+
+const HEADER_TEXT_COLOR = hexToRgb(colors.neutral[800]);
+const MUTED_TEXT_COLOR = hexToRgb(colors.neutral[500]);
+const BORDER_COLOR = hexToRgb(colors.neutral[200]);
+const SURFACE_SUBTLE_COLOR = hexToRgb(colors.neutral[50]);
+const SURFACE_LIGHT_COLOR = hexToRgb(colors.neutral[100]);
+
+/**
+ * Format date for display
+ */
+function formatDate(date: Date): string {
+  return date.toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
 }
 
 /**
@@ -107,20 +116,20 @@ function addHeader(
       doc.addImage(options.logoUrl, 'PNG', 15, yPosition, 30, 30);
       yPosition += 35;
     } catch (error) {
-      console.warn('Failed to add logo to PDF:', error);
+      logger.warn('Failed to add logo to PDF:', error);
     }
   }
 
   // Add title
   doc.setFontSize(20);
-  doc.setTextColor(31, 41, 55); // gray-800
+  doc.setTextColor(...HEADER_TEXT_COLOR);
   doc.text(options.title, pageWidth / 2, yPosition, { align: 'center' });
   yPosition += 10;
 
   // Add subtitle if provided
   if (options.subtitle) {
     doc.setFontSize(12);
-    doc.setTextColor(107, 114, 128); // gray-500
+    doc.setTextColor(...MUTED_TEXT_COLOR);
     doc.text(options.subtitle, pageWidth / 2, yPosition, { align: 'center' });
     yPosition += 8;
   }
@@ -128,7 +137,7 @@ function addHeader(
   // Add timestamp if enabled
   if (options.includeTimestamp) {
     doc.setFontSize(10);
-    doc.setTextColor(107, 114, 128); // gray-500
+    doc.setTextColor(...MUTED_TEXT_COLOR);
     doc.text(
       `Generated on ${formatDate(new Date())}`,
       pageWidth / 2,
@@ -139,7 +148,7 @@ function addHeader(
   }
 
   // Add separator line
-  doc.setDrawColor(229, 231, 235); // gray-200
+  doc.setDrawColor(...BORDER_COLOR);
   doc.setLineWidth(0.5);
   doc.line(15, yPosition, pageWidth - 15, yPosition);
   yPosition += 10;
@@ -161,7 +170,7 @@ function addFooter(
   const footerY = pageHeight - 15;
 
   doc.setFontSize(9);
-  doc.setTextColor(107, 114, 128); // gray-500
+  doc.setTextColor(...MUTED_TEXT_COLOR);
 
   // Add footer text
   if (options.footerText) {
@@ -304,7 +313,7 @@ export function exportToPDF<T extends Record<string, any>>(
         halign: 'left' as const,
       },
       alternateRowStyles: {
-        fillColor: [249, 250, 251] as [number, number, number], // gray-50
+        fillColor: SURFACE_SUBTLE_COLOR,
       },
       styles: {
         fontSize: 9,
@@ -321,14 +330,14 @@ export function exportToPDF<T extends Record<string, any>>(
       styles: {
         fontSize: 9,
         cellPadding: 3,
-        lineColor: [229, 231, 235] as [number, number, number], // gray-200
+        lineColor: BORDER_COLOR,
         lineWidth: 0.1,
       },
     },
     plain: {
       headStyles: {
-        fillColor: [243, 244, 246] as [number, number, number], // gray-100
-        textColor: [31, 41, 55] as [number, number, number], // gray-800
+        fillColor: SURFACE_LIGHT_COLOR,
+        textColor: HEADER_TEXT_COLOR,
         fontStyle: 'bold' as const,
         halign: 'left' as const,
       },

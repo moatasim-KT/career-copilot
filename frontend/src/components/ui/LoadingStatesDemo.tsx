@@ -13,15 +13,16 @@
  */
 
 import { useState, useEffect } from 'react';
-import Spinner2 from './Spinner2';
+
+import Button2 from './Button2';
+import Card2 from './Card2';
 import DotsLoader from './DotsLoader';
-import LoadingTransition from './LoadingTransition';
-import StaggerReveal, { StaggerRevealItem } from './StaggerReveal';
 import LoadingOverlay from './LoadingOverlay';
+import LoadingTransition from './LoadingTransition';
 import ProgressBar from './ProgressBar';
 import Skeleton2 from './Skeleton2';
-import Card2 from './Card2';
-import Button2 from './Button2';
+import Spinner2 from './Spinner2';
+import StaggerReveal, { StaggerRevealItem } from './StaggerReveal';
 
 export default function LoadingStatesDemo() {
   const [showOverlay, setShowOverlay] = useState(false);

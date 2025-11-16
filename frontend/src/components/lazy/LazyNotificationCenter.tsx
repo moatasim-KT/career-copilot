@@ -14,19 +14,28 @@ import { NotificationCenterSkeleton } from '@/components/loading/NotificationCen
 
 // Lazy load NotificationCenter
 const NotificationCenter = dynamic(
-  () => import('@/components/ui/NotificationCenter').then((mod) => ({ default: mod.NotificationCenter })),
+  () => import('@/components/ui/NotificationCenter').then((mod) => mod.default),
   {
     loading: () => <NotificationCenterSkeleton />,
     ssr: false, // Notification center is client-side only
-  }
+  },
 );
 
 interface LazyNotificationCenterProps {
-  isOpen: boolean;
-  onClose: () => void;
+  isOpen?: boolean;
+  onClose?: () => void;
 }
 
-export default function LazyNotificationCenter({ isOpen, onClose }: LazyNotificationCenterProps) {
+export default function LazyNotificationCenter({ isOpen, onClose: _onClose }: LazyNotificationCenterProps = {}) {
+  // If standalone (no isOpen prop), always render
+  if (isOpen === undefined) {
+    return (
+      <Suspense fallback={<NotificationCenterSkeleton />}>
+        <NotificationCenter />
+      </Suspense>
+    );
+  }
+
   // Don't render anything if not open to avoid loading the component unnecessarily
   if (!isOpen) {
     return null;
@@ -34,7 +43,7 @@ export default function LazyNotificationCenter({ isOpen, onClose }: LazyNotifica
 
   return (
     <Suspense fallback={<NotificationCenterSkeleton />}>
-      <NotificationCenter isOpen={isOpen} onClose={onClose} />
+      <NotificationCenter />
     </Suspense>
   );
 }

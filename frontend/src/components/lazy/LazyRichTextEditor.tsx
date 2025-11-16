@@ -88,7 +88,7 @@ const RichTextEditor = dynamic(
   {
     loading: () => <RichTextEditorSkeleton />,
     ssr: false, // Rich text editors are client-side only
-  }
+  },
 );
 
 export default function LazyRichTextEditor(props: LazyRichTextEditorProps) {

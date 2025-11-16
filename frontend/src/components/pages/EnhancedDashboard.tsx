@@ -39,7 +39,12 @@ export default function EnhancedDashboard() {
     }, []);
 
     // point the dashboard websocket to the local backend started on port 8002
-    const { connectionStatus } = useWebSocket('ws://localhost:8002/ws', handleDashboardUpdate);
+    const { connectionStatus } = useWebSocket(
+        'ws://localhost:8002/ws',
+        handleDashboardUpdate,
+        () => { }, // onApplicationStatusUpdate - not needed for dashboard
+        () => { },  // onAnalyticsUpdate - not needed for dashboard
+    );
 
     const loadAnalytics = useCallback(async () => {
         try {

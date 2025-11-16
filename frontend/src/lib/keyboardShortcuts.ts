@@ -11,6 +11,8 @@
 
 import { useEffect, useRef } from 'react';
 
+import { logger } from '@/lib/logger';
+
 export interface KeyboardShortcut {
     key: string;
     ctrl?: boolean;
@@ -43,7 +45,7 @@ class KeyboardShortcutsManager {
         const key = this.getShortcutKey(shortcut);
 
         if (this.shortcuts.has(key)) {
-            console.warn(`Shortcut ${key} is already registered`);
+            logger.warn(`Shortcut ${key} is already registered`);
         }
 
         this.shortcuts.set(key, shortcut);

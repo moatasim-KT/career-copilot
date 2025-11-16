@@ -1,0 +1,28 @@
+{
+    "name": "follow_up_email",
+    "version": "1.0.0",
+    "description": "Follow-up email template for checking application status",
+    "author": "career-copilot",
+    "input_variables": [
+        "job_title",
+        "company",
+        "user_name",
+        "application_date"
+    ],
+    "output_format": "text",
+    "estimated_tokens": 150,
+    "tags": [
+        "email",
+        "follow_up",
+        "professional"
+    ],
+    "model_recommendations": [
+        "gpt-3.5-turbo",
+        "groq-mixtral"
+    ],
+    "custom_metadata": {
+        "tone": "polite",
+        "formality": "medium",
+        "recommended_length": "75-125 words"
+    }
+}

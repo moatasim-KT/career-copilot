@@ -24,8 +24,6 @@
 
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
 import {
   X,
   ChevronLeft,
@@ -39,8 +37,11 @@ import {
   Bell,
   Search,
 } from 'lucide-react';
+import { useState, useEffect, useCallback } from 'react';
 
 import { Modal2 } from '@/components/ui/Modal2';
+import { logger } from '@/lib/logger';
+import { m, AnimatePresence } from '@/lib/motion';
 import { cn } from '@/lib/utils';
 
 export interface TourStep {
@@ -156,32 +157,32 @@ export interface FeatureTourProps {
    * Whether the tour is open
    */
   isOpen: boolean;
-  
+
   /**
    * Callback when tour is closed
    */
   onClose: () => void;
-  
+
   /**
    * Callback when tour is completed
    */
   onComplete?: () => void;
-  
+
   /**
    * Custom steps (optional, uses default steps if not provided)
    */
   steps?: TourStep[];
-  
+
   /**
    * Initial step index
    */
   initialStep?: number;
-  
+
   /**
    * Whether to show progress indicator
    */
   showProgress?: boolean;
-  
+
   /**
    * Whether to allow skipping
    */
@@ -212,6 +213,38 @@ export function FeatureTour({
     }
   }, [isOpen, initialStep]);
 
+  const handleComplete = useCallback(() => {
+    onComplete?.();
+    onClose();
+  }, [onComplete, onClose]);
+
+  const handleNext = useCallback(() => {
+    if (isLastStep) {
+      handleComplete();
+    } else {
+      setDirection('forward');
+      setCurrentStep((prev) => Math.min(prev + 1, steps.length - 1));
+    }
+  }, [handleComplete, isLastStep, steps.length]);
+
+  const handlePrevious = useCallback(() => {
+    setDirection('backward');
+    setCurrentStep((prev) => Math.max(prev - 1, 0));
+  }, []);
+
+  const handleSkip = useCallback(() => {
+    onClose();
+  }, [onClose]);
+
+  const handleClose = useCallback(() => {
+    onClose();
+  }, [onClose]);
+
+  const handleStepClick = useCallback((index: number) => {
+    setDirection(index > currentStep ? 'forward' : 'backward');
+    setCurrentStep(index);
+  }, [currentStep]);
+
   // Keyboard navigation
   useEffect(() => {
     if (!isOpen) return;
@@ -228,39 +261,7 @@ export function FeatureTour({
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isOpen, currentStep, isFirstStep, isLastStep]);
-
-  const handleNext = useCallback(() => {
-    if (isLastStep) {
-      handleComplete();
-    } else {
-      setDirection('forward');
-      setCurrentStep((prev) => Math.min(prev + 1, steps.length - 1));
-    }
-  }, [isLastStep, steps.length]);
-
-  const handlePrevious = useCallback(() => {
-    setDirection('backward');
-    setCurrentStep((prev) => Math.max(prev - 1, 0));
-  }, []);
-
-  const handleSkip = useCallback(() => {
-    onClose();
-  }, [onClose]);
-
-  const handleComplete = useCallback(() => {
-    onComplete?.();
-    onClose();
-  }, [onComplete, onClose]);
-
-  const handleClose = useCallback(() => {
-    onClose();
-  }, [onClose]);
-
-  const handleStepClick = useCallback((index: number) => {
-    setDirection(index > currentStep ? 'forward' : 'backward');
-    setCurrentStep(index);
-  }, [currentStep]);
+  }, [handleClose, handleNext, handlePrevious, isFirstStep, isLastStep, isOpen]);
 
   const slideVariants = {
     enter: (direction: 'forward' | 'backward') => ({
@@ -306,7 +307,7 @@ export function FeatureTour({
         {/* Progress Bar */}
         {showProgress && (
           <div className="absolute top-0 left-0 right-0 h-1 bg-neutral-200 dark:bg-neutral-700">
-            <motion.div
+            <m.div
               className="h-full bg-primary-500"
               initial={{ width: 0 }}
               animate={{ width: `${progress}%` }}
@@ -318,7 +319,7 @@ export function FeatureTour({
         {/* Content */}
         <div className="pt-8 pb-6 px-6">
           <AnimatePresence mode="wait" custom={direction}>
-            <motion.div
+            <m.div
               key={currentStep}
               custom={direction}
               variants={slideVariants}
@@ -385,7 +386,7 @@ export function FeatureTour({
                   </ul>
                 </div>
               )}
-            </motion.div>
+            </m.div>
           </AnimatePresence>
         </div>
 
@@ -501,7 +502,7 @@ export function useFeatureTour() {
         const completed = localStorage.getItem('feature-tour-completed');
         setHasCompletedTour(completed === 'true');
       } catch (error) {
-        console.error('Failed to check tour completion:', error);
+        logger.error('Failed to check tour completion:', error);
       }
     }
   }, []);
@@ -520,7 +521,7 @@ export function useFeatureTour() {
       try {
         localStorage.setItem('feature-tour-completed', 'true');
       } catch (error) {
-        console.error('Failed to save tour completion:', error);
+        logger.error('Failed to save tour completion:', error);
       }
     }
   }, []);
@@ -531,7 +532,7 @@ export function useFeatureTour() {
       try {
         localStorage.removeItem('feature-tour-completed');
       } catch (error) {
-        console.error('Failed to reset tour:', error);
+        logger.error('Failed to reset tour:', error);
       }
     }
   }, []);

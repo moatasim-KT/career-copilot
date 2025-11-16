@@ -15,6 +15,10 @@ export interface PushNotificationPermission {
  * Check if push notifications are supported
  */
 export function isPushNotificationSupported(): boolean {
+  if (typeof window === 'undefined' || typeof navigator === 'undefined') {
+    return false;
+  }
+
   return (
     'Notification' in window &&
     'serviceWorker' in navigator &&
@@ -68,12 +72,12 @@ export async function registerServiceWorker(): Promise<ServiceWorkerRegistration
     const registration = await navigator.serviceWorker.register('/sw.js', {
       scope: '/',
     });
-    
+
     logger.info('Service worker registered:', registration);
-    
+
     // Wait for service worker to be ready
     await navigator.serviceWorker.ready;
-    
+
     return registration;
   } catch (error) {
     logger.error('Error registering service worker:', error);
@@ -85,7 +89,7 @@ export async function registerServiceWorker(): Promise<ServiceWorkerRegistration
  * Subscribe to push notifications
  */
 export async function subscribeToPushNotifications(
-  vapidPublicKey: string
+  vapidPublicKey: string,
 ): Promise<PushSubscription> {
   if (!isPushNotificationSupported()) {
     throw new Error('Push notifications are not supported');
@@ -98,10 +102,10 @@ export async function subscribeToPushNotifications(
 
   try {
     const registration = await registerServiceWorker();
-    
+
     // Check if already subscribed
     let subscription = await registration.pushManager.getSubscription();
-    
+
     if (subscription) {
       logger.info('Already subscribed to push notifications');
       return subscription;
@@ -110,7 +114,7 @@ export async function subscribeToPushNotifications(
     // Subscribe to push notifications
     subscription = await registration.pushManager.subscribe({
       userVisibleOnly: true,
-      applicationServerKey: urlBase64ToUint8Array(vapidPublicKey),
+      applicationServerKey: urlBase64ToUint8Array(vapidPublicKey) as BufferSource,
     });
 
     logger.info('Subscribed to push notifications:', subscription);
@@ -169,7 +173,7 @@ export async function getPushSubscription(): Promise<PushSubscription | null> {
  */
 export async function sendSubscriptionToBackend(
   subscription: PushSubscription,
-  userId: string
+  userId: string,
 ): Promise<void> {
   try {
     const response = await fetch('/api/push/subscribe', {
@@ -209,7 +213,7 @@ export async function showTestNotification(): Promise<void> {
 
   try {
     const registration = await navigator.serviceWorker.ready;
-    
+
     await registration.showNotification('Test Notification', {
       body: 'This is a test notification from Career Copilot',
       icon: '/icon-192x192.png',
@@ -226,7 +230,7 @@ export async function showTestNotification(): Promise<void> {
           title: 'Dismiss',
         },
       ],
-    });
+    } as any);
 
     logger.info('Test notification shown');
   } catch (error) {
@@ -265,7 +269,7 @@ export function setupNotificationClickHandler(): void {
   navigator.serviceWorker.addEventListener('message', (event) => {
     if (event.data && event.data.type === 'notification-click') {
       const { action, url } = event.data;
-      
+
       logger.info('Notification clicked:', { action, url });
 
       if (url) {

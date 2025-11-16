@@ -16,19 +16,22 @@
 
 'use client';
 
+import { zodResolver } from '@hookform/resolvers/zod';
+import { User, Mail, Briefcase, Calendar, Upload, X, Check } from 'lucide-react';
 import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
+import { toast } from 'sonner';
 import * as z from 'zod';
-import { motion } from 'framer-motion';
-import { User, Mail, Briefcase, Calendar, Upload, X, Check } from 'lucide-react';
-import { toast } from 'react-hot-toast';
 
 import Input2 from '@/components/ui/Input2';
 import Select2 from '@/components/ui/Select2';
-import { fadeInUp, staggerContainer, staggerItem } from '@/lib/animations';
+import { staggerContainer, staggerItem } from '@/lib/animations';
+import { logger } from '@/lib/logger';
+import { m } from '@/lib/motion';
 import { cn } from '@/lib/utils';
+
 import type { StepProps } from '../OnboardingWizard';
+
 
 /**
  * Form validation schema
@@ -135,7 +138,7 @@ const WelcomeStep: React.FC<StepProps> = ({ data, onChange }) => {
       reader.readAsDataURL(file);
     } catch (error) {
       setIsUploading(false);
-      console.error('Photo upload error:', error);
+      logger.error('Photo upload error:', error);
       toast.error('Failed to upload photo');
     }
   };
@@ -150,14 +153,14 @@ const WelcomeStep: React.FC<StepProps> = ({ data, onChange }) => {
   };
 
   return (
-    <motion.div
+    <m.div
       variants={staggerContainer}
       initial="hidden"
       animate="visible"
       className="space-y-8"
     >
       {/* Welcome message */}
-      <motion.div variants={staggerItem} className="text-center">
+      <m.div variants={staggerItem} className="text-center">
         <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary-100 dark:bg-primary-900/30 mb-4">
           <User className="h-8 w-8 text-primary-600 dark:text-primary-400" />
         </div>
@@ -165,17 +168,17 @@ const WelcomeStep: React.FC<StepProps> = ({ data, onChange }) => {
           Welcome to Career Copilot! 👋
         </h3>
         <p className="text-neutral-600 dark:text-neutral-400 max-w-2xl mx-auto">
-          Your AI-powered copilot for navigating the European tech job market. 
-          Let's build your profile to find your dream job.
+          Your AI-powered copilot for navigating the European tech job market.
+          Let&apos;s build your profile to find your dream job.
         </p>
-      </motion.div>
+      </m.div>
 
       {/* Profile photo upload */}
-      <motion.div variants={staggerItem} className="flex flex-col items-center">
+      <m.div variants={staggerItem} className="flex flex-col items-center">
         <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-3">
           Profile Photo (Optional)
         </label>
-        
+
         <div className="relative">
           {profilePhoto ? (
             <div className="relative group">
@@ -200,7 +203,7 @@ const WelcomeStep: React.FC<StepProps> = ({ data, onChange }) => {
                 'border-2 border-dashed border-neutral-300 dark:border-neutral-600',
                 'hover:border-primary-500 dark:hover:border-primary-400',
                 'cursor-pointer transition-colors',
-                isUploading && 'pointer-events-none opacity-50'
+                isUploading && 'pointer-events-none opacity-50',
               )}
             >
               <input
@@ -231,10 +234,10 @@ const WelcomeStep: React.FC<StepProps> = ({ data, onChange }) => {
         <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-2">
           JPG, PNG or GIF (max 5MB)
         </p>
-      </motion.div>
+      </m.div>
 
       {/* Form fields */}
-      <motion.div variants={staggerItem} className="space-y-6">
+      <m.div variants={staggerItem} className="space-y-6">
         <Input2
           label="Full Name"
           placeholder="John Doe"
@@ -267,17 +270,24 @@ const WelcomeStep: React.FC<StepProps> = ({ data, onChange }) => {
 
         <Select2
           label="Years of Experience"
-          options={experienceOptions}
-          placeholder="Select your experience level"
           prefixIcon={<Calendar className="h-4 w-4" />}
           required
           error={errors.yearsOfExperience?.message}
           {...register('yearsOfExperience')}
-        />
-      </motion.div>
+        >
+          <option value="" disabled>
+            Select your experience level
+          </option>
+          {experienceOptions.map(option => (
+            <option key={option.value} value={option.value}>
+              {option.label}
+            </option>
+          ))}
+        </Select2>
+      </m.div>
 
       {/* Value proposition */}
-      <motion.div
+      <m.div
         variants={staggerItem}
         className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-6 border-t border-neutral-200 dark:border-neutral-700"
       >
@@ -315,8 +325,8 @@ const WelcomeStep: React.FC<StepProps> = ({ data, onChange }) => {
             </div>
           </div>
         ))}
-      </motion.div>
-    </motion.div>
+      </m.div>
+    </m.div>
   );
 };
 

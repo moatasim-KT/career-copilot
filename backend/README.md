@@ -1,226 +1,401 @@
 # Career Copilot - Backend
 
-FastAPI-based backend for the Career Copilot AI-powered career management platform.
+FastAPI-based backend with AI-powered job management, multi-provider LLM integration, and real-time notifications.
 
-## 📁 Directory Structure
+## Quick Links
 
-```
-backend/
-├── 📄 Core Files
-│   ├── __init__.py            # Package initialization
-│   ├── alembic.ini            # Alembic migration config
-│   ├── init.sql               # Database initialization SQL
-│   ├── .env.example           # Environment variables template
-│   └── .gitignore             # Git ignore patterns
-│
-├── 🔧 Configuration
-│   └── .tools/                # Tool configurations
-│       └── .coveragerc        # Code coverage config
-│
-├── 📂 Application Code
-│   └── app/                   # Main application package
-│       ├── __init__.py
-│       ├── main.py           # FastAPI application entry
-│       ├── dependencies.py    # Dependency injection
-│       ├── celery.py         # Celery configuration
-│       ├── local_celery.py   # Local Celery runner
-│       ├── cli.py            # CLI commands
-│       │
-│       ├── api/              # API routes & endpoints
-│       ├── config/           # Application configuration
-│       ├── core/             # Core business logic
-│       ├── middleware/       # FastAPI middleware
-│       ├── models/           # SQLAlchemy models
-│       ├── schemas/          # Pydantic schemas
-│       ├── services/         # Business logic services
-│       ├── repositories/     # Data access layer
-│       ├── security/         # Authentication & authorization
-│       ├── tasks/            # Celery background tasks
-│       ├── workers/          # Background workers
-│       ├── utils/            # Utility functions
-│       ├── monitoring/       # Monitoring & observability
-│       ├── templates/        # Email/notification templates
-│       └── tests/            # Unit tests (co-located)
-│
-├── 📂 Database
-│   ├── alembic/              # Database migrations
-│   │   ├── versions/         # Migration versions
-│   │   ├── env.py           # Alembic environment
-│   │   └── script.py.mako   # Migration template
-│   │
-│   └── data/                 # Application data
+- **Setup**: [[../LOCAL_SETUP|Local Setup]] - Complete development guide
+- **Testing**: [[tests/TESTING_NOTES|Testing Notes]] - Test infrastructure and known issues
+- **API Docs**: http://localhost:8000/docs (OpenAPI, when running)
+- **Main App**: [[app/main.py|Main Application]] - FastAPI application entry point
+- **Documentation Hub**: [[../docs/index|Documentation Hub]] - Central documentation
+
+## Architecture
+
+### Core Application
+
+**Entry Point**: [[app/main.py|Main Application]]
+- FastAPI app initialization
+- CORS configuration
+- API route registration
+- WebSocket setup
+
+**Configuration**: [[app/core/|Core Directory]]
+- [[app/core/config.py|Configuration]] - Unified settings management
+- [[app/core/database.py|Database]] - Database manager (sync + async)
+- [[app/core/security.py|Security]] - JWT auth, password hashing
+- [[app/core/celery_app.py|Celery]] - Celery config and scheduler
+- [[app/core/websocket_manager.py|WebSocket Manager]] - WebSocket connection manager
+- [[app/core/logging.py|Logging]] - Structured logging setup
+
+### Service Layer (Business Logic)
+
+All services in [[app/services/|Services Directory]]:
+
+**AI & Content Generation**:
+- [[app/services/llm_service.py|LLM Service]] - Multi-provider LLM (OpenAI, Groq, Anthropic)
+- [[app/services/content_generator_service.py|Content Generator]] - Resume/cover letter generation
+- [[app/services/job_recommendation_service.py|Job Recommendations]] - Job recommendations
+
+**Job Management**:
+- [[app/services/job_service.py|Job Service]] - Job CRUD and search
+- [[app/services/job_deduplication_service.py|Job Deduplication]] - MinHash-based deduplication
+- [[app/services/scraping/|Scrapers]] - 9 job board scrapers (LinkedIn, Indeed, etc.)
+
+**Application Tracking**:
+- [[app/services/application_service.py|Application Service]] - Application lifecycle management
+- [[app/services/analytics_service.py|Analytics Service]] - Application analytics
+
+**Notifications**:
+- [[app/services/notification_service.py|Notification Service]] - Unified notification service
+- [[app/services/slack_service.py|Slack Service]] - Slack integration
+
+- [[app/services/email_service.py]] - Email notifications│   └── data/                 # Application data
+
 │       ├── databases/        # SQLite databases (dev)
-│       ├── uploads/          # User file uploads
+
+### API Routes│       ├── uploads/          # User file uploads
+
 │       ├── backups/          # Database backups
-│       └── logs/             # Application logs
+
+All routes in [[app/api/v1/]]:│       └── logs/             # Application logs
+
 │
-├── 📂 Executable Scripts
-│   └── bin/                  # Initialization & seeding
-│       ├── init_db.py       # Initialize database
-│       └── seed_data.py     # Seed initial data
-│
-├── 📂 Utility Scripts
-│   └── scripts/              # Organized by function
-│       ├── database/         # Database operations
+
+| Route | File | Description |├── 📂 Executable Scripts
+
+|-------|------|-------------|│   └── bin/                  # Initialization & seeding
+
+| `/auth` | [[app/api/v1/auth.py]] | JWT authentication |│       ├── init_db.py       # Initialize database
+
+| `/jobs` | [[app/api/v1/jobs.py]] | Job search, filtering |│       └── seed_data.py     # Seed initial data
+
+| `/applications` | [[app/api/v1/applications.py]] | Application tracking |│
+
+| `/notifications` | [[app/api/v1/notifications.py]] | Notification management |├── 📂 Utility Scripts
+
+| `/templates` | [[app/api/v1/templates.py]] | Document templates |│   └── scripts/              # Organized by function
+
+| `/websocket` | [[app/api/v1/websocket.py]] | Real-time updates |│       ├── database/         # Database operations
+
 │       │   ├── backfill_job_fingerprints.py
-│       │   └── verify_indexes.py
+
+### Database Models│       │   └── verify_indexes.py
+
 │       │
-│       ├── monitoring/       # System monitoring
+
+All models in [[app/models/]]:│       ├── monitoring/       # System monitoring
+
 │       │   ├── monitor_deduplication.py
-│       │   └── verify_system_health.py
-│       │
-│       ├── testing/          # Testing & debugging
-│       │   ├── debug_auth.py
-│       │   ├── test_deduplication_e2e.py
-│       │   ├── test_email_notification.py
-│       │   └── test_new_scrapers.py
-│       │
+
+- [[app/models/user.py]] - User accounts│       │   └── verify_system_health.py
+
+- [[app/models/job.py]] - Job postings│       │
+
+- [[app/models/application.py]] - Applications│       ├── testing/          # Testing & debugging
+
+- [[app/models/notification.py]] - Notifications│       │   ├── debug_auth.py
+
+- [[app/models/template.py]] - Document templates│       │   ├── test_deduplication_e2e.py
+
+- [[app/models/document.py]] - User documents│       │   ├── test_email_notification.py
+
+- [[app/models/goal.py]] - User goals│       │   └── test_new_scrapers.py
+
+- [[app/models/interview.py]] - Interview tracking│       │
+
 │       ├── maintenance/      # Maintenance tasks
-│       │   └── validate_configs.py
+
+**Migrations**: [[alembic/versions/]]│       │   └── validate_configs.py
+
 │       │
-│       ├── celery/           # Celery utilities
+
+### Background Tasks│       ├── celery/           # Celery utilities
+
 │       └── verification/     # Verification scripts
-│
+
+Celery tasks in [[app/tasks/]]:│
+
 ├── 📂 Testing
-│   └── tests/                # Integration tests
-│       ├── conftest.py       # Pytest configuration
+
+- [[app/tasks/job_ingestion_tasks.py]] - Job scraping (daily 4 AM UTC)│   └── tests/                # Integration tests
+
+- [[app/tasks/notification_tasks.py]] - Morning briefing, evening update│       ├── conftest.py       # Pytest configuration
+
 │       ├── test_auth.py
-│       ├── test_resume_routes.py
+
+**Scheduler**: [[app/core/celery_app.py]]│       ├── test_resume_routes.py
+
 │       ├── test_profile_endpoints.py
-│       ├── test_production_services.py
+
+## Configuration│       ├── test_production_services.py
+
 │       ├── test_market_analysis.py
-│       ├── test_feedback_analysis.py
+
+### Environment Variables│       ├── test_feedback_analysis.py
+
 │       ├── test_advanced_user_analytics.py
-│       └── test_eu_visa_sponsorship.py
+
+Template: [[.env.example]] → Copy to `.env`│       └── test_eu_visa_sponsorship.py
+
 │
-├── 📂 Build Artifacts (git-ignored)
-│   ├── .venv/                # Python virtual environment
-│   ├── .ruff_cache/          # Ruff cache
-│   ├── .pytest_cache/        # Pytest cache
-│   ├── career_copilot.egg-info/  # Package info
-│   └── __pycache__/          # Python bytecode
-│
-└── 📂 Hidden/Archive
+
+**Required**:├── 📂 Build Artifacts (git-ignored)
+
+```bash│   ├── .venv/                # Python virtual environment
+
+DATABASE_URL=postgresql://user:pass@host:5432/career_copilot│   ├── .ruff_cache/          # Ruff cache
+
+REDIS_URL=redis://localhost:6379/0│   ├── .pytest_cache/        # Pytest cache
+
+SECRET_KEY=<64-char-hex>│   ├── career_copilot.egg-info/  # Package info
+
+JWT_SECRET_KEY=<64-char-hex>│   └── __pycache__/          # Python bytecode
+
+OPENAI_API_KEY=sk-...│
+
+```└── 📂 Hidden/Archive
+
     └── .archive/             # Old configs, deprecated files
-```
 
-## 🚀 Quick Start
+See [[.env.example]] for complete list and [[../LOCAL_SETUP.md#configuration]].```
 
-### Prerequisites
 
-- Python 3.11+
+
+### Config Files## 🚀 Quick Start
+
+
+
+- **LLM Providers**: [[../config/llm_config.json]]### Prerequisites
+
+- **Feature Flags**: [[../config/feature_flags.json]]
+
+- **Linting**: [[../config/ruff.toml]]- Python 3.11+
+
 - PostgreSQL 14+
-- Redis 7+
 
-### Installation
+## Development- Redis 7+
 
-```bash
-# Navigate to backend
-cd backend/
+
+
+### Running Locally### Installation
+
+
+
+**Via Docker** (recommended):```bash
+
+```bash# Navigate to backend
+
+docker-compose up -d backend celery celery-beatcd backend/
+
+```
 
 # Create virtual environment
-python3.11 -m venv .venv
+
+See [[../LOCAL_SETUP.md]] for complete setup guide.python3.11 -m venv .venv
+
 source .venv/bin/activate  # On Windows: .venv\Scripts\activate
 
+### Testing
+
 # Install dependencies
-pip install -e .
 
-# Set up environment
-cp .env.example .env
-# Edit .env with your configuration
+**Documentation**: [[tests/TESTING_NOTES.md]]pip install -e .
 
-# Initialize database
+
+
+```bash# Set up environment
+
+pytest -v                                  # All testscp .env.example .env
+
+pytest --cov=backend --cov-report=html     # With coverage# Edit .env with your configuration
+
+pytest tests/unit/test_simple_async.py -xvs  # Specific test
+
+```# Initialize database
+
 python bin/init_db.py
 
-# Seed initial data
-python bin/seed_data.py
+**Test structure**:
 
-# Run migrations
+- [[tests/conftest.py]] - Shared fixtures# Seed initial data
+
+- [[tests/unit/]] - Unit testspython bin/seed_data.py
+
+- [[tests/integration/]] - Integration tests
+
+- [[tests/phase_6/]] - Feature tests# Run migrations
+
 alembic upgrade head
-```
 
-### Running the Application
+### Code Quality```
+
+
+
+Via [[../Makefile]]:### Running the Application
 
 ```bash
-# Development mode (with auto-reload)
-uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 
-# Production mode
+make lint-python          # flake8, ruff```bash
+
+make format-python        # black, isort, ruff format# Development mode (with auto-reload)
+
+make type-check-python    # mypyuvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+
+make security-python      # bandit, safety
+
+```# Production mode
+
 uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers 4
 
+## Key Patterns
+
 # With Celery worker
-celery -A app.celery worker --loglevel=info
+
+### Service Layer Patterncelery -A app.celery worker --loglevel=info
+
 ```
+
+**All business logic in [[app/services/]]**:
 
 ## 📂 Directory Purpose Guide
 
-### Application Code (`app/`)
+```python
 
-| Directory | Purpose | Examples |
-|-----------|---------|----------|
-| `api/` | API routes and endpoints | REST endpoints, GraphQL resolvers |
-| `config/` | Application configuration | Settings, constants, env loading |
-| `core/` | Core business logic | Domain models, business rules |
-| `middleware/` | FastAPI middleware | Auth, CORS, logging, error handling |
+# ✅ Service handles logic - app/services/job_service.py### Application Code (`app/`)
+
+class JobService:
+
+    def __init__(self, db: Session):| Directory | Purpose | Examples |
+
+        self.db = db|-----------|---------|----------|
+
+    | `api/` | API routes and endpoints | REST endpoints, GraphQL resolvers |
+
+    def get_matching_jobs(self, user_id: int) -> List[Job]:| `config/` | Application configuration | Settings, constants, env loading |
+
+        # Complex logic here| `core/` | Core business logic | Domain models, business rules |
+
+        pass| `middleware/` | FastAPI middleware | Auth, CORS, logging, error handling |
+
 | `models/` | SQLAlchemy ORM models | Database tables, relationships |
-| `schemas/` | Pydantic schemas | Request/response validation |
-| `services/` | Business logic services | Job scraping, AI analysis, notifications |
-| `repositories/` | Data access layer | CRUD operations, queries |
-| `security/` | Auth & authorization | JWT, OAuth, permissions |
-| `tasks/` | Celery background tasks | Async jobs, scheduled tasks |
-| `workers/` | Background workers | Long-running processes |
+
+# ✅ Route is thin wrapper - app/api/v1/jobs.py| `schemas/` | Pydantic schemas | Request/response validation |
+
+@router.get("/jobs/matches")| `services/` | Business logic services | Job scraping, AI analysis, notifications |
+
+def get_jobs(db: Session = Depends(get_db)):| `repositories/` | Data access layer | CRUD operations, queries |
+
+    service = JobService(db)| `security/` | Auth & authorization | JWT, OAuth, permissions |
+
+    return service.get_matching_jobs(user_id)| `tasks/` | Celery background tasks | Async jobs, scheduled tasks |
+
+```| `workers/` | Background workers | Long-running processes |
+
 | `utils/` | Utility functions | Helpers, formatters, converters |
-| `monitoring/` | Observability | Metrics, logging, tracing |
+
+### Dependency Injection| `monitoring/` | Observability | Metrics, logging, tracing |
+
 | `templates/` | Email/notification templates | Jinja2 templates |
+
+Always use FastAPI dependencies:
 
 ### Database (`alembic/` & `data/`)
 
-| Directory | Purpose | Notes |
+```python
+
+from app.core.database import get_db| Directory | Purpose | Notes |
+
 |-----------|---------|-------|
-| `alembic/versions/` | Migration files | Auto-generated, version controlled |
-| `data/databases/` | SQLite databases | Development only, git-ignored |
-| `data/uploads/` | User uploads | Resumes, documents, git-ignored |
-| `data/backups/` | Database backups | Git-ignored |
-| `data/logs/` | Application logs | Git-ignored |
 
-### Scripts (`scripts/` & `bin/`)
+@router.post("/jobs")| `alembic/versions/` | Migration files | Auto-generated, version controlled |
 
-| Directory | Purpose | When to Use |
-|-----------|---------|-------------|
-| `bin/` | Initialization scripts | Database setup, data seeding |
-| `scripts/database/` | Database operations | Backfills, index verification |
-| `scripts/monitoring/` | System monitoring | Health checks, deduplication |
-| `scripts/testing/` | Testing & debugging | E2E tests, debugging tools |
-| `scripts/maintenance/` | Maintenance tasks | Config validation, cleanup |
-| `scripts/celery/` | Celery utilities | Task management |
-| `scripts/verification/` | Verification scripts | Deployment checks |
+def create_job(db: Session = Depends(get_db)):| `data/databases/` | SQLite databases | Development only, git-ignored |
 
-### Testing (`tests/`)
+    # db is automatically injected| `data/uploads/` | User uploads | Resumes, documents, git-ignored |
 
-| Type | Location | Purpose |
-|------|----------|---------|
-| **Unit Tests** | `app/*/tests/` | Test individual components |
-| **Integration Tests** | `tests/` | Test component interactions |
+    pass| `data/backups/` | Database backups | Git-ignored |
+
+```| `data/logs/` | Application logs | Git-ignored |
+
+
+
+## Project Structure### Scripts (`scripts/` & `bin/`)
+
+
+
+```| Directory | Purpose | When to Use |
+
+backend/|-----------|---------|-------------|
+
+├── app/                  # Application code| `bin/` | Initialization scripts | Database setup, data seeding |
+
+│   ├── api/v1/          # API routes| `scripts/database/` | Database operations | Backfills, index verification |
+
+│   ├── core/            # Core configuration| `scripts/monitoring/` | System monitoring | Health checks, deduplication |
+
+│   ├── models/          # Database models| `scripts/testing/` | Testing & debugging | E2E tests, debugging tools |
+
+│   ├── services/        # Business logic (PRIMARY)| `scripts/maintenance/` | Maintenance tasks | Config validation, cleanup |
+
+│   ├── tasks/           # Celery tasks| `scripts/celery/` | Celery utilities | Task management |
+
+│   └── main.py          # FastAPI app| `scripts/verification/` | Verification scripts | Deployment checks |
+
+├── tests/               # Test suite
+
+├── alembic/             # Database migrations### Testing (`tests/`)
+
+├── scripts/             # Utility scripts
+
+├── data/                # Uploads, logs, backups| Type | Location | Purpose |
+
+├── .env.example         # Environment template|------|----------|---------|
+
+└── pyproject.toml       # Package config| **Unit Tests** | `app/*/tests/` | Test individual components |
+
+```| **Integration Tests** | `tests/` | Test component interactions |
+
 | **E2E Tests** | `scripts/testing/` | Test full workflows |
+
+## Troubleshooting
 
 ## 🔧 Common Tasks
 
+See [[../LOCAL_SETUP.md#troubleshooting]] for detailed troubleshooting.
+
 ### Database Operations
 
-```bash
-# Initialize database
-python bin/init_db.py
+**Quick checks**:
 
-# Create migration
-alembic revision --autogenerate -m "description"
+```bash```bash
+
+# Test database connection# Initialize database
+
+docker-compose exec backend python -c "from app.core.database import engine; print(engine)"python bin/init_db.py
+
+
+
+# View logs# Create migration
+
+docker-compose logs -f backendalembic revision --autogenerate -m "description"
+
+```
 
 # Run migrations
-alembic upgrade head
 
-# Rollback migration
-alembic downgrade -1
+## Additional Resourcesalembic upgrade head
 
-# Seed data
+
+
+- **Project Status**: [[../PROJECT_STATUS.md]]# Rollback migration
+
+- **Setup Guide**: [[../LOCAL_SETUP.md]]alembic downgrade -1
+
+- **Coding Standards**: [[../.github/copilot-instructions.md]]
+
+- **API Documentation**: http://localhost:8000/docs# Seed data
+
 python bin/seed_data.py
 
 # Verify indexes

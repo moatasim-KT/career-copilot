@@ -1,0 +1,146 @@
+name: Lighthouse CI
+
+on:
+  pull_request:
+    branches: [main, develop]
+  push:
+    branches: [main, develop]
+
+jobs:
+  lighthouse:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        working-directory: ./frontend
+        run: npm ci
+
+      - name: Build application
+        working-directory: ./frontend
+        run: npm run build
+        env:
+          NODE_ENV: production
+          NEXT_PUBLIC_API_URL: http://localhost:3000
+
+      - name: Install Lighthouse CI
+        run: npm install -g @lhci/cli@0.13.x
+
+      - name: Start server
+        working-directory: ./frontend
+        run: |
+          npm run start &
+          npx wait-on http://localhost:3000 --timeout 60000
+
+      - name: Run Lighthouse CI
+        working-directory: ./frontend
+        run: |
+          lhci autorun --config=lighthouserc.json
+        env:
+          LHCI_GITHUB_APP_TOKEN: ${{ secrets.LHCI_GITHUB_APP_TOKEN }}
+
+      - name: Upload Lighthouse results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: lighthouse-results
+          path: frontend/.lighthouseci
+          retention-days: 30
+
+      - name: Comment PR with results
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const path = require('path');
+            
+            // Read Lighthouse results
+            const resultsDir = path.join(process.cwd(), 'frontend/.lighthouseci');
+            
+            if (!fs.existsSync(resultsDir)) {
+              console.log('No Lighthouse results found');
+              return;
+            }
+            
+            const manifestPath = path.join(resultsDir, 'manifest.json');
+            if (!fs.existsSync(manifestPath)) {
+              console.log('No manifest.json found');
+              return;
+            }
+            
+            const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+            const results = manifest.map(result => {
+              const lhr = JSON.parse(fs.readFileSync(result.jsonPath, 'utf8'));
+              return {
+                url: result.url,
+                performance: Math.round(lhr.categories.performance.score * 100),
+                accessibility: Math.round(lhr.categories.accessibility.score * 100),
+                bestPractices: Math.round(lhr.categories['best-practices'].score * 100),
+                seo: Math.round(lhr.categories.seo.score * 100),
+                fcp: lhr.audits['first-contentful-paint'].displayValue,
+                lcp: lhr.audits['largest-contentful-paint'].displayValue,
+                tti: lhr.audits['interactive'].displayValue,
+                cls: lhr.audits['cumulative-layout-shift'].displayValue,
+              };
+            });
+            
+            // Create comment body
+            const getEmoji = (score) => {
+              if (score >= 90) return '🟢';
+              if (score >= 50) return '🟡';
+              return '🔴';
+            };
+            
+            let comment = '## 🔦 Lighthouse CI Results\n\n';
+            
+            results.forEach((result, index) => {
+              comment += `### Page ${index + 1}: ${result.url}\n\n`;
+              comment += '| Category | Score |\n';
+              comment += '|----------|-------|\n';
+              comment += `| ${getEmoji(result.performance)} Performance | ${result.performance} |\n`;
+              comment += `| ${getEmoji(result.accessibility)} Accessibility | ${result.accessibility} |\n`;
+              comment += `| ${getEmoji(result.bestPractices)} Best Practices | ${result.bestPractices} |\n`;
+              comment += `| ${getEmoji(result.seo)} SEO | ${result.seo} |\n\n`;
+              
+              comment += '**Core Web Vitals:**\n';
+              comment += `- First Contentful Paint (FCP): ${result.fcp}\n`;
+              comment += `- Largest Contentful Paint (LCP): ${result.lcp}\n`;
+              comment += `- Time to Interactive (TTI): ${result.tti}\n`;
+              comment += `- Cumulative Layout Shift (CLS): ${result.cls}\n\n`;
+            });
+            
+            comment += '---\n';
+            comment += '_Performance thresholds:_\n';
+            comment += '- 🟢 Good (90-100)\n';
+            comment += '- 🟡 Needs Improvement (50-89)\n';
+            comment += '- 🔴 Poor (0-49)\n';
+            
+            // Post comment
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: comment
+            });
+
+      - name: Generate summary
+        if: always()
+        run: |
+          echo "## 🔦 Lighthouse CI Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Lighthouse CI analysis completed. Check the artifacts for detailed reports." >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Actions" >> $GITHUB_STEP_SUMMARY
+          echo "- 📊 View detailed reports in the artifacts" >> $GITHUB_STEP_SUMMARY
+          echo "- 💬 PR comment includes score summary" >> $GITHUB_STEP_SUMMARY
+          echo "- 🎯 Target: All scores above 90" >> $GITHUB_STEP_SUMMARY

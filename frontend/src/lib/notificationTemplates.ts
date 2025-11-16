@@ -6,17 +6,14 @@
 import {
   Briefcase,
   FileText,
-  Calendar,
   Sparkles,
   AlertCircle,
-  CheckCircle,
   Info,
   Users,
-  TrendingUp,
 } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 
 import type { NotificationTemplate, NotificationCategory, NotificationPriority } from '@/types/notification';
-import type { LucideIcon } from 'lucide-react';
 
 /**
  * Category icon mapping
@@ -76,7 +73,7 @@ export const priorityColors: Record<NotificationPriority, string> = {
  */
 export function interpolateTemplate(
   template: string,
-  variables: Record<string, any>
+  variables: Record<string, any>,
 ): string {
   return template.replace(/\{(\w+)\}/g, (match, key) => {
     return variables[key]?.toString() || match;
@@ -276,15 +273,15 @@ export const notificationTemplates = {
 export function createNotificationFromTemplate(
   templateKey: keyof typeof notificationTemplates,
   variables: Record<string, any>,
-  overrides?: Partial<NotificationTemplate>
+  overrides?: Partial<NotificationTemplate>,
 ): NotificationTemplate {
   const template = notificationTemplates[templateKey];
-  
+
   return {
     ...template,
     title: interpolateTemplate(template.title, variables),
     description: interpolateTemplate(template.description, variables),
-    actionUrl: template.actionUrl 
+    actionUrl: 'actionUrl' in template && template.actionUrl
       ? interpolateTemplate(template.actionUrl, variables)
       : undefined,
     ...overrides,

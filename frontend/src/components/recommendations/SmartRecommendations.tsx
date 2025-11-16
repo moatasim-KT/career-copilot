@@ -22,11 +22,12 @@ import {
 } from 'lucide-react';
 import { useState } from 'react';
 
-import Badge from '@/components/ui/Badge';
+import { Badge } from '@/components/ui/Badge';
 import Button2 from '@/components/ui/Button2';
-import Card, { CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
+import Card2, { CardHeader, CardTitle, CardContent } from '@/components/ui/Card2';
 import { usePersonalization } from '@/features/personalization/PersonalizationEngine';
-import { apiClient } from '@/lib/api';
+import apiClient from '@/lib/api/client';
+import { logger } from '@/lib/logger';
 
 
 interface SmartRecommendationsProps {
@@ -60,7 +61,7 @@ function ConfidenceIndicator({ score }: { score: number }) {
                 />
             </div>
             <span className="text-sm font-medium">{score}%</span>
-            <Badge variant={score >= 80 ? 'success' : score >= 60 ? 'warning' : 'secondary'}>
+            <Badge variant={score >= 80 ? 'success' : score >= 60 ? 'warning' : 'default'}>
                 {getLabel()}
             </Badge>
         </div>
@@ -84,7 +85,7 @@ function RecommendationCard({
     const [showDetails, setShowDetails] = useState(false);
 
     return (
-        <Card className="hover:shadow-lg transition-shadow duration-200">
+        <Card2 className="hover:shadow-lg transition-shadow duration-200">
             <CardHeader>
                 <div className="flex items-start justify-between">
                     <div className="flex-1">
@@ -148,7 +149,7 @@ function RecommendationCard({
                             </Badge>
                         ))}
                         {showDetails && recommendation.missingSkills.slice(0, 3).map((skill: string) => (
-                            <Badge key={skill} variant="secondary">
+                            <Badge key={skill} variant="default">
                                 {skill}
                             </Badge>
                         ))}
@@ -203,7 +204,7 @@ function RecommendationCard({
                     </Button2>
                 </div>
             </CardContent>
-        </Card>
+        </Card2>
     );
 }
 
@@ -260,14 +261,9 @@ export function SmartRecommendations({
         }
         // Track feedback for ML improvement
         try {
-            await apiClient.submitFeedback({
-                feedback_type: 'recommendation',
-                target_id: jobId,
-                rating: isPositive ? 5 : 1,
-                comments: isPositive ? 'Positive feedback' : 'Negative feedback',
-            });
+            await apiClient.recommendations.feedback(Number(jobId), isPositive);
         } catch (error) {
-            console.error('Failed to submit feedback:', error);
+            logger.error('Failed to submit feedback:', error);
         }
     };
 
@@ -275,7 +271,7 @@ export function SmartRecommendations({
         return (
             <div className="space-y-4">
                 {[...Array(3)].map((_, i) => (
-                    <Card key={i} className="animate-pulse">
+                    <Card2 key={i} className="animate-pulse">
                         <CardHeader>
                             <div className="h-6 bg-neutral-200 dark:bg-neutral-700 rounded w-2/3" />
                             <div className="h-4 bg-neutral-200 dark:bg-neutral-700 rounded w-1/3 mt-2" />
@@ -286,7 +282,7 @@ export function SmartRecommendations({
                                 <div className="h-4 bg-neutral-200 dark:bg-neutral-700 rounded w-3/4" />
                             </div>
                         </CardContent>
-                    </Card>
+                    </Card2>
                 ))}
             </div>
         );
@@ -314,7 +310,7 @@ export function SmartRecommendations({
 
             {/* Learning Insights */}
             {showInsights && insights.length > 0 && (
-                <Card className="bg-blue-50 dark:bg-blue-950 border-blue-200 dark:border-blue-800">
+                <Card2 className="bg-blue-50 dark:bg-blue-950 border-blue-200 dark:border-blue-800">
                     <CardHeader>
                         <CardTitle className="text-blue-900 dark:text-blue-100 flex items-center gap-2">
                             <TrendingUp className="w-5 h-5" />
@@ -331,7 +327,7 @@ export function SmartRecommendations({
                             ))}
                         </ul>
                     </CardContent>
-                </Card>
+                </Card2>
             )}
 
             {/* Filters */}
@@ -363,13 +359,13 @@ export function SmartRecommendations({
 
             {/* Recommendations */}
             {filteredRecommendations.length === 0 ? (
-                <Card>
+                <Card2>
                     <CardContent className="py-12 text-center">
                         <p className="text-neutral-600 dark:text-neutral-400">
                             No recommendations found. Try adjusting your preferences.
                         </p>
                     </CardContent>
-                </Card>
+                </Card2>
             ) : (
                 <div className="space-y-4">
                     {filteredRecommendations.map(rec => (

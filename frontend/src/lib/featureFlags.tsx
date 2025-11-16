@@ -11,6 +11,8 @@
 
 import { useState, useEffect, createContext, useContext, useCallback } from 'react';
 
+import { logger } from '@/lib/logger';
+
 export interface FeatureFlag {
     name: string;
     enabled: boolean;
@@ -136,7 +138,7 @@ export function FeatureFlagsProvider({
         const flag = flags[flagName];
 
         if (!flag) {
-            console.warn(`Feature flag "${flagName}" not found`);
+            logger.warn(`Feature flag "${flagName}" not found`);
             return false;
         }
 
@@ -202,7 +204,7 @@ export function FeatureFlagsProvider({
             const data = await response.json();
             setFlags((prev) => ({ ...prev, ...data.flags }));
         } catch (error) {
-            console.error('Failed to fetch feature flags:', error);
+            logger.error('Failed to fetch feature flags:', error);
         }
     }, [apiEndpoint]);
 
@@ -227,7 +229,7 @@ export function FeatureFlagsProvider({
                 const parsed = JSON.parse(storedFlags);
                 setFlags((prev) => ({ ...prev, ...parsed }));
             } catch (error) {
-                console.error('Failed to parse stored feature flags:', error);
+                logger.error('Failed to parse stored feature flags:', error);
             }
         }
 
@@ -277,7 +279,7 @@ export function useFeatureFlag(flagName: string): boolean {
     const context = useContext(FeatureFlagsContext);
 
     if (!context) {
-        console.warn('useFeatureFlag must be used within FeatureFlagsProvider');
+        logger.warn('useFeatureFlag must be used within FeatureFlagsProvider');
         return false;
     }
 

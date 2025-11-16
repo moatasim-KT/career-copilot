@@ -1,10 +1,10 @@
 import { Archive, Star, StarOff, Download, Eye, EyeOff, Trash2 } from 'lucide-react';
 
+import type { BulkAction } from '@/components/ui/BulkActionBar';
 import { JobsService, type JobResponse } from '@/lib/api/client';
 import { exportToCSV } from '@/lib/export';
 import { logger } from '@/lib/logger';
 
-import type { BulkAction } from '@/components/ui/BulkActionBar';
 
 export interface JobBulkActionsOptions {
   jobs: JobResponse[];
@@ -29,14 +29,11 @@ export function createJobBulkActions({
       action: async (selectedIds: string[] | number[]) => {
         try {
           const numericIds = selectedIds.map(id => typeof id === 'string' ? parseInt(id) : id);
-          
+
           const results = await Promise.allSettled(
             numericIds.map(jobId =>
-              JobsService.updateJobApiV1JobsJobIdPut({
-                jobId,
-                requestBody: { archived: true } as any,
-              })
-            )
+              JobsService.update(jobId, { archived: true } as any),
+            ),
           );
 
           const successCount = results.filter(r => r.status === 'fulfilled').length;
@@ -68,14 +65,11 @@ export function createJobBulkActions({
       action: async (selectedIds: string[] | number[]) => {
         try {
           const numericIds = selectedIds.map(id => typeof id === 'string' ? parseInt(id) : id);
-          
+
           const results = await Promise.allSettled(
             numericIds.map(jobId =>
-              JobsService.updateJobApiV1JobsJobIdPut({
-                jobId,
-                requestBody: { is_saved: true } as any,
-              })
-            )
+              JobsService.update(jobId, { is_saved: true } as any),
+            ),
           );
 
           const successCount = results.filter(r => r.status === 'fulfilled').length;
@@ -107,14 +101,11 @@ export function createJobBulkActions({
       action: async (selectedIds: string[] | number[]) => {
         try {
           const numericIds = selectedIds.map(id => typeof id === 'string' ? parseInt(id) : id);
-          
+
           const results = await Promise.allSettled(
             numericIds.map(jobId =>
-              JobsService.updateJobApiV1JobsJobIdPut({
-                jobId,
-                requestBody: { is_saved: false } as any,
-              })
-            )
+              JobsService.update(jobId, { is_saved: false } as any),
+            ),
           );
 
           const successCount = results.filter(r => r.status === 'fulfilled').length;
@@ -146,14 +137,11 @@ export function createJobBulkActions({
       action: async (selectedIds: string[] | number[]) => {
         try {
           const numericIds = selectedIds.map(id => typeof id === 'string' ? parseInt(id) : id);
-          
+
           const results = await Promise.allSettled(
             numericIds.map(jobId =>
-              JobsService.updateJobApiV1JobsJobIdPut({
-                jobId,
-                requestBody: { is_viewed: true } as any,
-              })
-            )
+              JobsService.update(jobId, { is_viewed: true } as any),
+            ),
           );
 
           const successCount = results.filter(r => r.status === 'fulfilled').length;
@@ -185,14 +173,11 @@ export function createJobBulkActions({
       action: async (selectedIds: string[] | number[]) => {
         try {
           const numericIds = selectedIds.map(id => typeof id === 'string' ? parseInt(id) : id);
-          
+
           const results = await Promise.allSettled(
             numericIds.map(jobId =>
-              JobsService.updateJobApiV1JobsJobIdPut({
-                jobId,
-                requestBody: { is_viewed: false } as any,
-              })
-            )
+              JobsService.update(jobId, { is_viewed: false } as any),
+            ),
           );
 
           const successCount = results.filter(r => r.status === 'fulfilled').length;
@@ -224,7 +209,7 @@ export function createJobBulkActions({
       action: async (selectedIds: string[] | number[]) => {
         try {
           const numericIds = selectedIds.map(id => typeof id === 'string' ? parseInt(id) : id);
-          
+
           const selectedJobs = jobs.filter(job => job.id && numericIds.includes(job.id));
 
           if (selectedJobs.length === 0) {
@@ -263,11 +248,11 @@ export function createJobBulkActions({
       action: async (selectedIds: string[] | number[]) => {
         try {
           const numericIds = selectedIds.map(id => typeof id === 'string' ? parseInt(id) : id);
-          
+
           const results = await Promise.allSettled(
             numericIds.map(jobId =>
-              JobsService.deleteJobApiV1JobsJobIdDelete({ jobId })
-            )
+              JobsService.delete(jobId),
+            ),
           );
 
           const successCount = results.filter(r => r.status === 'fulfilled').length;

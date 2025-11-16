@@ -9,7 +9,9 @@
 
 import dynamic from 'next/dynamic';
 import { Suspense } from 'react';
-import type { ColumnDef } from '@tanstack/react-table';
+import type { ReactElement } from 'react';
+
+import type { DataTableProps } from '@/components/ui/DataTable/DataTable';
 
 // Table skeleton
 function DataTableSkeleton() {
@@ -23,7 +25,7 @@ function DataTableSkeleton() {
           <div className="h-10 w-24 bg-neutral-200 dark:bg-neutral-700 rounded"></div>
         </div>
       </div>
-      
+
       {/* Table */}
       <div className="border border-neutral-200 dark:border-neutral-700 rounded-lg overflow-hidden">
         {/* Table header */}
@@ -34,7 +36,7 @@ function DataTableSkeleton() {
             ))}
           </div>
         </div>
-        
+
         {/* Table rows */}
         {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
           <div key={i} className="border-b border-neutral-200 dark:border-neutral-700 last:border-b-0">
@@ -46,7 +48,7 @@ function DataTableSkeleton() {
           </div>
         ))}
       </div>
-      
+
       {/* Pagination */}
       <div className="flex items-center justify-between mt-4">
         <div className="h-4 w-32 bg-neutral-200 dark:bg-neutral-700 rounded"></div>
@@ -60,29 +62,25 @@ function DataTableSkeleton() {
   );
 }
 
+type DataTableComponent = <TData, TValue>(
+  props: DataTableProps<TData, TValue>,
+) => ReactElement;
+
 // Lazy load DataTable
 const DataTable = dynamic(
   () => import('@/components/ui/DataTable/DataTable').then((mod) => ({ default: mod.DataTable })),
   {
     loading: () => <DataTableSkeleton />,
     ssr: false, // DataTable with drag-drop needs client-side rendering
-  }
-);
+  },
+) as DataTableComponent;
 
-interface LazyDataTableProps<TData, TValue> {
-  columns: ColumnDef<TData, TValue>[];
-  data: TData[];
-  [key: string]: any; // Allow other props to pass through
-}
+export type LazyDataTableProps<TData, TValue> = DataTableProps<TData, TValue>;
 
-export default function LazyDataTable<TData, TValue>({
-  columns,
-  data,
-  ...props
-}: LazyDataTableProps<TData, TValue>) {
+export default function LazyDataTable<TData, TValue>(props: LazyDataTableProps<TData, TValue>) {
   return (
     <Suspense fallback={<DataTableSkeleton />}>
-      <DataTable columns={columns} data={data} {...props} />
+      <DataTable {...props} />
     </Suspense>
   );
 }

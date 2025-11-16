@@ -16,7 +16,7 @@ const ConfirmBulkAction = dynamic(
   {
     loading: () => <ConfirmBulkActionSkeleton />,
     ssr: false,
-  }
+  },
 );
 
 // Simple skeleton for confirmation dialog loading state

@@ -7,14 +7,13 @@
 
 'use client';
 
-import { motion, AnimatePresence } from 'framer-motion';
 import { Plus, Trash2, Layers } from 'lucide-react';
 import { useState, useCallback } from 'react';
 
 import Button2 from '@/components/ui/Button2';
-import Card, { CardContent } from '@/components/ui/Card';
-import Select from '@/components/ui/Select';
+import Card2, { CardContent } from '@/components/ui/Card2';
 import { fadeVariants, slideVariants, springConfigs } from '@/lib/animations';
+import { m, AnimatePresence } from '@/lib/motion';
 import type { SearchGroup, SearchRule, SearchField, LogicOperator, SearchOperator } from '@/types/search';
 
 import { RuleEditor } from './RuleEditor';
@@ -22,22 +21,22 @@ import { RuleEditor } from './RuleEditor';
 export interface QueryBuilderProps {
   /** Current query structure */
   query: SearchGroup;
-  
+
   /** Callback when query changes */
   onChange: (query: SearchGroup) => void;
-  
+
   /** Available fields for searching */
   fields: SearchField[];
-  
+
   /** Whether the builder is disabled */
   disabled?: boolean;
-  
+
   /** Maximum nesting depth (default: 3) */
   maxDepth?: number;
-  
+
   /** Current nesting depth (internal) */
   depth?: number;
-  
+
   /** Custom class name */
   className?: string;
 }
@@ -158,13 +157,13 @@ export function QueryBuilder({
   const indentClass = depth > 0 ? 'ml-6 pl-4 border-l-2 border-neutral-300 dark:border-neutral-700' : '';
 
   return (
-    <motion.div
+    <m.div
       className={`${className} ${indentClass}`}
       initial="hidden"
       animate="visible"
       variants={fadeVariants}
     >
-      <Card className={`${depth > 0 ? 'bg-neutral-50 dark:bg-neutral-900' : ''}`}>
+      <Card2 className={`${depth > 0 ? 'bg-neutral-50 dark:bg-neutral-900' : ''}`}>
         <CardContent className="p-4">
           {/* Group Header */}
           <div className="flex items-center justify-between mb-4">
@@ -176,17 +175,17 @@ export function QueryBuilder({
                   className="text-neutral-500 hover:text-neutral-700 dark:hover:text-neutral-300 transition-colors"
                   aria-label={isExpanded ? 'Collapse group' : 'Expand group'}
                 >
-                  <motion.div
+                  <m.div
                     animate={{ rotate: isExpanded ? 90 : 0 }}
                     transition={{ duration: 0.2 }}
                   >
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                     </svg>
-                  </motion.div>
+                  </m.div>
                 </button>
               )}
-              
+
               <div className="flex items-center space-x-2">
                 <span className="text-sm font-medium text-neutral-700 dark:text-neutral-300">
                   {depth === 0 ? 'Search Criteria' : 'Group'}
@@ -249,7 +248,7 @@ export function QueryBuilder({
                 <Plus className="h-3 w-3" />
                 <span>Rule</span>
               </Button2>
-              
+
               {canAddGroup && (
                 <Button2
                   type="button"
@@ -269,7 +268,7 @@ export function QueryBuilder({
           {/* Group Content */}
           <AnimatePresence>
             {isExpanded && (
-              <motion.div
+              <m.div
                 initial={{ opacity: 0, height: 0 }}
                 animate={{ opacity: 1, height: 'auto' }}
                 exit={{ opacity: 0, height: 0 }}
@@ -279,7 +278,7 @@ export function QueryBuilder({
                 {/* Rules */}
                 <AnimatePresence mode="popLayout">
                   {query.rules.map((rule, index) => (
-                    <motion.div
+                    <m.div
                       key={rule.id}
                       variants={slideVariants.up}
                       initial="hidden"
@@ -301,7 +300,7 @@ export function QueryBuilder({
                             </span>
                           </div>
                         )}
-                        
+
                         {/* Rule Editor */}
                         <div className="flex-1">
                           <RuleEditor
@@ -313,14 +312,14 @@ export function QueryBuilder({
                           />
                         </div>
                       </div>
-                    </motion.div>
+                    </m.div>
                   ))}
                 </AnimatePresence>
 
                 {/* Nested Groups */}
                 <AnimatePresence mode="popLayout">
                   {query.groups && query.groups.map((group, index) => (
-                    <motion.div
+                    <m.div
                       key={group.id}
                       variants={slideVariants.up}
                       initial="hidden"
@@ -342,7 +341,7 @@ export function QueryBuilder({
                             </span>
                           </div>
                         )}
-                        
+
                         {/* Nested Query Builder */}
                         <div className="flex-1 relative">
                           <QueryBuilder
@@ -353,7 +352,7 @@ export function QueryBuilder({
                             maxDepth={maxDepth}
                             depth={depth + 1}
                           />
-                          
+
                           {/* Delete Group Button */}
                           <button
                             type="button"
@@ -366,27 +365,27 @@ export function QueryBuilder({
                           </button>
                         </div>
                       </div>
-                    </motion.div>
+                    </m.div>
                   ))}
                 </AnimatePresence>
 
                 {/* Empty State */}
                 {!hasContent && (
-                  <motion.div
+                  <m.div
                     variants={fadeVariants}
                     initial="hidden"
                     animate="visible"
                     className="text-center py-8 text-neutral-500 dark:text-neutral-400"
                   >
                     <p className="text-sm">No search criteria defined</p>
-                    <p className="text-xs mt-1">Click "Rule" to add a search condition</p>
-                  </motion.div>
+                    <p className="text-xs mt-1">Click &quot;Rule&quot; to add a search condition</p>
+                  </m.div>
                 )}
-              </motion.div>
+              </m.div>
             )}
           </AnimatePresence>
         </CardContent>
-      </Card>
-    </motion.div>
+      </Card2>
+    </m.div>
   );
 }

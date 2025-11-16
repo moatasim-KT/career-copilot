@@ -16,10 +16,11 @@ from difflib import SequenceMatcher
 from typing import Any, Dict, List, Optional, Set, Tuple
 from urllib.parse import urlparse
 
+from sqlalchemy.orm import Session
+
 from app.core.logging import get_logger
 from app.models.job import Job
 from app.schemas.job import JobCreate
-from sqlalchemy.orm import Session
 
 logger = get_logger(__name__)
 
@@ -179,7 +180,7 @@ class JobDeduplicationService:
 		composite = f"{norm_company}|{norm_title}|{norm_location}"
 
 		# Generate hash
-		return hashlib.md5(composite.encode()).hexdigest()
+		return hashlib.md5(composite.encode(), usedforsecurity=False).hexdigest()
 
 	def calculate_similarity(self, str1: str, str2: str) -> float:
 		"""

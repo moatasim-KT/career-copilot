@@ -5,6 +5,8 @@
  * Run this in the browser console or as part of a test suite.
  */
 
+import { logger } from '@/lib/logger';
+
 import {
   runBenchmarkSuite,
   comparePerformance,
@@ -15,6 +17,7 @@ import {
   type BenchmarkResult,
   type ComparisonResult,
 } from './performanceTesting';
+
 
 /**
  * Test configuration
@@ -33,34 +36,34 @@ export interface TestConfig {
  * Run all performance tests
  */
 export async function runAllPerformanceTests(
-  configs: TestConfig[]
+  configs: TestConfig[],
 ): Promise<{
   results: BenchmarkResult[];
   comparisons: ComparisonResult[];
   report: string;
 }> {
-  console.log('🚀 Starting comprehensive performance tests...\n');
+  logger.info('🚀 Starting comprehensive performance tests...\n');
 
   const allResults: BenchmarkResult[] = [];
   const allComparisons: ComparisonResult[] = [];
 
   for (const config of configs) {
-    console.log(`\n📊 Testing: ${config.name}`);
-    console.log('─'.repeat(60));
+    logger.info(`\n📊 Testing: ${config.name}`);
+    logger.info('─'.repeat(60));
 
     const devices = config.devices.map(key => DEVICE_PROFILES[key]);
 
     // Test virtualized version
     let virtualizedResults: BenchmarkResult[] = [];
     if (config.testVirtualized) {
-      console.log('\n✨ Testing virtualized implementation...');
+      logger.info('\n✨ Testing virtualized implementation...');
       virtualizedResults = await runBenchmarkSuite(
         config.name,
         config.itemCounts,
         true,
         config.renderFn,
         config.getScrollElement,
-        devices
+        devices,
       );
       allResults.push(...virtualizedResults);
     }
@@ -70,14 +73,14 @@ export async function runAllPerformanceTests(
     if (config.testNonVirtualized) {
       const smallItemCounts = config.itemCounts.filter(count => count <= 500);
       if (smallItemCounts.length > 0) {
-        console.log('\n📦 Testing non-virtualized implementation...');
+        logger.info('\n📦 Testing non-virtualized implementation...');
         nonVirtualizedResults = await runBenchmarkSuite(
           config.name,
           smallItemCounts,
           false,
           config.renderFn,
           config.getScrollElement,
-          devices
+          devices,
         );
         allResults.push(...nonVirtualizedResults);
       }
@@ -85,13 +88,13 @@ export async function runAllPerformanceTests(
 
     // Compare results
     if (virtualizedResults.length > 0 && nonVirtualizedResults.length > 0) {
-      console.log('\n🔍 Comparing virtualized vs non-virtualized...');
-      
+      logger.info('\n🔍 Comparing virtualized vs non-virtualized...');
+
       for (const virtResult of virtualizedResults) {
         const nonVirtResult = nonVirtualizedResults.find(
-          r => r.itemCount === virtResult.itemCount && r.device === virtResult.device
+          r => r.itemCount === virtResult.itemCount && r.device === virtResult.device,
         );
-        
+
         if (nonVirtResult) {
           const comparison = comparePerformance(virtResult, nonVirtResult);
           allComparisons.push(comparison);
@@ -99,20 +102,20 @@ export async function runAllPerformanceTests(
       }
     }
 
-    console.log(`\n✅ Completed testing: ${config.name}`);
+    logger.info(`\n✅ Completed testing: ${config.name}`);
   }
 
   // Generate comprehensive report
-  console.log('\n📝 Generating performance report...');
+  logger.info('\n📝 Generating performance report...');
   const report = generatePerformanceReport(allResults, allComparisons);
 
-  console.log('\n' + report);
+  logger.info(`\n${report}`);
 
   // Save results
   const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
   saveResults(`performance-test-${timestamp}`, allResults);
 
-  console.log('\n✨ Performance testing complete!');
+  logger.info('\n✨ Performance testing complete!');
 
   return {
     results: allResults,
@@ -126,7 +129,7 @@ export async function runAllPerformanceTests(
  */
 export function exportTestResults(
   results: BenchmarkResult[],
-  report: string
+  report: string,
 ): void {
   // Export JSON results
   exportResults(results, `performance-results-${Date.now()}.json`);
@@ -142,7 +145,7 @@ export function exportTestResults(
   document.body.removeChild(link);
   URL.revokeObjectURL(url);
 
-  console.log('📁 Results exported successfully!');
+  logger.info('📁 Results exported successfully!');
 }
 
 /**
@@ -152,7 +155,7 @@ export async function quickTest(
   name: string,
   itemCount: number,
   renderFn: () => void | Promise<void>,
-  getScrollElement: () => HTMLElement | null
+  getScrollElement: () => HTMLElement | null,
 ): Promise<void> {
   const config: TestConfig = {
     name,
@@ -165,7 +168,7 @@ export async function quickTest(
   };
 
   const { report } = await runAllPerformanceTests([config]);
-  console.log(report);
+  logger.info(report);
 }
 
 /**
@@ -189,6 +192,6 @@ export async function quickTest(
  * ];
  * 
  * const { results, report } = await runAllPerformanceTests(configs);
- * console.log(report);
+ * logger.info(report);
  * ```
  */

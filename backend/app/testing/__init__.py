@@ -12,12 +12,12 @@ from .test_data_generator import TestDataGenerator, TestDataType
 __all__ = [
     "EndpointDiscovery",
     "EndpointInfo",
+    "EndpointTester",
     "ParameterInfo",
     "ParameterLocation",
-    "EndpointTester",
-    "TestResult",
-    "ValidationResult",
-    "TestStatus",
     "TestDataGenerator",
     "TestDataType",
+    "TestResult",
+    "TestStatus",
+    "ValidationResult",
 ]

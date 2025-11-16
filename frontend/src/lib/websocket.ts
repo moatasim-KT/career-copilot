@@ -131,7 +131,10 @@ export class WebSocketClient {
       this.eventHandlers.set(event, new Set());
     }
 
-    this.eventHandlers.get(event)!.add(handler as EventHandler);
+    const handlers = this.eventHandlers.get(event);
+    if (handlers) {
+      handlers.add(handler as EventHandler);
+    }
     logger.debug(`[WebSocket] Subscribed to event: ${event}`);
 
     // Return unsubscribe function
@@ -155,14 +158,14 @@ export class WebSocketClient {
 
     if (this.ws?.readyState === WebSocket.OPEN) {
       this.ws.send(message);
-      logger.debug(`[WebSocket] Sent message:`, { event, data });
+      logger.debug('[WebSocket] Sent message:', { event, data });
     } else {
       // Queue message if offline and queueing is enabled
       if (this.config.enableMessageQueue) {
         this.queueMessage(event, data);
-        logger.debug(`[WebSocket] Message queued (offline):`, { event, data });
+        logger.debug('[WebSocket] Message queued (offline):', { event, data });
       } else {
-        logger.warn(`[WebSocket] Cannot send message, not connected:`, { event, data });
+        logger.warn('[WebSocket] Cannot send message, not connected:', { event, data });
       }
     }
   }

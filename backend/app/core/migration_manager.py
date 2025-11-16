@@ -4,18 +4,18 @@ Enhanced migration management system with rollback capabilities and comprehensiv
 
 import asyncio
 import time
-from datetime import datetime, timezone
-from pathlib import Path
-from typing import Dict, List, Optional, Any
 from dataclasses import dataclass
+from datetime import datetime, timezone
 from enum import Enum
+from pathlib import Path
+from typing import Any, Dict, List, Optional
 
 from alembic import command
 from alembic.config import Config
 from alembic.runtime.migration import MigrationContext
 from alembic.script import ScriptDirectory
 from sqlalchemy import text
-from sqlalchemy.ext.asyncio import create_async_engine, AsyncEngine
+from sqlalchemy.ext.asyncio import AsyncEngine, create_async_engine
 from sqlalchemy.pool import StaticPool
 
 from .config import settings
@@ -126,7 +126,6 @@ class MigrationManager:
 				echo=getattr(self.settings, "api_debug", False),
 			)
 
-
 	async def check_database_connection(self) -> Dict[str, Any]:
 		"""Check database connection with detailed diagnostics."""
 		connection_info = {
@@ -158,7 +157,6 @@ class MigrationManager:
 					result = await conn.execute(text("SELECT version()"))
 					version_info = result.scalar()
 					connection_info["database_version"] = version_info
-
 
 				connection_info["connected"] = True
 				connection_info["connection_time"] = time.time() - start_time
@@ -525,16 +523,14 @@ class MigrationManager:
 		pool_type = type(pool).__name__
 
 		try:
-
-				# QueuePool and other pool types
+			if all(hasattr(pool, attr) for attr in ("size", "checkedout", "checkedin")):
 				return {
 					"pool_size": pool.size(),
 					"active_connections": pool.checkedout(),
 					"idle_connections": pool.checkedin(),
 					"pool_type": pool_type,
 				}
-			else:
-				return {"pool_type": pool_type, "pool_size": "unknown"}
+			return {"pool_type": pool_type, "pool_size": "unknown"}
 		except Exception as e:
 			return {"pool_type": pool_type, "error": str(e)}
 

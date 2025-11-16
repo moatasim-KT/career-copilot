@@ -19,6 +19,7 @@ import {
     ChartDataPoint,
 } from '@/components/charts/DataVisualization';
 import apiClient from '@/lib/api/client';
+import { logger } from '@/lib/logger';
 
 export interface AnalyticsData {
     applications: {
@@ -123,17 +124,17 @@ export default function AnalyticsDashboard({
         async function fetchData() {
             setIsLoading(true);
             try {
-                const response = await apiClient.get('/api/v1/analytics/summary');
+                const response = await apiClient.analytics.dashboard(userId);
                 setData(response.data);
             } catch (error) {
-                console.error('Failed to fetch analytics:', error);
+                logger.error('Failed to fetch analytics:', error);
             } finally {
                 setIsLoading(false);
             }
         }
 
         fetchData();
-    }, [timePeriod]);
+    }, [timePeriod, userId]);
 
     if (isLoading) {
         return (
@@ -225,7 +226,7 @@ export default function AnalyticsDashboard({
 
             {/* Charts */}
             <div className="grid gap-6 lg:grid-cols-2">
-<div className="rounded-lg border border-neutral-200 bg-white p-6 shadow-sm">
+                <div className="rounded-lg border border-neutral-200 bg-white p-6 shadow-sm">
                     <h3 className="mb-4 text-lg font-semibold text-neutral-900">
                         Application Trend
                     </h3>

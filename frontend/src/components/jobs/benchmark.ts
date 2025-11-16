@@ -1,3 +1,5 @@
+import { logger } from '@/lib/logger';
+
 /**
  * Performance Benchmark for VirtualJobList
  * 
@@ -38,7 +40,7 @@ export function measureMemoryUsage(): number {
  */
 export function measureScrollFPS(
   element: HTMLElement,
-  duration: number = 1000
+  duration: number = 1000,
 ): Promise<number> {
   return new Promise((resolve) => {
     let frameCount = 0;
@@ -79,12 +81,12 @@ export function measureScrollFPS(
  * Run a complete benchmark
  */
 export async function runBenchmark(
-  jobCounts: number[] = [10, 50, 100, 500, 1000]
+  jobCounts: number[] = [10, 50, 100, 500, 1000],
 ): Promise<BenchmarkResult[]> {
   const results: BenchmarkResult[] = [];
 
   for (const count of jobCounts) {
-    console.log(`Benchmarking with ${count} jobs...`);
+    logger.info(`Benchmarking with ${count} jobs...`);
 
     // Measure render time
     const renderTime = measureRenderTime(() => {
@@ -128,10 +130,10 @@ export function formatBenchmarkResults(results: BenchmarkResult[]): string {
   
   for (const result of results) {
     output += `| ${result.jobCount.toString().padEnd(4)} | `;
-    output += `${result.renderTime.toFixed(2)}ms`.padEnd(11) + ' | ';
-    output += `${result.memoryUsed.toFixed(2)}MB`.padEnd(6) + ' | ';
-    output += `${result.fps}`.padEnd(3) + ' | ';
-    output += `${result.scrollPerformance}`.padEnd(18) + ' |\n';
+    output += `${`${result.renderTime.toFixed(2)}ms`.padEnd(11)} | `;
+    output += `${`${result.memoryUsed.toFixed(2)}MB`.padEnd(6)} | `;
+    output += `${`${result.fps}`.padEnd(3)} | `;
+    output += `${`${result.scrollPerformance}`.padEnd(18)} |\n`;
   }
   
   output += '\n';
@@ -153,7 +155,7 @@ export interface ComparisonResult {
 
 export function comparePerformance(
   virtualizedResults: BenchmarkResult[],
-  nonVirtualizedResults: BenchmarkResult[]
+  nonVirtualizedResults: BenchmarkResult[],
 ): ComparisonResult[] {
   const comparisons: ComparisonResult[] = [];
 
@@ -162,7 +164,7 @@ export function comparePerformance(
     const nonVirt = nonVirtualizedResults[i];
 
     if (virt.jobCount !== nonVirt.jobCount) {
-      console.warn('Job counts do not match for comparison');
+      logger.warn('Job counts do not match for comparison');
       continue;
     }
 
@@ -194,12 +196,12 @@ export function formatComparisonResults(comparisons: ComparisonResult[]): string
   
   for (const comp of comparisons) {
     output += `| ${comp.jobCount.toString().padEnd(4)} | `;
-    output += `${comp.virtualizedTime.toFixed(2)}ms`.padEnd(9) + ' | ';
-    output += `${comp.nonVirtualizedTime.toFixed(2)}ms`.padEnd(13) + ' | ';
-    output += `${comp.improvement.toFixed(1)}%`.padEnd(11) + ' | ';
-    output += `${comp.virtualizedMemory.toFixed(2)}MB`.padEnd(11) + ' | ';
-    output += `${comp.nonVirtualizedMemory.toFixed(2)}MB`.padEnd(15) + ' | ';
-    output += `${comp.memoryReduction.toFixed(1)}%`.padEnd(13) + ' |\n';
+    output += `${`${comp.virtualizedTime.toFixed(2)}ms`.padEnd(9)} | `;
+    output += `${`${comp.nonVirtualizedTime.toFixed(2)}ms`.padEnd(13)} | `;
+    output += `${`${comp.improvement.toFixed(1)}%`.padEnd(11)} | `;
+    output += `${`${comp.virtualizedMemory.toFixed(2)}MB`.padEnd(11)} | `;
+    output += `${`${comp.nonVirtualizedMemory.toFixed(2)}MB`.padEnd(15)} | `;
+    output += `${`${comp.memoryReduction.toFixed(1)}%`.padEnd(13)} |\n`;
   }
   
   output += '\n';
@@ -241,13 +243,13 @@ export function validatePerformance(results: BenchmarkResult[]): {
     
     if (expected && result.renderTime > expected.max) {
       failures.push(
-        `Render time for ${result.jobCount} jobs (${result.renderTime.toFixed(2)}ms) exceeds maximum (${expected.max}ms)`
+        `Render time for ${result.jobCount} jobs (${result.renderTime.toFixed(2)}ms) exceeds maximum (${expected.max}ms)`,
       );
     }
 
     if (result.fps < EXPECTED_PERFORMANCE.fps.min) {
       failures.push(
-        `FPS for ${result.jobCount} jobs (${result.fps}) is below minimum (${EXPECTED_PERFORMANCE.fps.min})`
+        `FPS for ${result.jobCount} jobs (${result.fps}) is below minimum (${EXPECTED_PERFORMANCE.fps.min})`,
       );
     }
   }
@@ -263,7 +265,7 @@ export function validatePerformance(results: BenchmarkResult[]): {
  */
 export function generatePerformanceReport(
   virtualizedResults: BenchmarkResult[],
-  nonVirtualizedResults?: BenchmarkResult[]
+  nonVirtualizedResults?: BenchmarkResult[],
 ): string {
   let report = '\n';
   report += '╔════════════════════════════════════════════════════════════╗\n';
@@ -300,4 +302,4 @@ export function generatePerformanceReport(
 // Example usage in browser console:
 // import { runBenchmark, generatePerformanceReport } from './benchmark';
 // const results = await runBenchmark([10, 50, 100, 500, 1000]);
-// console.log(generatePerformanceReport(results));
+// logger.info(generatePerformanceReport(results));

@@ -5,8 +5,9 @@
 
 'use client';
 
-import { motion, AnimatePresence } from 'framer-motion';
 import React, { useState, useEffect } from 'react';
+
+import { m, AnimatePresence } from '@/lib/motion';
 
 // ============================================================================
 // Types
@@ -122,7 +123,7 @@ export function StickyFilterPanel({
                 {/* Filter Groups */}
                 <AnimatePresence>
                     {isExpanded && (
-                        <motion.div
+                        <m.div
                             initial={{ height: 0, opacity: 0 }}
                             animate={{ height: 'auto', opacity: 1 }}
                             exit={{ height: 0, opacity: 0 }}
@@ -151,7 +152,7 @@ export function StickyFilterPanel({
                                     </button>
                                 </div>
                             )}
-                        </motion.div>
+                        </m.div>
                     )}
                 </AnimatePresence>
             </div>

@@ -2,7 +2,7 @@
 
 import dynamic from 'next/dynamic';
 
-import Card from '@/components/ui/Card';
+import Card2 from '@/components/ui/Card2';
 
 // Lazy load the ContentGeneration component
 const ContentGeneration = dynamic(() => import('@/components/features/ContentGeneration'), {
@@ -17,9 +17,9 @@ export default function ContentGenerationPage() {
   return (
     <div className="space-y-6">
       <h1 className="text-3xl font-bold text-gray-900">Content Generation</h1>
-      <Card>
+      <Card2>
         <ContentGeneration />
-      </Card>
+      </Card2>
     </div>
   );
 }

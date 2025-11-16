@@ -1,15 +1,15 @@
 'use client';
 
-import { motion } from 'framer-motion';
 import { ReactNode, forwardRef, HTMLAttributes } from 'react';
 
-import { cn } from '@/lib/utils';
 import {
   staggerRevealContainer,
   staggerRevealItem,
   fastStaggerContainer,
   fastStaggerItem,
 } from '@/lib/animations';
+import { m } from '@/lib/motion';
+import { cn } from '@/lib/utils';
 
 export interface StaggerRevealProps extends HTMLAttributes<HTMLDivElement> {
   /**
@@ -100,16 +100,16 @@ export const StaggerReveal = forwardRef<HTMLDivElement, StaggerRevealProps>(
     } : containerVariants;
 
     return (
-      <motion.div
+      <m.div
         ref={ref}
         variants={customVariants}
         initial={animate ? 'hidden' : 'visible'}
         animate="visible"
         className={cn(className)}
-        {...props}
+        {...(props as any)}
       >
         {children}
-      </motion.div>
+      </m.div>
     );
   },
 );
@@ -170,8 +170,8 @@ export const StaggerRevealItem = forwardRef<HTMLDivElement, StaggerRevealItemPro
       visible: {
         ...itemVariants.visible,
         transition: {
-          ...(typeof itemVariants.visible === 'object' && 'transition' in itemVariants.visible 
-            ? itemVariants.visible.transition 
+          ...(typeof itemVariants.visible === 'object' && 'transition' in itemVariants.visible
+            ? itemVariants.visible.transition
             : {}),
           duration,
         },
@@ -179,14 +179,14 @@ export const StaggerRevealItem = forwardRef<HTMLDivElement, StaggerRevealItemPro
     } : itemVariants;
 
     return (
-      <motion.div
+      <m.div
         ref={ref}
         variants={customVariants}
         className={cn(className)}
-        {...props}
+        {...(props as any)}
       >
         {children}
-      </motion.div>
+      </m.div>
     );
   },
 );

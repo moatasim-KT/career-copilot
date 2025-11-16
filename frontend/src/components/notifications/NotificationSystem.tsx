@@ -18,7 +18,6 @@ import { useState, useEffect, useCallback } from 'react';
 
 import { useWebSocket } from '@/hooks/useWebSocket';
 import { logger } from '@/lib/logger';
-import type { WebSocketMessage } from '@/lib/websocket';
 
 export interface Notification {
   id: string;
@@ -147,7 +146,7 @@ export default function NotificationSystem() {
     setNotifications(prev => prev.filter(n => n.id !== id));
   };
 
-  const handleWebSocketMessage = (message: WebSocketMessage) => {
+  const handleWebSocketMessage = (message: { type?: string;[key: string]: any }) => {
     switch (message.type) {
       case 'job_match':
         addNotification({
@@ -222,7 +221,7 @@ export default function NotificationSystem() {
   // Set up WebSocket connection and message handling
   const [wsUrl] = useState('ws://localhost:8002/ws');
 
-  const { ws, connectionStatus } = useWebSocket(
+  const { connectionStatus } = useWebSocket(
     wsUrl,
     (data) => {
       // Handle dashboard updates if needed

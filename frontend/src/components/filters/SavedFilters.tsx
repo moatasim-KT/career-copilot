@@ -5,8 +5,10 @@
 
 'use client';
 
-import { motion, AnimatePresence } from 'framer-motion';
 import React, { useState, useEffect } from 'react';
+
+import { logger } from '@/lib/logger';
+import { m, AnimatePresence } from '@/lib/motion';
 
 // ============================================================================
 // Types
@@ -53,7 +55,7 @@ export function SavedFilters({
                     setSavedFilters(JSON.parse(stored));
                 }
             } catch (error) {
-                console.error('Failed to load saved filters:', error);
+                logger.error('Failed to load saved filters:', error);
             }
         };
 
@@ -66,7 +68,7 @@ export function SavedFilters({
             localStorage.setItem(storageKey, JSON.stringify(filters));
             setSavedFilters(filters);
         } catch (error) {
-            console.error('Failed to save filters:', error);
+            logger.error('Failed to save filters:', error);
         }
     };
 
@@ -213,7 +215,7 @@ function FilterItem({ filter, onApply, onEdit, onDelete }: FilterItemProps) {
     ).length;
 
     return (
-        <motion.div
+        <m.div
             layout
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
@@ -256,7 +258,7 @@ function FilterItem({ filter, onApply, onEdit, onDelete }: FilterItemProps) {
                     </svg>
                 </button>
             </div>
-        </motion.div>
+        </m.div>
     );
 }
 
@@ -280,14 +282,14 @@ function SaveFilterModal({
     onCancel,
 }: SaveFilterModalProps) {
     return (
-        <motion.div
+        <m.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
             onClick={onCancel}
         >
-            <motion.div
+            <m.div
                 initial={{ scale: 0.9, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
                 exit={{ scale: 0.9, opacity: 0 }}
@@ -333,8 +335,8 @@ function SaveFilterModal({
                         {isEditing ? 'Update' : 'Save'}
                     </button>
                 </div>
-            </motion.div>
-        </motion.div>
+            </m.div>
+        </m.div>
     );
 }
 
@@ -352,7 +354,7 @@ export function useSavedFilters(storageKey: string = 'career-copilot-saved-filte
                 setSavedFilters(JSON.parse(stored));
             }
         } catch (error) {
-            console.error('Failed to load saved filters:', error);
+            logger.error('Failed to load saved filters:', error);
         }
     }, [storageKey]);
 

@@ -7,7 +7,7 @@
  * 
  * useEffect(() => {
  *   const unsubscribe = on('notification', (data) => {
- *     console.log('Received notification:', data);
+ *     logger.info('Received notification:', data);
  *   });
  *   
  *   return unsubscribe;
@@ -25,6 +25,7 @@ import { useEffect, useState, useCallback, useRef } from 'react';
 
 import { getWebSocketService } from './service';
 import type { WebSocketService } from './service';
+
 
 interface UseWebSocketReturn {
     connected: boolean;

@@ -1,11 +1,10 @@
 """User model"""
 
-from datetime import datetime
-
 from sqlalchemy import JSON, Boolean, Column, DateTime, Integer, String
 from sqlalchemy.orm import relationship
 
 from ..core.database import Base
+from ..utils import utc_now
 
 
 class User(Base):
@@ -27,12 +26,12 @@ class User(Base):
 	oauth_id = Column(String, nullable=True)  # External user ID from OAuth provider
 	profile_picture_url = Column(String, nullable=True)
 
-	created_at = Column(DateTime, default=datetime.utcnow)
-	updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+	created_at = Column(DateTime, default=utc_now)
+	updated_at = Column(DateTime, default=utc_now, onupdate=utc_now)
 
 	# Additional profile fields
 	profile = Column(JSON, default=dict)  # Extended profile information
-	settings = Column(JSON, default=dict)  # User settings
+	settings_json = Column(JSON, default=dict)  # Legacy settings JSON (deprecated - use settings relationship)
 
 	# Relationships
 	jobs = relationship("Job", back_populates="user", cascade="all, delete-orphan")
@@ -48,7 +47,7 @@ class User(Base):
 	milestones = relationship("Milestone", back_populates="user", cascade="all, delete-orphan")
 	document_templates = relationship("DocumentTemplate", back_populates="user", cascade="all, delete-orphan")
 	generated_documents = relationship("GeneratedDocument", back_populates="user", cascade="all, delete-orphan")
-	settings_rel = relationship("UserSettings", back_populates="user", uselist=False, cascade="all, delete-orphan")
+	settings = relationship("UserSettings", back_populates="user", uselist=False, cascade="all, delete-orphan")
 
 	def __repr__(self):
 		return f"<User(id={self.id}, username={self.username}, email={self.email})>"

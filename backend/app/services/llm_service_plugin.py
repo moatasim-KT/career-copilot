@@ -352,5 +352,110 @@ class OllamaServicePlugin(BaseLLMServicePlugin):
 		return "\n\n".join(prompt_parts)
 
 
+class AnthropicServicePlugin(BaseLLMServicePlugin):
+	"""Anthropic service plugin with comprehensive Claude model support."""
+
+	def __init__(self, config: ServiceConfig):
+		super().__init__(config)
+		self.provider_name = "anthropic"
+		self.api_key = config.config.get("api_key") or getattr(settings, "anthropic_api_key", None)
+		self.base_url = "https://api.anthropic.com"
+		self.models = ["claude-3-opus-20240229", "claude-3-sonnet-20240229", "claude-3-haiku-20240307", "claude-3-5-sonnet-20241022"]
+		self.max_retries = 3
+		self.timeout = 60
+
+	async def _initialize_client(self):
+		"""Initialize Anthropic client using LangChain integration."""
+		from langchain_anthropic import ChatAnthropic
+
+		api_key = self.api_key.get_secret_value() if hasattr(self.api_key, "get_secret_value") else self.api_key
+
+		# Create client for default model
+		self.client = ChatAnthropic(
+			api_key=api_key, model=self.config.config.get("model_name", "claude-3-opus-20240229"), timeout=self.timeout, max_retries=self.max_retries
+		)
+
+	async def _perform_health_check(self) -> Dict[str, Any]:
+		"""Check Anthropic service health with minimal token usage."""
+		try:
+			start_time = time.time()
+
+			# Simple test message
+			test_message = [{"role": "user", "content": "ping"}]
+			response = await self.generate_completion(messages=test_message, max_tokens=10)
+
+			response_time = time.time() - start_time
+			return {"healthy": True, "response_time": response_time, "model": response.get("model", "unknown")}
+		except Exception as e:
+			return {"healthy": False, "error": str(e), "response_time": 0}
+
+	async def generate_completion(self, messages: List[Dict], model: str = None, **kwargs) -> Dict[str, Any]:
+		"""Generate completion using Anthropic Claude models.
+
+		Args:
+			messages: List of message dicts with 'role' and 'content'
+			model: Model name override (optional)
+			**kwargs: Additional parameters (temperature, max_tokens, etc.)
+
+		Returns:
+			Dict with content, usage, model, and response_time
+		"""
+		try:
+			start_time = time.time()
+
+			# Convert dict messages to LangChain format
+			from langchain_core.messages import AIMessage, HumanMessage, SystemMessage
+
+			langchain_messages = []
+			for msg in messages:
+				role = msg.get("role", "user")
+				content = msg.get("content", "")
+
+				if role == "system":
+					langchain_messages.append(SystemMessage(content=content))
+				elif role == "user":
+					langchain_messages.append(HumanMessage(content=content))
+				elif role == "assistant":
+					langchain_messages.append(AIMessage(content=content))
+
+			# Update client model if specified
+			if model and model != self.client.model_name:
+				from langchain_anthropic import ChatAnthropic
+
+				api_key = self.api_key.get_secret_value() if hasattr(self.api_key, "get_secret_value") else self.api_key
+				self.client = ChatAnthropic(api_key=api_key, model=model, timeout=self.timeout, max_retries=self.max_retries)
+
+			# Apply kwargs
+			if "temperature" in kwargs:
+				self.client.temperature = kwargs["temperature"]
+			if "max_tokens" in kwargs:
+				self.client.max_tokens = kwargs["max_tokens"]
+
+			# Generate completion
+			response = await self.client.ainvoke(langchain_messages)
+
+			response_time = time.time() - start_time
+			self._update_metrics(True, response_time)
+
+			# Extract token usage from response metadata
+			usage_data = response.response_metadata.get("usage", {})
+
+			return {
+				"content": response.content,
+				"usage": {
+					"prompt_tokens": usage_data.get("input_tokens", 0),
+					"completion_tokens": usage_data.get("output_tokens", 0),
+					"total_tokens": usage_data.get("input_tokens", 0) + usage_data.get("output_tokens", 0),
+				},
+				"model": response.response_metadata.get("model", model or self.client.model_name),
+				"response_time": response_time,
+			}
+		except Exception as e:
+			response_time = time.time() - start_time if "start_time" in locals() else 0
+			self._update_metrics(False, response_time)
+			logger.error(f"Anthropic completion failed: {e}")
+			raise
+
+
 # Export the plugin classes
-__all__ = ["GroqServicePlugin", "OllamaServicePlugin", "OpenAIServicePlugin"]
+__all__ = ["AnthropicServicePlugin", "GroqServicePlugin", "OllamaServicePlugin", "OpenAIServicePlugin"]

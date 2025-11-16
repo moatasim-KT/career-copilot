@@ -39,10 +39,10 @@ function section(title) {
 
 function exec(command, options = {}) {
   try {
-    return execSync(command, { 
-      encoding: 'utf8', 
+    return execSync(command, {
+      encoding: 'utf8',
       stdio: options.silent ? 'pipe' : 'inherit',
-      ...options 
+      ...options
     });
   } catch (error) {
     if (!options.ignoreError) {
@@ -77,21 +77,21 @@ log('Scanning dependencies for known vulnerabilities...', 'blue');
 
 try {
   const auditOutput = exec('npm audit --json', { silent: true, ignoreError: true });
-  
+
   if (auditOutput) {
     try {
       const auditData = JSON.parse(auditOutput);
-      
+
       report += `## Dependency Vulnerabilities\n\n`;
-      
+
       if (auditData.metadata) {
         const { vulnerabilities } = auditData.metadata;
-        
+
         criticalIssues += vulnerabilities.critical || 0;
         highIssues += vulnerabilities.high || 0;
         mediumIssues += vulnerabilities.moderate || 0;
         lowIssues += vulnerabilities.low || 0;
-        
+
         report += `| Severity | Count |\n`;
         report += `|----------|-------|\n`;
         report += `| Critical | ${vulnerabilities.critical || 0} |\n`;
@@ -99,7 +99,7 @@ try {
         report += `| Moderate | ${vulnerabilities.moderate || 0} |\n`;
         report += `| Low | ${vulnerabilities.low || 0} |\n`;
         report += `| Info | ${vulnerabilities.info || 0} |\n\n`;
-        
+
         if (vulnerabilities.critical > 0 || vulnerabilities.high > 0) {
           log(`⚠ Found ${vulnerabilities.critical} critical and ${vulnerabilities.high} high severity vulnerabilities`, 'red');
           report += `⚠️ **Action Required:** Fix critical and high severity vulnerabilities immediately.\n\n`;
@@ -114,11 +114,13 @@ try {
       }
     } catch (e) {
       log('⚠ Could not parse npm audit output', 'yellow');
+      log(e.message, 'yellow');
       report += `⚠️ Could not parse npm audit results.\n\n`;
     }
   }
 } catch (error) {
   log('⚠ npm audit failed', 'yellow');
+  log(error.message, 'yellow');
   report += `⚠️ npm audit scan failed.\n\n`;
 }
 
@@ -129,7 +131,6 @@ log('Checking environment variable handling...', 'blue');
 report += `## Environment Variable Security\n\n`;
 
 const envExamplePath = path.join(__dirname, '..', '.env.example');
-const envLocalPath = path.join(__dirname, '..', '.env.local');
 const gitignorePath = path.join(__dirname, '..', '.gitignore');
 
 let envIssues = [];
@@ -161,16 +162,16 @@ const secretPatterns = [
 function scanForSecrets(dir) {
   const files = fs.readdirSync(dir);
   const findings = [];
-  
+
   files.forEach(file => {
     const filePath = path.join(dir, file);
     const stat = fs.statSync(filePath);
-    
+
     if (stat.isDirectory() && !file.startsWith('.') && file !== 'node_modules') {
       findings.push(...scanForSecrets(filePath));
     } else if (file.endsWith('.ts') || file.endsWith('.tsx') || file.endsWith('.js') || file.endsWith('.jsx')) {
       const content = fs.readFileSync(filePath, 'utf8');
-      
+
       secretPatterns.forEach(pattern => {
         const matches = content.match(pattern);
         if (matches) {
@@ -186,7 +187,7 @@ function scanForSecrets(dir) {
       });
     }
   });
-  
+
   return findings;
 }
 
@@ -206,7 +207,7 @@ if (envIssues.length === 0) {
     report += `- ${issue}\n`;
   });
   report += `\n`;
-  
+
   if (secretFindings.length > 0) {
     report += `### Potential Hardcoded Secrets\n\n`;
     secretFindings.forEach(finding => {
@@ -236,16 +237,16 @@ const xssPatterns = [
 function scanForXSS(dir) {
   const files = fs.readdirSync(dir);
   const findings = [];
-  
+
   files.forEach(file => {
     const filePath = path.join(dir, file);
     const stat = fs.statSync(filePath);
-    
+
     if (stat.isDirectory() && !file.startsWith('.') && file !== 'node_modules') {
       findings.push(...scanForXSS(filePath));
     } else if (file.endsWith('.ts') || file.endsWith('.tsx') || file.endsWith('.js') || file.endsWith('.jsx')) {
       const content = fs.readFileSync(filePath, 'utf8');
-      
+
       xssPatterns.forEach(({ pattern, severity, description }) => {
         const matches = content.match(pattern);
         if (matches) {
@@ -255,7 +256,7 @@ function scanForXSS(dir) {
             description,
             count: matches.length
           });
-          
+
           if (severity === 'critical') criticalIssues++;
           else if (severity === 'high') highIssues++;
           else if (severity === 'medium') mediumIssues++;
@@ -263,7 +264,7 @@ function scanForXSS(dir) {
       });
     }
   });
-  
+
   return findings;
 }
 
@@ -277,12 +278,12 @@ if (xssFindings.length === 0) {
   report += `⚠️ **Potential XSS Vulnerabilities:**\n\n`;
   report += `| File | Issue | Severity | Count |\n`;
   report += `|------|-------|----------|-------|\n`;
-  
+
   xssFindings.forEach(finding => {
     const severityIcon = finding.severity === 'critical' ? '🔴' : finding.severity === 'high' ? '🟠' : '🟡';
     report += `| \`${finding.file}\` | ${finding.description} | ${severityIcon} ${finding.severity} | ${finding.count} |\n`;
   });
-  
+
   report += `\n**Recommendations:**\n`;
   report += `- Review all instances of \`dangerouslySetInnerHTML\` and ensure content is sanitized\n`;
   report += `- Use DOMPurify or similar library to sanitize HTML content\n`;
@@ -298,13 +299,11 @@ report += `## CSRF Protection\n\n`;
 
 // Check for CSRF token implementation
 const apiClientPath = path.join(srcDir, 'lib', 'api', 'client.ts');
-let csrfProtected = false;
 
 if (fs.existsSync(apiClientPath)) {
   const content = fs.readFileSync(apiClientPath, 'utf8');
-  
+
   if (content.includes('X-CSRF-Token') || content.includes('csrf') || content.includes('CSRF')) {
-    csrfProtected = true;
     log('✓ CSRF token implementation found', 'green');
     report += `✅ CSRF token implementation detected in API client.\n\n`;
   } else {
@@ -344,13 +343,13 @@ authFiles.forEach(file => {
   const filePath = path.join(__dirname, '..', file);
   if (fs.existsSync(filePath)) {
     const content = fs.readFileSync(filePath, 'utf8');
-    
+
     // Check for secure token storage
     if (content.includes('localStorage') && content.includes('token')) {
       authIssues.push(`${file}: Tokens stored in localStorage (consider httpOnly cookies)`);
       lowIssues++;
     }
-    
+
     // Check for password handling
     if (content.includes('password') && !content.includes('hash')) {
       // This is a false positive check - just a warning
@@ -433,7 +432,7 @@ let hasSecurityHeaders = false;
 
 if (fs.existsSync(nextConfigPath)) {
   const content = fs.readFileSync(nextConfigPath, 'utf8');
-  
+
   if (content.includes('X-Frame-Options') || content.includes('Content-Security-Policy')) {
     hasSecurityHeaders = true;
     log('✓ Security headers configured', 'green');

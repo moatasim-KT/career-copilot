@@ -1,0 +1,226 @@
+name: Accessibility Audit
+
+on:
+  pull_request:
+    branches: [main, develop, features-consolidation]
+    paths:
+      - 'frontend/src/**'
+      - 'frontend/public/**'
+      - 'frontend/scripts/accessibility-audit.js'
+      - '.github/workflows/accessibility.yml'
+  push:
+    branches: [main, develop]
+    paths:
+      - 'frontend/src/**'
+      - 'frontend/public/**'
+  workflow_dispatch: # Allow manual triggers
+
+jobs:
+  accessibility-audit:
+    name: WCAG 2.1 AA Compliance Check
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        working-directory: frontend
+        run: npm ci
+
+      - name: Build application
+        working-directory: frontend
+        run: npm run build
+        env:
+          NEXT_PUBLIC_API_URL: http://localhost:8000
+          NODE_ENV: production
+
+      - name: Start application
+        working-directory: frontend
+        run: |
+          npm start &
+          npx wait-on http://localhost:3000 --timeout 60000
+        env:
+          PORT: 3000
+
+      - name: Run accessibility audit
+        working-directory: frontend
+        id: audit
+        continue-on-error: true
+        run: npm run accessibility:audit
+
+      - name: Upload accessibility reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: accessibility-reports-${{ github.sha }}
+          path: frontend/reports/accessibility/
+          retention-days: 30
+
+      - name: Parse audit results
+        id: parse-results
+        if: always()
+        run: |
+          cd frontend/reports/accessibility
+          REPORT_FILE=$(ls -t accessibility-audit-*.json | head -1)
+          
+          if [ -f "$REPORT_FILE" ]; then
+            echo "Found report: $REPORT_FILE"
+            
+            # Extract summary statistics using jq
+            CRITICAL=$(jq '.summary.criticalViolations' "$REPORT_FILE")
+            SERIOUS=$(jq '.summary.seriousViolations' "$REPORT_FILE")
+            MODERATE=$(jq '.summary.moderateViolations' "$REPORT_FILE")
+            MINOR=$(jq '.summary.minorViolations' "$REPORT_FILE")
+            TOTAL=$(jq '.summary.totalViolations' "$REPORT_FILE")
+            PAGES=$(jq '.summary.totalPages' "$REPORT_FILE")
+            PASSED=$(jq '.summary.passedPages' "$REPORT_FILE")
+            FAILED=$(jq '.summary.failedPages' "$REPORT_FILE")
+            
+            echo "critical=$CRITICAL" >> $GITHUB_OUTPUT
+            echo "serious=$SERIOUS" >> $GITHUB_OUTPUT
+            echo "moderate=$MODERATE" >> $GITHUB_OUTPUT
+            echo "minor=$MINOR" >> $GITHUB_OUTPUT
+            echo "total=$TOTAL" >> $GITHUB_OUTPUT
+            echo "pages=$PAGES" >> $GITHUB_OUTPUT
+            echo "passed=$PASSED" >> $GITHUB_OUTPUT
+            echo "failed=$FAILED" >> $GITHUB_OUTPUT
+            
+            # Determine overall status
+            if [ "$CRITICAL" -eq 0 ] && [ "$SERIOUS" -eq 0 ]; then
+              echo "status=✅ PASS" >> $GITHUB_OUTPUT
+              echo "exit_code=0" >> $GITHUB_OUTPUT
+            else
+              echo "status=❌ FAIL" >> $GITHUB_OUTPUT
+              echo "exit_code=1" >> $GITHUB_OUTPUT
+            fi
+          else
+            echo "No report file found"
+            echo "status=⚠️ ERROR" >> $GITHUB_OUTPUT
+            echo "exit_code=1" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Comment PR with results
+        if: github.event_name == 'pull_request' && always()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const critical = '${{ steps.parse-results.outputs.critical }}' || '0';
+            const serious = '${{ steps.parse-results.outputs.serious }}' || '0';
+            const moderate = '${{ steps.parse-results.outputs.moderate }}' || '0';
+            const minor = '${{ steps.parse-results.outputs.minor }}' || '0';
+            const total = '${{ steps.parse-results.outputs.total }}' || '0';
+            const pages = '${{ steps.parse-results.outputs.pages }}' || '0';
+            const passed = '${{ steps.parse-results.outputs.passed }}' || '0';
+            const failed = '${{ steps.parse-results.outputs.failed }}' || '0';
+            const status = '${{ steps.parse-results.outputs.status }}' || '⚠️ ERROR';
+            
+            const criticalInt = parseInt(critical);
+            const seriousInt = parseInt(serious);
+            
+            // Build comment body
+            let body = `## 🔍 Accessibility Audit Results\n\n`;
+            body += `**Status:** ${status}\n`;
+            body += `**WCAG Level:** 2.1 AA\n\n`;
+            
+            body += `### Summary\n\n`;
+            body += `| Metric | Count |\n`;
+            body += `|--------|-------|\n`;
+            body += `| Pages Audited | ${pages} |\n`;
+            body += `| Passed | ${passed} |\n`;
+            body += `| Failed | ${failed} |\n`;
+            body += `| **Total Violations** | **${total}** |\n\n`;
+            
+            body += `### Violations by Severity\n\n`;
+            body += `| Severity | Count |\n`;
+            body += `|----------|-------|\n`;
+            body += `| 🔴 Critical | ${critical} |\n`;
+            body += `| 🟠 Serious | ${serious} |\n`;
+            body += `| 🟡 Moderate | ${moderate} |\n`;
+            body += `| 🟢 Minor | ${minor} |\n\n`;
+            
+            if (criticalInt > 0 || seriousInt > 0) {
+              body += `### ⚠️ Action Required\n\n`;
+              body += `**${criticalInt + seriousInt} high-priority violation(s) must be fixed before merge.**\n\n`;
+              body += `Critical and serious accessibility violations block users with disabilities from accessing core functionality. `;
+              body += `Please review the detailed report in the artifacts and address these issues.\n\n`;
+            }
+            
+            body += `### 📊 Detailed Report\n\n`;
+            body += `Download the full accessibility report from the workflow artifacts:\n`;
+            body += `- JSON report with detailed violation information\n`;
+            body += `- Markdown report with fix recommendations\n\n`;
+            body += `**Artifact:** \`accessibility-reports-${{ github.sha }}\`\n\n`;
+            
+            body += `### 📚 Resources\n\n`;
+            body += `- [WCAG 2.1 Guidelines](https://www.w3.org/WAI/WCAG21/quickref/)\n`;
+            body += `- [Accessibility Testing Guide](../docs/testing/ACCESSIBILITY_TESTING.md)\n`;
+            body += `- [axe-core Rule Descriptions](https://github.com/dequelabs/axe-core/blob/develop/doc/rule-descriptions.md)\n\n`;
+            
+            body += `---\n`;
+            body += `🤖 *Automated accessibility audit powered by [axe-core](https://github.com/dequelabs/axe-core)*`;
+            
+            // Find existing comment
+            const comments = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+            
+            const botComment = comments.data.find(comment => 
+              comment.user.type === 'Bot' && 
+              comment.body.includes('🔍 Accessibility Audit Results')
+            );
+            
+            if (botComment) {
+              // Update existing comment
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: botComment.id,
+                body: body
+              });
+            } else {
+              // Create new comment
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: body
+              });
+            }
+
+      - name: Fail if critical or serious violations
+        if: always()
+        run: |
+          EXIT_CODE=${{ steps.parse-results.outputs.exit_code }}
+          if [ "$EXIT_CODE" = "1" ]; then
+            echo "❌ Accessibility audit failed with critical or serious violations"
+            exit 1
+          fi
+          echo "✅ Accessibility audit passed"
+
+      - name: Create check run summary
+        if: always()
+        run: |
+          echo "## 🔍 Accessibility Audit Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Status:** ${{ steps.parse-results.outputs.status }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Violations" >> $GITHUB_STEP_SUMMARY
+          echo "- 🔴 Critical: ${{ steps.parse-results.outputs.critical }}" >> $GITHUB_STEP_SUMMARY
+          echo "- 🟠 Serious: ${{ steps.parse-results.outputs.serious }}" >> $GITHUB_STEP_SUMMARY
+          echo "- 🟡 Moderate: ${{ steps.parse-results.outputs.moderate }}" >> $GITHUB_STEP_SUMMARY
+          echo "- 🟢 Minor: ${{ steps.parse-results.outputs.minor }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Pages Audited:** ${{ steps.parse-results.outputs.pages }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Passed:** ${{ steps.parse-results.outputs.passed }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Failed:** ${{ steps.parse-results.outputs.failed }}" >> $GITHUB_STEP_SUMMARY

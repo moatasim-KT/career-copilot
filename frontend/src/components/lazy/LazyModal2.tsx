@@ -16,7 +16,7 @@ const Modal2 = dynamic(
   {
     loading: () => <Modal2Skeleton />,
     ssr: false,
-  }
+  },
 );
 
 // Simple skeleton for modal loading state

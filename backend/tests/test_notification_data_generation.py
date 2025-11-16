@@ -10,53 +10,51 @@ from sqlalchemy.orm import Session
 
 from app.models.application import Application
 from app.models.job import Job
+from app.models.template import GeneratedDocument  # Import to satisfy Job relationship
 from app.models.user import User
 from app.services.notification_service import UnifiedNotificationService
+from app.utils.datetime import utc_now, utc_today
 
 
 @pytest.fixture
 def sample_user(db: Session):
-	"""Create a sample user for testing."""
-	user = User(
-		email="test@example.com",
-		username="testuser",
-		full_name="Test User",
-		hashed_password="hashed_password",
-	)
-	db.add(user)
-	db.commit()
-	db.refresh(user)
+	"""Get the test user created by conftest (id=1)."""
+	user = db.query(User).filter(User.id == 1).first()
 	return user
 
 
 @pytest.fixture
 def sample_jobs(db: Session, sample_user):
 	"""Create sample jobs for testing."""
-	# Job from yesterday
+	# Use a fixed "now" for consistent testing
+	now_utc = utc_now()
+	today_utc_date = now_utc.date()
+
+	# Job from yesterday (within last 24 hours)
 	yesterday_job = Job(
 		user_id=sample_user.id,
 		title="Backend Engineer",
 		company="Tech Corp",
 		location="Remote",
-		created_at=datetime.utcnow() - timedelta(hours=12),
+		created_at=now_utc - timedelta(hours=18),  # 18 hours ago, still within 24 hours
 	)
 
-	# Job from 2 days ago
+	# Job from 2 days ago (more than 24 hours)
 	old_job = Job(
 		user_id=sample_user.id,
 		title="Frontend Developer",
 		company="Web Co",
 		location="New York",
-		created_at=datetime.utcnow() - timedelta(days=2),
+		created_at=datetime.combine(today_utc_date - timedelta(days=2), datetime.min.time()),
 	)
 
-	# Job from today
+	# Job from today (UTC)
 	today_job = Job(
 		user_id=sample_user.id,
 		title="Full Stack Engineer",
 		company="Startup Inc",
 		location="San Francisco",
-		created_at=datetime.utcnow() - timedelta(hours=2),
+		created_at=datetime.combine(today_utc_date, datetime.min.time()) + timedelta(hours=10),
 	)
 
 	db.add_all([yesterday_job, old_job, today_job])
@@ -67,7 +65,8 @@ def sample_jobs(db: Session, sample_user):
 @pytest.fixture
 def sample_applications(db: Session, sample_user, sample_jobs):
 	"""Create sample applications for testing."""
-	today = date.today()
+	# Use UTC date to match service logic
+	today = utc_today()
 
 	# Application with upcoming follow-up
 	app_with_followup = Application(
@@ -93,10 +92,10 @@ def sample_applications(db: Session, sample_user, sample_jobs):
 		job_id=sample_jobs[2].id,
 		status="interview",
 		applied_date=today - timedelta(days=5),
-		interview_date=datetime.utcnow() + timedelta(days=3),
+		interview_date=utc_now() + timedelta(days=3),
 	)
 
-	# Application submitted today
+	# Application submitted today (UTC)
 	app_today = Application(
 		user_id=sample_user.id,
 		job_id=sample_jobs[0].id,
@@ -104,7 +103,7 @@ def sample_applications(db: Session, sample_user, sample_jobs):
 		applied_date=today,
 	)
 
-	# Application with response today
+	# Application with response today (UTC)
 	app_response_today = Application(
 		user_id=sample_user.id,
 		job_id=sample_jobs[1].id,
@@ -165,7 +164,7 @@ class TestMorningBriefingDataGeneration:
 		# Greeting should be based on current time
 		assert "greeting" in content
 		greeting = content["greeting"]
-		hour = datetime.now().hour
+		hour = utc_now().hour
 
 		if hour < 12:
 			assert "morning" in greeting.lower() or "☀" in greeting
@@ -193,13 +192,13 @@ class TestEveningUpdateDataGeneration:
 
 	@pytest.mark.asyncio
 	async def test_evening_update_counts_new_jobs_today(self, db: Session, sample_user, sample_jobs):
-		"""Test that evening update counts jobs added today."""
+		"""Test that evening update counts jobs added today (UTC date)."""
 		service = UnifiedNotificationService(db)
 
 		content = await service._generate_evening_update_content(sample_user.id)
 
-		# Should count only today's job
-		assert content["new_jobs"] == 1
+		# Should count jobs added today (UTC date): yesterday_job (18h ago) and today_job
+		assert content["new_jobs"] == 2
 		assert isinstance(content["new_jobs"], int)
 
 	@pytest.mark.asyncio

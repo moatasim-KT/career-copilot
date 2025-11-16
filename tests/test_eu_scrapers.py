@@ -1,212 +1,123 @@
-"""
-Test script to verify all EU job scrapers are working
-"""
+"""CLI utility to exercise EU scrapers in live or fixture-backed mode."""
 
+from __future__ import annotations
+
+import argparse
 import asyncio
 import os
 import sys
+from pathlib import Path
+from typing import Dict
 
-# Add parent directory to path
+# Ensure backend package is importable when running as a script
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from app.services.scraping import ScraperManager, ScrapingConfig
+from app.services.scraping import ScrapingConfig
+from app.services.scraping.harness import ScraperHarness, ScraperRun
+
+SCRAPER_RUNS = {
+	"eurotechjobs": {"keywords": "Machine Learning", "location": "Germany"},
+	"aijobsnet": {"keywords": "AI", "location": "Netherlands"},
+	"datacareer": {"keywords": "Data", "location": "Switzerland"},
+	"arbeitnow": {"keywords": "Data Science", "location": "Germany"},
+	"berlinstartupjobs": {"keywords": "AI", "location": "Berlin"},
+	"relocateme": {"keywords": "Machine Learning", "location": "Europe"},
+	"eures": {"keywords": "Data Scientist", "location": "DE"},
+}
+
+REPO_ROOT = Path(__file__).resolve().parent.parent
+FIXTURES_DIR = REPO_ROOT / "backend" / "tests" / "fixtures" / "scrapers"
 
 
-async def test_eu_scrapers():
-    """Test all EU visa-sponsorship scrapers"""
-
-    print("=" * 80)
-    print("Testing EU Visa-Sponsorship Job Scrapers")
-    print("=" * 80)
-
-    # Create scraper manager with all EU scrapers enabled
-    config = ScrapingConfig(
-        max_results_per_site=5,  # Small test
-        max_concurrent_scrapers=2,
-        enable_arbeitnow=True,
-        enable_berlinstartupjobs=True,
-        enable_relocateme=True,
-        enable_eures=True,
-        enable_indeed=False,  # Disable others for this test
-        enable_adzuna=False,
-        enable_themuse=False,
-        enable_rapidapi_jsearch=False,
-    )
-
-    manager = ScraperManager(config)
-
-    print(f"\n✅ Initialized {len(manager.get_available_scrapers())} scrapers")
-    print(f"   Available: {manager.get_available_scrapers()}\n")
-
-    # Test each scraper individually
-    scrapers_to_test = {
-        "arbeitnow": {
-            "keywords": "Data Science",
-            "location": "Germany",
-        },
-        "berlinstartupjobs": {
-            "keywords": "AI",
-            "location": "Berlin",
-        },
-        "relocateme": {
-            "keywords": "Machine Learning",
-            "location": "Europe",
-        },
-        "eures": {
-            "keywords": "Data Scientist",
-            "location": "DE",
-        },
-    }
-
-    results = {}
-
-    for scraper_name, search_params in scrapers_to_test.items():
-        if scraper_name not in manager.scrapers:
-            print(f"⚠️  {scraper_name}: Not initialized")
-            continue
-
-        print(f"\n{'=' * 80}")
-        print(f"Testing: {scraper_name.upper()}")
-        print(f"  Keywords: {search_params['keywords']}")
-        print(f"  Location: {search_params['location']}")
-        print(f"{'=' * 80}")
-
-        try:
-            scraper = manager.scrapers[scraper_name]
-
-            async with scraper:
-                jobs = await scraper.search_jobs(
-                    keywords=search_params["keywords"],
-                    location=search_params["location"],
-                    max_results=5,
-                )
-
-                results[scraper_name] = {
-                    "success": True,
-                    "job_count": len(jobs),
-                    "jobs": jobs,
-                }
-
-                print(f"\n✅ {scraper_name}: Found {len(jobs)} jobs")
-
-                # Display first 2 jobs
-                for i, job in enumerate(jobs[:2], 1):
-                    print(f"\n  Job {i}:")
-                    print(f"    Title: {job.title}")
-                    print(f"    Company: {job.company}")
-                    print(f"    Location: {job.location}")
-                    print(f"    URL: {job.url[:60]}...")
-                    print(f"    Visa Sponsor: {job.requires_visa_sponsorship}")
-
-        except Exception as e:
-            print(f"\n❌ {scraper_name}: ERROR - {e}")
-            results[scraper_name] = {
-                "success": False,
-                "error": str(e),
-            }
-
-    # Summary
-    print(f"\n{'=' * 80}")
-    print("SUMMARY")
-    print(f"{'=' * 80}")
-
-    total_jobs = 0
-    successful = 0
-    failed = 0
-
-    for scraper_name, result in results.items():
-        if result.get("success"):
-            successful += 1
-            job_count = result.get("job_count", 0)
-            total_jobs += job_count
-            status = f"✅ {job_count} jobs"
-        else:
-            failed += 1
-            status = f"❌ {result.get('error', 'Unknown error')}"
-
-        print(f"{scraper_name:25s}: {status}")
-
-    print(f"\n{'=' * 80}")
-    print(f"Total Jobs Found: {total_jobs}")
-    print(f"Successful Scrapers: {successful}/{len(scrapers_to_test)}")
-    print(f"Failed Scrapers: {failed}/{len(scrapers_to_test)}")
-    print(f"{'=' * 80}\n")
-
-    return results
+def _build_config() -> ScrapingConfig:
+	return ScrapingConfig(
+		max_results_per_site=5,
+		max_concurrent_scrapers=2,
+		enable_arbeitnow=True,
+		enable_berlinstartupjobs=True,
+		enable_relocateme=True,
+		enable_eures=True,
+		enable_eurotechjobs=True,
+		enable_aijobsnet=True,
+		enable_datacareer=True,
+		enable_indeed=False,
+		enable_adzuna=False,
+		enable_themuse=False,
+		enable_rapidapi_jsearch=False,
+	)
 
 
-async def test_multi_site_search():
-    """Test multi-site search with all EU scrapers"""
+async def run_scraper_suite(live_requests: bool = False):
+	print("=" * 80)
+	print("Testing EU Visa-Sponsorship Job Scrapers")
+	print("=" * 80)
 
-    print("\n" + "=" * 80)
-    print("Testing Multi-Site Search (All EU Scrapers)")
-    print("=" * 80)
+	harness = ScraperHarness(_build_config(), fixtures_dir=FIXTURES_DIR, live_requests=live_requests)
+	runs = [
+		ScraperRun(
+			scraper=name,
+			keywords=params["keywords"],
+			location=params["location"],
+		)
+		for name, params in SCRAPER_RUNS.items()
+		if name in harness.manager.scrapers
+	]
 
-    config = ScrapingConfig(
-        max_results_per_site=10,
-        max_concurrent_scrapers=2,
-        enable_arbeitnow=True,
-        enable_berlinstartupjobs=True,
-        enable_relocateme=True,
-        enable_eures=True,
-        enable_indeed=False,
-        enable_adzuna=False,
-        enable_themuse=False,
-        enable_rapidapi_jsearch=False,
-        deduplication_enabled=True,
-    )
+	results = await harness.run_all(runs)
+	_summary(results)
+	return results
 
-    manager = ScraperManager(config)
 
-    print("\nSearching for: 'Data Science' jobs in 'Europe'")
-    print("Please wait...\n")
+def _summary(results):
+	total_jobs = sum(len(result.jobs) for result in results if result.success)
+	successes = [res for res in results if res.success]
+	failures = [res for res in results if not res.success]
 
-    jobs = await manager.search_all_sites(
-        keywords="Data Science",
-        location="Europe",
-        max_total_results=50,
-    )
+	print(f"\n{'=' * 80}")
+	print("SUMMARY")
+	print(f"{'=' * 80}")
+	for result in results:
+		status = f"✅ {len(result.jobs)} jobs" if result.success else f"❌ {result.error}"
+		print(f"{result.name:25s}: {status}")
 
-    print("\n✅ Multi-site search completed!")
-    print(f"   Total unique jobs: {len(jobs)}")
+	print(f"\nTotal Jobs Found: {total_jobs}")
+	print(f"Successful Scrapers: {len(successes)}/{len(results)}")
+	print(f"Failed Scrapers: {len(failures)}")
+	print(f"{'=' * 80}\n")
 
-    # Group by source
-    by_source = {}
-    for job in jobs:
-        source = job.source
-        if source not in by_source:
-            by_source[source] = []
-        by_source[source].append(job)
 
-    print("\n   Jobs by source:")
-    for source, source_jobs in by_source.items():
-        print(f"     - {source}: {len(source_jobs)} jobs")
+async def run_multi_site_search(live_requests: bool = False):
+	print("\n" + "=" * 80)
+	print("Testing Multi-Site Search (All EU Scrapers)")
+	print("=" * 80)
 
-    # Show sample jobs with visa sponsorship
-    visa_jobs = [j for j in jobs if j.requires_visa_sponsorship]
-    print(f"\n   Jobs with visa sponsorship: {len(visa_jobs)}/{len(jobs)}")
+	harness = ScraperHarness(_build_config(), fixtures_dir=FIXTURES_DIR, live_requests=live_requests)
+	jobs = await harness.multi_site_search("Data Science", "Europe", max_total_results=50)
 
-    print(f"\n{'=' * 80}")
-    print("Sample Jobs with Visa Sponsorship:")
-    print(f"{'=' * 80}")
+	print(f"\n✅ Multi-site search completed! Total unique jobs: {len(jobs)}")
+	by_source: Dict[str, int] = {}
+	for job in jobs:
+		by_source[job.source] = by_source.get(job.source, 0) + 1
 
-    for i, job in enumerate(visa_jobs[:5], 1):
-        print(f"\n{i}. {job.title}")
-        print(f"   Company: {job.company}")
-        print(f"   Location: {job.location}")
-        print(f"   Source: {job.source}")
-        print(f"   URL: {job.url[:60]}...")
+	print("\n   Jobs by source:")
+	for source, count in by_source.items():
+		print(f"     - {source}: {count} jobs")
 
-    return jobs
+	return jobs
+
+
+def _parse_args():
+	parser = argparse.ArgumentParser(description="Run EU scraper harness")
+	parser.add_argument("--live", action="store_true", help="Use live network requests instead of fixtures")
+	return parser.parse_args()
 
 
 if __name__ == "__main__":
-    print("\n🚀 Starting EU Job Scraper Tests...\n")
+	args = _parse_args()
+	mode = "LIVE" if args.live else "FIXTURE"
+	print(f"\n🚀 Starting EU Job Scraper Tests in {mode} mode...\n")
 
-    # Run individual scraper tests
-    results = asyncio.run(test_eu_scrapers())
+	asyncio.run(run_scraper_suite(live_requests=args.live))
+	asyncio.run(run_multi_site_search(live_requests=args.live))
 
-    # Run multi-site search test
-    jobs = asyncio.run(test_multi_site_search())
-
-    print("\n✅ All tests completed!\n")
+	print("\n✅ All tests completed!\n")

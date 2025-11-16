@@ -1,3 +1,5 @@
+import { logger } from '@/lib/logger';
+
 
 export class MessageQueue {
   private queue: string[] = [];
@@ -10,7 +12,7 @@ export class MessageQueue {
         this.queue = JSON.parse(stored);
       }
     } catch (error) {
-      console.error('Failed to load message queue from localStorage:', error);
+      logger.error('Failed to load message queue from localStorage:', error);
     }
 
     this.ws.onopen = () => this.flush();
@@ -35,7 +37,7 @@ export class MessageQueue {
     try {
       localStorage.setItem('websocket-queue', JSON.stringify(this.queue));
     } catch (error) {
-      console.error('Failed to save message queue to localStorage:', error);
+      logger.error('Failed to save message queue to localStorage:', error);
     }
   }
 }

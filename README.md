@@ -4,6 +4,16 @@
 >
 > An intelligent job search assistant specializing in EU opportunities with visa sponsorship support for AI/Data Science professionals
 
+**Quick Links**: [[LOCAL_SETUP]] | [[PROJECT_STATUS]] | [[docs/index|Documentation Hub]] | [[career-copilot/CONTRIBUTING|Contributing Guidelines]]
+
+**Documentation**:
+- [[USER_GUIDE]] - User guide and tutorials
+- [[DEVELOPER_GUIDE]] - Developer documentation
+- [[ARCHITECTURE]] - System architecture
+- [[API]] - API reference
+- [[backend/README|Backend Guide]] - Backend guide
+- [[frontend/README|Frontend Guide]] - Frontend guide
+
 [![Python](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.109+-green.svg)](https://fastapi.tiangolo.com/)
 [![Next.js](https://img.shields.io/badge/Next.js-16.0-black.svg)](https://nextjs.org/)
@@ -118,6 +128,17 @@ cp frontend/.env.example frontend/.env.local
 # 3. Add your API keys to .env files
 # Required: OPENAI_API_KEY or ANTHROPIC_API_KEY
 
+## 🚀 Quick Start
+
+**See [LOCAL_SETUP.md](LOCAL_SETUP.md) for complete setup guide with troubleshooting.**
+
+```bash
+# 1-3: Clone, configure .env files
+git clone https://github.com/moatasim-KT/career-copilot.git
+cd career-copilot
+cp backend/.env.example backend/.env
+cp frontend/.env.example frontend/.env
+
 # 4. Start all services with Docker
 docker-compose up -d
 
@@ -128,91 +149,38 @@ docker-compose exec backend alembic upgrade head
 # Frontend: http://localhost:3000
 # Backend API: http://localhost:8000
 # API Docs: http://localhost:8000/docs
-# Grafana: http://localhost:3001
 ```
 
-That's it! The application is now running with all services configured.
-
-#### Option 2: Local Development
-
-```bash
-# 1. Clone and setup
-git clone https://github.com/moatasim-KT/career-copilot.git
-cd career-copilot
-
-# 2. Backend setup
-cd backend
-python3 -m venv venv
-source venv/bin/activate  # Windows: venv\Scripts\activate
-pip install -r requirements.txt
-cp .env.example .env
-# Edit .env with your configuration
-alembic upgrade head
-
-# 3. Start backend services (separate terminals)
-uvicorn app.main:app --reload --port 8000
-celery -A app.celery worker --loglevel=info
-celery -A app.celery beat --loglevel=info
-
-# 4. Frontend setup (new terminal)
-cd frontend
-npm install
-cp .env.example .env.local
-# Edit .env.local with your configuration
-npm run dev
-
-# 5. Access the application
-# Frontend: http://localhost:3000
-# Backend API: http://localhost:8000
-```
+For detailed setup, architecture, and troubleshooting: [LOCAL_SETUP.md](LOCAL_SETUP.md)
 
 ### 📋 Prerequisites
 
-#### For Docker Deployment (Recommended)
-- Docker 20.10+
-- Docker Compose 2.0+
-- 4GB RAM minimum
-- 10GB disk space
-
-#### For Local Development
-- **Backend**:
-  - Python 3.11+
-  - PostgreSQL 14+
-  - Redis 7+
-- **Frontend**:
-  - Node.js 18.0+ (LTS recommended)
-  - npm 9+ or pnpm 8+
-- **AI Services**:
-  - OpenAI API key (GPT-4 access) OR
-  - Anthropic API key (Claude access)
+- Docker 20.10+ and Docker Compose 2.0+
+- 4GB RAM, 10GB disk space
+- API keys: OpenAI OR Anthropic (for AI features)
 
 ## 📚 Documentation
 
-Comprehensive documentation is available in the [[docs/index.md|docs/]] directory.
+**Start here**: [[LOCAL_SETUP]] - Complete local development guide with code references
 
-### 🤖 AI Agent Coordination (New!)
+### Core Documentation
+- **Local Setup**: [[LOCAL_SETUP]] - Docker, configuration, troubleshooting, architecture
+- **Testing**: [[backend/tests/TESTING_NOTES|Testing Notes]] - Test infrastructure and known issues
+- **Coding Standards**: [[.github/copilot-instructions|Copilot Instructions]] - Project conventions and patterns
+- **API Reference**: http://localhost:8000/docs (OpenAPI, when backend running)
+- **Documentation Hub**: [[docs/index|Documentation Hub]] - Central documentation index
 
-- **[Quick Start for Contributors](.agents/START_HERE.md)** - Immediate action steps with examples
-- **[Coordination System Overview](.agents/README.md)** - Complete guide to multi-agent development
-- **[Coordination Rules](.agents/coordination-rules.md)** - File locking, branching, and conflict prevention
-- **[Task Assignments](.agents/task-partition-plan.md)** - Detailed task breakdown (18 Gemini + 16 Copilot tasks)
-- **[Real-Time Status](.agents/task-assignments.json)** - Live agent state and progress tracking
-
-### � Documentation Hub
-
-For complete documentation, visit the [[docs/index.md|Documentation Index]] which provides organized access to all guides, API references, and technical documentation.
-
-- **[Deployment Guide](docs/deployment/DEPLOYMENT.md)** - Production deployment instructions
-- **[Docker Deployment](docs/deployment/DEPLOYMENT.md#docker-compose-deployment)** - Deploy with Docker Compose
-- **[Kubernetes](docs/deployment/DEPLOYMENT.md#kubernetes-deployment)** - Deploy to Kubernetes
-- **[Cloud Platforms](docs/deployment/DEPLOYMENT.md#cloud-platform-deployment)** - AWS, GCP, Render, etc.
+- **[[DEPLOYMENT|Deployment Guide]]** - Production deployment instructions
+  - Docker Compose deployment
+  - Kubernetes deployment
+  - Cloud platforms (AWS, GCP, Render, etc.)
 
 ### 🔧 Troubleshooting
 
-- **[Common Issues](docs/troubleshooting/COMMON_ISSUES.md)** - Solutions to common problems
-- **[Installation Issues](docs/troubleshooting/COMMON_ISSUES.md#installation-issues)** - Setup problems
-- **[API Issues](docs/troubleshooting/COMMON_ISSUES.md#api-issues)** - API troubleshooting
-- **[Performance](docs/troubleshooting/COMMON_ISSUES.md#performance-issues)** - Performance optimization
+- **[[COMMON_ISSUES|Common Issues]]** - Solutions to common problems
+  - Installation issues
+  - API troubleshooting
+  - Performance optimization
 
 ## 🛠️ Technology Stack
 
@@ -223,11 +191,15 @@ For complete documentation, visit the [[docs/index.md|Documentation Index]] whic
 - **Cache & Message Broker**: Redis 7+
 - **Task Queue**: Celery 5.3+ with Redis backend
 - **AI/ML**: 
-  - OpenAI GPT-4 for content generation
-  - Anthropic Claude for advanced reasoning
-  - ChromaDB for vector embeddings and semantic search
+  - **Multi-Provider LLM**: OpenAI GPT-4, Anthropic Claude, Groq (intelligent routing) → [[backend/app/services/llm_service.py|LLM Service]]
+  - **Vector Database**: ChromaDB for embeddings and semantic search → [[backend/app/services/vector_store_service.py|Vector Store]]
+  - **Content Generation**: Resume & cover letter AI generation
+  - **Job Matching**: AI-powered job recommendations with skill analysis
 - **Web Scraping**: BeautifulSoup4, Selenium, Playwright
 - **Authentication**: JWT tokens with bcrypt password hashing
+- **Job Preview API**: `/api/v1/jobs/available` returns lightweight `JobPreview` cards for onboarding widgets and personalization flows.
+- **Recommendation Feedback API**: `/api/v1/recommendations/{job_id}/feedback` accepts thumbs up/down payloads (`is_positive`, optional `reason`) aligned with the new frontend client.
+- **Credential Auth Flow**: `/api/v1/auth/login`, `/api/v1/auth/register`, `/api/v1/auth/logout`, and `/api/v1/auth/me` expose the simplified username/email + password flow used by the React AuthContext.
 - **API Documentation**: OpenAPI 3.0 (Swagger/ReDoc)
 
 ### Frontend
@@ -457,6 +429,7 @@ pytest
 # Frontend tests
 cd frontend
 npm test
+npm run test:a11y
 
 # End-to-end tests
 npm run test:e2e
@@ -480,6 +453,13 @@ See the complete [API Documentation](docs/api/API.md) for detailed endpoint info
 - **CORS**: Configurable Cross-Origin Resource Sharing
 - **Rate Limiting**: API rate limiting to prevent abuse
 - **SSL/TLS**: HTTPS support in production
+- **JWT & RBAC**: All `/api/v1` routes now validate `Authorization: Bearer <token>` headers issued by `/auth/login` unless `DISABLE_AUTH=true` (dev only). Use `JWT_SECRET_KEY`, `JWT_ALGORITHM`, and `JWT_EXPIRATION_HOURS` to tune cryptography and expiration, and set `DISABLE_AUTH=false` for staging/production to enforce RBAC via `User.is_admin`.
+- **Dependency & SAST Scanning**: `make security` now runs Bandit, Safety (`reports/safety-report.json`), `pip-audit` (`reports/pip_audit_report.json`), Semgrep SAST (`reports/semgrep-report.json`), and `npm audit --audit-level=high` (`reports/npm_audit_report.json`).
+- **Manual Run**:
+  ```bash
+  make security
+  ```
+  Install the dev extras (`pip install -e .[dev,ai,all]`) for Bandit/Safety/pip-audit and use `pipx install semgrep` (or `pip install semgrep` inside a virtualenv) to enable the SAST step locally.
 
 See [Security Best Practices](docs/deployment/DEPLOYMENT.md#security) for more details.
 
@@ -520,7 +500,7 @@ See [Security Best Practices](docs/deployment/DEPLOYMENT.md#security) for more d
 
 **Main branch is now unified and up to date.**
 
-See [TODO.md](TODO.md) for complete 320+ task breakdown across 6 phases.
+See [TODO.md](TODO.md) for the current phase-by-phase roadmap derived from the latest planning docs (the historical "320+ task" file is no longer available).
 
 **Other Features In Development**:
 - 🔄 Multi-user authentication system
@@ -529,25 +509,22 @@ See [TODO.md](TODO.md) for complete 320+ task breakdown across 6 phases.
 - 🔄 Mobile application
 - 🔄 Interview preparation tools
 
-## � AI Agent Coordination
+## 🤖 AI Agent & Contributor Coordination
 
-This project uses a **File-Level Task Partitioning** strategy for parallel development with multiple AI agents:
+Parallel development now relies on the shared planning artifacts that live in the repo (no hidden `.agents/` directory required):
 
-- **Gemini CLI**: Focused on migrations and architectural tasks (Task 1.4 ✅ complete)
-- **GitHub Copilot**: Built and merged new components (Tasks 1.5–1.7 ✅ complete)
-- **Zero-Conflict Design**: Each agent works on different files simultaneously
-- **Git Workflow**: Dedicated branches (`agent/gemini/*`, `agent/copilot/*`) with daily integration
+- **Current priorities**: `TODO.md` captures the active roadmap broken into phases with clear owners.
+- **Historical context**: `PLAN.md`, `PROJECT_STATUS.md`, and `RESEARCH.md` summarize the consolidation effort and open follow-ups.
+- **Branching**: Continue using feature branches (e.g., `features/*`, `chore/*`) and reference the relevant TODO task in your PR description.
 
-**For Contributors & AI Agents**:
-- **Quick Start**: See [.agents/START_HERE.md](.agents/START_HERE.md) for immediate action steps
-- **Coordination Rules**: [.agents/coordination-rules.md](.agents/coordination-rules.md)
-- **Task Assignments**: [.agents/task-partition-plan.md](.agents/task-partition-plan.md)
-- **Real-Time Status**: Run `.agents/shared/quick-status.sh`
+**Coordination tips for AI agents & humans**
 
-**Benefits**:
-- ⚡ 4-5x speedup (3-4 days vs 10-14 days)
-- 🎯 Zero merge conflicts by design
-- 💰 $0 cost (free tier AI tools only)
+1. Review `TODO.md` before starting work to avoid duplicate efforts.
+2. Record decisions or partial progress back into `TODO.md` / `PROJECT_STATUS.md` (or the associated issue) so the next agent has context.
+3. Keep changes scoped per task and link to the relevant section in PR summaries.
+4. Run `make quality-check` (or the targeted lint/test command) before handing off work to catch regressions early.
+
+This lightweight workflow replaces the deprecated `.agents/*` scripts and keeps coordination transparent inside the repository itself.
 - 📊 Real-time progress tracking with JSON state
 
 ## �🤝 Contributing
@@ -580,14 +557,14 @@ We welcome contributions! Please see our [Contributing Guide](frontend/CONTRIBUT
 
 ## 🔗 Project Links
 
-- [[TODO.md]] - Current development tasks and progress
-- [[PLAN.md]] - Implementation plan and roadmap
-- [[RESEARCH.md]] - Research findings and analysis
-- [[CHANGELOG.md]] - Version history and changes
-- [[./CONTRIBUTING.md]] - Contribution guidelines
-- [[docs/DEVELOPER_GUIDE.md|Developer Guide]] - Comprehensive development documentation
-- [[docs/USER_GUIDE.md|User Guide]] - User documentation and tutorials
-- [[docs/FRONTEND_QUICK_START.md|Frontend Quick Start]] - Frontend development setup
+- [TODO.md](TODO.md) - Current development tasks and progress
+- [PLAN.md](PLAN.md) - Implementation plan and roadmap
+- [RESEARCH.md](RESEARCH.md) - Research findings and analysis
+- [CHANGELOG.md](CHANGELOG.md) - Version history and changes
+- [CONTRIBUTING.md](CONTRIBUTING.md) - Contribution guidelines
+- [Developer Guide](docs/DEVELOPER_GUIDE.md) - Comprehensive development documentation
+- [User Guide](docs/USER_GUIDE.md) - User documentation and tutorials
+- [Frontend Quick Start](docs/FRONTEND_QUICK_START.md) - Frontend development setup
 
 ## �📄 License
 

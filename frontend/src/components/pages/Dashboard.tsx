@@ -5,6 +5,8 @@ import { useState, useEffect } from 'react';
 
 import { apiClient } from '@/lib/api';
 import { logger } from '@/lib/logger';
+import { DashboardWidget as DashboardWidgetType } from '@/types/dashboard';
+
 import {
   ApplicationStatusChart,
   ApplicationTimelineChart,
@@ -19,7 +21,6 @@ import {
   RecentActivityWidget,
   StatusBreakdownWidget,
 } from '../dashboard/widgets';
-import { DashboardWidget as DashboardWidgetType } from '@/types/dashboard';
 
 export default function Dashboard() {
   const [analytics, setAnalytics] = useState<any | null>(null);

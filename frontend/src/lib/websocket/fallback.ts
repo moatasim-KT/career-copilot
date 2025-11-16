@@ -1,5 +1,5 @@
+import { logger } from '@/lib/logger';
 
-import { Reconnector } from './reconnection';
 
 const POLLING_INTERVAL = 5 * 1000; // 5 seconds
 
@@ -7,7 +7,7 @@ export class FallbackTransport {
   private ws: WebSocket | null = null;
   private pollingIntervalId: NodeJS.Timeout | null = null;
 
-  constructor(private url: string, private onMessage: (data: any) => void) {}
+  constructor(private url: string, private onMessage: (data: any) => void) { }
 
   async connect() {
     try {
@@ -37,8 +37,8 @@ export class FallbackTransport {
         const response = await fetch(this.url.replace('ws', 'http'));
         const data = await response.json();
         this.onMessage(data);
-      } catch (__error) {
-        console.__error('Polling failed:', __error);
+      } catch (error) {
+        logger.error('Polling failed:', error);
       }
     }, POLLING_INTERVAL);
   }

@@ -1,9 +1,10 @@
 """Resume Upload model"""
 
-from sqlalchemy import Column, Integer, String, DateTime, JSON, ForeignKey, Text
+from sqlalchemy import JSON, Column, DateTime, ForeignKey, Integer, String, Text
 from sqlalchemy.orm import relationship
-from datetime import datetime
+
 from ..core.database import Base
+from ..utils import utc_now
 
 
 class ResumeUpload(Base):
@@ -26,8 +27,8 @@ class ResumeUpload(Base):
 	# Error handling
 	parsing_error = Column(Text, nullable=True)
 
-	created_at = Column(DateTime, default=datetime.utcnow)
-	updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+	created_at = Column(DateTime, default=utc_now)
+	updated_at = Column(DateTime, default=utc_now, onupdate=utc_now)
 
 	# Relationships
 	user = relationship("User")

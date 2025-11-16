@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0">
+  <channel>
+    <title>DataCareer Europe</title>
+    <item>
+      <title>Data Engineer (Zurich)</title>
+      <link>https://example.com/datacareer/data-engineer</link>
+      <description><![CDATA[Onsite role in Zurich, Switzerland. Build modern data stack.]]></description>
+      <author>SwissData</author>
+    </item>
+  </channel>
+</rss>

@@ -7,47 +7,49 @@
 
 'use client';
 
-import { motion, AnimatePresence } from 'framer-motion';
-import { X, Search, Save, Trash2, Download, Upload, Loader2 } from 'lucide-react';
+import { Search, Save, Trash2, Download, Upload, Loader2 } from 'lucide-react';
 import { useState, useEffect, useCallback } from 'react';
 
 import Button2 from '@/components/ui/Button2';
-import Card, { CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
+import Card2, { CardContent } from '@/components/ui/Card2';
 import Input from '@/components/ui/Input';
 import Modal, { ModalFooter } from '@/components/ui/Modal';
-import { slideVariants, fadeVariants, springConfigs } from '@/lib/animations';
+import { slideVariants, springConfigs } from '@/lib/animations';
+import { logger } from '@/lib/logger';
+import { m, AnimatePresence } from '@/lib/motion';
 import type { SearchGroup, SearchField, SavedSearch } from '@/types/search';
 
 import { QueryBuilder } from './QueryBuilder';
 
+
 export interface AdvancedSearchProps {
   /** Whether the panel is open */
   isOpen: boolean;
-  
+
   /** Callback when panel should close */
   onClose: () => void;
-  
+
   /** Callback when search should be applied */
   onSearch: (query: SearchGroup) => void;
-  
+
   /** Available fields for searching */
   fields: SearchField[];
-  
+
   /** Initial query (optional) */
   initialQuery?: SearchGroup;
-  
+
   /** Callback for live preview (optional) */
   onPreview?: (query: SearchGroup) => Promise<number>;
-  
+
   /** Callback to save search */
   onSave?: (search: SavedSearch) => Promise<void>;
-  
+
   /** Current result count (optional) */
   resultCount?: number;
-  
+
   /** Whether search is loading */
   isLoading?: boolean;
-  
+
   /** Custom class name */
   className?: string;
 }
@@ -114,7 +116,7 @@ export function AdvancedSearch({
         const count = await onPreview(query);
         setPreviewCount(count);
       } catch (error) {
-        console.error('Preview failed:', error);
+        logger.error('Preview failed:', error);
         setPreviewCount(null);
       } finally {
         setIsPreviewLoading(false);
@@ -155,7 +157,7 @@ export function AdvancedSearch({
       setSaveName('');
       setSaveDescription('');
     } catch (error) {
-      console.error('Failed to save search:', error);
+      logger.error('Failed to save search:', error);
     } finally {
       setIsSaving(false);
     }
@@ -186,7 +188,7 @@ export function AdvancedSearch({
           const imported = JSON.parse(event.target?.result as string);
           setQuery(imported);
         } catch (error) {
-          console.error('Failed to import query:', error);
+          logger.error('Failed to import query:', error);
           alert('Invalid query file');
         }
       };
@@ -204,7 +206,7 @@ export function AdvancedSearch({
         {isOpen && (
           <>
             {/* Backdrop */}
-            <motion.div
+            <m.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
@@ -214,7 +216,7 @@ export function AdvancedSearch({
             />
 
             {/* Slide-out Panel */}
-            <motion.div
+            <m.div
               variants={slideVariants.right}
               initial="hidden"
               animate="visible"
@@ -243,19 +245,30 @@ export function AdvancedSearch({
                     className="p-2 text-neutral-500 hover:text-neutral-700 dark:hover:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded-lg transition-colors"
                     aria-label="Close advanced search"
                   >
-                    <X className="h-6 w-6" />
+                    <svg
+                      className="h-6 w-6"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
+                      <line x1="18" y1="6" x2="6" y2="18" />
+                      <line x1="6" y1="6" x2="18" y2="18" />
+                    </svg>
                   </button>
                 </div>
 
                 {/* Preview Bar */}
                 {hasCriteria && (
-                  <motion.div
+                  <m.div
                     initial={{ opacity: 0, height: 0 }}
                     animate={{ opacity: 1, height: 'auto' }}
                     exit={{ opacity: 0, height: 0 }}
                     className="px-6 pb-4"
                   >
-                    <Card className="bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800">
+                    <Card2 className="bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800">
                       <CardContent className="p-3 flex items-center justify-between">
                         <div className="flex items-center space-x-2">
                           {isPreviewLoading ? (
@@ -282,8 +295,8 @@ export function AdvancedSearch({
                           )}
                         </div>
                       </CardContent>
-                    </Card>
-                  </motion.div>
+                    </Card2>
+                  </m.div>
                 )}
               </div>
 
@@ -314,7 +327,7 @@ export function AdvancedSearch({
                         <span>Save</span>
                       </Button2>
                     )}
-                    
+
                     <Button2
                       type="button"
                       variant="outline"
@@ -326,7 +339,7 @@ export function AdvancedSearch({
                     >
                       <Download className="h-4 w-4" />
                     </Button2>
-                    
+
                     <Button2
                       type="button"
                       variant="outline"
@@ -351,7 +364,7 @@ export function AdvancedSearch({
                       <Trash2 className="h-4 w-4" />
                       <span>Clear All</span>
                     </Button2>
-                    
+
                     <Button2
                       type="button"
                       onClick={handleApplySearch}
@@ -365,7 +378,7 @@ export function AdvancedSearch({
                   </div>
                 </div>
               </div>
-            </motion.div>
+            </m.div>
           </>
         )}
       </AnimatePresence>
@@ -385,7 +398,7 @@ export function AdvancedSearch({
             placeholder="e.g., Senior React Jobs in SF"
             autoFocus
           />
-          
+
           <Input
             label="Description (Optional)"
             value={saveDescription}

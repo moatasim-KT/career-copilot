@@ -5,8 +5,9 @@
 
 'use client';
 
-import { motion, AnimatePresence } from 'framer-motion';
 import React from 'react';
+
+import { m, AnimatePresence } from '@/lib/motion';
 
 // ============================================================================
 // Types
@@ -118,7 +119,7 @@ function FilterChip({ filter, isActive, onClick, onRemove }: FilterChipProps) {
     const classes = isActive ? colorClasses[color].active : colorClasses[color].inactive;
 
     return (
-        <motion.button
+        <m.button
             layout
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
@@ -148,7 +149,7 @@ function FilterChip({ filter, isActive, onClick, onRemove }: FilterChipProps) {
                     </svg>
                 </button>
             )}
-        </motion.button>
+        </m.button>
     );
 }
 
@@ -279,7 +280,7 @@ export function ActiveFilterTags({
 
             <AnimatePresence>
                 {activeKeys.map((key) => (
-                    <motion.div
+                    <m.div
                         key={key}
                         initial={{ opacity: 0, scale: 0.8 }}
                         animate={{ opacity: 1, scale: 1 }}
@@ -297,7 +298,7 @@ export function ActiveFilterTags({
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                             </svg>
                         </button>
-                    </motion.div>
+                    </m.div>
                 ))}
             </AnimatePresence>
 

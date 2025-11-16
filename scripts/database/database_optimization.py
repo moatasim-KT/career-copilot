@@ -18,6 +18,7 @@ from typing import Any
 sys.path.append(os.path.join(os.path.dirname(__file__), "..", ".."))
 
 from app.core.config import get_settings  # type: ignore[import-untyped]
+from app.utils.datetime import utc_now
 from sqlalchemy import MetaData, inspect, text
 from sqlalchemy.engine import Engine
 
@@ -459,7 +460,7 @@ class DatabaseOptimizer:
 			"configuration_analysis": config_analysis,
 			"optimization_recommendations": recommendations,
 			"sql_statements": self._generate_all_optimization_sql(),
-			"timestamp": datetime.utcnow().isoformat(),
+			"timestamp": utc_now().isoformat(),
 		}
 
 		# Log summary

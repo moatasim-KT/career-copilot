@@ -68,7 +68,7 @@ export default function CreateEventDialog({
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        
+
         if (!formData.title || !formData.startDate || !formData.startTime || !formData.endDate || !formData.endTime) {
             toast({
                 title: 'Missing Information',
@@ -80,7 +80,7 @@ export default function CreateEventDialog({
 
         try {
             setLoading(true);
-            
+
             const startDateTime = `${formData.startDate}T${formData.startTime}:00`;
             const endDateTime = `${formData.endDate}T${formData.endTime}:00`;
 

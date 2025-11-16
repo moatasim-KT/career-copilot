@@ -17,11 +17,11 @@
 'use client';
 
 import { useVirtualizer } from '@tanstack/react-virtual';
-import { motion, AnimatePresence } from 'framer-motion';
 import React, { useRef } from 'react';
 
 import JobCard from '@/components/ui/JobCard';
 import { fadeVariants, staggerItem } from '@/lib/animations';
+import { m, AnimatePresence } from '@/lib/motion';
 
 /**
  * Job interface - flexible to accommodate various job data shapes
@@ -107,7 +107,7 @@ export function VirtualJobList({
   // Handle empty state
   if (jobs.length === 0) {
     return (
-      <motion.div
+      <m.div
         className="text-center py-12 text-neutral-500 dark:text-neutral-400"
         variants={fadeVariants}
         initial="hidden"
@@ -134,7 +134,7 @@ export function VirtualJobList({
             Try adjusting your search or filter criteria
           </p>
         </div>
-      </motion.div>
+      </m.div>
     );
   }
 
@@ -162,7 +162,7 @@ export function VirtualJobList({
             const isSelected = selectedJobIds.includes(job.id);
 
             return (
-              <motion.div
+              <m.div
                 key={job.id}
                 variants={staggerItem}
                 initial="hidden"
@@ -192,12 +192,12 @@ export function VirtualJobList({
                   aria-label={`View job: ${job.title} at ${job.company}`}
                 >
                   <JobCard
-                    job={job}
+                    job={job as any}
                     isSelected={isSelected}
                     onSelect={() => onSelectJob(job.id)}
                   />
                 </div>
-              </motion.div>
+              </m.div>
             );
           })}
         </AnimatePresence>
@@ -256,7 +256,7 @@ export function VirtualJobListGrid({
   // Calculate grid columns based on viewport
   const getColumns = () => {
     if (typeof window === 'undefined') return columns.sm || 1;
-    
+
     const width = window.innerWidth;
     if (width >= 1280 && columns.xl) return columns.xl;
     if (width >= 1024 && columns.lg) return columns.lg;
@@ -294,7 +294,7 @@ export function VirtualJobListGrid({
 
   if (jobs.length === 0) {
     return (
-      <motion.div
+      <m.div
         className="text-center py-12 text-neutral-500 dark:text-neutral-400"
         variants={fadeVariants}
         initial="hidden"
@@ -321,7 +321,7 @@ export function VirtualJobListGrid({
             Try adjusting your search or filter criteria
           </p>
         </div>
-      </motion.div>
+      </m.div>
     );
   }
 
@@ -365,7 +365,7 @@ export function VirtualJobListGrid({
                   const isSelected = selectedJobIds.includes(job.id);
 
                   return (
-                    <motion.div
+                    <m.div
                       key={job.id}
                       variants={staggerItem}
                       initial="hidden"
@@ -384,11 +384,11 @@ export function VirtualJobListGrid({
                       aria-label={`View job: ${job.title} at ${job.company}`}
                     >
                       <JobCard
-                        job={job}
+                        job={job as any}
                         isSelected={isSelected}
                         onSelect={() => onSelectJob(job.id)}
                       />
-                    </motion.div>
+                    </m.div>
                   );
                 })}
               </div>

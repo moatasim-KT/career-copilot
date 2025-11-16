@@ -18,6 +18,8 @@
 import { onCLS, onFCP, onINP, onLCP, onTTFB } from 'web-vitals';
 import type { Metric } from 'web-vitals';
 
+import { logger } from '@/lib/logger';
+
 /**
  * Web Vitals metric thresholds
  * Based on Google's recommendations for good user experience
@@ -134,7 +136,7 @@ export class ConsoleAnalyticsProvider implements AnalyticsProvider {
       poor: '❌',
     }[metric.rating];
     
-    console.log(
+    logger.info(
       `${emoji} Web Vitals: ${metric.name}`,
       {
         value: metric.formattedValue,
@@ -203,7 +205,7 @@ export class CustomAPIProvider implements AnalyticsProvider {
         body: JSON.stringify(metric),
         keepalive: true,
       }).catch((error) => {
-        console.error('Failed to send Web Vitals metric:', error);
+        logger.error('Failed to send Web Vitals metric:', error);
       });
     }
   }
@@ -221,7 +223,7 @@ export class CompositeAnalyticsProvider implements AnalyticsProvider {
       try {
         provider.trackMetric(metric);
       } catch (error) {
-        console.error('Error tracking metric with provider:', error);
+        logger.error('Error tracking metric with provider:', error);
       }
     });
   }

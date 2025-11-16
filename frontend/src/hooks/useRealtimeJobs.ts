@@ -1,12 +1,12 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
+import { useEffect, useState, useCallback } from 'react';
 import { toast } from 'sonner';
 
-import { getWebSocketClient } from '@/lib/websocket';
-import { logger } from '@/lib/logger';
 import type { JobResponse } from '@/lib/api/client';
+import { logger } from '@/lib/logger';
+import { getWebSocketClient } from '@/lib/websocket';
 
 /**
  * Hook for real-time job recommendations via WebSocket
@@ -46,7 +46,6 @@ export function useRealtimeJobs() {
 
         const job = data.job;
         const matchScore = data.match_score || job.match_score;
-        const reason = data.reason || 'New job matches your profile';
 
         // Add to new jobs list
         setNewJobs(prev => [job, ...prev]);

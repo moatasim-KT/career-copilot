@@ -6,6 +6,8 @@
 import { useRouter } from 'next/navigation';
 import { useCallback, useRef } from 'react';
 
+import { logger } from '@/lib/logger';
+
 interface PrefetchOptions {
   /**
    * Delay in milliseconds before prefetching starts
@@ -34,7 +36,7 @@ interface PrefetchOptions {
  */
 export function useRoutePrefetch(
   href: string,
-  options: PrefetchOptions = {}
+  options: PrefetchOptions = {},
 ) {
   const router = useRouter();
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -50,7 +52,7 @@ export function useRoutePrefetch(
       prefetchedRef.current = true;
     } catch (error) {
       // Silently fail - prefetch is an optimization, not critical
-      console.debug('Route prefetch failed:', href, error);
+      logger.debug('Route prefetch failed:', href, error);
     }
   }, [router, href, enabled]);
 
@@ -106,7 +108,7 @@ export function usePrefetchRoutes(routes: string[], enabled = true) {
       try {
         router.prefetch(route);
       } catch (error) {
-        console.debug('Route prefetch failed:', route, error);
+        logger.debug('Route prefetch failed:', route, error);
       }
     });
   }, [router, routes, enabled]);

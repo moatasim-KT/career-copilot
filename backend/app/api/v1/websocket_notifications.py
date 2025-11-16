@@ -4,7 +4,6 @@ Provides WebSocket connection for receiving notifications in real-time
 """
 
 import json
-from datetime import datetime
 from typing import Optional
 
 from fastapi import APIRouter, Depends, Query, WebSocket, WebSocketDisconnect, status
@@ -15,6 +14,7 @@ from ...core.logging import get_logger
 from ...dependencies import get_current_user
 from ...models.user import User
 from ...services.websocket_service import websocket_service as websocket_notification_service
+from ...utils.datetime import utc_now
 
 logger = get_logger(__name__)
 
@@ -72,7 +72,7 @@ async def websocket_notifications_endpoint(
 					"type": "error",
 					"error": "Authentication failed",
 					"message": "Invalid or missing authentication token",
-					"timestamp": datetime.utcnow().isoformat(),
+					"timestamp": utc_now().isoformat(),
 				}
 			)
 			await websocket.close(code=status.WS_1008_POLICY_VIOLATION)
@@ -110,7 +110,7 @@ async def get_websocket_stats(
 	Returns information about active connections and channels.
 	"""
 	stats = websocket_notification_service.get_connection_stats()
-	return {"success": True, "stats": stats, "timestamp": datetime.utcnow().isoformat()}
+	return {"success": True, "stats": stats, "timestamp": utc_now().isoformat()}
 
 
 @router.get("/notifications/status")
@@ -122,7 +122,7 @@ async def get_user_connection_status(
 	"""
 	is_connected = websocket_notification_service.is_user_online(current_user.id)
 
-	return {"success": True, "user_id": current_user.id, "is_connected": is_connected, "timestamp": datetime.utcnow().isoformat()}
+	return {"success": True, "user_id": current_user.id, "is_connected": is_connected, "timestamp": utc_now().isoformat()}
 
 
 @router.post("/notifications/disconnect")
@@ -136,4 +136,4 @@ async def disconnect_user_websocket(
 	"""
 	await websocket_notification_service.disconnect_user(current_user.id)
 
-	return {"success": True, "message": "WebSocket connection disconnected", "user_id": current_user.id, "timestamp": datetime.utcnow().isoformat()}
+	return {"success": True, "message": "WebSocket connection disconnected", "user_id": current_user.id, "timestamp": utc_now().isoformat()}

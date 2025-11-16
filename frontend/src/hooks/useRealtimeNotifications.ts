@@ -1,11 +1,11 @@
 'use client';
 
-import { useEffect, useCallback } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
+import { useEffect, useCallback } from 'react';
 import { toast } from 'sonner';
 
-import { getWebSocketClient } from '@/lib/websocket';
 import { logger } from '@/lib/logger';
+import { getWebSocketClient } from '@/lib/websocket';
 
 /**
  * Hook for real-time notifications via WebSocket
@@ -37,7 +37,7 @@ interface NotificationPreferences {
 // Simple notification sound (can be replaced with actual audio file)
 const playNotificationSound = () => {
   if (typeof window === 'undefined') return;
-  
+
   try {
     // Create a simple beep sound using Web Audio API
     const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
@@ -90,10 +90,11 @@ export function useRealtimeNotifications() {
 
     // Add action button if provided
     if (data.actionUrl && data.actionLabel) {
+      const actionUrl = data.actionUrl;
       toastOptions.action = {
         label: data.actionLabel,
         onClick: () => {
-          window.location.href = data.actionUrl!;
+          window.location.href = actionUrl;
         },
       };
     }

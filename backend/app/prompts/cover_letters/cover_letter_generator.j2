@@ -1,0 +1,32 @@
+{% set tone_instructions = {
+    "professional": "Write in a professional, formal tone. Be respectful and business-like.",
+    "casual": "Write in a friendly, conversational tone. Be approachable but still professional.",
+    "enthusiastic": "Write with enthusiasm and energy. Show genuine excitement about the opportunity."
+} %}
+Write a personalized cover letter for the following job application:
+
+Job Details:
+- Position: {{ job_title }}
+- Company: {{ company }}
+- Location: {{ location }}
+- Required Skills: {{ tech_stack }}
+- Job Description: {{ job_description[:500] if job_description|length > 500 else job_description }}
+
+Candidate Details:
+- Name: {{ user_name }}
+- Skills: {{ user_skills }}
+- Experience Level: {{ experience_level }}
+
+Instructions:
+- {{ tone_instructions.get(tone, tone_instructions["professional"]) }}
+- Highlight relevant skills that match the job requirements
+- Keep it concise (3-4 paragraphs)
+- Include a strong opening and professional closing
+- Make it specific to this job and company
+- Avoid generic statements
+
+{% if custom_instructions %}
+Additional Instructions: {{ custom_instructions }}
+{% endif %}
+
+Please write the complete cover letter:

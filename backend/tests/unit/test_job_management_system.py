@@ -486,7 +486,7 @@ class TestJobManagementSystemAsync:
 		assert "not found" in result["error"].lower()
 
 	@pytest.mark.asyncio
-	@patch("app.services.job_scraping_service.JobScrapingService")
+	@patch("app.services.job_service.JobScrapingService")
 	async def test_process_jobs_for_user_success(self, mock_scraper_class, job_management, mock_db):
 		"""Test successful job processing for user"""
 		# Setup complete user
@@ -504,7 +504,7 @@ class TestJobManagementSystemAsync:
 		mock_query.first.return_value = complete_user
 
 		# Mock scraper - use the correct import path
-		with patch("app.services.job_scraping_service.JobScrapingService") as mock_scraper_class:
+		with patch("app.services.job_service.JobScrapingService") as mock_scraper_class:
 			mock_scraper = MagicMock()
 			mock_scraper_class.return_value = mock_scraper
 			mock_scraper.search_all_apis = AsyncMock(return_value=[])

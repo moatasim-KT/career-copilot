@@ -12,6 +12,8 @@
 import { CheckSquare, Square, Trash2, Archive, Tag, Download, RotateCcw } from 'lucide-react';
 import React, { useState, useCallback } from 'react';
 
+import { logger } from '@/lib/logger';
+
 export interface BulkItem {
     id: string | number;
     [key: string]: any;
@@ -112,7 +114,7 @@ export function BulkOperations<T extends BulkItem>({
                 await action.handler(selectedIds);
                 onSelectionChange([]);
             } catch (error) {
-                console.error(`Bulk action ${action.id} failed:`, error);
+                logger.error(`Bulk action ${action.id} failed:`, error);
             } finally {
                 setIsProcessing(false);
                 setCurrentAction(null);

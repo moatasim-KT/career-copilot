@@ -1,5 +1,8 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 
+import { logger } from '@/lib/logger';
+
+
 export interface UndoState<T = any> {
   actionId: string;
   actionName: string;
@@ -34,7 +37,7 @@ export function useBulkUndo<T = any>(options: UseBulkUndoOptions = {}) {
     actionId: string,
     actionName: string,
     previousState: T,
-    affectedIds: (string | number)[]
+    affectedIds: (string | number)[],
   ) => {
     // Clear any existing timeout
     if (timeoutRef.current) {
@@ -78,7 +81,7 @@ export function useBulkUndo<T = any>(options: UseBulkUndoOptions = {}) {
         timeoutRef.current = null;
       }
     } catch (error) {
-      console.error('Undo failed:', error);
+      logger.error('Undo failed:', error);
       throw error;
     } finally {
       setIsUndoing(false);

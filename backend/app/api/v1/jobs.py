@@ -12,7 +12,7 @@ from app.dependencies import get_current_user
 from ...core.database import get_db
 from ...models.job import Job
 from ...models.user import User
-from ...schemas.job import JobCreate, JobResponse, JobUpdate
+from ...schemas.job import JobCreate, JobPreview, JobPreviewCompany, JobPreviewSalary, JobResponse, JobUpdate
 from ...services.cache_service import cache_service
 
 # NOTE: This file has been converted to use AsyncSession.
@@ -73,7 +73,7 @@ async def search_jobs(
 			"skip": skip,
 			"limit": limit,
 		}
-		cache_key = f"job_search:{hashlib.md5(json.dumps(cache_params, sort_keys=True).encode()).hexdigest()}"
+		cache_key = f"job_search:{hashlib.md5(json.dumps(cache_params, sort_keys=True).encode(), usedforsecurity=False).hexdigest()}"
 
 		# Try to get from cache
 		if use_cache:
@@ -295,6 +295,56 @@ async def list_jobs(skip: int = 0, limit: int = 100, current_user: User = Depend
 		return jobs
 	except Exception as e:
 		raise HTTPException(status_code=500, detail=f"Error retrieving jobs: {e!s}")
+
+
+@router.get("/api/v1/jobs/available", response_model=List[JobPreview])
+async def get_available_jobs(
+	skip: int = 0,
+	limit: int = 10,
+	current_user: User = Depends(get_current_user),
+	db: AsyncSession = Depends(get_db),
+):
+	"""Return lightweight job previews used by onboarding widgets and personalization flows."""
+	if skip < 0:
+		raise HTTPException(status_code=400, detail="Skip parameter must be non-negative")
+	if limit < 1 or limit > 100:
+		raise HTTPException(status_code=400, detail="Limit must be between 1 and 100")
+
+	try:
+		preferred_statuses = ["not_applied", "saved", "interested"]
+		stmt = (
+			select(Job)
+			.where(Job.user_id == current_user.id, Job.status.in_(preferred_statuses))
+			.order_by(Job.created_at.desc())
+			.offset(skip)
+			.limit(limit)
+		)
+		result = await db.execute(stmt)
+		jobs = result.scalars().all()
+
+		previews: list[JobPreview] = []
+		for job in jobs:
+			salary = None
+			if any([job.salary_min, job.salary_max, job.currency]):
+				salary = JobPreviewSalary(min=job.salary_min, max=job.salary_max, currency=job.currency or "EUR")
+
+			previews.append(
+				JobPreview(
+					id=job.id,
+					title=job.title,
+					company=JobPreviewCompany(name=job.company),
+					location=job.location,
+					salary=salary,
+					type=job.job_type or "Full-time",
+					posted_at=job.created_at,
+					tags=job.tech_stack or [],
+					source=job.source,
+				)
+			)
+
+		return previews
+	except Exception as e:
+		raise HTTPException(status_code=500, detail=f"Error retrieving available jobs: {e!s}")
 
 
 @router.post("/api/v1/jobs", response_model=JobResponse)

@@ -9,9 +9,11 @@
 
 'use client';
 
-import { useEffect } from 'react';
 import { AlertCircle, RefreshCw, Home, Bug } from 'lucide-react';
+import { useEffect } from 'react';
+
 import { classifyError, formatErrorForLogging } from '@/lib/errorHandling';
+import { logger } from '@/lib/logger';
 
 interface ErrorProps {
   error: Error & { digest?: string };
@@ -22,7 +24,7 @@ export default function Error({ error, reset }: ErrorProps) {
   useEffect(() => {
     // Log error to console in development
     if (process.env.NODE_ENV === 'development') {
-      console.error('Error page:', error);
+      logger.error('Error page:', error);
     }
 
     // Log error for monitoring
@@ -35,7 +37,7 @@ export default function Error({ error, reset }: ErrorProps) {
 
     // In production, send to Sentry or similar
     if (process.env.NODE_ENV === 'production') {
-      console.error('[Error Monitoring]', errorLog);
+      logger.error('[Error Monitoring]', errorLog);
     }
   }, [error]);
 

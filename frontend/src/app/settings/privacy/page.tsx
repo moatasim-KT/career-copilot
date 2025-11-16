@@ -10,14 +10,14 @@
 
 'use client';
 
-import { useState } from 'react';
 import { Shield, Eye, Search, Share2, Cookie, Save } from 'lucide-react';
+import { useState } from 'react';
 
 import Button2 from '@/components/ui/Button2';
 import Card2 from '@/components/ui/Card2';
 import { Checkbox } from '@/components/ui/Checkbox';
 import Select2 from '@/components/ui/Select2';
-import { cn } from '@/lib/utils';
+import { logger } from '@/lib/logger';
 
 interface PrivacySettings {
   profileVisibility: 'public' | 'private' | 'connections';
@@ -89,11 +89,11 @@ export default function PrivacySettingsPage() {
       // await apiClient.user.updateSettings({ privacy: settings });
 
       setHasChanges(false);
-      
+
       // Show success message
-      console.log('Privacy settings saved:', settings);
+      logger.info('Privacy settings saved:', settings);
     } catch (error) {
-      console.error('Failed to save privacy settings:', error);
+      logger.error('Failed to save privacy settings:', error);
     } finally {
       setIsSaving(false);
     }

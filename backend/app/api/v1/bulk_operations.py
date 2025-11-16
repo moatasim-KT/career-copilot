@@ -88,7 +88,7 @@ async def bulk_create_jobs(
         logger.error(f"Error in bulk job creation for user {current_user.id}: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to create jobs: {str(e)}"
+            detail=f"Failed to create jobs: {e!s}"
         )
 
 
@@ -147,7 +147,7 @@ async def bulk_create_applications(
         logger.error(f"Error in bulk application creation for user {current_user.id}: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to create applications: {str(e)}"
+            detail=f"Failed to create applications: {e!s}"
         )
 
 
@@ -224,7 +224,7 @@ async def bulk_update_jobs(
         logger.error(f"Error in bulk job update for user {current_user.id}: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to update jobs: {str(e)}"
+            detail=f"Failed to update jobs: {e!s}"
         )
 
 
@@ -292,7 +292,7 @@ async def bulk_update_applications(
         logger.error(f"Error in bulk application update for user {current_user.id}: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to update applications: {str(e)}"
+            detail=f"Failed to update applications: {e!s}"
         )
 
 
@@ -365,7 +365,7 @@ async def bulk_delete_jobs(
         logger.error(f"Error in bulk job deletion for user {current_user.id}: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to delete jobs: {str(e)}"
+            detail=f"Failed to delete jobs: {e!s}"
         )
 
 
@@ -424,5 +424,5 @@ async def bulk_delete_applications(
         logger.error(f"Error in bulk application deletion for user {current_user.id}: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to delete applications: {str(e)}"
+            detail=f"Failed to delete applications: {e!s}"
         )

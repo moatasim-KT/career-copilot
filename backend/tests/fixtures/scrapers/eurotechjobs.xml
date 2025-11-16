@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0">
+  <channel>
+    <title>EuroTechJobs ML Feed</title>
+    <item>
+      <title>Senior Machine Learning Engineer at DeepMind</title>
+      <link>https://example.com/eurotechjobs/deepmind-ml</link>
+      <description><![CDATA[DeepMind is hiring in Berlin, Germany for onsite ML research.]]></description>
+      <author>DeepMind</author>
+    </item>
+    <item>
+      <title>Computer Vision Scientist at Zalando</title>
+      <link>https://example.com/eurotechjobs/zalando-cv</link>
+      <description><![CDATA[Role based in Berlin, Germany focusing on logistics vision data.]]></description>
+      <author>Zalando</author>
+    </item>
+  </channel>
+</rss>

@@ -2,7 +2,40 @@
 
 This directory contains documentation related to deploying the application.
 
-## Rollback Procedure
+## Quick Links
+- [[../index|Main Documentation Hub]]
+- [[../../README|Project README]]
+- [[PRODUCTION_CHECKLIST.md|Production Deployment Checklist]]
+- [[../../deployment/docker/README.md|Docker Deployment Guide]]
+- [[../../LOCAL_SETUP.md|Local Development Setup]]
+
+## Deployment Documentation
+
+### Production Deployment
+**Checklist**: [[PRODUCTION_CHECKLIST.md]]
+
+Pre-deployment verification:
+- Code review completion
+- Test coverage requirements
+- Security scanning
+- Performance benchmarks
+- Database migrations
+- Environment configuration
+- Monitoring setup
+- Rollback procedures
+
+### Docker Deployment
+**Location**: [[../../deployment/docker/README.md]]
+
+Container-based deployment with Docker Compose:
+- Backend service configuration
+- Frontend service configuration  
+- PostgreSQL database
+- Redis cache
+- Celery workers
+- Nginx reverse proxy
+
+### Rollback Procedure
 
 In the event of a failed deployment or a critical bug in production, follow these steps to roll back to a previous version of the application.
 

@@ -3,11 +3,11 @@
 
 
 
-import { motion, AnimatePresence } from 'framer-motion';
-import type { MotionProps } from 'framer-motion';
 import { Loader2 } from 'lucide-react';
 import { forwardRef, ReactNode, ButtonHTMLAttributes, useRef, useState } from 'react';
 
+import { m, AnimatePresence } from '@/lib/motion';
+import type { MotionProps } from '@/lib/motion';
 import { cn } from '@/lib/utils';
 
 export interface ButtonProps extends Omit<ButtonHTMLAttributes<HTMLButtonElement>, keyof MotionProps>, MotionProps {
@@ -73,14 +73,14 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
     // Determine glow class based on variant
     const getGlowClass = () => {
       if (!glow) return '';
-      
+
       const glowMap = {
         primary: isHovered ? 'glow-primary-hover' : 'glow-primary',
         gradient: isHovered ? 'glow-primary-hover' : 'glow-primary',
         success: isHovered ? 'glow-success-hover' : 'glow-success',
         destructive: isHovered ? 'glow-error-hover' : 'glow-error',
       };
-      
+
       return glowMap[variant as keyof typeof glowMap] || '';
     };
 
@@ -99,7 +99,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
     };
 
     return (
-      <motion.button
+      <m.button
         ref={(node) => {
           btnRef.current = node;
           if (typeof ref === 'function') ref(node);
@@ -123,75 +123,79 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
           pulse && 'pulse-glow',
           className,
         )}
+        aria-busy={loading || undefined}
         /* Touch device styles: remove hover, add active/pressed */
 
-        
-onClick = { handleClick }
-{...props }
+
+        onClick={handleClick}
+        {...props}
       >
-  {/* Ripple effect */ }
-  <AnimatePresence>
-{
-  ripple && rippleActive && (
-    <motion.span
-      key={`${ripple.x}-${ripple.y}`}
-      initial={{ opacity: 0.3, scale: 0 }}
-      animate={{ opacity: 0.15, scale: 6 }}
-      exit={{ opacity: 0, scale: 8 }}
-      transition={{ duration: 0.5, ease: 'easeOut' }}
-      style={{
-        position: 'absolute',
-        left: ripple.x,
-        top: ripple.y,
-        width: 24,
-        height: 24,
-        borderRadius: '50%',
-        background: 'currentColor',
-        pointerEvents: 'none',
-        zIndex: 1,
-        transform: 'translate(-50%, -50%)',
-      }}
-      onAnimationComplete={() => setRipple(null)}
-    />
-  )
-}
+        {/* Ripple effect */}
+        <AnimatePresence>
+          {
+            ripple && rippleActive && (
+              <m.span
+                key={`${ripple.x}-${ripple.y}`}
+                initial={{ opacity: 0.3, scale: 0 }}
+                animate={{ opacity: 0.15, scale: 6 }}
+                exit={{ opacity: 0, scale: 8 }}
+                transition={{ duration: 0.5, ease: 'easeOut' }}
+                style={{
+                  position: 'absolute',
+                  left: ripple.x,
+                  top: ripple.y,
+                  width: 24,
+                  height: 24,
+                  borderRadius: '50%',
+                  background: 'currentColor',
+                  pointerEvents: 'none',
+                  zIndex: 1,
+                  transform: 'translate(-50%, -50%)',
+                }}
+                onAnimationComplete={() => setRipple(null)}
+              />
+            )
+          }
         </AnimatePresence >
-  {/* Success animation (checkmark bounce) */ }
-  <AnimatePresence>
-{
-  success && !loading && (
-    <motion.span
-      key="success-check"
-      initial={{ scale: 0, opacity: 0 }}
-      animate={{ scale: 1.2, opacity: 1 }}
-      exit={{ scale: 0, opacity: 0 }}
-      transition={{ type: 'spring', stiffness: 400, damping: 20 }}
-      className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-10"
-    >
-      <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <motion.path
-          d="M5 10.5L9 14.5L15 7.5"
-          stroke="currentColor"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          initial={{ pathLength: 0 }}
-          animate={{ pathLength: 1 }}
-          transition={{ duration: 0.3 }}
-        />
-      </svg>
-    </motion.span>
-  )
-}
+        {/* Success animation (checkmark bounce) */}
+        <AnimatePresence>
+          {
+            success && !loading && (
+              <m.span
+                key="success-check"
+                initial={{ scale: 0, opacity: 0 }}
+                animate={{ scale: 1.2, opacity: 1 }}
+                exit={{ scale: 0, opacity: 0 }}
+                transition={{ type: 'spring', stiffness: 400, damping: 20 }}
+                className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-10"
+              >
+                <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <m.path
+                    d="M5 10.5L9 14.5L15 7.5"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    initial={{ pathLength: 0 }}
+                    animate={{ pathLength: 1 }}
+                    transition={{ duration: 0.3 }}
+                  />
+                </svg>
+              </m.span>
+            )
+          }
         </AnimatePresence >
-  {/* Button content */ }
-  < span className = { success && !loading ? 'opacity-0' : 'relative z-10 flex items-center gap-2'}>
-    { loading && <Loader2 className="h-4 w-4 animate-spin" />}
-{ !loading && icon && iconPosition === 'left' && icon }
-{ loading && loadingText ? loadingText : children }
-{ !loading && icon && iconPosition === 'right' && icon }
+        {/* Button content */}
+        < span className={success && !loading ? 'opacity-0' : 'relative z-10 flex items-center gap-2'}
+          aria-live={loading ? 'polite' : undefined}
+          aria-atomic={loading ? 'true' : undefined}
+        >
+          {loading && <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" focusable="false" />}
+          {!loading && icon && iconPosition === 'left' && icon}
+          {loading && loadingText ? loadingText : children}
+          {!loading && icon && iconPosition === 'right' && icon}
         </span >
-      </motion.button >
+      </m.button >
     );
   }
   ,

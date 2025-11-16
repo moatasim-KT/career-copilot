@@ -15,7 +15,7 @@ import hashlib
 import json
 import time
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import datetime
 from typing import Any, ClassVar, Tuple
 from uuid import UUID
 
@@ -25,6 +25,7 @@ from pydantic import BaseModel, Field
 from ..core.config import get_settings
 from ..core.exceptions import VectorStoreError
 from ..core.logging import get_logger
+from ..utils.datetime import utc_now
 from .chroma_client import get_chroma_client
 
 logger = get_logger(__name__)
@@ -56,8 +57,8 @@ class EmbeddingMetadata(BaseModel):
 	total_chunks: int
 	contract_type: str | None = None
 	risk_level: str | None = None
-	created_at: datetime = Field(default_factory=datetime.utcnow)
-	updated_at: datetime = Field(default_factory=datetime.utcnow)
+	created_at: datetime = Field(default_factory=utc_now)
+	updated_at: datetime = Field(default_factory=utc_now)
 
 	# Legal context metadata
 	jurisdiction: str | None = None
@@ -147,7 +148,7 @@ class EmbeddingStats:
 	total_contracts: int = 0
 	average_chunks_per_contract: float = 0.0
 	total_storage_size_mb: float = 0.0
-	last_updated: datetime = field(default_factory=datetime.utcnow)
+	last_updated: datetime = field(default_factory=utc_now)
 
 	# Performance metrics
 	average_embedding_time_ms: float = 0.0
@@ -201,7 +202,7 @@ class VectorStoreService:
 				metadata={
 					"description": "Contract text embeddings for similarity search",
 					"embedding_model": "text-embedding-ada-002",
-					"created_at": datetime.now(timezone.utc).isoformat(),
+					"created_at": utc_now().isoformat(),
 				},
 			)
 
@@ -211,7 +212,7 @@ class VectorStoreService:
 				metadata={
 					"description": "Legal precedent embeddings for case law search",
 					"embedding_model": "text-embedding-ada-002",
-					"created_at": datetime.now(timezone.utc).isoformat(),
+					"created_at": utc_now().isoformat(),
 				},
 			)
 
@@ -293,7 +294,7 @@ class VectorStoreService:
 					try:
 						reconstructed[key] = datetime.fromisoformat(value)
 					except (ValueError, TypeError):
-						reconstructed[key] = datetime.now(timezone.utc)
+						reconstructed[key] = utc_now()
 				elif key in ["parties", "key_terms"] and isinstance(value, str):
 					# Convert comma-separated strings back to lists
 					reconstructed[key] = [item.strip() for item in value.split(",") if item.strip()] if value else []
@@ -308,9 +309,9 @@ class VectorStoreService:
 
 			# Ensure required fields have default values
 			if "created_at" not in reconstructed:
-				reconstructed["created_at"] = datetime.now(timezone.utc)
+				reconstructed["created_at"] = utc_now()
 			if "updated_at" not in reconstructed:
-				reconstructed["updated_at"] = datetime.now(timezone.utc)
+				reconstructed["updated_at"] = utc_now()
 
 			return EmbeddingMetadata(**reconstructed)
 
@@ -687,7 +688,7 @@ class VectorStoreService:
 			try:
 				await self.initialize()
 			except Exception as e:
-				return {"status": "unhealthy", "error": f"Failed to initialize: {e}", "timestamp": datetime.now(timezone.utc).isoformat()}
+				return {"status": "unhealthy", "error": f"Failed to initialize: {e}", "timestamp": utc_now().isoformat()}
 
 		try:
 			# Test basic operations
@@ -710,11 +711,11 @@ class VectorStoreService:
 				"average_search_time_ms": stats.average_search_time_ms,
 				"cache_hit_rate": stats.cache_hit_rate,
 				"storage_size_mb": stats.total_storage_size_mb,
-				"timestamp": datetime.now(timezone.utc).isoformat(),
+				"timestamp": utc_now().isoformat(),
 			}
 
 		except Exception as e:
-			return {"status": "unhealthy", "error": str(e), "timestamp": datetime.now(timezone.utc).isoformat()}
+			return {"status": "unhealthy", "error": str(e), "timestamp": utc_now().isoformat()}
 
 
 # Global instance

@@ -18,7 +18,7 @@ const EnhancedDashboard = dynamic(
   {
     loading: () => <DashboardSkeleton />,
     ssr: false, // Disable SSR for grid layout as it needs window measurements
-  }
+  },
 );
 
 export default function LazyEnhancedDashboard() {

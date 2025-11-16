@@ -2,6 +2,13 @@
 
 Security tools and scripts for Career Copilot.
 
+## Quick Links
+- [[../../docs/index|Main Documentation Hub]]
+- [[../../frontend/docs/SECURITY_GUIDE.md|Frontend Security Guide]]
+- [[../../.github/instructions/snyk_rules.instructions.md|Snyk Security Rules]]
+- [[../../docs/DEVELOPER_GUIDE.md#security|Security Best Practices]]
+- [[../README.md|Scripts Documentation]]
+
 ## Scripts
 
 ### 1. `check_secrets.py`

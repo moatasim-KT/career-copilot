@@ -6,6 +6,7 @@
  */
 
 import { Application } from '@/components/ui/ApplicationCard';
+import { logger } from '@/lib/logger';
 
 /**
  * Benchmark result interface
@@ -59,7 +60,7 @@ export function generateBenchmarkApplications(count: number): Application[] {
  */
 export async function measureRenderTime(
   renderFn: () => void,
-  iterations: number = 5
+  iterations: number = 5,
 ): Promise<number> {
   const times: number[] = [];
 
@@ -83,13 +84,12 @@ export async function measureRenderTime(
 export async function measureScrollPerformance(
   element: HTMLElement,
   scrollDistance: number = 5000,
-  duration: number = 2000
+  duration: number = 2000,
 ): Promise<{ fps: number; scrollTime: number }> {
   return new Promise((resolve) => {
     const startTime = performance.now();
     let frameCount = 0;
     let lastFrameTime = startTime;
-    let animationId: number;
 
     const scroll = () => {
       const currentTime = performance.now();
@@ -106,7 +106,7 @@ export async function measureScrollPerformance(
       }
 
       if (progress < 1) {
-        animationId = requestAnimationFrame(scroll);
+        requestAnimationFrame(scroll);
       } else {
         const scrollTime = currentTime - startTime;
         const fps = Math.round((frameCount / scrollTime) * 1000);
@@ -114,7 +114,7 @@ export async function measureScrollPerformance(
       }
     };
 
-    animationId = requestAnimationFrame(scroll);
+    requestAnimationFrame(scroll);
   });
 }
 
@@ -135,12 +135,12 @@ export function measureMemoryUsage(): number {
 export async function runBenchmark(
   itemCounts: number[] = [100, 500, 1000, 5000],
   renderFn: (applications: Application[]) => void,
-  getScrollElement: () => HTMLElement | null
+  getScrollElement: () => HTMLElement | null,
 ): Promise<BenchmarkResult[]> {
   const results: BenchmarkResult[] = [];
 
   for (const count of itemCounts) {
-    console.log(`Running benchmark for ${count} applications...`);
+    logger.info(`Running benchmark for ${count} applications...`);
 
     // Generate test data
     const applications = generateBenchmarkApplications(count);
@@ -179,7 +179,7 @@ export async function runBenchmark(
       timestamp: new Date(),
     });
 
-    console.log(`Completed benchmark for ${count} applications`);
+    logger.info(`Completed benchmark for ${count} applications`);
   }
 
   return results;
@@ -191,9 +191,9 @@ export async function runBenchmark(
 export function formatBenchmarkResults(results: BenchmarkResult[]): string {
   const header = '| Items | Render Time (ms) | Scroll Time (ms) | Memory (MB) | FPS |';
   const separator = '|-------|------------------|------------------|-------------|-----|';
-  
-  const rows = results.map(result => 
-    `| ${result.itemCount} | ${result.renderTime} | ${result.scrollTime} | ${result.memoryUsed} | ${result.fps} |`
+
+  const rows = results.map(result =>
+    `| ${result.itemCount} | ${result.renderTime} | ${result.scrollTime} | ${result.memoryUsed} | ${result.fps} |`,
   );
 
   return [header, separator, ...rows].join('\n');
@@ -204,7 +204,7 @@ export function formatBenchmarkResults(results: BenchmarkResult[]): string {
  */
 export function compareBenchmarks(
   baseline: BenchmarkResult[],
-  current: BenchmarkResult[]
+  current: BenchmarkResult[],
 ): string {
   const comparisons: string[] = [];
 
@@ -242,9 +242,9 @@ export function exportBenchmarkResults(results: BenchmarkResult[]): string {
 export function saveBenchmarkResults(key: string, results: BenchmarkResult[]): void {
   try {
     localStorage.setItem(key, exportBenchmarkResults(results));
-    console.log(`Benchmark results saved to localStorage with key: ${key}`);
+    logger.info(`Benchmark results saved to localStorage with key: ${key}`);
   } catch (error) {
-    console.error('Failed to save benchmark results:', error);
+    logger.error('Failed to save benchmark results:', error);
   }
 }
 
@@ -255,7 +255,7 @@ export function loadBenchmarkResults(key: string): BenchmarkResult[] | null {
   try {
     const data = localStorage.getItem(key);
     if (!data) return null;
-    
+
     const results = JSON.parse(data);
     // Convert timestamp strings back to Date objects
     return results.map((result: any) => ({
@@ -263,7 +263,7 @@ export function loadBenchmarkResults(key: string): BenchmarkResult[] | null {
       timestamp: new Date(result.timestamp),
     }));
   } catch (error) {
-    console.error('Failed to load benchmark results:', error);
+    logger.error('Failed to load benchmark results:', error);
     return null;
   }
 }
@@ -283,6 +283,6 @@ export function loadBenchmarkResults(key: string): BenchmarkResult[] | null {
  *   () => document.querySelector('.virtual-list-container')
  * );
  * 
- * console.log(formatBenchmarkResults(results));
+ * logger.info(formatBenchmarkResults(results));
  * ```
  */

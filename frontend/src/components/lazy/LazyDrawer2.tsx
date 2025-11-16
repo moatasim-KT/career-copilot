@@ -16,7 +16,7 @@ const Drawer2 = dynamic(
   {
     loading: () => <Drawer2Skeleton />,
     ssr: false,
-  }
+  },
 );
 
 // Simple skeleton for drawer loading state

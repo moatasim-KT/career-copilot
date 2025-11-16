@@ -1,11 +1,10 @@
 """Job model"""
 
-from datetime import datetime
-
 from sqlalchemy import JSON, Column, DateTime, ForeignKey, Integer, String, Text
 from sqlalchemy.orm import relationship
 
 from ..core.database import Base
+from ..utils import utc_now
 
 
 class Job(Base):
@@ -32,8 +31,8 @@ class Job(Base):
 	status = Column(String, default="not_applied", index=True)  # not_applied, applied, interviewing, offer, rejected
 	notes = Column(Text)
 	date_applied = Column(DateTime, nullable=True)
-	created_at = Column(DateTime, default=datetime.utcnow, index=True)
-	updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+	created_at = Column(DateTime, default=utc_now, index=True)
+	updated_at = Column(DateTime, default=utc_now, onupdate=utc_now)
 	currency = Column(String)
 
 	# Deduplication fingerprint (MD5 hash of normalized title+company+location)

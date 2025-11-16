@@ -13,7 +13,7 @@
 import { X, ChevronRight, User, LogOut } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 
 import { useMobileDetection } from '@/hooks/useMobileDetection';
 import { useTouchGestures } from '@/hooks/useTouchGestures';

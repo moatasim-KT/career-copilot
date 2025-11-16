@@ -5,8 +5,10 @@
 
 'use client';
 
-import { motion, AnimatePresence } from 'framer-motion';
 import React, { useState, createContext, useContext, ReactNode } from 'react';
+
+import { logger } from '@/lib/logger';
+import { m, AnimatePresence } from '@/lib/motion';
 
 // ============================================================================
 // Types
@@ -115,7 +117,7 @@ export function FormWizard({
                     return;
                 }
             } catch (error) {
-                console.error('Step validation error:', error);
+                logger.error('Step validation error:', error);
                 setIsLoading(false);
                 return;
             }
@@ -128,7 +130,7 @@ export function FormWizard({
             try {
                 await onComplete(formData);
             } catch (error) {
-                console.error('Form completion error:', error);
+                logger.error('Form completion error:', error);
             } finally {
                 setIsLoading(false);
             }
@@ -254,7 +256,7 @@ export function WizardSteps({ children, className = '' }: WizardStepsProps) {
     return (
         <div className={`wizard-steps ${className}`}>
             <AnimatePresence mode="wait">
-                <motion.div
+                <m.div
                     key={currentStep}
                     initial={{ opacity: 0, x: 20 }}
                     animate={{ opacity: 1, x: 0 }}
@@ -262,7 +264,7 @@ export function WizardSteps({ children, className = '' }: WizardStepsProps) {
                     transition={{ duration: 0.3 }}
                 >
                     {childrenArray[currentStep]}
-                </motion.div>
+                </m.div>
             </AnimatePresence>
         </div>
     );

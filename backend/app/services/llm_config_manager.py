@@ -421,7 +421,13 @@ class QualityEvaluator:
 		return (length_score + structure_score) / 2
 
 	def _evaluate_accuracy(self, response: str, test: BenchmarkTest) -> float:
-		"""Evaluate accuracy (placeholder for more sophisticated checks)."""
+		"""Evaluate accuracy using heuristic-based analysis.
+
+		Checks for error indicators and confident language patterns.
+		Returns 0.3 for uncertain responses, 0.9 for confident responses, 0.7 otherwise.
+
+		Future enhancement: Could integrate semantic similarity with expected_output.
+		"""
 		response_lower = response.lower()
 
 		error_indicators = ["i don't know", "i'm not sure", "cannot determine", "insufficient information"]

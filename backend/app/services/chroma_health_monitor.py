@@ -12,6 +12,7 @@ from enum import Enum
 from typing import Any, Callable, Dict, List, Optional
 
 from ..core.logging import get_logger
+from ..utils.datetime import utc_now
 from .chroma_client import get_chroma_client
 
 logger = get_logger(__name__)
@@ -35,7 +36,7 @@ class HealthMetric:
 	status: HealthStatus
 	threshold: Optional[float] = None
 	message: Optional[str] = None
-	timestamp: datetime = field(default_factory=datetime.utcnow)
+	timestamp: datetime = field(default_factory=utc_now)
 
 
 @dataclass
@@ -44,7 +45,7 @@ class HealthReport:
 
 	overall_status: HealthStatus
 	metrics: List[HealthMetric]
-	timestamp: datetime = field(default_factory=datetime.utcnow)
+	timestamp: datetime = field(default_factory=utc_now)
 	uptime: Optional[timedelta] = None
 
 	def to_dict(self) -> Dict[str, Any]:

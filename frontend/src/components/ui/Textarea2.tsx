@@ -1,9 +1,9 @@
 'use client';
 
-import { motion, AnimatePresence } from 'framer-motion';
 import { forwardRef, TextareaHTMLAttributes, useState, useEffect } from 'react';
 
 import { errorMessageVariants, shakeVariants } from '@/lib/animations';
+import { m, AnimatePresence } from '@/lib/motion';
 import { cn } from '@/lib/utils';
 
 export interface Textarea2Props extends TextareaHTMLAttributes<HTMLTextAreaElement> {
@@ -86,7 +86,7 @@ export const Textarea2 = forwardRef<HTMLTextAreaElement, Textarea2Props>(
             <div className={cn('w-full', className)}>
                 <div className="flex items-center justify-between mb-1.5">
                     {label && (
-                        <motion.label 
+                        <m.label 
                             htmlFor={props.id} 
                             className="text-sm font-medium text-neutral-700"
                             initial={{ opacity: 0, y: -5 }}
@@ -95,22 +95,22 @@ export const Textarea2 = forwardRef<HTMLTextAreaElement, Textarea2Props>(
                         >
                             {label}
                             {required && <span className="ml-1 text-error-500">*</span>}
-                        </motion.label>
+                        </m.label>
                     )}
 
                     {showCount && maxLength && (
-                        <motion.span 
+                        <m.span 
                             className="text-xs text-neutral-500 dark:text-neutral-400"
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
                             transition={{ duration: 0.2, delay: 0.1 }}
                         >
                             {charCount}/{maxLength}
-                        </motion.span>
+                        </m.span>
                     )}
                 </div>
 
-                <motion.div
+                <m.div
                     animate={shouldShake ? 'shake' : 'default'}
                     variants={shakeVariants}
                 >
@@ -142,11 +142,11 @@ export const Textarea2 = forwardRef<HTMLTextAreaElement, Textarea2Props>(
                         }}
                         {...props}
                     />
-                </motion.div>
+                </m.div>
 
                 <AnimatePresence mode="wait">
                     {message && (
-                        <motion.p 
+                        <m.p 
                             key={message}
                             className={cn('mt-1.5 text-sm overflow-hidden', messageColor)}
                             initial="hidden"
@@ -155,7 +155,7 @@ export const Textarea2 = forwardRef<HTMLTextAreaElement, Textarea2Props>(
                             variants={errorMessageVariants}
                         >
                             {message}
-                        </motion.p>
+                        </m.p>
                     )}
                 </AnimatePresence>
             </div>

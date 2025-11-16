@@ -1,21 +1,21 @@
-import pytest
 import os
+
+import pytest
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
-from app.models.user import User
-from app.models.job import Job
-from app.models.application import Application
+
 from app.core.database import Base
+from app.models.application import Application
+from app.models.job import Job
+from app.models.user import User
 from app.schemas.job import JobCreate
-from datetime import datetime
+from app.utils.datetime import utc_now
 
 # Create test database
 
 
-
 @pytest.fixture(scope="module")
 def db_engine():
-	
 	Base.metadata.create_all(bind=engine)
 	yield engine
 	Base.metadata.drop_all(bind=engine)
@@ -137,7 +137,7 @@ def test_job_update(db_session: Session, test_user_id: int, test_job_ids: list):
 	# Test 1: Update job fields
 	job.title = "Lead Python Developer"
 	job.tech_stack = ["Python", "FastAPI", "PostgreSQL", "Redis"]
-	job.updated_at = datetime.utcnow()
+	job.updated_at = utc_now()
 	db_session.commit()
 	db_session.refresh(job)
 
@@ -148,8 +148,8 @@ def test_job_update(db_session: Session, test_user_id: int, test_job_ids: list):
 	# Test 2: Change status to 'applied' and verify date_applied is set
 	assert job.date_applied is None
 	job.status = "applied"
-	job.date_applied = datetime.utcnow()
-	job.updated_at = datetime.utcnow()
+	job.date_applied = utc_now()
+	job.updated_at = utc_now()
 	db_session.commit()
 	db_session.refresh(job)
 
@@ -158,7 +158,7 @@ def test_job_update(db_session: Session, test_user_id: int, test_job_ids: list):
 
 	# Test 3: Update other fields without changing status
 	job.notes = "Follow up next week"
-	job.updated_at = datetime.utcnow()
+	job.updated_at = utc_now()
 	db_session.commit()
 	db_session.refresh(job)
 

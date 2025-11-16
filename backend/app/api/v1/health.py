@@ -31,6 +31,7 @@ from app.monitoring.health.base import HealthStatus
 from app.monitoring.health.database import DatabaseHealthMonitor
 from app.monitoring.health.frontend import FrontendHealthChecker
 from app.schemas.health import HealthResponse
+from app.utils.datetime import utc_now
 
 logger = get_logger(__name__)
 settings = get_settings()
@@ -197,7 +198,7 @@ class HealthChecker:
 			return ServiceHealth(
 				name="vector_store",
 				status="healthy",
-				last_check=datetime.now(),
+				last_check=utc_now(),
 				response_time_ms=response_time,
 				details={"collections_count": len(collections)},
 			)
@@ -207,16 +208,14 @@ class HealthChecker:
 			return ServiceHealth(
 				name="vector_store",
 				status="degraded",
-				last_check=datetime.now(),
+				last_check=utc_now(),
 				response_time_ms=response_time,
 				error_message="ChromaDB not installed",
 			)
 
 		except Exception as e:
 			response_time = (time.time() - start_time) * 1000
-			return ServiceHealth(
-				name="vector_store", status="unhealthy", last_check=datetime.now(), response_time_ms=response_time, error_message=str(e)
-			)
+			return ServiceHealth(name="vector_store", status="unhealthy", last_check=utc_now(), response_time_ms=response_time, error_message=str(e))
 
 	async def check_ai_services_health(self) -> ServiceHealth:
 		"""Check AI services health."""
@@ -253,7 +252,7 @@ class HealthChecker:
 			return ServiceHealth(
 				name="ai_services",
 				status=status,
-				last_check=datetime.now(),
+				last_check=utc_now(),
 				response_time_ms=response_time,
 				error_message=error_message,
 				details=details,
@@ -261,9 +260,7 @@ class HealthChecker:
 
 		except Exception as e:
 			response_time = (time.time() - start_time) * 1000
-			return ServiceHealth(
-				name="ai_services", status="unhealthy", last_check=datetime.now(), response_time_ms=response_time, error_message=str(e)
-			)
+			return ServiceHealth(name="ai_services", status="unhealthy", last_check=utc_now(), response_time_ms=response_time, error_message=str(e))
 
 
 # Initialize health checker
@@ -355,7 +352,7 @@ async def health_check(db: AsyncSession = Depends(get_db)) -> dict[str, Any]:
 
 	return {
 		"status": overall_status,
-		"timestamp": datetime.now().isoformat(),
+		"timestamp": utc_now().isoformat(),
 		"components": components,
 	}
 
@@ -368,14 +365,14 @@ async def health_check_db(db: AsyncSession = Depends(get_db)) -> dict[str, Any]:
 		return {
 			"status": "healthy",
 			"database": "connected",
-			"timestamp": datetime.now().isoformat(),
+			"timestamp": utc_now().isoformat(),
 		}
 	except Exception as e:
 		return {
 			"status": "unhealthy",
 			"database": "disconnected",
 			"error": f"{e!s}",
-			"timestamp": datetime.now().isoformat(),
+			"timestamp": utc_now().isoformat(),
 		}
 
 
@@ -384,7 +381,7 @@ async def basic_health_check() -> HealthStatusModel:
 	"""Basic health check endpoint."""
 	current_env = get_current_environment()
 
-	return HealthStatusModel(status="healthy", timestamp=datetime.now(), environment=current_env, uptime_seconds=get_uptime())
+	return HealthStatusModel(status="healthy", timestamp=utc_now(), environment=current_env, uptime_seconds=get_uptime())
 
 
 @router.get("/health/detailed", response_model=DetailedHealthStatusModel)
@@ -420,7 +417,7 @@ async def detailed_health_check() -> DetailedHealthStatusModel:
 
 	return DetailedHealthStatusModel(
 		status=overall_status,
-		timestamp=datetime.now(),
+		timestamp=utc_now(),
 		environment=current_env,
 		uptime_seconds=get_uptime(),
 		services=services,
@@ -488,7 +485,7 @@ async def check_comprehensive_health() -> JSONResponse:
 				return res
 			except Exception as _e:
 				# Return a serializable degraded result
-				return {"status": "unhealthy", "error": str(_e), "last_check": datetime.now().isoformat()}
+				return {"status": "unhealthy", "error": str(_e), "last_check": utc_now().isoformat()}
 
 		backend_result = await _safe_check(BackendHealthChecker)
 		frontend_result = await _safe_check(FrontendHealthChecker)
@@ -549,7 +546,7 @@ async def readiness_probe() -> JSONResponse:
 
 		response = {
 			"ready": ready,
-			"timestamp": datetime.now().isoformat(),
+			"timestamp": utc_now().isoformat(),
 			"checks": {"critical_services": critical_services_ready, "database": database_ready},
 		}
 
@@ -558,7 +555,7 @@ async def readiness_probe() -> JSONResponse:
 
 	except Exception as e:
 		logger.error(f"Readiness check failed: {e}")
-		return JSONResponse(content={"ready": False, "error": str(e), "timestamp": datetime.now().isoformat()}, status_code=503)
+		return JSONResponse(content={"ready": False, "error": str(e), "timestamp": utc_now().isoformat()}, status_code=503)
 
 
 @router.get("/health/liveness")
@@ -571,13 +568,13 @@ async def liveness_probe() -> JSONResponse:
 		# Test logging system
 		logger.info("Liveness check performed")
 
-		response = {"alive": True, "timestamp": datetime.now().isoformat(), "uptime_seconds": uptime}
+		response = {"alive": True, "timestamp": utc_now().isoformat(), "uptime_seconds": uptime}
 
 		return JSONResponse(content=response, status_code=200)
 
 	except Exception as e:
 		logger.error(f"Liveness check failed: {e}")
-		return JSONResponse(content={"alive": False, "error": str(e), "timestamp": datetime.now().isoformat()}, status_code=503)
+		return JSONResponse(content={"alive": False, "error": str(e), "timestamp": utc_now().isoformat()}, status_code=503)
 
 
 @router.get("/health/startup")
@@ -589,27 +586,27 @@ async def startup_probe() -> dict[str, Any]:
 
 		# Consider startup complete after 30 seconds or when critical services are healthy
 		if uptime > 30:
-			return {"status": "started", "timestamp": datetime.now().isoformat(), "uptime_seconds": uptime}
+			return {"status": "started", "timestamp": utc_now().isoformat(), "uptime_seconds": uptime}
 
 		# Check critical services
 		db_health = await health_checker.check_database()
 		ai_health = await health_checker.check_ai_services_health()
 
 		if db_health.get("status") in ["healthy", "degraded"] and ai_health.status in ["healthy", "degraded"]:
-			return {"status": "started", "timestamp": datetime.now().isoformat(), "uptime_seconds": uptime}
+			return {"status": "started", "timestamp": utc_now().isoformat(), "uptime_seconds": uptime}
 		else:
 			raise HTTPException(
 				status_code=503,
 				detail={
 					"status": "starting",
-					"timestamp": datetime.now().isoformat(),
+					"timestamp": utc_now().isoformat(),
 					"uptime_seconds": uptime,
 					"services": {"database": db_health.get("status"), "ai_services": ai_health.status},
 				},
 			)
 
 	except Exception as e:
-		raise HTTPException(status_code=503, detail={"status": "starting", "timestamp": datetime.now().isoformat(), "error": str(e)}) from None
+		raise HTTPException(status_code=503, detail={"status": "starting", "timestamp": utc_now().isoformat(), "error": str(e)}) from None
 
 
 @router.get("/health/environment")
@@ -623,7 +620,7 @@ async def environment_info() -> dict[str, Any]:
 			"debug": getattr(settings, "debug", False),
 			"log_level": settings.log_level,
 		},
-		"timestamp": datetime.now().isoformat(),
+		"timestamp": utc_now().isoformat(),
 	}
 
 
@@ -669,7 +666,7 @@ async def unified_health_check() -> JSONResponse:
 		return JSONResponse(
 			content={
 				"status": "unhealthy",
-				"timestamp": datetime.now().isoformat(),
+				"timestamp": utc_now().isoformat(),
 				"error": str(e),
 			},
 			status_code=503,
@@ -713,7 +710,7 @@ async def unified_component_health(component: str) -> JSONResponse:
 				"status": "error",
 				"component": component,
 				"error": str(e),
-				"timestamp": datetime.now().isoformat(),
+				"timestamp": utc_now().isoformat(),
 			},
 			status_code=503,
 		)
@@ -746,7 +743,7 @@ async def health_analytics_summary(hours: int = 24) -> JSONResponse:
 		return JSONResponse(
 			content={
 				"error": str(e),
-				"timestamp": datetime.now().isoformat(),
+				"timestamp": utc_now().isoformat(),
 			},
 			status_code=500,
 		)
@@ -778,7 +775,7 @@ async def health_analytics_component(component: str, hours: int = 24) -> JSONRes
 			content={
 				"error": str(e),
 				"component": component,
-				"timestamp": datetime.now().isoformat(),
+				"timestamp": utc_now().isoformat(),
 			},
 			status_code=500,
 		)
@@ -808,7 +805,7 @@ async def health_availability_report(hours: int = 24) -> JSONResponse:
 		return JSONResponse(
 			content={
 				"error": str(e),
-				"timestamp": datetime.now().isoformat(),
+				"timestamp": utc_now().isoformat(),
 			},
 			status_code=500,
 		)
@@ -838,7 +835,7 @@ async def health_performance_trends(hours: int = 24) -> JSONResponse:
 		return JSONResponse(
 			content={
 				"error": str(e),
-				"timestamp": datetime.now().isoformat(),
+				"timestamp": utc_now().isoformat(),
 			},
 			status_code=500,
 		)
@@ -878,7 +875,7 @@ async def check_health_alerts(availability_threshold: float = 99.9) -> JSONRespo
 					"metric": "availability",
 					"current_value": uptime_pct,
 					"threshold": availability_threshold,
-					"timestamp": datetime.now().isoformat(),
+					"timestamp": utc_now().isoformat(),
 				}
 			)
 
@@ -895,7 +892,7 @@ async def check_health_alerts(availability_threshold: float = 99.9) -> JSONRespo
 							"metric": "component_health",
 							"component": component_name,
 							"status": status,
-							"timestamp": datetime.now().isoformat(),
+							"timestamp": utc_now().isoformat(),
 						}
 					)
 
@@ -912,7 +909,7 @@ async def check_health_alerts(availability_threshold: float = 99.9) -> JSONRespo
 				"current_health": current_health,
 				"availability_report": availability_report,
 				"threshold": availability_threshold,
-				"timestamp": datetime.now().isoformat(),
+				"timestamp": utc_now().isoformat(),
 			},
 			status_code=200 if not alerts_triggered else 503,
 		)
@@ -922,7 +919,7 @@ async def check_health_alerts(availability_threshold: float = 99.9) -> JSONRespo
 		return JSONResponse(
 			content={
 				"error": str(e),
-				"timestamp": datetime.now().isoformat(),
+				"timestamp": utc_now().isoformat(),
 			},
 			status_code=500,
 		)

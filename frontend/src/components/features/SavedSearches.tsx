@@ -6,31 +6,33 @@
 
 'use client';
 
-import { motion, AnimatePresence } from 'framer-motion';
 import { Save, Search, Edit, Trash2, Clock, Tag, ChevronDown } from 'lucide-react';
 import { useState, useEffect } from 'react';
 
 import Button2 from '@/components/ui/Button2';
-import Card, { CardContent } from '@/components/ui/Card';
+import Card2, { CardContent } from '@/components/ui/Card2';
 import Input from '@/components/ui/Input';
 import Modal, { ModalFooter } from '@/components/ui/Modal';
-import { fadeVariants, slideVariants, staggerContainer, staggerItem, springConfigs } from '@/lib/animations';
 import { useLocalStorage } from '@/hooks/useLocalStorage';
-import type { SavedSearch, SearchGroup } from '@/types/search';
+import { fadeVariants, slideVariants, staggerContainer, staggerItem, springConfigs } from '@/lib/animations';
+import { logger } from '@/lib/logger';
+import { m, AnimatePresence } from '@/lib/motion';
+import type { SavedSearch } from '@/types/search';
+
 
 export interface SavedSearchesProps {
   /** Callback when a saved search is loaded */
   onLoad: (search: SavedSearch) => void;
-  
+
   /** Callback to save a new search */
   onSave?: (search: SavedSearch) => Promise<void>;
-  
+
   /** Callback to delete a search */
   onDelete?: (searchId: string) => Promise<void>;
-  
+
   /** Context for saved searches (jobs, applications, etc.) */
   context: 'jobs' | 'applications';
-  
+
   /** Custom class name */
   className?: string;
 }
@@ -81,7 +83,6 @@ export function SavedSearches({
     setEditDescription(search.description || '');
     setShowEditModal(true);
   };
-
   const handleSaveEdit = async () => {
     if (!editingSearch || !editName.trim()) return;
 
@@ -92,14 +93,14 @@ export function SavedSearches({
     };
 
     setSavedSearches(prev =>
-      prev.map(s => s.id === editingSearch.id ? updatedSearch : s),
+      prev.map(s => (s.id === editingSearch.id ? updatedSearch : s)),
     );
 
     if (onSave) {
       try {
         await onSave(updatedSearch);
       } catch (error) {
-        console.error('Failed to save search:', error);
+        logger.error('Failed to save search:', error);
       }
     }
 
@@ -118,7 +119,7 @@ export function SavedSearches({
       try {
         await onDelete(searchId);
       } catch (error) {
-        console.error('Failed to delete search:', error);
+        logger.error('Failed to delete search:', error);
       }
     }
   };
@@ -157,14 +158,13 @@ export function SavedSearches({
         <AnimatePresence>
           {isOpen && (
             <>
-              {/* Backdrop */}
               <div
                 className="fixed inset-0 z-10"
                 onClick={() => setIsOpen(false)}
               />
 
               {/* Dropdown Content */}
-              <motion.div
+              <m.div
                 variants={slideVariants.down}
                 initial="hidden"
                 animate="visible"
@@ -172,10 +172,10 @@ export function SavedSearches({
                 transition={springConfigs.smooth}
                 className="absolute top-full left-0 mt-2 w-96 max-w-[calc(100vw-2rem)] z-20"
               >
-                <Card className="shadow-xl">
+                <Card2 className="shadow-xl">
                   <CardContent className="p-4">
                     {savedSearches.length === 0 ? (
-                      <motion.div
+                      <m.div
                         variants={fadeVariants}
                         initial="hidden"
                         animate="visible"
@@ -188,9 +188,9 @@ export function SavedSearches({
                         <p className="text-xs text-neutral-500 dark:text-neutral-500 mt-1">
                           Use Advanced Search to create and save complex queries
                         </p>
-                      </motion.div>
+                      </m.div>
                     ) : (
-                      <motion.div
+                      <m.div
                         variants={staggerContainer}
                         initial="hidden"
                         animate="visible"
@@ -198,7 +198,7 @@ export function SavedSearches({
                       >
                         <AnimatePresence mode="popLayout">
                           {sortedSearches.map((search) => (
-                            <motion.div
+                            <m.div
                               key={search.id}
                               variants={staggerItem}
                               layout
@@ -208,92 +208,101 @@ export function SavedSearches({
                                 transition: { duration: 0.2 },
                               }}
                             >
-                              <Card
-                                hover
-                                className="cursor-pointer transition-all duration-200"
+                              <div
+                                role="button"
+                                tabIndex={0}
                                 onClick={() => handleLoadSearch(search)}
+                                onKeyDown={(event) => {
+                                  if (event.key === 'Enter' || event.key === ' ') {
+                                    event.preventDefault();
+                                    handleLoadSearch(search);
+                                  }
+                                }}
+                                className="cursor-pointer transition-all duration-200 rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
                               >
-                                <CardContent className="p-3">
-                                  <div className="flex items-start justify-between">
-                                    <div className="flex-1 min-w-0">
-                                      <div className="flex items-center space-x-2 mb-1">
-                                        <Search className="h-4 w-4 text-blue-600 dark:text-blue-400 flex-shrink-0" />
-                                        <h4 className="text-sm font-medium text-neutral-900 dark:text-neutral-100 truncate">
-                                          {search.name}
-                                        </h4>
-                                      </div>
-                                      
-                                      {search.description && (
-                                        <p className="text-xs text-neutral-600 dark:text-neutral-400 line-clamp-2 mb-2">
-                                          {search.description}
-                                        </p>
-                                      )}
+                                <Card2 hover>
+                                  <CardContent className="p-3">
+                                    <div className="flex items-start justify-between">
+                                      <div className="flex-1 min-w-0">
+                                        <div className="flex items-center space-x-2 mb-1">
+                                          <Search className="h-4 w-4 text-blue-600 dark:text-blue-400 flex-shrink-0" />
+                                          <h4 className="text-sm font-medium text-neutral-900 dark:text-neutral-100 truncate">
+                                            {search.name}
+                                          </h4>
+                                        </div>
 
-                                      <div className="flex flex-wrap items-center gap-2 text-xs text-neutral-500 dark:text-neutral-500">
-                                        {search.resultCount !== undefined && (
-                                          <span className="flex items-center space-x-1">
-                                            <span>{search.resultCount} results</span>
-                                          </span>
+                                        {search.description && (
+                                          <p className="text-xs text-neutral-600 dark:text-neutral-400 line-clamp-2 mb-2">
+                                            {search.description}
+                                          </p>
                                         )}
-                                        
-                                        {search.lastUsedAt && (
-                                          <span className="flex items-center space-x-1">
-                                            <Clock className="h-3 w-3" />
-                                            <span>
-                                              {new Date(search.lastUsedAt).toLocaleDateString()}
+
+                                        <div className="flex flex-wrap items-center gap-2 text-xs text-neutral-500 dark:text-neutral-500">
+                                          {search.resultCount !== undefined && (
+                                            <span className="flex items-center space-x-1">
+                                              <span>{search.resultCount} results</span>
                                             </span>
-                                          </span>
-                                        )}
-                                        
-                                        {search.useCount && search.useCount > 0 && (
-                                          <span>Used {search.useCount}x</span>
-                                        )}
+                                          )}
 
-                                        {search.tags && search.tags.length > 0 && (
-                                          <div className="flex items-center space-x-1">
-                                            <Tag className="h-3 w-3" />
-                                            <span>{search.tags.join(', ')}</span>
-                                          </div>
-                                        )}
+                                          {search.lastUsedAt && (
+                                            <span className="flex items-center space-x-1">
+                                              <Clock className="h-3 w-3" />
+                                              <span>
+                                                {new Date(search.lastUsedAt).toLocaleDateString()}
+                                              </span>
+                                            </span>
+                                          )}
+
+                                          {search.useCount && search.useCount > 0 && (
+                                            <span>Used {search.useCount}x</span>
+                                          )}
+
+                                          {search.tags && search.tags.length > 0 && (
+                                            <div className="flex items-center space-x-1">
+                                              <Tag className="h-3 w-3" />
+                                              <span>{search.tags.join(', ')}</span>
+                                            </div>
+                                          )}
+                                        </div>
+                                      </div>
+
+                                      <div className="flex items-center space-x-1 ml-2">
+                                        <button
+                                          type="button"
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            handleEditSearch(search);
+                                          }}
+                                          className="p-1 text-neutral-500 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded transition-colors"
+                                          aria-label="Edit search"
+                                        >
+                                          <Edit className="h-4 w-4" />
+                                        </button>
+
+                                        <button
+                                          type="button"
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            handleDeleteSearch(search.id);
+                                          }}
+                                          className="p-1 text-neutral-500 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded transition-colors"
+                                          aria-label="Delete search"
+                                        >
+                                          <Trash2 className="h-4 w-4" />
+                                        </button>
                                       </div>
                                     </div>
-
-                                    <div className="flex items-center space-x-1 ml-2">
-                                      <button
-                                        type="button"
-                                        onClick={(e) => {
-                                          e.stopPropagation();
-                                          handleEditSearch(search);
-                                        }}
-                                        className="p-1 text-neutral-500 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded transition-colors"
-                                        aria-label="Edit search"
-                                      >
-                                        <Edit className="h-4 w-4" />
-                                      </button>
-                                      
-                                      <button
-                                        type="button"
-                                        onClick={(e) => {
-                                          e.stopPropagation();
-                                          handleDeleteSearch(search.id);
-                                        }}
-                                        className="p-1 text-neutral-500 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded transition-colors"
-                                        aria-label="Delete search"
-                                      >
-                                        <Trash2 className="h-4 w-4" />
-                                      </button>
-                                    </div>
-                                  </div>
-                                </CardContent>
-                              </Card>
-                            </motion.div>
+                                  </CardContent>
+                                </Card2>
+                              </div>
+                            </m.div>
                           ))}
                         </AnimatePresence>
-                      </motion.div>
+                      </m.div>
                     )}
                   </CardContent>
-                </Card>
-              </motion.div>
+                </Card2>
+              </m.div>
             </>
           )}
         </AnimatePresence>
@@ -314,7 +323,7 @@ export function SavedSearches({
             placeholder="e.g., Senior React Jobs in SF"
             autoFocus
           />
-          
+
           <Input
             label="Description (Optional)"
             value={editDescription}

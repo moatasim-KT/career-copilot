@@ -18,7 +18,7 @@ export const LazyPieChart = dynamic(
   {
     loading: () => <PieChartSkeleton />,
     ssr: false,
-  }
+  },
 );
 
 export const LazyBarChart = dynamic(
@@ -26,7 +26,7 @@ export const LazyBarChart = dynamic(
   {
     loading: () => <ChartSkeleton />,
     ssr: false,
-  }
+  },
 );
 
 export const LazyLineChart = dynamic(
@@ -34,7 +34,7 @@ export const LazyLineChart = dynamic(
   {
     loading: () => <LineChartSkeleton />,
     ssr: false,
-  }
+  },
 );
 
 export const LazyComposedChart = dynamic(
@@ -42,7 +42,7 @@ export const LazyComposedChart = dynamic(
   {
     loading: () => <ChartSkeleton />,
     ssr: false,
-  }
+  },
 );
 
 export const LazyAreaChart = dynamic(
@@ -50,7 +50,7 @@ export const LazyAreaChart = dynamic(
   {
     loading: () => <ChartSkeleton />,
     ssr: false,
-  }
+  },
 );
 
 export const LazyRadarChart = dynamic(
@@ -58,7 +58,7 @@ export const LazyRadarChart = dynamic(
   {
     loading: () => <ChartSkeleton />,
     ssr: false,
-  }
+  },
 );
 
 // Export chart components that are commonly used together
@@ -68,7 +68,7 @@ export const LazyChartComponents = {
   XAxis: dynamic(() => import('recharts').then((mod) => ({ default: mod.XAxis })), { ssr: false }),
   YAxis: dynamic(() => import('recharts').then((mod) => ({ default: mod.YAxis })), { ssr: false }),
   Tooltip: dynamic(() => import('recharts').then((mod) => ({ default: mod.Tooltip })), { ssr: false }),
-  Legend: dynamic(() => import('recharts').then((mod) => ({ default: mod.Legend })), { ssr: false }),
+  Legend: dynamic(() => import('recharts').then((mod) => ({ default: mod.Legend as any })), { ssr: false }),
   Bar: dynamic(() => import('recharts').then((mod) => ({ default: mod.Bar })), { ssr: false }),
   Line: dynamic(() => import('recharts').then((mod) => ({ default: mod.Line })), { ssr: false }),
   Area: dynamic(() => import('recharts').then((mod) => ({ default: mod.Area })), { ssr: false }),
@@ -86,7 +86,7 @@ interface ChartWrapperProps {
 
 export function ChartWrapper({ children, type = 'bar' }: ChartWrapperProps) {
   const SkeletonComponent = type === 'pie' ? PieChartSkeleton : type === 'line' ? LineChartSkeleton : ChartSkeleton;
-  
+
   return (
     <Suspense fallback={<SkeletonComponent />}>
       {children}

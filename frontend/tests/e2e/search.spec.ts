@@ -38,7 +38,8 @@ test.describe('Search Functionality', () => {
         await page.waitForTimeout(500);
 
         // Should show matching results
-        await expect(page.locator('[role="option"], .search-result')).toHaveCount.greaterThan(0);
+        const results = page.locator('[role="option"], .search-result');
+        await expect(results.first()).toBeVisible();
         await expect(page.locator('text=Software Engineer')).toBeVisible();
     });
 

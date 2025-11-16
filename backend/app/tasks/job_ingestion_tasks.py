@@ -187,8 +187,10 @@ def ingest_jobs_for_user_enhanced(self, user_id: int, max_jobs: int = 50) -> Dic
 
 @shared_task(bind=True, name="app.tasks.job_ingestion_tasks.test_job_sources", max_retries=1, default_retry_delay=300)
 def test_job_sources(self) -> Dict[str, Any]:
-	"""
-	Test all job ingestion sources to verify they're working
+	"""Run health checks across all configured job ingestion sources.
+
+	Returns:
+		Dictionary detailing per-source status plus aggregate pass/fail counts.
 	"""
 	db: Session = next(get_db())
 	settings = get_settings()
@@ -220,8 +222,14 @@ def test_job_sources(self) -> Dict[str, Any]:
 
 @shared_task(bind=True, name="app.tasks.job_ingestion_tasks.get_ingestion_statistics")
 def get_ingestion_statistics(self, user_id: int | None = None, days: int = 7) -> Dict[str, Any]:
-	"""
-	Get job ingestion statistics for monitoring
+	"""Return aggregate job-ingestion statistics for dashboards/monitoring.
+
+	Args:
+		user_id: Optional user identifier to scope the stats (defaults to global).
+		days: Rolling window of historic data to include.
+
+	Returns:
+		Dictionary produced by :class:`JobIngestionService` summarizing counts.
 	"""
 	db: Session = next(get_db())
 	settings = get_settings()
@@ -233,8 +241,13 @@ def get_ingestion_statistics(self, user_id: int | None = None, days: int = 7) ->
 
 @shared_task(bind=True, name="app.tasks.job_ingestion_tasks.cleanup_old_jobs")
 def cleanup_old_jobs(self, days_to_keep: int = 90) -> Dict[str, Any]:
-	"""
-	Clean up old job postings to prevent database bloat
+	"""Delete stale job postings older than the provided retention window.
+
+	Args:
+		days_to_keep: Number of days to retain untouched job records.
+
+	Returns:
+		Dictionary describing how many jobs were deleted along with status info.
 	"""
 	db: Session = next(get_db())
 

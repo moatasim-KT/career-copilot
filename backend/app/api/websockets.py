@@ -5,12 +5,12 @@ WebSocket endpoints for real-time progress updates and task management.
 """
 
 import asyncio
-from datetime import datetime, timezone
 from typing import Any, Dict, Set
 
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 
 from ..core.logging import get_logger
+from ..utils.datetime import utc_now
 
 
 # Avoid circular imports by importing services dynamically
@@ -55,7 +55,7 @@ class ConnectionManager:
 				await asyncio.sleep(self.heartbeat_interval)
 
 				# Send heartbeat to all connections
-				heartbeat_message = {"type": "heartbeat", "timestamp": datetime.now(timezone.utc).isoformat()}
+				heartbeat_message = {"type": "heartbeat", "timestamp": utc_now().isoformat()}
 
 				# Send to task connections
 				for task_id, connections in list(self.task_connections.items()):
@@ -90,7 +90,7 @@ class ConnectionManager:
 		self.connection_metadata[websocket] = {
 			"type": connection_type,
 			"identifier": identifier,
-			"connected_at": datetime.now(timezone.utc),
+			"connected_at": utc_now(),
 			"metadata": metadata or {},
 		}
 
@@ -111,7 +111,7 @@ class ConnectionManager:
 				"type": "connection_established",
 				"connection_type": connection_type,
 				"identifier": identifier,
-				"timestamp": datetime.now(timezone.utc).isoformat(),
+				"timestamp": utc_now().isoformat(),
 			}
 		)
 
@@ -135,14 +135,14 @@ class ConnectionManager:
 		"""Send message to all connections listening to a specific task."""
 		if task_id in self.task_connections:
 			# Add timestamp to message
-			message["timestamp"] = datetime.now(timezone.utc).isoformat()
+			message["timestamp"] = utc_now().isoformat()
 			await self._send_to_connections(self.task_connections[task_id], message)
 
 	async def broadcast_to_type(self, connection_type: str, message: dict):
 		"""Broadcast message to all connections of a specific type."""
 		if connection_type in self.active_connections:
 			# Add timestamp to message
-			message["timestamp"] = datetime.now(timezone.utc).isoformat()
+			message["timestamp"] = utc_now().isoformat()
 			await self._send_to_connections(self.active_connections[connection_type], message)
 
 	def get_connection_stats(self) -> dict[str, Any]:
@@ -191,7 +191,7 @@ async def websocket_progress_endpoint(websocket: WebSocket, task_id: str):
 
 		# Keep connection alive and handle incoming messages
 		update_interval = 2  # seconds
-		last_update = datetime.now(timezone.utc)
+		last_update = utc_now()
 
 		while True:
 			try:
@@ -206,7 +206,7 @@ async def websocket_progress_endpoint(websocket: WebSocket, task_id: str):
 				break
 
 			# Send periodic updates
-			now = datetime.now(timezone.utc)
+			now = utc_now()
 			if (now - last_update).total_seconds() >= update_interval:
 				if workflow_service:
 					# current_status = await workflow_service.get_task_status(task_id)
@@ -249,7 +249,7 @@ async def handle_client_message(websocket: WebSocket, task_id: str, message: dic
 
 	if message_type == "ping":
 		# Respond to ping with pong
-		await websocket.send_json({"type": "pong", "timestamp": datetime.now(timezone.utc).isoformat()})
+		await websocket.send_json({"type": "pong", "timestamp": utc_now().isoformat()})
 	elif message_type == "request_update":
 		# Client requesting immediate update
 		workflow_service = get_workflow_service()
@@ -308,7 +308,7 @@ async def websocket_dashboard_endpoint(websocket: WebSocket):
 
 		# Keep connection alive and send periodic updates
 		update_interval = 5  # seconds
-		last_update = datetime.now(timezone.utc)
+		last_update = utc_now()
 
 		while True:
 			try:
@@ -322,7 +322,7 @@ async def websocket_dashboard_endpoint(websocket: WebSocket):
 				break
 
 			# Send periodic updates
-			now = datetime.now(timezone.utc)
+			now = utc_now()
 			if (now - last_update).total_seconds() >= update_interval:
 				if workflow_service:
 					# active_tasks = await workflow_service.get_active_tasks()
@@ -362,7 +362,7 @@ async def handle_dashboard_message(websocket: WebSocket, message: dict):
 	message_type = message.get("type")
 
 	if message_type == "ping":
-		await websocket.send_json({"type": "pong", "timestamp": datetime.now(timezone.utc).isoformat()})
+		await websocket.send_json({"type": "pong", "timestamp": utc_now().isoformat()})
 	elif message_type == "request_stats":
 		connection_stats = manager.get_connection_stats()
 		await websocket.send_json({"type": "connection_stats", "data": connection_stats})
@@ -447,7 +447,7 @@ async def websocket_stats_endpoint(websocket: WebSocket):
 					"recent_completed": len(dashboard_data.get("recent_completed", [])),
 				},
 				"system": service_metrics.get("system_resources", {}),
-				"timestamp": datetime.now(timezone.utc).isoformat(),
+				"timestamp": utc_now().isoformat(),
 			}
 
 			await websocket.send_json({"type": "stats_update", "data": stats_data})

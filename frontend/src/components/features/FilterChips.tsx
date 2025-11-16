@@ -6,11 +6,11 @@
 
 'use client';
 
-import { motion, AnimatePresence } from 'framer-motion';
 import { X, Edit, Trash2 } from 'lucide-react';
 
 import Button2 from '@/components/ui/Button2';
 import { staggerContainer, staggerItem, springConfigs } from '@/lib/animations';
+import { m, AnimatePresence } from '@/lib/motion';
 import type { FilterChip, SearchGroup, SearchRule } from '@/types/search';
 
 export interface FilterChipsProps {
@@ -81,7 +81,7 @@ function formatValue(value: any, operator: string): string {
   // Truncate long values
   const str = String(value);
   if (str.length > 30) {
-    return str.substring(0, 27) + '...';
+    return `${str.substring(0, 27)}...`;
   }
 
   return str;
@@ -154,7 +154,7 @@ export function FilterChips({
   }
 
   return (
-    <motion.div
+    <m.div
       className={`flex flex-wrap items-center gap-2 ${className}`}
       variants={staggerContainer}
       initial="hidden"
@@ -173,7 +173,7 @@ export function FilterChips({
       {/* Filter Chips */}
       <AnimatePresence mode="popLayout">
         {chips.map((chip) => (
-          <motion.div
+          <m.div
             key={chip.id}
             variants={staggerItem}
             layout
@@ -215,13 +215,13 @@ export function FilterChips({
                 )}
               </div>
             </div>
-          </motion.div>
+          </m.div>
         ))}
       </AnimatePresence>
 
       {/* Clear All Button */}
       {chips.length > 1 && (
-        <motion.div
+        <m.div
           initial={{ opacity: 0, scale: 0.8 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ delay: 0.2 }}
@@ -236,9 +236,9 @@ export function FilterChips({
             <Trash2 className="h-3 w-3" />
             <span>Clear All</span>
           </Button2>
-        </motion.div>
+        </m.div>
       )}
-    </motion.div>
+    </m.div>
   );
 }
 

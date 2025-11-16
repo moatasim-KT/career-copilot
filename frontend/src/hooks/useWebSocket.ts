@@ -1,9 +1,6 @@
 
 import { useEffect, useRef, useState } from 'react';
 
-import { handleAnalyticsUpdate } from '../lib/websocket/analytics';
-import { handleApplicationStatusUpdate } from '../lib/websocket/applications';
-import { handleDashboardUpdate } from '../lib/websocket/dashboard';
 import { HealthMonitor } from '../lib/websocket/health';
 import { handleNotification } from '../lib/websocket/notifications';
 import { Reconnector } from '../lib/websocket/reconnection';

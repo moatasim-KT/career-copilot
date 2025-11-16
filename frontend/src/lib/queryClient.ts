@@ -6,6 +6,7 @@
  */
 
 import { QueryClient, QueryCache, MutationCache } from '@tanstack/react-query';
+
 import { logger } from './logger';
 
 /**
@@ -279,7 +280,7 @@ export async function prefetchQuery(
   queryClient: QueryClient,
   queryKey: readonly unknown[],
   queryFn: () => Promise<any>,
-  config?: Record<string, any>
+  config?: Record<string, any>,
 ) {
   await queryClient.prefetchQuery({
     queryKey,
@@ -293,7 +294,7 @@ export async function prefetchQuery(
  */
 export function invalidateQueries(
   queryClient: QueryClient,
-  queryKey: readonly unknown[]
+  queryKey: readonly unknown[],
 ) {
   return queryClient.invalidateQueries({ queryKey });
 }
@@ -304,7 +305,7 @@ export function invalidateQueries(
 export function setQueryData<T>(
   queryClient: QueryClient,
   queryKey: readonly unknown[],
-  data: T | ((old: T | undefined) => T)
+  data: T | ((old: T | undefined) => T),
 ) {
   return queryClient.setQueryData(queryKey, data);
 }
@@ -314,7 +315,7 @@ export function setQueryData<T>(
  */
 export function getQueryData<T>(
   queryClient: QueryClient,
-  queryKey: readonly unknown[]
+  queryKey: readonly unknown[],
 ): T | undefined {
   return queryClient.getQueryData(queryKey);
 }

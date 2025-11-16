@@ -41,13 +41,13 @@ export const SW_CONFIG = {
 export async function registerServiceWorker(): Promise<ServiceWorkerRegistration | undefined> {
     // Only register in production
     if (process.env.NODE_ENV !== 'production') {
-        console.log('[SW] Service worker not registered in development');
+        logger.info('[SW] Service worker not registered in development');
         return undefined;
     }
 
     // Check if service workers are supported
     if (typeof window === 'undefined' || !('serviceWorker' in navigator)) {
-        console.warn('[SW] Service workers are not supported');
+        logger.warn('[SW] Service workers are not supported');
         return undefined;
     }
 
@@ -56,7 +56,7 @@ export async function registerServiceWorker(): Promise<ServiceWorkerRegistration
             scope: '/',
         });
 
-        console.log('[SW] Service worker registered successfully:', registration.scope);
+        logger.info('[SW] Service worker registered successfully:', registration.scope);
 
         // Check for updates periodically
         setInterval(() => {
@@ -79,7 +79,7 @@ export async function registerServiceWorker(): Promise<ServiceWorkerRegistration
 
         return registration;
     } catch (error) {
-        console.error('[SW] Service worker registration failed:', error);
+        logger.error('[SW] Service worker registration failed:', error);
         return undefined;
     }
 }
@@ -99,12 +99,12 @@ export async function unregisterServiceWorker(): Promise<boolean> {
         const unregistered = await registration.unregister();
 
         if (unregistered) {
-            console.log('[SW] Service worker unregistered successfully');
+            logger.info('[SW] Service worker unregistered successfully');
         }
 
         return unregistered;
     } catch (error) {
-        console.error('[SW] Service worker unregistration failed:', error);
+        logger.error('[SW] Service worker unregistration failed:', error);
         return false;
     }
 }
@@ -184,3 +184,5 @@ export function useOnlineStatus() {
 // }, []);
 
 import React from 'react';
+
+import { logger } from '@/lib/logger';

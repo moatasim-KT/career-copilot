@@ -6,11 +6,13 @@ import logging
 from datetime import datetime, timedelta, timezone
 from typing import Any, Dict
 
+from celery.signals import task_failure, task_postrun, task_prerun, task_retry
+from sqlalchemy.orm import Session
+
 from app.celery import celery_app
 from app.core.config import get_settings
 from app.core.database import get_db
-from celery.signals import task_failure, task_postrun, task_prerun, task_retry
-from sqlalchemy.orm import Session
+from app.utils.datetime import utc_now
 
 settings = get_settings()
 from app.models.analytics import Analytics
@@ -27,7 +29,7 @@ class TaskMonitor:
 		"""Log task start with context"""
 		logger.info(
 			f"Task {task_name} [{task_id}] started",
-			extra={"task_name": task_name, "task_id": task_id, "args": args, "kwargs": kwargs, "timestamp": datetime.now(timezone.utc).isoformat()},
+			extra={"task_name": task_name, "task_id": task_id, "args": args, "kwargs": kwargs, "timestamp": utc_now().isoformat()},
 		)
 
 	@staticmethod
@@ -40,7 +42,7 @@ class TaskMonitor:
 				"task_id": task_id,
 				"result": str(result)[:500],  # Truncate long results
 				"runtime": runtime,
-				"timestamp": datetime.now(timezone.utc).isoformat(),
+				"timestamp": utc_now().isoformat(),
 			},
 		)
 
@@ -54,7 +56,7 @@ class TaskMonitor:
 				"task_id": task_id,
 				"error": str(error),
 				"traceback": traceback_str,
-				"timestamp": datetime.now(timezone.utc).isoformat(),
+				"timestamp": utc_now().isoformat(),
 			},
 		)
 
@@ -65,7 +67,7 @@ class TaskMonitor:
 			metrics_data = {
 				"task_id": task_id,
 				"status": status,
-				"timestamp": datetime.now(timezone.utc).isoformat(),
+				"timestamp": utc_now().isoformat(),
 				"runtime": runtime,
 				"error": error,
 			}
@@ -95,7 +97,7 @@ def task_prerun_handler(sender=None, task_id=None, task=None, args=None, kwargs=
 def task_postrun_handler(sender=None, task_id=None, task=None, args=None, kwargs=None, retval=None, state=None, **kwds):
 	"""Handle task post-run signal"""
 	if hasattr(task, "_start_time"):
-		runtime = (datetime.now(timezone.utc) - task._start_time).total_seconds()
+		runtime = (utc_now() - task._start_time).total_seconds()
 	else:
 		runtime = 0
 
@@ -178,7 +180,7 @@ def monitor_task_health() -> Dict[str, Any]:
 		db = next(get_db())
 		try:
 			# Get task metrics from last 24 hours
-			cutoff_time = datetime.now(timezone.utc) - timedelta(hours=24)
+			cutoff_time = utc_now() - timedelta(hours=24)
 
 			# Query task metrics
 			recent_metrics = db.query(Analytics).filter(Analytics.type.like("task_metrics_%"), Analytics.generated_at >= cutoff_time).all()
@@ -215,7 +217,7 @@ def monitor_task_health() -> Dict[str, Any]:
 					stats["success_rate"] = 100
 
 			health_report = {
-				"timestamp": datetime.now(timezone.utc).isoformat(),
+				"timestamp": utc_now().isoformat(),
 				"period_hours": 24,
 				"overall_stats": {"total_tasks": total_tasks, "failed_tasks": failed_tasks, "success_rate": success_rate, "avg_runtime": avg_runtime},
 				"task_stats": task_stats,
@@ -237,7 +239,7 @@ def monitor_task_health() -> Dict[str, Any]:
 	except Exception as e:
 		error_msg = f"Task health monitoring failed: {e!s}"
 		logger.error(error_msg)
-		return {"error": error_msg, "timestamp": datetime.now(timezone.utc).isoformat(), "health_status": "unknown"}
+		return {"error": error_msg, "timestamp": utc_now().isoformat(), "health_status": "unknown"}
 
 
 @celery_app.task(name="cleanup_task_metrics")
@@ -246,7 +248,7 @@ def cleanup_task_metrics() -> Dict[str, Any]:
 	try:
 		db = next(get_db())
 		try:
-			cutoff_time = datetime.now(timezone.utc) - timedelta(days=30)
+			cutoff_time = utc_now() - timedelta(days=30)
 
 			# Delete old task metrics
 			deleted_count = db.query(Analytics).filter(Analytics.type.like("task_metrics_%"), Analytics.generated_at < cutoff_time).delete()
@@ -255,7 +257,7 @@ def cleanup_task_metrics() -> Dict[str, Any]:
 
 			logger.info(f"Cleaned up {deleted_count} old task metrics")
 
-			return {"deleted_count": deleted_count, "cutoff_date": cutoff_time.isoformat(), "timestamp": datetime.now(timezone.utc).isoformat()}
+			return {"deleted_count": deleted_count, "cutoff_date": cutoff_time.isoformat(), "timestamp": utc_now().isoformat()}
 
 		finally:
 			db.close()
@@ -263,7 +265,7 @@ def cleanup_task_metrics() -> Dict[str, Any]:
 	except Exception as e:
 		error_msg = f"Task metrics cleanup failed: {e!s}"
 		logger.error(error_msg)
-		return {"error": error_msg, "timestamp": datetime.now(timezone.utc).isoformat()}
+		return {"error": error_msg, "timestamp": utc_now().isoformat()}
 
 
 @celery_app.task(name="get_task_status")
@@ -278,7 +280,7 @@ def get_task_status(task_id: str) -> Dict[str, Any]:
 			"status": result.status,
 			"result": result.result if result.ready() else None,
 			"traceback": result.traceback if result.failed() else None,
-			"timestamp": datetime.now(timezone.utc).isoformat(),
+			"timestamp": utc_now().isoformat(),
 		}
 
 		# Get additional info from database if available
@@ -300,7 +302,7 @@ def get_task_status(task_id: str) -> Dict[str, Any]:
 	except Exception as e:
 		error_msg = f"Failed to get task status: {e!s}"
 		logger.error(error_msg)
-		return {"task_id": task_id, "error": error_msg, "timestamp": datetime.now(timezone.utc).isoformat()}
+		return {"task_id": task_id, "error": error_msg, "timestamp": utc_now().isoformat()}
 
 
 @celery_app.task(name="system_health_check")
@@ -311,7 +313,7 @@ def system_health_check() -> Dict[str, Any]:
 		import redis
 		from sqlalchemy import text
 
-		health_report = {"timestamp": datetime.now(timezone.utc).isoformat(), "overall_status": "healthy", "components": {}}
+		health_report = {"timestamp": utc_now().isoformat(), "overall_status": "healthy", "components": {}}
 
 		# System resources check
 		try:
@@ -339,9 +341,9 @@ def system_health_check() -> Dict[str, Any]:
 		try:
 			db = next(get_db())
 			try:
-				start_time = datetime.now(timezone.utc)
+				start_time = utc_now()
 				db.execute(text("SELECT 1"))
-				response_time = (datetime.now(timezone.utc) - start_time).total_seconds()
+				response_time = (utc_now() - start_time).total_seconds()
 
 				health_report["components"]["database"] = {"status": "healthy", "response_time_seconds": response_time}
 
@@ -359,9 +361,9 @@ def system_health_check() -> Dict[str, Any]:
 		# Redis check
 		try:
 			r = redis.from_url(settings.REDIS_URL)
-			start_time = datetime.now(timezone.utc)
+			start_time = utc_now()
 			r.ping()
-			response_time = (datetime.now(timezone.utc) - start_time).total_seconds()
+			response_time = (utc_now() - start_time).total_seconds()
 
 			health_report["components"]["redis"] = {"status": "healthy", "response_time_seconds": response_time}
 
@@ -388,7 +390,7 @@ def system_health_check() -> Dict[str, Any]:
 	except Exception as e:
 		error_msg = f"System health check failed: {e!s}"
 		logger.error(error_msg)
-		return {"timestamp": datetime.now(timezone.utc).isoformat(), "overall_status": "error", "error": error_msg}
+		return {"timestamp": utc_now().isoformat(), "overall_status": "error", "error": error_msg}
 
 
 @celery_app.task(name="automated_backup")
@@ -411,7 +413,7 @@ def automated_backup(include_files: bool = True, compress: bool = True) -> Dict[
 	except Exception as e:
 		error_msg = f"Automated backup failed: {e!s}"
 		logger.error(error_msg)
-		return {"error": error_msg, "timestamp": datetime.now(timezone.utc).isoformat()}
+		return {"error": error_msg, "timestamp": utc_now().isoformat()}
 
 
 @celery_app.task(name="log_rotation")
@@ -429,11 +431,11 @@ def log_rotation() -> Dict[str, Any]:
 		rotated_files = []
 
 		# Rotate log files older than 1 day
-		cutoff_time = datetime.now(timezone.utc) - timedelta(days=1)
+		cutoff_time = utc_now() - timedelta(days=1)
 
 		for log_file in logs_dir.glob("*.log"):
 			if log_file.is_file():
-				file_time = datetime.fromtimestamp(log_file.stat().st_mtime)
+				file_time = datetime.fromtimestamp(log_file.stat().st_mtime, tz=timezone.utc)
 
 				if file_time < cutoff_time:
 					# Compress and rotate
@@ -456,19 +458,19 @@ def log_rotation() -> Dict[str, Any]:
 					)
 
 		# Clean up old compressed logs (keep 30 days)
-		old_cutoff = datetime.now(timezone.utc) - timedelta(days=30)
+		old_cutoff = utc_now() - timedelta(days=30)
 		deleted_files = []
 
 		for compressed_file in logs_dir.glob("*.log.gz"):
 			if compressed_file.is_file():
-				file_time = datetime.fromtimestamp(compressed_file.stat().st_mtime)
+				file_time = datetime.fromtimestamp(compressed_file.stat().st_mtime, tz=timezone.utc)
 
 				if file_time < old_cutoff:
 					compressed_file.unlink()
 					deleted_files.append(str(compressed_file))
 
 		result = {
-			"timestamp": datetime.now(timezone.utc).isoformat(),
+			"timestamp": utc_now().isoformat(),
 			"rotated_files": rotated_files,
 			"deleted_files": deleted_files,
 			"total_rotated": len(rotated_files),
@@ -481,4 +483,4 @@ def log_rotation() -> Dict[str, Any]:
 	except Exception as e:
 		error_msg = f"Log rotation failed: {e!s}"
 		logger.error(error_msg)
-		return {"error": error_msg, "timestamp": datetime.now(timezone.utc).isoformat()}
+		return {"error": error_msg, "timestamp": utc_now().isoformat()}

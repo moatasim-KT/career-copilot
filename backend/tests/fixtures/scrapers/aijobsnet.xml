@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0">
+  <channel>
+    <title>AI Jobs Europe</title>
+    <item>
+      <title>AI Scientist</title>
+      <link>https://example.com/aijobsnet/ai-scientist</link>
+      <description><![CDATA[Location: Amsterdam, Netherlands. Work on NLP platforms.]]></description>
+      <author>AI Labs</author>
+    </item>
+  </channel>
+</rss>

@@ -6,23 +6,23 @@
 
 'use client';
 
-import { motion, AnimatePresence } from 'framer-motion';
-import { Clock, Search, X, Trash2, ChevronDown } from 'lucide-react';
+import { Clock, Search, X, ChevronDown } from 'lucide-react';
 import { useState } from 'react';
 
 import Button2 from '@/components/ui/Button2';
-import Card, { CardContent } from '@/components/ui/Card';
-import { fadeVariants, slideVariants, staggerContainer, staggerItem, springConfigs } from '@/lib/animations';
+import Card2, { CardContent } from '@/components/ui/Card2';
 import { useRecentSearches } from '@/hooks/useRecentSearches';
+import { fadeVariants, slideVariants, staggerContainer, staggerItem, springConfigs } from '@/lib/animations';
+import { m, AnimatePresence } from '@/lib/motion';
 import type { RecentSearch, SearchGroup } from '@/types/search';
 
 export interface RecentSearchesProps {
   /** Callback when a recent search is loaded */
   onLoad: (query: SearchGroup) => void;
-  
+
   /** Context for recent searches (jobs, applications, etc.) */
   context: 'jobs' | 'applications';
-  
+
   /** Custom class name */
   className?: string;
 }
@@ -96,7 +96,7 @@ export function RecentSearches({
             />
 
             {/* Dropdown Content */}
-            <motion.div
+            <m.div
               variants={slideVariants.down}
               initial="hidden"
               animate="visible"
@@ -104,7 +104,7 @@ export function RecentSearches({
               transition={springConfigs.smooth}
               className="absolute top-full left-0 mt-2 w-96 max-w-[calc(100vw-2rem)] z-20"
             >
-              <Card className="shadow-xl">
+              <Card2 className="shadow-xl">
                 <CardContent className="p-4">
                   {/* Header */}
                   {recentSearches.length > 0 && (
@@ -123,7 +123,7 @@ export function RecentSearches({
                   )}
 
                   {recentSearches.length === 0 ? (
-                    <motion.div
+                    <m.div
                       variants={fadeVariants}
                       initial="hidden"
                       animate="visible"
@@ -136,9 +136,9 @@ export function RecentSearches({
                       <p className="text-xs text-neutral-500 dark:text-neutral-500 mt-1">
                         Your search history will appear here
                       </p>
-                    </motion.div>
+                    </m.div>
                   ) : (
-                    <motion.div
+                    <m.div
                       variants={staggerContainer}
                       initial="hidden"
                       animate="visible"
@@ -146,7 +146,7 @@ export function RecentSearches({
                     >
                       <AnimatePresence mode="popLayout">
                         {recentSearches.map((search) => (
-                          <motion.div
+                          <m.div
                             key={search.id}
                             variants={staggerItem}
                             layout
@@ -156,57 +156,66 @@ export function RecentSearches({
                               transition: { duration: 0.2 },
                             }}
                           >
-                            <Card
-                              hover
-                              className="cursor-pointer transition-all duration-200"
+                            <div
+                              role="button"
+                              tabIndex={0}
                               onClick={() => handleLoadSearch(search)}
+                              onKeyDown={(event) => {
+                                if (event.key === 'Enter' || event.key === ' ') {
+                                  event.preventDefault();
+                                  handleLoadSearch(search);
+                                }
+                              }}
+                              className="cursor-pointer transition-all duration-200 rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
                             >
-                              <CardContent className="p-3">
-                                <div className="flex items-start justify-between">
-                                  <div className="flex-1 min-w-0">
-                                    <div className="flex items-center space-x-2 mb-1">
-                                      <Search className="h-4 w-4 text-neutral-500 dark:text-neutral-400 flex-shrink-0" />
-                                      <p className="text-sm text-neutral-900 dark:text-neutral-100 truncate">
-                                        {search.label}
-                                      </p>
-                                    </div>
-                                    
-                                    <div className="flex flex-wrap items-center gap-2 text-xs text-neutral-500 dark:text-neutral-500">
-                                      <span className="flex items-center space-x-1">
-                                        <Clock className="h-3 w-3" />
-                                        <span>{formatRelativeTime(search.timestamp)}</span>
-                                      </span>
-                                      
-                                      {search.resultCount !== undefined && (
-                                        <span>
-                                          {search.resultCount} result{search.resultCount !== 1 ? 's' : ''}
-                                        </span>
-                                      )}
-                                    </div>
-                                  </div>
+                              <Card2 hover>
+                                <CardContent className="p-3">
+                                  <div className="flex items-start justify-between">
+                                    <div className="flex-1 min-w-0">
+                                      <div className="flex items-center space-x-2 mb-1">
+                                        <Search className="h-4 w-4 text-neutral-500 dark:text-neutral-400 flex-shrink-0" />
+                                        <p className="text-sm text-neutral-900 dark:text-neutral-100 truncate">
+                                          {search.label}
+                                        </p>
+                                      </div>
 
-                                  <button
-                                    type="button"
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      removeRecentSearch(search.id);
-                                    }}
-                                    className="p-1 text-neutral-500 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded transition-colors ml-2"
-                                    aria-label="Remove from recent searches"
-                                  >
-                                    <X className="h-4 w-4" />
-                                  </button>
-                                </div>
-                              </CardContent>
-                            </Card>
-                          </motion.div>
+                                      <div className="flex flex-wrap items-center gap-2 text-xs text-neutral-500 dark:text-neutral-500">
+                                        <span className="flex items-center space-x-1">
+                                          <Clock className="h-3 w-3" />
+                                          <span>{formatRelativeTime(search.timestamp)}</span>
+                                        </span>
+
+                                        {search.resultCount !== undefined && (
+                                          <span>
+                                            {search.resultCount} result{search.resultCount !== 1 ? 's' : ''}
+                                          </span>
+                                        )}
+                                      </div>
+                                    </div>
+
+                                    <button
+                                      type="button"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        removeRecentSearch(search.id);
+                                      }}
+                                      className="p-1 text-neutral-500 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded transition-colors ml-2"
+                                      aria-label="Remove from recent searches"
+                                    >
+                                      <X className="h-4 w-4" />
+                                    </button>
+                                  </div>
+                                </CardContent>
+                              </Card2>
+                            </div>
+                          </m.div>
                         ))}
                       </AnimatePresence>
-                    </motion.div>
+                    </m.div>
                   )}
                 </CardContent>
-              </Card>
-            </motion.div>
+              </Card2>
+            </m.div>
           </>
         )}
       </AnimatePresence>

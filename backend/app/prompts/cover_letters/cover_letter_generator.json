@@ -1,0 +1,45 @@
+{
+    "name": "cover_letter_generator",
+    "version": "2.0.0",
+    "description": "Advanced cover letter generation with tone control and skill matching",
+    "category": "cover_letters",
+    "author": "career_copilot",
+    "tags": [
+        "cover-letter",
+        "job-application",
+        "personalized",
+        "ats-optimized"
+    ],
+    "variables": [
+        "job_title",
+        "company",
+        "location",
+        "tech_stack",
+        "job_description",
+        "user_name",
+        "user_skills",
+        "experience_level",
+        "tone",
+        "custom_instructions"
+    ],
+    "default_values": {
+        "location": "Not specified",
+        "job_description": "Not provided",
+        "experience_level": "Not specified",
+        "tone": "professional",
+        "custom_instructions": ""
+    },
+    "validation_rules": {
+        "job_title": "required",
+        "company": "required",
+        "user_name": "required",
+        "user_skills": "required"
+    },
+    "tone_options": [
+        "professional",
+        "casual",
+        "enthusiastic"
+    ],
+    "created_at": "2025-11-16T00:00:00Z",
+    "last_updated": "2025-11-16T00:00:00Z"
+}

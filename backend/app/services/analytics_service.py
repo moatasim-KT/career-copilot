@@ -41,6 +41,7 @@ from ..schemas.analytics import (
 	TrendAnalysis,
 	TrendDataPoint,
 )
+from ..utils.datetime import utc_now
 from .analytics_cache_service import get_analytics_cache
 
 logger = logging.getLogger(__name__)
@@ -97,7 +98,7 @@ class AnalyticsService:
 		self._rate_limits: Dict[str, List[datetime]] = defaultdict(list)
 		self._batch_size = 100
 		self._flush_interval = timedelta(seconds=30)
-		self._last_flush = datetime.now(timezone.utc)
+		self._last_flush = utc_now()
 		self._circuit_breaker_failures = 0
 		self._circuit_breaker_threshold = 5
 		self._circuit_open = False
@@ -193,7 +194,7 @@ class AnalyticsService:
 
 	async def calculate_application_trends(self, user_id: int) -> ApplicationTrends:
 		"""Calculate application trends for daily, weekly, and monthly periods."""
-		today = datetime.now(timezone.utc).date()
+		today = utc_now().date()
 
 		# Daily trend
 		daily_trend = await self.calculate_trend_for_period(
@@ -295,7 +296,7 @@ class AnalyticsService:
 		top_companies = await self.get_top_companies_applied(user_id)
 
 		# Time-based counts
-		today = datetime.now(timezone.utc).date()
+		today = utc_now().date()
 
 		daily_result = await self.db.execute(
 			select(func.count()).select_from(Application).where(and_(Application.user_id == user_id, func.date(Application.applied_date) == today))
@@ -333,7 +334,7 @@ class AnalyticsService:
 			monthly_applications=monthly_applications,
 			daily_application_goal=daily_goal,
 			daily_goal_progress=round(goal_progress, 2),
-			generated_at=datetime.now(timezone.utc),
+			generated_at=utc_now(),
 			analysis_period_days=analysis_period_days,
 		)
 
@@ -452,7 +453,7 @@ class AnalyticsService:
 				outcome = getattr(interview, "outcome", "pending")
 				interview_outcomes[outcome] += 1
 
-			recent_cutoff = datetime.now(timezone.utc) - timedelta(days=days)
+			recent_cutoff = utc_now() - timedelta(days=days)
 			recent_applications = [
 				app for app in applications if getattr(app, "created_at", datetime.min.replace(tzinfo=timezone.utc)) >= recent_cutoff
 			]
@@ -492,7 +493,7 @@ class AnalyticsService:
 			if not self.db:
 				return {"error": "Database connection required"}
 
-			cutoff = datetime.now(timezone.utc) - timedelta(days=days)
+			cutoff = utc_now() - timedelta(days=days)
 
 			# Handle both sync and async session
 			if hasattr(self.db, "execute"):  # Sync session
@@ -567,7 +568,7 @@ class AnalyticsService:
 			if not self.db:
 				return 0.0
 
-			cutoff = datetime.now(timezone.utc) - timedelta(days=days)
+			cutoff = utc_now() - timedelta(days=days)
 
 			if hasattr(self.db, "query"):  # Sync session
 				job_views = self.db.query(func.count(Job.id)).filter(and_(Job.user_id == user_id, Job.date_added >= cutoff)).scalar() or 0
@@ -601,7 +602,7 @@ class AnalyticsService:
 			if not self.db:
 				return {}
 
-			cutoff = datetime.now(timezone.utc) - timedelta(days=days)
+			cutoff = utc_now() - timedelta(days=days)
 
 			if hasattr(self.db, "query"):  # Sync session
 				users = self.db.query(User).all()
@@ -662,7 +663,7 @@ class AnalyticsService:
 		# Check cache
 		if use_cache and self.cache and cache_key in self.cache._cache:
 			cached_data, cache_time = self.cache._cache[cache_key]
-			if datetime.now(timezone.utc) - cache_time < self._cache_ttl:
+			if utc_now() - cache_time < self._cache_ttl:
 				logger.debug(f"Returning cached metrics for user {user_id}")
 				return cached_data
 
@@ -715,7 +716,7 @@ class AnalyticsService:
 
 			# Cache result
 			if self.cache:
-				self.cache._cache[cache_key] = (result, datetime.now(timezone.utc))
+				self.cache._cache[cache_key] = (result, utc_now())
 
 			logger.info(f"Retrieved metrics for user {user_id} (timeframe: {timeframe})")
 			return result
@@ -734,7 +735,7 @@ class AnalyticsService:
 		Returns:
 		    Tuple of (start_date, end_date)
 		"""
-		now = datetime.now(timezone.utc)
+		now = utc_now()
 
 		if not timeframe or timeframe == "all":
 			return (None, None)
@@ -797,7 +798,7 @@ class AnalyticsService:
 			if not self.db:
 				return {"user_id": user_id, "error": "Database connection required"}
 
-			cutoff = datetime.now(timezone.utc) - timedelta(days=days)
+			cutoff = utc_now() - timedelta(days=days)
 
 			if hasattr(self.db, "query"):  # Sync session
 				user = self.db.query(User).filter(User.id == user_id).first()
@@ -850,7 +851,7 @@ class AnalyticsService:
 					"top_skills": [{"skill": skill, "demand": count} for skill, count in top_skills],
 					"user_skills_demand": user_skill_demand,
 				},
-				"analysis_date": datetime.now(timezone.utc).isoformat(),
+				"analysis_date": utc_now().isoformat(),
 			}
 
 		except Exception as e:
@@ -872,7 +873,7 @@ class AnalyticsService:
 			if not self.db:
 				return {"error": "Database connection required"}
 
-			cutoff = datetime.now(timezone.utc) - timedelta(days=days)
+			cutoff = utc_now() - timedelta(days=days)
 
 			if hasattr(self.db, "query"):  # Sync session
 				user = self.db.query(User).filter(User.id == user_id).first()
@@ -939,7 +940,7 @@ class AnalyticsService:
 					"avg_apps_per_week": round(avg_apps_per_week, 2),
 				},
 				"insights": insights,
-				"generated_at": datetime.now(timezone.utc).isoformat(),
+				"generated_at": utc_now().isoformat(),
 			}
 
 		except Exception as e:
@@ -1102,7 +1103,7 @@ class AnalyticsService:
 		)
 		offers = offers_result.scalar() or 0
 
-		week_ago = datetime.utcnow() - timedelta(days=7)
+		week_ago = utc_now() - timedelta(days=7)
 		recent_apps_result = await self.db.execute(
 			select(func.count()).select_from(Application).where(Application.user_id == user.id, Application.created_at >= week_ago)
 		)
@@ -1115,7 +1116,7 @@ class AnalyticsService:
 			"interviews_scheduled": interviews,
 			"offers_received": offers,
 			"recent_applications": recent_applications,
-			"last_updated": datetime.utcnow().isoformat(),
+			"last_updated": utc_now().isoformat(),
 		}
 
 	# ========================================================================

@@ -1,10 +1,10 @@
 'use client';
 
-import { AnimatePresence, motion } from 'framer-motion';
 import { X } from 'lucide-react';
 import { forwardRef, useEffect, useRef } from 'react';
 
 import { backdropVariants, modalVariants, slideVariants } from '@/lib/animations';
+import { AnimatePresence, m } from '@/lib/motion';
 import { cn } from '@/lib/utils';
 
 export interface Modal2Props {
@@ -85,7 +85,7 @@ export const Modal2 = forwardRef<HTMLDivElement, Modal2Props>(
         return (
             <AnimatePresence mode="wait">
                 {open && (
-                    <motion.div
+                    <m.div
                         className={cn(
                             'fixed inset-0 z-50 flex items-center justify-center',
                             overlayClassName,
@@ -103,7 +103,7 @@ export const Modal2 = forwardRef<HTMLDivElement, Modal2Props>(
                         <div className="absolute inset-0 glass" />
                         
                         {/* Modal content */}
-                        <motion.div
+                        <m.div
                             ref={ref || modalRef}
                             className={cn(
                                 'relative w-full rounded-xl bg-white dark:bg-neutral-900 shadow-xl outline-none',
@@ -143,8 +143,8 @@ export const Modal2 = forwardRef<HTMLDivElement, Modal2Props>(
                                 )}
                                 <div>{children}</div>
                             </div>
-                        </motion.div>
-                    </motion.div>
+                        </m.div>
+                    </m.div>
                 )}
             </AnimatePresence>
         );

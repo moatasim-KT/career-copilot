@@ -1,3 +1,5 @@
+import { logger } from '@/lib/logger';
+
 /**
  * Comprehensive Performance Testing Suite
  * 
@@ -163,7 +165,7 @@ export function getMemoryUsage(): PerformanceMetrics['memory'] {
  */
 export async function measureRenderTime(
   renderFn: () => void | Promise<void>,
-  iterations: number = 3
+  iterations: number = 3,
 ): Promise<number> {
   const times: number[] = [];
 
@@ -192,7 +194,7 @@ export async function measureRenderTime(
  */
 export async function measureScrollPerformance(
   element: HTMLElement,
-  duration: number = 3000
+  duration: number = 3000,
 ): Promise<PerformanceMetrics['scrollPerformance']> {
   const fpsMonitor = new FPSMonitor();
   const scrollHeight = element.scrollHeight - element.clientHeight;
@@ -293,9 +295,9 @@ export async function runBenchmark(
   virtualized: boolean,
   renderFn: () => void | Promise<void>,
   getScrollElement: () => HTMLElement | null,
-  deviceProfile: DeviceProfile = DEVICE_PROFILES.desktop
+  deviceProfile: DeviceProfile = DEVICE_PROFILES.desktop,
 ): Promise<BenchmarkResult> {
-  console.log(`Running benchmark: ${testName} (${itemCount} items, ${deviceProfile.name})`);
+  logger.info(`Running benchmark: ${testName} (${itemCount} items, ${deviceProfile.name})`);
 
   // Apply CPU throttling
   const cleanupThrottling = simulateCPUThrottling(deviceProfile.cpuSlowdown);
@@ -392,7 +394,7 @@ export async function runBenchmarkSuite(
   virtualized: boolean,
   renderFn: (count: number) => void | Promise<void>,
   getScrollElement: () => HTMLElement | null,
-  devices: DeviceProfile[] = [DEVICE_PROFILES.desktop, DEVICE_PROFILES.mobile]
+  devices: DeviceProfile[] = [DEVICE_PROFILES.desktop, DEVICE_PROFILES.mobile],
 ): Promise<BenchmarkResult[]> {
   const results: BenchmarkResult[] = [];
 
@@ -404,7 +406,7 @@ export async function runBenchmarkSuite(
         virtualized,
         () => renderFn(count),
         getScrollElement,
-        device
+        device,
       );
       results.push(result);
 
@@ -421,7 +423,7 @@ export async function runBenchmarkSuite(
  */
 export function comparePerformance(
   virtualizedResult: BenchmarkResult,
-  nonVirtualizedResult: BenchmarkResult
+  nonVirtualizedResult: BenchmarkResult,
 ): ComparisonResult {
   const renderTimeImprovement =
     ((nonVirtualizedResult.metrics.renderTime - virtualizedResult.metrics.renderTime) /
@@ -527,7 +529,7 @@ export function formatComparisonResults(comparisons: ComparisonResult[]): string
  */
 export function generatePerformanceReport(
   results: BenchmarkResult[],
-  comparisons?: ComparisonResult[]
+  comparisons?: ComparisonResult[],
 ): string {
   let report = '\n';
   report += '╔════════════════════════════════════════════════════════════╗\n';
@@ -574,7 +576,7 @@ export function generatePerformanceReport(
  */
 export function exportResults(
   results: BenchmarkResult[],
-  filename: string = 'performance-benchmark-results.json'
+  filename: string = 'performance-benchmark-results.json',
 ): void {
   const json = JSON.stringify(results, null, 2);
   const blob = new Blob([json], { type: 'application/json' });
@@ -594,9 +596,9 @@ export function exportResults(
 export function saveResults(key: string, results: BenchmarkResult[]): void {
   try {
     localStorage.setItem(key, JSON.stringify(results));
-    console.log(`Results saved to localStorage: ${key}`);
+    logger.info(`Results saved to localStorage: ${key}`);
   } catch (error) {
-    console.error('Failed to save results:', error);
+    logger.error('Failed to save results:', error);
   }
 }
 
@@ -614,7 +616,7 @@ export function loadResults(key: string): BenchmarkResult[] | null {
       timestamp: new Date(r.timestamp),
     }));
   } catch (error) {
-    console.error('Failed to load results:', error);
+    logger.error('Failed to load results:', error);
     return null;
   }
 }

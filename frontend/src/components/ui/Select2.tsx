@@ -1,10 +1,10 @@
 'use client';
 
-import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronDown } from 'lucide-react';
 import { forwardRef, SelectHTMLAttributes, ReactNode, useState, useEffect } from 'react';
 
 import { errorMessageVariants, shakeVariants } from '@/lib/animations';
+import { m, AnimatePresence } from '@/lib/motion';
 import { cn } from '@/lib/utils';
 
 export interface Select2Props extends Omit<SelectHTMLAttributes<HTMLSelectElement>, 'size'> {
@@ -70,7 +70,7 @@ export const Select2 = forwardRef<HTMLSelectElement, Select2Props>(
         return (
             <div className={cn('w-full', className)}>
                 {label && (
-                    <motion.label 
+                    <m.label 
                         htmlFor={props.id} 
                         className="mb-1.5 block text-sm font-medium text-neutral-700"
                         initial={{ opacity: 0, y: -5 }}
@@ -79,23 +79,23 @@ export const Select2 = forwardRef<HTMLSelectElement, Select2Props>(
                     >
                         {label}
                         {required && <span className="ml-1 text-error-500">*</span>}
-                    </motion.label>
+                    </m.label>
                 )}
 
-                <motion.div 
+                <m.div 
                     className="relative"
                     animate={shouldShake ? 'shake' : 'default'}
                     variants={shakeVariants}
                 >
                     {prefixIcon && (
-                        <motion.div 
+                        <m.div 
                             className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400 dark:text-neutral-500"
                             initial={{ opacity: 0, scale: 0.8 }}
                             animate={{ opacity: 1, scale: 1 }}
                             transition={{ duration: 0.2, ease: 'easeOut' }}
                         >
                             {prefixIcon}
-                        </motion.div>
+                        </m.div>
                     )}
 
                     <select
@@ -126,18 +126,18 @@ export const Select2 = forwardRef<HTMLSelectElement, Select2Props>(
                         {children}
                     </select>
 
-                    <motion.div
+                    <m.div
                         className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none"
                         animate={{ rotate: isFocused ? 180 : 0 }}
                         transition={{ duration: 0.2, ease: 'easeOut' }}
                     >
                         <ChevronDown className="h-4 w-4 text-neutral-400 dark:text-neutral-500" />
-                    </motion.div>
-                </motion.div>
+                    </m.div>
+                </m.div>
 
                 <AnimatePresence mode="wait">
                     {message && (
-                        <motion.p 
+                        <m.p 
                             key={message}
                             className={cn('mt-1.5 text-sm overflow-hidden', messageColor)}
                             initial="hidden"
@@ -146,7 +146,7 @@ export const Select2 = forwardRef<HTMLSelectElement, Select2Props>(
                             variants={errorMessageVariants}
                         >
                             {message}
-                        </motion.p>
+                        </m.p>
                     )}
                 </AnimatePresence>
             </div>

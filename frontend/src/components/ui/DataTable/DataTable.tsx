@@ -38,7 +38,7 @@ import { clsx } from 'clsx';
 import { ArrowUpDown, Search, X, ChevronDown, ChevronRight } from 'lucide-react';
 import React from 'react';
 
-import Button from '@/components/ui/Button';
+import Button from '@/components/ui/Button2';
 import { Checkbox } from '@/components/ui/Checkbox';
 import {
   DropdownMenu,
@@ -109,7 +109,7 @@ const DraggableHeader = ({ header }: { header: any }) => {
 };
 
 
-interface DataTableProps<TData, TValue> {
+export interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
   isLoading?: boolean;
@@ -133,7 +133,7 @@ export function DataTable<TData, TValue>({
     React.useState<VisibilityState>({});
   const [columnOrder, setColumnOrder] = React.useState<string[]>(
     columns.map((c, idx) =>
-      c.id ?? (typeof c.accessorKey === 'string' ? c.accessorKey : `col-${idx}`),
+      c.id ?? (typeof (c as any).accessorKey === 'string' ? (c as any).accessorKey : `col-${idx}`),
     ),
   );
 
@@ -227,7 +227,7 @@ export function DataTable<TData, TValue>({
     }),
   );
 
-  const handleDragEnd = (event) => {
+  const handleDragEnd = (event: any) => {
     const { active, over } = event;
     if (active.id !== over.id) {
       setColumnOrder((items) => {
@@ -252,8 +252,8 @@ export function DataTable<TData, TValue>({
         break;
     }
     const columnKeys = columns
-      .filter((col) => col.accessorKey)
-      .map((col) => col.accessorKey as keyof TData);
+      .filter((col) => (col as any).accessorKey)
+      .map((col) => (col as any).accessorKey as keyof TData);
     exportToCSV(dataToExport, columnKeys, 'datatable_export');
   };
 
@@ -265,7 +265,9 @@ export function DataTable<TData, TValue>({
             {row.getVisibleCells().map((cell) => (
               <div key={cell.id} className="flex justify-between">
                 <span className="font-medium">
-                  {flexRender(cell.column.columnDef.header, cell.getContext())}
+                  {typeof cell.column.columnDef.header === 'string'
+                    ? cell.column.columnDef.header
+                    : cell.column.id}
                 </span>
                 <span>{flexRender(cell.column.columnDef.cell, cell.getContext())}</span>
               </div>
@@ -373,7 +375,6 @@ export function DataTable<TData, TValue>({
                       >
                         <DraggableHeader
                           header={header}
-                          table={tableWithSelection}
                         />
                       </th>
                     ))}

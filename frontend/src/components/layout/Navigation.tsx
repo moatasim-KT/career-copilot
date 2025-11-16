@@ -13,13 +13,13 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useState, useEffect } from 'react';
 
-import { ThemeToggle } from '@/components/ui/ThemeToggle';
 import { LazyNotificationCenter } from '@/components/lazy';
-import { ConnectionStatusCompact } from '@/components/ui/ConnectionStatus';
 import { NotificationBadge } from '@/components/ui/Badge';
-import { cn } from '@/lib/utils';
-import { useRoutePrefetch } from '@/hooks/useRoutePrefetch';
+import { ConnectionStatusCompact } from '@/components/ui/ConnectionStatus';
+import { ThemeToggle } from '@/components/ui/ThemeToggle';
 import { useRealtimeJobs } from '@/hooks/useRealtimeJobs';
+import { useRoutePrefetch } from '@/hooks/useRoutePrefetch';
+import { cn } from '@/lib/utils';
 
 const navigationItems = [
   { href: '/dashboard', label: 'Dashboard', icon: BarChart3 },
@@ -57,7 +57,7 @@ function NavigationLink({ href, label, icon: Icon, isActive, onClick, className 
         isActive
           ? 'bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300'
           : 'text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-neutral-100 hover:bg-neutral-100 dark:hover:bg-neutral-800',
-        className
+        className,
       )}
     >
       <div className="relative">
@@ -92,7 +92,7 @@ function MobileNavigationLink({ href, label, icon: Icon, isActive, onClick }: Na
         'flex items-center space-x-3 w-full px-3 py-3 rounded-md text-base font-medium accent-transition relative',
         isActive
           ? 'bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300'
-          : 'text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-neutral-100 hover:bg-neutral-100 dark:hover:bg-neutral-800'
+          : 'text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-neutral-100 hover:bg-neutral-100 dark:hover:bg-neutral-800',
       )}
       style={{ minWidth: 44 }}
     >

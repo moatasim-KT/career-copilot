@@ -80,8 +80,8 @@ describe('ApplicationsPage', () => {
     jest.clearAllMocks();
     // Mock the API client
     jest.spyOn(api.apiClient, 'getApplications').mockResolvedValue({
-      data: mockApplications,
-      error: null,
+      data: mockApplications as any,
+      error: undefined,
     });
   });
 
@@ -191,7 +191,7 @@ describe('ApplicationsPage', () => {
   it('displays empty state with animations when no applications', async () => {
     jest.spyOn(api.apiClient, 'getApplications').mockResolvedValue({
       data: [],
-      error: null,
+      error: undefined,
     });
 
     render(<ApplicationsPage />);
@@ -205,7 +205,7 @@ describe('ApplicationsPage', () => {
 
   it('displays error message with animation', async () => {
     jest.spyOn(api.apiClient, 'getApplications').mockResolvedValue({
-      data: null,
+      data: undefined,
       error: 'Failed to load applications',
     });
 

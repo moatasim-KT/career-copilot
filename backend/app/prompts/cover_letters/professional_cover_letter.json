@@ -1,0 +1,30 @@
+{
+    "name": "professional_cover_letter",
+    "version": "1.0.0",
+    "description": "Professional cover letter template for formal job applications",
+    "author": "career-copilot",
+    "input_variables": [
+        "job_title",
+        "company",
+        "user_name",
+        "user_skills",
+        "experience_level",
+        "company_mission"
+    ],
+    "output_format": "text",
+    "estimated_tokens": 400,
+    "tags": [
+        "cover_letter",
+        "professional",
+        "formal"
+    ],
+    "model_recommendations": [
+        "gpt-4",
+        "claude-3-opus"
+    ],
+    "custom_metadata": {
+        "tone": "professional",
+        "formality": "high",
+        "recommended_length": "250-350 words"
+    }
+}

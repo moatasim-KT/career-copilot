@@ -8,7 +8,6 @@
 'use client';
 
 import dynamic from 'next/dynamic';
-import React from 'react';
 
 // Lazy load UndoToast
 const UndoToast = dynamic(
@@ -16,7 +15,7 @@ const UndoToast = dynamic(
   {
     loading: () => null, // No skeleton needed for toast - it's small and appears quickly
     ssr: false,
-  }
+  },
 );
 
 export default UndoToast;

@@ -11,6 +11,8 @@
 
 import { useEffect } from 'react';
 
+import { logger } from '@/lib/logger';
+
 export interface PerformanceMetric {
     name: string;
     value: number;
@@ -98,7 +100,7 @@ function reportMetric(metric: PerformanceMetric): void {
             }).catch(console.error);
         }
 
-        console.log(`[Performance] ${metric.name}:`, {
+        logger.info(`[Performance] ${metric.name}:`, {
             value: metric.value,
             rating: metric.rating,
         });
@@ -129,7 +131,7 @@ function measureLCP(): void {
 
         observer.observe({ type: 'largest-contentful-paint', buffered: true });
     } catch (error) {
-        console.error('Error measuring LCP:', error);
+        logger.error('Error measuring LCP:', error);
     }
 }
 
@@ -155,7 +157,7 @@ function measureFID(): void {
 
         observer.observe({ type: 'first-input', buffered: true });
     } catch (error) {
-        console.error('Error measuring FID:', error);
+        logger.error('Error measuring FID:', error);
     }
 }
 
@@ -188,7 +190,7 @@ function measureCLS(): void {
             });
         });
     } catch (error) {
-        console.error('Error measuring CLS:', error);
+        logger.error('Error measuring CLS:', error);
     }
 }
 
@@ -215,7 +217,7 @@ function measureFCP(): void {
 
         observer.observe({ type: 'paint', buffered: true });
     } catch (error) {
-        console.error('Error measuring FCP:', error);
+        logger.error('Error measuring FCP:', error);
     }
 }
 
@@ -238,7 +240,7 @@ function measureTTFB(): void {
             });
         }
     } catch (error) {
-        console.error('Error measuring TTFB:', error);
+        logger.error('Error measuring TTFB:', error);
     }
 }
 
@@ -271,7 +273,7 @@ function measureINP(): void {
 
         observer.observe({ type: 'event', buffered: true });
     } catch (error) {
-        console.error('Error measuring INP:', error);
+        logger.error('Error measuring INP:', error);
     }
 }
 
@@ -354,7 +356,7 @@ export function getPerformanceMetrics(): CoreWebVitals {
             };
         }
     } catch (error) {
-        console.error('Error getting performance metrics:', error);
+        logger.error('Error getting performance metrics:', error);
     }
 
     return metrics;

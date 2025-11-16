@@ -10,15 +10,16 @@
 
 'use client';
 
-import { useState } from 'react';
 import { Sun, Moon, Monitor, Save, Check } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { useState } from 'react';
 
 import Button2 from '@/components/ui/Button2';
-import Card2 from '@/components/ui/Card2';
 import Select2 from '@/components/ui/Select2';
 import { useDarkMode } from '@/hooks/useDarkMode';
+import { logger } from '@/lib/logger';
+import { m } from '@/lib/motion';
 import { cn } from '@/lib/utils';
+
 
 type UIDensity = 'comfortable' | 'compact';
 type FontSize = 'small' | 'medium' | 'large';
@@ -44,7 +45,7 @@ const fontSizes = [
 ];
 
 export default function AppearanceSettingsPage() {
-  const { theme, setTheme, isDark } = useDarkMode();
+  const { theme, setTheme } = useDarkMode();
   const [settings, setSettings] = useState<AppearanceSettings>({
     density: 'comfortable',
     language: 'en',
@@ -66,19 +67,19 @@ export default function AppearanceSettingsPage() {
       // await apiClient.user.updateSettings({ appearance: settings });
 
       // Apply font size
-      document.documentElement.style.fontSize = 
+      document.documentElement.style.fontSize =
         settings.fontSize === 'small' ? '14px' :
-        settings.fontSize === 'large' ? '18px' : '16px';
+          settings.fontSize === 'large' ? '18px' : '16px';
 
       // Apply density
       document.documentElement.setAttribute('data-density', settings.density);
 
       setHasChanges(false);
-      
+
       // Show success message
-      console.log('Appearance settings saved:', settings);
+      logger.info('Appearance settings saved:', settings);
     } catch (error) {
-      console.error('Failed to save appearance settings:', error);
+      logger.error('Failed to save appearance settings:', error);
     } finally {
       setIsSaving(false);
     }
@@ -113,7 +114,7 @@ export default function AppearanceSettingsPage() {
               'relative p-4 rounded-lg border-2 transition-all hover:border-primary-300 dark:hover:border-primary-600',
               theme === 'light'
                 ? 'border-primary-600 dark:border-primary-500 bg-primary-50 dark:bg-primary-900/20'
-                : 'border-neutral-200 dark:border-neutral-700'
+                : 'border-neutral-200 dark:border-neutral-700',
             )}
           >
             <div className="flex flex-col items-center gap-3">
@@ -130,13 +131,13 @@ export default function AppearanceSettingsPage() {
               </div>
             </div>
             {theme === 'light' && (
-              <motion.div
+              <m.div
                 initial={{ scale: 0 }}
                 animate={{ scale: 1 }}
                 className="absolute top-2 right-2 w-6 h-6 rounded-full bg-primary-600 dark:bg-primary-500 flex items-center justify-center"
               >
                 <Check className="w-4 h-4 text-white" />
-              </motion.div>
+              </m.div>
             )}
           </button>
 
@@ -147,7 +148,7 @@ export default function AppearanceSettingsPage() {
               'relative p-4 rounded-lg border-2 transition-all hover:border-primary-300 dark:hover:border-primary-600',
               theme === 'dark'
                 ? 'border-primary-600 dark:border-primary-500 bg-primary-50 dark:bg-primary-900/20'
-                : 'border-neutral-200 dark:border-neutral-700'
+                : 'border-neutral-200 dark:border-neutral-700',
             )}
           >
             <div className="flex flex-col items-center gap-3">
@@ -164,13 +165,13 @@ export default function AppearanceSettingsPage() {
               </div>
             </div>
             {theme === 'dark' && (
-              <motion.div
+              <m.div
                 initial={{ scale: 0 }}
                 animate={{ scale: 1 }}
                 className="absolute top-2 right-2 w-6 h-6 rounded-full bg-primary-600 dark:bg-primary-500 flex items-center justify-center"
               >
                 <Check className="w-4 h-4 text-white" />
-              </motion.div>
+              </m.div>
             )}
           </button>
 
@@ -181,7 +182,7 @@ export default function AppearanceSettingsPage() {
               'relative p-4 rounded-lg border-2 transition-all hover:border-primary-300 dark:hover:border-primary-600',
               theme === 'system'
                 ? 'border-primary-600 dark:border-primary-500 bg-primary-50 dark:bg-primary-900/20'
-                : 'border-neutral-200 dark:border-neutral-700'
+                : 'border-neutral-200 dark:border-neutral-700',
             )}
           >
             <div className="flex flex-col items-center gap-3">
@@ -198,13 +199,13 @@ export default function AppearanceSettingsPage() {
               </div>
             </div>
             {theme === 'system' && (
-              <motion.div
+              <m.div
                 initial={{ scale: 0 }}
                 animate={{ scale: 1 }}
                 className="absolute top-2 right-2 w-6 h-6 rounded-full bg-primary-600 dark:bg-primary-500 flex items-center justify-center"
               >
                 <Check className="w-4 h-4 text-white" />
-              </motion.div>
+              </m.div>
             )}
           </button>
         </div>
@@ -227,7 +228,7 @@ export default function AppearanceSettingsPage() {
               'relative p-4 rounded-lg border-2 transition-all text-left hover:border-primary-300 dark:hover:border-primary-600',
               settings.density === 'comfortable'
                 ? 'border-primary-600 dark:border-primary-500 bg-primary-50 dark:bg-primary-900/20'
-                : 'border-neutral-200 dark:border-neutral-700'
+                : 'border-neutral-200 dark:border-neutral-700',
             )}
           >
             <div className="flex items-start justify-between">
@@ -240,13 +241,13 @@ export default function AppearanceSettingsPage() {
                 </div>
               </div>
               {settings.density === 'comfortable' && (
-                <motion.div
+                <m.div
                   initial={{ scale: 0 }}
                   animate={{ scale: 1 }}
                   className="w-6 h-6 rounded-full bg-primary-600 dark:bg-primary-500 flex items-center justify-center flex-shrink-0"
                 >
                   <Check className="w-4 h-4 text-white" />
-                </motion.div>
+                </m.div>
               )}
             </div>
             {/* Preview */}
@@ -263,7 +264,7 @@ export default function AppearanceSettingsPage() {
               'relative p-4 rounded-lg border-2 transition-all text-left hover:border-primary-300 dark:hover:border-primary-600',
               settings.density === 'compact'
                 ? 'border-primary-600 dark:border-primary-500 bg-primary-50 dark:bg-primary-900/20'
-                : 'border-neutral-200 dark:border-neutral-700'
+                : 'border-neutral-200 dark:border-neutral-700',
             )}
           >
             <div className="flex items-start justify-between">
@@ -276,13 +277,13 @@ export default function AppearanceSettingsPage() {
                 </div>
               </div>
               {settings.density === 'compact' && (
-                <motion.div
+                <m.div
                   initial={{ scale: 0 }}
                   animate={{ scale: 1 }}
                   className="w-6 h-6 rounded-full bg-primary-600 dark:bg-primary-500 flex items-center justify-center flex-shrink-0"
                 >
                   <Check className="w-4 h-4 text-white" />
-                </motion.div>
+                </m.div>
               )}
             </div>
             {/* Preview */}
@@ -313,7 +314,7 @@ export default function AppearanceSettingsPage() {
                 'w-full p-4 rounded-lg border-2 transition-all text-left hover:border-primary-300 dark:hover:border-primary-600',
                 settings.fontSize === size.value
                   ? 'border-primary-600 dark:border-primary-500 bg-primary-50 dark:bg-primary-900/20'
-                  : 'border-neutral-200 dark:border-neutral-700'
+                  : 'border-neutral-200 dark:border-neutral-700',
               )}
             >
               <div className="flex items-center justify-between">
@@ -322,7 +323,7 @@ export default function AppearanceSettingsPage() {
                     'font-medium text-neutral-900 dark:text-neutral-100 mb-1',
                     size.value === 'small' && 'text-sm',
                     size.value === 'medium' && 'text-base',
-                    size.value === 'large' && 'text-lg'
+                    size.value === 'large' && 'text-lg',
                   )}>
                     {size.label}
                   </div>
@@ -331,13 +332,13 @@ export default function AppearanceSettingsPage() {
                   </div>
                 </div>
                 {settings.fontSize === size.value && (
-                  <motion.div
+                  <m.div
                     initial={{ scale: 0 }}
                     animate={{ scale: 1 }}
                     className="w-6 h-6 rounded-full bg-primary-600 dark:bg-primary-500 flex items-center justify-center flex-shrink-0"
                   >
                     <Check className="w-4 h-4 text-white" />
-                  </motion.div>
+                  </m.div>
                 )}
               </div>
             </button>

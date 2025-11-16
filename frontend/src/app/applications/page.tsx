@@ -1,13 +1,21 @@
 'use client';
 
+import dynamic from 'next/dynamic';
 import React, { useEffect, useState } from 'react';
 
 import { DocumentUpload } from '@/components/features/DocumentUpload';
 import { InterviewPreparation, InterviewQuestion } from '@/components/features/InterviewPreparation';
 import { NotesAndReminders } from '@/components/features/NotesAndReminders';
-import { KanbanBoard } from '@/components/kanban/KanbanBoard';
 import { ApplicationTimeline } from '@/components/ui/ApplicationTimeline';
+import { KanbanLoadingSkeleton } from '@/components/ui/LoadingSkeletons';
 import { ApplicationsService, type ApplicationResponse } from '@/lib/api/client';
+import { logger } from '@/lib/logger';
+
+// Lazy load KanbanBoard to reduce initial bundle size
+const KanbanBoard = dynamic(() => import('@/components/kanban/KanbanBoard').then(mod => ({ default: mod.KanbanBoard })), {
+  loading: () => <KanbanLoadingSkeleton />,
+  ssr: false, // Kanban doesn't need SSR
+});
 
 interface Column {
   id: string;
@@ -59,15 +67,15 @@ export default function ApplicationsPage() {
     const loadApplications = async () => {
       setIsLoading(true);
       try {
-        const response = await ApplicationsService.getApplicationsApiV1ApplicationsGet();
-        setApplications(response);
+        const response = await ApplicationsService.list();
+        setApplications(response.data || []);
         // This is a simplified column generation. A real implementation
         // would likely involve more sophisticated logic.
         const columns: Column[] = [
-          { id: 'applied', title: 'Applied', applicationIds: response.filter(a => a.status === 'Applied').map(a => a.id) },
-          { id: 'interviewing', title: 'Interviewing', applicationIds: response.filter(a => a.status === 'Interviewing').map(a => a.id) },
-          { id: 'offer', title: 'Offer', applicationIds: response.filter(a => a.status === 'Offer').map(a => a.id) },
-          { id: 'rejected', title: 'Rejected', applicationIds: response.filter(a => a.status === 'Rejected').map(a => a.id) },
+          { id: 'applied', title: 'Applied', applicationIds: (response.data || []).filter((a: any) => a.status === 'Applied').map((a: any) => a.id) },
+          { id: 'interviewing', title: 'Interviewing', applicationIds: (response.data || []).filter((a: any) => a.status === 'Interviewing').map((a: any) => a.id) },
+          { id: 'offer', title: 'Offer', applicationIds: (response.data || []).filter((a: any) => a.status === 'Offer').map((a: any) => a.id) },
+          { id: 'rejected', title: 'Rejected', applicationIds: (response.data || []).filter((a: any) => a.status === 'Rejected').map((a: any) => a.id) },
         ];
         setColumns(columns);
       } catch {
@@ -86,7 +94,7 @@ export default function ApplicationsPage() {
   ];
 
   const handleDocumentUpload = (file: File) => {
-    console.log('Uploading file:', file.name);
+    logger.info('Uploading file:', file.name);
     // In a real app, you'd handle file upload to a backend here
     // For now, just add a dummy document
     const _newDoc = {
@@ -101,7 +109,7 @@ export default function ApplicationsPage() {
   };
 
   const handleDocumentDelete = (id: string) => {
-    console.log('Deleting document:', id);
+    logger.info('Deleting document:', id);
     // In a real app, you'd handle file deletion from a backend here
     alert(`Dummy deletion of ${id} successful!`);
   };
@@ -219,8 +227,8 @@ export default function ApplicationsPage() {
           <div>{error}</div>
         ) : (
           <KanbanBoard
-            initialApplications={applications}
-            initialColumns={columns}
+            initialApplications={applications as any}
+            initialColumns={columns as any}
           />
         )
       )}

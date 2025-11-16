@@ -5,18 +5,18 @@ Creates a test user with jobs, applications, and skills
 
 import asyncio
 import sys
+from datetime import timedelta
 from pathlib import Path
 
 # Add backend to path
 sys.path.insert(0, str(Path(__file__).parent.parent / "backend"))
-
-from datetime import datetime, timedelta
 
 from app.core.config import settings
 from app.core.security import get_password_hash
 from app.models.application import Application
 from app.models.job import Job
 from app.models.user import User
+from app.utils.datetime import utc_now
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
@@ -123,7 +123,7 @@ async def initialize_demo_data():
 				]
 
 				for job_data in sample_jobs:
-					job = Job(user_id=demo_user.id, **job_data, created_at=datetime.utcnow() - timedelta(days=5))
+					job = Job(user_id=demo_user.id, **job_data, created_at=utc_now() - timedelta(days=5))
 					db.add(job)
 
 				await db.flush()
@@ -146,7 +146,7 @@ async def initialize_demo_data():
 							user_id=demo_user.id,
 							job_id=job.id,
 							status=statuses[i],
-							applied_date=datetime.utcnow() - timedelta(days=3 - i),
+							applied_date=utc_now() - timedelta(days=3 - i),
 							notes=f"Applied through company website. Interview {['not scheduled', 'scheduled for next week', 'pending'][i]}.",
 						)
 						db.add(application)

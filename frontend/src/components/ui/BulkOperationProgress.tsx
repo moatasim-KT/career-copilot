@@ -1,8 +1,9 @@
 'use client';
 
-import { motion, AnimatePresence } from 'framer-motion';
 import { X, AlertCircle, CheckCircle, RefreshCw } from 'lucide-react';
 import React from 'react';
+
+import { m, AnimatePresence } from '@/lib/motion';
 
 import Button2 from './Button2';
 import Modal from './Modal';
@@ -55,7 +56,7 @@ export function BulkOperationProgress({
   return (
     <Modal
       isOpen={isOpen}
-      onClose={isComplete ? onClose : () => {}}
+      onClose={isComplete ? onClose : () => { }}
       title={title}
       size="md"
     >
@@ -73,12 +74,11 @@ export function BulkOperationProgress({
 
           {/* Progress Bar Container */}
           <div className="relative h-3 bg-neutral-200 dark:bg-neutral-700 rounded-full overflow-hidden">
-            <motion.div
-              className={`absolute inset-y-0 left-0 rounded-full ${
-                hasErrors && isComplete
+            <m.div
+              className={`absolute inset-y-0 left-0 rounded-full ${hasErrors && isComplete
                   ? 'bg-yellow-500 dark:bg-yellow-600'
                   : 'bg-blue-600 dark:bg-blue-500'
-              }`}
+                }`}
               initial={{ width: 0 }}
               animate={{ width: `${progress}%` }}
               transition={{
@@ -89,7 +89,7 @@ export function BulkOperationProgress({
 
             {/* Animated shimmer effect while processing */}
             {!isComplete && (
-              <motion.div
+              <m.div
                 className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent"
                 animate={{
                   x: ['-100%', '100%'],
@@ -105,14 +105,14 @@ export function BulkOperationProgress({
 
           {/* Progress Percentage */}
           <div className="text-center">
-            <motion.span
+            <m.span
               key={progress}
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               className="text-2xl font-bold text-neutral-900 dark:text-neutral-100"
             >
               {Math.round(progress)}%
-            </motion.span>
+            </m.span>
           </div>
         </div>
 
@@ -120,7 +120,7 @@ export function BulkOperationProgress({
         <div className="text-center">
           <AnimatePresence mode="wait">
             {!isComplete ? (
-              <motion.p
+              <m.p
                 key="processing"
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -128,9 +128,9 @@ export function BulkOperationProgress({
                 className="text-sm text-neutral-600 dark:text-neutral-400"
               >
                 Processing {processedItems} of {totalItems} items...
-              </motion.p>
+              </m.p>
             ) : (
-              <motion.div
+              <m.div
                 key="complete"
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
@@ -147,14 +147,14 @@ export function BulkOperationProgress({
                     {hasErrors ? 'Completed with errors' : 'Successfully completed'}
                   </p>
                 </div>
-              </motion.div>
+              </m.div>
             )}
           </AnimatePresence>
         </div>
 
         {/* Success/Failure Summary */}
         {isComplete && (
-          <motion.div
+          <m.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
@@ -189,12 +189,12 @@ export function BulkOperationProgress({
                 </div>
               </div>
             </div>
-          </motion.div>
+          </m.div>
         )}
 
         {/* Error List */}
         {hasErrors && isComplete && (
-          <motion.div
+          <m.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
@@ -205,7 +205,7 @@ export function BulkOperationProgress({
             </p>
             <div className="max-h-48 overflow-y-auto space-y-2 bg-neutral-50 dark:bg-neutral-800 rounded-lg p-3">
               {errors.map((error, index) => (
-                <motion.div
+                <m.div
                   key={error.itemId}
                   initial={{ opacity: 0, x: -10 }}
                   animate={{ opacity: 1, x: 0 }}
@@ -221,10 +221,10 @@ export function BulkOperationProgress({
                       {error.error}
                     </p>
                   </div>
-                </motion.div>
+                </m.div>
               ))}
             </div>
-          </motion.div>
+          </m.div>
         )}
 
         {/* Action Buttons */}
@@ -251,7 +251,7 @@ export function BulkOperationProgress({
 
           {isComplete && (
             <Button2
-              variant="default"
+              variant="primary"
               onClick={onClose}
             >
               Close

@@ -14,6 +14,7 @@ from app.dependencies import get_current_user
 from app.models.user import User
 from app.schemas.export import ExportFormat, ExportType
 from app.services.export_service import export_service_v2
+from app.utils.datetime import utc_now
 
 router = APIRouter(prefix="/api/v1/export", tags=["export"])
 
@@ -67,7 +68,7 @@ async def export_jobs(
 
 		elif format == ExportFormat.CSV:
 			csv_content = await export_service_v2.export_jobs_csv(db, current_user.id, filters)
-			filename = f"jobs_export_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}.csv"
+			filename = f"jobs_export_{utc_now().strftime('%Y%m%d_%H%M%S')}.csv"
 			return Response(
 				content=csv_content,
 				media_type="text/csv",
@@ -76,7 +77,7 @@ async def export_jobs(
 
 		elif format == ExportFormat.PDF:
 			pdf_content = await export_service_v2.export_jobs_pdf(db, current_user.id, filters)
-			filename = f"jobs_export_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}.pdf"
+			filename = f"jobs_export_{utc_now().strftime('%Y%m%d_%H%M%S')}.pdf"
 			return Response(
 				content=pdf_content,
 				media_type="application/pdf",
@@ -124,7 +125,7 @@ async def export_applications(
 
 		elif format == ExportFormat.CSV:
 			csv_content = await export_service_v2.export_applications_csv(db, current_user.id, filters)
-			filename = f"applications_export_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}.csv"
+			filename = f"applications_export_{utc_now().strftime('%Y%m%d_%H%M%S')}.csv"
 			return Response(
 				content=csv_content,
 				media_type="text/csv",
@@ -133,7 +134,7 @@ async def export_applications(
 
 		elif format == ExportFormat.PDF:
 			pdf_content = await export_service_v2.export_applications_pdf(db, current_user.id, filters)
-			filename = f"applications_export_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}.pdf"
+			filename = f"applications_export_{utc_now().strftime('%Y%m%d_%H%M%S')}.pdf"
 			return Response(
 				content=pdf_content,
 				media_type="application/pdf",
@@ -163,7 +164,7 @@ async def create_full_backup(
 	"""
 	try:
 		zip_content = await export_service_v2.create_full_backup(db, current_user.id)
-		filename = f"career_copilot_backup_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}.zip"
+		filename = f"career_copilot_backup_{utc_now().strftime('%Y%m%d_%H%M%S')}.zip"
 		return Response(
 			content=zip_content,
 			media_type="application/zip",

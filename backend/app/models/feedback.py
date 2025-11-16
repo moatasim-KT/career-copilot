@@ -2,11 +2,13 @@
 Feedback models for user feedback and AI model improvement
 """
 
-from sqlalchemy import Column, Integer, String, Text, DateTime, ForeignKey, Boolean, JSON, Enum
-from sqlalchemy.orm import relationship
-from datetime import datetime
 from enum import Enum as PyEnum
+
+from sqlalchemy import JSON, Boolean, Column, DateTime, Enum, ForeignKey, Integer, String, Text
+from sqlalchemy.orm import relationship
+
 from ..core.database import Base
+from ..utils import utc_now
 
 
 class FeedbackType(PyEnum):
@@ -67,8 +69,8 @@ class JobRecommendationFeedback(Base):
 
 	# Metadata
 	recommendation_context = Column(JSON, nullable=True)  # Additional context about the recommendation
-	created_at = Column(DateTime, default=datetime.utcnow, index=True)
-	updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+	created_at = Column(DateTime, default=utc_now, index=True)
+	updated_at = Column(DateTime, default=utc_now, onupdate=utc_now)
 
 	# Relationships
 	user = relationship("User", back_populates="job_recommendation_feedback")
@@ -104,8 +106,8 @@ class Feedback(Base):
 	admin_notes = Column(Text, nullable=True)
 
 	# Timestamps
-	created_at = Column(DateTime, default=datetime.utcnow, index=True)
-	updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+	created_at = Column(DateTime, default=utc_now, index=True)
+	updated_at = Column(DateTime, default=utc_now, onupdate=utc_now)
 	resolved_at = Column(DateTime, nullable=True)
 
 	# Relationships
@@ -124,7 +126,7 @@ class FeedbackVote(Base):
 	feedback_id = Column(Integer, ForeignKey("feedback.id"), nullable=False, index=True)
 	user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
 	vote = Column(Integer, nullable=False)  # -1, 0, or 1
-	created_at = Column(DateTime, default=datetime.utcnow)
+	created_at = Column(DateTime, default=utc_now)
 
 	# Relationships
 	feedback = relationship("Feedback", back_populates="votes")
@@ -154,8 +156,8 @@ class OnboardingProgress(Base):
 	onboarding_completed = Column(Boolean, default=False)
 
 	# Timestamps
-	created_at = Column(DateTime, default=datetime.utcnow)
-	updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+	created_at = Column(DateTime, default=utc_now)
+	updated_at = Column(DateTime, default=utc_now, onupdate=utc_now)
 	completed_at = Column(DateTime, nullable=True)
 
 	# Relationships
@@ -191,8 +193,8 @@ class HelpArticle(Base):
 	unhelpful_votes = Column(Integer, default=0)
 
 	# Timestamps
-	created_at = Column(DateTime, default=datetime.utcnow, index=True)
-	updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+	created_at = Column(DateTime, default=utc_now, index=True)
+	updated_at = Column(DateTime, default=utc_now, onupdate=utc_now)
 
 	# Relationships
 	votes = relationship("HelpArticleVote", back_populates="article", cascade="all, delete-orphan")
@@ -209,7 +211,7 @@ class HelpArticleVote(Base):
 	article_id = Column(Integer, ForeignKey("help_articles.id"), nullable=False, index=True)
 	user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
 	is_helpful = Column(Boolean, nullable=False)
-	created_at = Column(DateTime, default=datetime.utcnow)
+	created_at = Column(DateTime, default=utc_now)
 
 	# Relationships
 	article = relationship("HelpArticle", back_populates="votes")

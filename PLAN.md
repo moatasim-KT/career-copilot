@@ -1,102 +1,113 @@
-# Plan: Career Copilot Integrated Roadmap & Consolidation Implementation
+# Project Plan: Enhancing Career Copilot
 
-This plan outlines the implementation strategy for the Career Copilot project, integrating critical codebase consolidation with new feature development based on the `RESEARCH.md`.
+This plan outlines a phased approach to address identified issues, improve existing functionalities, and introduce new features to make Career Copilot more professional and functional, based on the findings in `RESEARCH.md`.
 
-## IMPORTANT: Foundational Work First!
-The following consolidation and build optimization phases (Phase 0 and 0.5) are foundational and must be completed before or in parallel with subsequent feature development phases. This approach ensures a stable, efficient, and maintainable platform for future work.
+## Phase 1: Foundational Improvements
 
-## Phase 0: Critical Consolidation (Weeks 1-2)
-**Objective:** Reduce codebase complexity, improve maintainability, and establish single sources of truth.
+**Objective:** Address immediate issues, enforce code quality standards, conduct initial security checks, and ensure essential documentation is in place.
 
-### 0.1. Service Layer Consolidation
-*   **Create service mapping document:** Document dependencies and responsibilities of existing services to guide consolidation.
-*   **Consolidate analytics services:** Re-architect analytics services, aiming to keep `analytics_service.py` as the primary and use a facade pattern, removing or refactoring redundant implementations.
-*   **Consolidate job management services:** Create a unified `JobManagementSystem` class or similar pattern to centralize job-related logic (scraping, ingestion, recommendations).
-*   **Merge LLM services with plugin architecture:** Implement a single provider-agnostic LLM service with a plugin architecture to integrate different LLM providers (e.g., Groq, OpenAI, Ollama).
-*   **Unify notification services:** Re-architect notification services into a single, unified service with clear channel abstraction (email, WebSocket, scheduled).
-*   **Remove duplicate storage implementations:** Identify and remove redundant storage logic, standardizing on a single approach (e.g., cloud storage integration).
-*   **Update import statements:** Refactor and update all import statements across the codebase to reflect the consolidated service structure.
+### Task 1.1: Re-establish Task Tracking (`TODO.md`)
+- **Description:** Create a `TODO.md` file in the root directory, or integrate an existing task tracking system, to centralize and make visible the "320+ task breakdown across 6 phases" mentioned in `README.md`.
+- **Steps:**
+    1.  Investigate if the "320+ task breakdown" exists elsewhere (e.g., in `.agents/task-assignments.json` or other internal documentation).
+    2.  If found, consolidate relevant tasks into a new `TODO.md` file, categorizing them by phase and priority.
+    3.  If not found, create a new `TODO.md` and populate it with high-level tasks derived from the "Ongoing Development" and "Potential New Features" sections of `RESEARCH.md`.
+    4.  Update `README.md` to correctly link to the new `TODO.md` or the chosen task tracking system.
 
-### 0.2. API Route Cleanup
-*   **Audit all API endpoints for duplication:** Identify overlapping or redundant API routes across `analytics.py`, `analytics_extended.py`, `advanced_user_analytics.py`, `notifications.py`, `notifications_new.py`, `notifications_v2.py`.
-*   **Merge analytics routes:** Consolidate all analytics-related endpoints into a single, unified `analytics.py` file with all functionality.
-*   **Consolidate notification routes:** Unify notification endpoints, ensuring proper versioning and removing redundant `notifications_new.py`/`notifications_v2.py` files.
-*   **Remove deprecated route versions:** Delete any API route files or endpoints that have been identified as deprecated or superseded.
-*   **Update OpenAPI documentation:** Ensure the OpenAPI schema correctly reflects the consolidated and updated API routes.
+### Task 1.2: Code Quality Enforcement & Refinement
+- **Description:** Ensure strict adherence to established code style guidelines and address any existing violations.
+- **Steps:**
+    1.  **Automate Linting & Formatting:** Verify that `ruff` (Python) and ESLint (TypeScript/React) are configured to run automatically in CI/CD pipelines and as pre-commit hooks.
+    2.  **Address Existing Violations:** Conduct a codebase-wide scan using `ruff` and ESLint to identify and fix all existing style and formatting violations. Prioritize critical issues.
+    3.  **Review Naming Conventions & Docstrings/Type Hints:** Ensure consistent application of naming conventions and the presence of docstrings/type hints as per `CONTRIBUTING.md`.
+    4.  **Design System Consistency Audit (Frontend):** Perform an audit to ensure all new and existing UI components consistently use design tokens from `globals.css` and follow `Button2`/`Card2` patterns.
 
-## Phase 0.5: Build Optimization (Week 3)
-**Objective:** Significantly reduce frontend build times and bundle size, improving developer productivity and user experience.
+### Task 1.3: Initial Security Audit & Vulnerability Scan
+- **Description:** Conduct a preliminary security assessment to identify and mitigate obvious vulnerabilities.
+- **Steps:**
+    1.  **Dependency Vulnerability Scan:** Implement or enhance automated dependency scanning (e.g., using `pip-audit` for Python, `npm audit` for Node.js) in CI/CD. Address all critical and high-severity vulnerabilities.
+    2.  **Basic SAST (Static Application Security Testing):** Integrate a basic SAST tool into the CI/CD pipeline to scan for common code-level vulnerabilities.
+    3.  **Review Authentication & Authorization:** Verify the robustness of JWT-based authentication and Role-Based Access Control (RBAC) implementation.
 
-### 0.5.1 Bundle Size Reduction
-*   **Disable bundle analyzer in CI builds:** Configure `@next/bundle-analyzer` to run only when explicitly needed, not automatically in production CI builds.
-*   **Optimize Sentry source map uploads:** Review Sentry configuration, particularly `widenClientFileUpload`, to reduce the size and frequency of source map uploads.
-*   **Implement code splitting for large components:** Identify large frontend components and implement lazy loading/code splitting to reduce initial bundle size.
-*   **Remove unused dependencies:** Audit `package.json` for unused npm packages and remove them.
-*   **Configure proper tree-shaking:** Ensure Webpack/Next.js is effectively tree-shaking unused code branches and modules.
+### Task 1.4: Core Documentation Review & Update
+- **Description:** Ensure that critical developer and user documentation is accurate, complete, and easily accessible.
+- **Steps:**
+    1.  **Developer Guide (`docs/DEVELOPER_GUIDE.md`):** Review and update to reflect current development practices, tools, and environment setup.
+    2.  **API Reference (`docs/api/API.md`):** Verify that the OpenAPI documentation accurately reflects all current API endpoints and schemas.
+    3.  **User Guide (`docs/USER_GUIDE.md`):** Ensure the user guide is up-to-date with all existing features and provides clear instructions.
 
-### 0.5.2 Webpack Configuration Cleanup
-*   **Review and optimize webpack plugins:** Identify and remove redundant or inefficient Webpack plugins.
-*   **Implement conditional bundle analysis:** Configure Webpack to allow for on-demand bundle analysis rather than always a full run.
-*   **Configure proper caching strategies:** Optimize Webpack caching for faster incremental builds.
-*   **Optimize CSS processing:** Review and optimize PostCSS/TailwindCSS configurations for efficient CSS generation.
+## Phase 2: Enhancements & Optimizations
 
-## Phase 1: Critical Priority Tasks (Immediate - Next 1-2 weeks - *After Consolidation*)
-**Objective:** Address high-priority security vulnerabilities and implement core backend functionalities.
+**Objective:** Improve application performance, refine core architectural components, and enhance the overall user experience.
 
-### 1.1. Security & Credentials
-*   **Replace hardcoded placeholder tokens/passwords:** Identify and remove all hardcoded tokens/passwords. Replace them with environment variables or a secure secrets management system.
-*   **Update `.env.example`:** Ensure this file accurately reflects all necessary environment variables with clear descriptions for developers.
-*   **Ensure secure loading of credentials:** Verify that the application correctly loads and uses credentials from environment variables securely.
-*   **Update security scanning configurations:** Adjust security scanning tools (e.g., Bandit) to prevent flagging valid environment variable usage and ensure no real secrets are committed.
+### Task 2.1: Performance Bottleneck Identification & Optimization
+- **Description:** Identify and resolve performance bottlenecks across the stack.
+- **Steps:**
+    1.  **Backend Performance Profiling:** Use profiling tools to identify slow database queries, inefficient API endpoints, and CPU-intensive operations.
+    2.  **Database Query Optimization:** Optimize identified slow queries, add appropriate indexes, and review ORM usage for efficiency.
+    3.  **Redis Caching Strategy Review:** Evaluate and optimize Redis usage for caching frequently accessed data and managing message queues.
+    4.  **Frontend Performance Audit:** Utilize Lighthouse CI and Web Vitals reports to identify areas for improvement in bundle size, rendering performance, and load times. Implement lazy loading, code splitting, and image optimization where beneficial.
 
-### 1.2. Core Backend Functionality
-*   **Implement Data Export (JSON, CSV):** Develop the backend logic and API endpoints for exporting job and application data in JSON and CSV formats. This will likely involve using the *consolidated* services.
-*   **Implement Data Import (CSV):** Develop the backend logic and API endpoints for importing job and application data from CSV files, including validation. This will likely involve using the *consolidated* services.
-*   **Implement Bulk Operations (create, update, delete):** Develop backend logic and API endpoints for bulk creation, updating, and deletion of jobs and applications. This will likely involve using the *consolidated* services.
-*   **Fix critical API placeholders:** Replace placeholder logic/data in specific API endpoints identified in `RESEARCH.md` (e.g., `advanced_user_analytics.py`, `database_performance.py`) with actual functionality.
-*   **Implement admin permission check in `job_ingestion.py`:** Add the necessary role-based access control (RBAC) checks.
-*   **Refactor `FeedbackService` to use async queries:** Convert synchronous database operations in this service to asynchronous.
-*   **Define and add missing Pydantic schemas in `resume.py`:** Ensure API requests and responses for resume-related endpoints are properly typed and validated.
+### Task 2.2: Architectural Review of AI Components
+- **Description:** Evaluate and potentially refactor the LLM Service and Vector Store for modularity, extensibility, and efficiency.
+- **Steps:**
+    1.  **LLM Service Modularity:** Ensure the LLM Service is designed to easily integrate new LLM providers and models without significant code changes.
+    2.  **Vector Store Optimization:** Review the ChromaDB implementation for efficiency, scalability, and ease of switching to alternative vector databases if needed.
+    3.  **Prompt Engineering Best Practices:** Implement and document best practices for prompt engineering to optimize LLM responses and reduce token usage.
 
-## Phase 2: High Priority Tasks (Next 2-4 weeks - *After Consolidation*)
-**Objective:** Connect the frontend to the new backend features and implement real-time notifications.
+### Task 2.3: Accessibility & User Experience Audit
+- **Description:** Conduct a thorough audit of the frontend for accessibility compliance and identify general UX improvements.
+- **Steps:**
+    1.  **WCAG 2.1 AA Compliance Audit:** Use automated tools (e.g., axe-core) and manual testing to verify WCAG 2.1 AA compliance across the application. Address all identified issues.
+    2.  **User Flow Analysis:** Analyze critical user flows to identify friction points and areas for simplification or improved guidance.
+    3.  **Onboarding & Guided Tours Enhancement:** Improve the existing onboarding wizard and develop interactive guided tours for key features.
+    4.  **User Customization Options:** Explore and implement user customization features (e.g., theme preferences, dashboard layout).
 
-### 2.1. Frontend-Backend Integration
-*   **Update API client:** Modify `frontend/src/lib/api/api.ts` to include methods for interacting with the newly implemented (and consolidated) backend API endpoints for export, import, and bulk operations.
-*   **Replace placeholder logic in frontend hooks:** Update specific frontend hooks (e.g., `useAddJob.ts`, `useDeleteApplication.ts`) to use the actual API client calls instead of placeholder logic.
-*   **Implement global logout/re-authentication flow:** Develop the frontend logic to handle token expiration, invalid authentication, and prompt the user for re-authentication or logout.
+## Phase 3: Feature Development
 
-### 2.2. Notification System
-*   **Backend Implementation:**
-    *   **Define SQLAlchemy models:** Create `Notification` and `NotificationPreferences` models in `backend/app/models/`.
-    *   **Create CRUD service and REST API endpoints:** Implement `notification_service.py` with business logic and corresponding API endpoints in `backend/app/api/v1/notifications.py`.
-    *   **Implement WebSocket manager and endpoint:** Set up a WebSocket server in `backend/app/websocket/` to handle real-time notification delivery.
-*   **Frontend Implementation:**
-    *   **Implement WebSocket client:** Develop a client in `frontend/src/lib/` to connect to the backend WebSocket endpoint.
-    *   **Update `Layout.tsx` for real-time notifications:** Integrate the WebSocket client to display incoming notifications and update notification badges in the UI.
+**Objective:** Complete features currently in development and introduce new high-value functionalities.
 
-## Phase 3: Medium Priority Tasks (Next 1-2 months)
-**Objective:** Enhance analytics, improve application performance, and strengthen error handling/monitoring.
+### Task 3.1: Complete Ongoing Features
+- **Description:** Prioritize and complete the features currently marked as "In Development" in `README.md`.
+- **Steps:**
+    1.  **Multi-user Authentication System:** Finalize and deploy the multi-user authentication system.
+    2.  **Real-time Notifications (WebSocket):** Complete the WebSocket implementation for real-time updates and notifications.
+    3.  **Advanced Analytics & Reporting:** Finish developing advanced analytics dashboards and reporting capabilities.
+    4.  **Mobile Application:** Continue development and release the mobile application.
+    5.  **Interview Preparation Tools:** Complete the suite of interview preparation tools.
 
-### 3.1. Analytics and Performance
-*   **Implement detailed analytics calculations:** Develop `backend/app/services/analytics_service.py` to calculate trends, skill gaps, application rates, etc.
-*   **Add database indexes:** Identify performance-critical database queries and create appropriate indexes on relevant columns.
-*   **Integrate Redis caching:** Configure and implement Redis for caching frequently accessed data, suchs as analytics results and user profiles.
+### Task 3.2: Implement High-Impact New Features
+- **Description:** Select and implement new features that provide significant value to users.
+- **Steps:**
+    1.  **Expanded Job Board Integration:** Research and integrate additional major job boards into the automated scraping process.
+    2.  **Calendar Integration:** Implement integration with external calendar services (e.g., Google Calendar, Outlook) for interview scheduling and reminders.
+    3.  **Customizable Dashboards:** Develop functionality allowing users to customize their dashboard layout and widgets.
 
-### 3.2. Error Handling & Monitoring
-*   **Implement global exception handlers:** Create centralized exception handlers in `backend/app/core/` to standardize error logging and responses across the application.
-*   **Integrate a third-party monitoring service:** Set up integration with a service like Sentry for both backend (`logger.ts`) and frontend to capture, report, and monitor errors.
+## Phase 4: Continuous Improvement
 
-## Phase 4: Low Priority & Ongoing Tasks (Future Releases)
-**Objective:** Implement advanced user features, ensure code quality through comprehensive testing, and maintain up-to-date documentation.
+**Objective:** Establish ongoing processes to maintain code quality, security, performance, and documentation.
 
-### 4.1. Advanced Features & Testing
-*   **Integrate `LazyRichTextEditor` component:** Implement the full functionality of a rich text editor.
-*   **Implement job benchmarking feature:** Develop the logic and corresponding UI for comparing job offers or market rates.
-*   **Write unit and integration tests:** Create comprehensive test suites for all newly implemented features across both frontend and backend.
-*   **Fix MSW setup in `Auth.test.tsx`:** Resolve issues with Mock Service Worker setup in frontend tests to ensure reliable authentication testing.
+### Task 4.1: Regular Security Audits & Scans
+- **Description:** Implement a recurring schedule for security assessments.
+- **Steps:**
+    1.  **Automated Security Scans:** Ensure SAST, DAST, and dependency vulnerability scans are integrated into every CI/CD pipeline run or on a regular schedule.
+    2.  **Penetration Testing:** Schedule periodic penetration tests by external security experts.
 
-### 4.2. Documentation
-*   **Update API documentation:** Ensure all new and consolidated API endpoints are thoroughly documented with examples.
-*   **Update user and developer guides:** Reflect new features, consolidated architectures, and best practices.
-*   **Document new environment variables and deployment steps:** Provide clear instructions for setting up and deploying the application in various environments.
+### Task 4.2: Continuous Performance Monitoring
+- **Description:** Maintain and enhance monitoring to proactively identify and address performance regressions.
+- **Steps:**
+    1.  **Dashboard & Alerting:** Ensure Prometheus and Grafana dashboards are comprehensive and alerts are configured for critical performance metrics.
+    2.  **Regular Performance Reviews:** Conduct regular reviews of performance data and user feedback to identify areas for continuous optimization.
+
+### Task 4.3: Documentation Maintenance
+- **Description:** Establish a process to keep all project documentation up-to-date.
+- **Steps:**
+    1.  **Documentation as Code:** Emphasize updating documentation as part of every development task.
+    2.  **Regular Documentation Audits:** Schedule periodic reviews of all documentation to ensure accuracy and completeness.
+
+### Task 4.4: Test Coverage Maintenance
+- **Description:** Ensure that high test coverage is maintained and tests remain relevant.
+- **Steps:**
+    1.  **CI/CD Gates:** Enforce minimum test coverage thresholds in CI/CD pipelines.
+    2.  **Regular Test Review:** Periodically review existing tests to ensure they are still valid and effective.
+    3.  **Accessibility Testing Integration:** Fully integrate accessibility testing into the CI/CD pipeline for continuous validation.

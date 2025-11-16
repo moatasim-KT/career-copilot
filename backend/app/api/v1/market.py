@@ -26,6 +26,7 @@ from ...schemas.market import (
 	SkillDemand,
 	TrendMetric,
 )
+from ...utils.datetime import utc_now
 
 router = APIRouter(prefix="/market", tags=["Market Intelligence"])
 
@@ -47,7 +48,7 @@ async def get_market_trends(
 	- Growing industries
 	- Remote work trends
 	"""
-	start_date = datetime.utcnow() - timedelta(days=time_range)
+	start_date = utc_now() - timedelta(days=time_range)
 
 	# Base query with filters
 	base_query = select(Job).where(Job.created_at >= start_date)
@@ -63,7 +64,7 @@ async def get_market_trends(
 	total_jobs = total_jobs_result.scalar() or 0
 
 	# Jobs posted in last 7 days (for trend calculation)
-	recent_start = datetime.utcnow() - timedelta(days=7)
+	recent_start = utc_now() - timedelta(days=7)
 	recent_jobs_result = await db.execute(select(func.count(Job.id)).where(and_(Job.created_at >= recent_start, Job.created_at >= start_date)))
 	recent_jobs = recent_jobs_result.scalar() or 0
 
@@ -160,7 +161,7 @@ async def get_market_trends(
 		industry_trends=industry_trends,
 		remote_work_percentage=round(remote_percentage, 2),
 		average_postings_per_day=round(total_jobs / time_range, 2) if time_range > 0 else 0,
-		generated_at=datetime.utcnow(),
+		generated_at=utc_now(),
 	)
 
 
@@ -209,7 +210,7 @@ async def get_salary_insights(
 			by_location=[],
 			by_experience=[],
 			currency_breakdown={"USD": 100.0},
-			generated_at=datetime.utcnow(),
+			generated_at=utc_now(),
 		)
 
 	# Extract salary data
@@ -234,7 +235,7 @@ async def get_salary_insights(
 			by_location=[],
 			by_experience=[],
 			currency_breakdown={"USD": 100.0},
-			generated_at=datetime.utcnow(),
+			generated_at=utc_now(),
 		)
 
 	salaries = [d["salary"] for d in salary_data]
@@ -305,5 +306,5 @@ async def get_salary_insights(
 		by_location=by_location,
 		by_experience=[],  # Would need experience level data
 		currency_breakdown=currency_breakdown,
-		generated_at=datetime.utcnow(),
+		generated_at=utc_now(),
 	)

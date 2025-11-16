@@ -16,6 +16,8 @@ from typing import Any
 
 import pytest
 
+from backend.app.utils.datetime import utc_now
+
 # ============================================================================
 # Test Fixtures and Utilities
 # ============================================================================
@@ -100,7 +102,7 @@ class RecommendationCache:
 		filters_to_use = filters if filters else {}
 		cache_key = self.cache._generate_key("recommendations", user_id=user_id, filters=filters_to_use)
 
-		cached_data = {**recommendations, "cached_at": datetime.utcnow().isoformat() + "Z", "cache_ttl": self.ttl}
+		cached_data = {**recommendations, "cached_at": utc_now().isoformat() + "Z", "cache_ttl": self.ttl}
 
 		self.cache.set(cache_key, cached_data, ttl=self.ttl)
 
@@ -274,7 +276,7 @@ class TestRecommendationCache:
 		"""Test that cached recommendations include timestamp."""
 		test_recommendations = {"recommendations": [{"job_id": "job1", "score": 0.85}], "count": 1}
 
-		before_cache = datetime.utcnow()
+		before_cache = utc_now()
 
 		recommendation_cache.set_recommendations("user123", test_recommendations)
 

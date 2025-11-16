@@ -49,14 +49,13 @@ import {
   useReactTable,
   ExpandedState,
   VisibilityState,
-  Row,
 } from '@tanstack/react-table';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import { clsx } from 'clsx';
 import { ArrowUpDown, Search, X, ChevronDown, ChevronRight } from 'lucide-react';
 import React, { useRef, useEffect, useState } from 'react';
 
-import Button from '@/components/ui/Button';
+import Button from '@/components/ui/Button2';
 import { Checkbox } from '@/components/ui/Checkbox';
 import {
   DropdownMenu,
@@ -218,9 +217,12 @@ export function VirtualDataTable<TData, TValue>({
   const [columnVisibility, setColumnVisibility] =
     React.useState<VisibilityState>({});
   const [columnOrder, setColumnOrder] = React.useState<string[]>(
-    columns.map((c, idx) =>
-      c.id ?? (typeof c.accessorKey === 'string' ? c.accessorKey : `col-${idx}`),
-    ),
+    columns.map((c, idx) => {
+      if (c.id) return c.id;
+      // Type assertion for accessor columns
+      const col = c as any;
+      return typeof col.accessorKey === 'string' ? col.accessorKey : `col-${idx}`;
+    }),
   );
 
   const debouncedGlobalFilter = useDebounce(globalFilter, 300);
@@ -228,12 +230,12 @@ export function VirtualDataTable<TData, TValue>({
 
   // Performance monitoring
   const { fps, renderTime, startRender, endRender } = usePerformanceMonitor(
-    enablePerformanceMonitoring || false
+    enablePerformanceMonitoring || false,
   );
 
   // Determine if virtualization should be enabled
-  const shouldVirtualize = enableVirtualization !== undefined 
-    ? enableVirtualization 
+  const shouldVirtualize = enableVirtualization !== undefined
+    ? enableVirtualization
     : data.length > 100;
 
   const table = useReactTable({
@@ -348,8 +350,11 @@ export function VirtualDataTable<TData, TValue>({
         break;
     }
     const columnKeys = columns
-      .filter((col) => col.accessorKey)
-      .map((col) => col.accessorKey as keyof TData);
+      .filter((col) => {
+        const c = col as any;
+        return c.accessorKey;
+      })
+      .map((col) => (col as any).accessorKey as keyof TData);
     exportToCSV(dataToExport, columnKeys, 'datatable_export');
   };
 
@@ -383,7 +388,9 @@ export function VirtualDataTable<TData, TValue>({
             {row.getVisibleCells().map((cell) => (
               <div key={cell.id} className="flex justify-between">
                 <span className="font-medium">
-                  {flexRender(cell.column.columnDef.header, cell.getContext())}
+                  {typeof cell.column.columnDef.header === 'string'
+                    ? cell.column.columnDef.header
+                    : cell.column.id}
                 </span>
                 <span>{flexRender(cell.column.columnDef.cell, cell.getContext())}</span>
               </div>
@@ -501,7 +508,7 @@ export function VirtualDataTable<TData, TValue>({
           </div>
         )}
 
-        <div 
+        <div
           ref={tableContainerRef}
           className="rounded-md border dark:border-neutral-700 overflow-auto"
           style={{
@@ -526,7 +533,6 @@ export function VirtualDataTable<TData, TValue>({
                       >
                         <DraggableHeader
                           header={header}
-                          table={tableWithSelection}
                         />
                       </th>
                     ))}
@@ -558,7 +564,7 @@ export function VirtualDataTable<TData, TValue>({
                       />
                     </tr>
                   )}
-                  
+
                   {/* Render only visible rows */}
                   {virtualRows.map((virtualRow) => {
                     const row = rows[virtualRow.index];
@@ -588,17 +594,16 @@ export function VirtualDataTable<TData, TValue>({
                       </React.Fragment>
                     );
                   })}
-                  
+
                   {/* Spacer after visible rows */}
                   {virtualRows.length > 0 && (
                     <tr>
                       <td
                         colSpan={memoizedColumns.length}
                         style={{
-                          height: `${
-                            totalSize -
+                          height: `${totalSize -
                             (virtualRows[virtualRows.length - 1]?.end || 0)
-                          }px`,
+                            }px`,
                         }}
                       />
                     </tr>
@@ -634,7 +639,7 @@ export function VirtualDataTable<TData, TValue>({
             </tbody>
           </table>
         </div>
-        
+
         <div className="flex items-center justify-between space-x-2 py-4">
           <div className="flex-1 text-sm text-muted-foreground">
             {tableWithSelection.getFilteredSelectedRowModel().rows.length} of{' '}

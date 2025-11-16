@@ -5,21 +5,19 @@ Provides automatic migration management, connection pooling, and health monitori
 
 import asyncio
 import time
-from datetime import datetime, timezone
-from pathlib import Path
-from typing import Dict, List, Optional, Any
 from dataclasses import dataclass
+from datetime import datetime, timezone
 from enum import Enum
+from pathlib import Path
+from typing import Any, Dict, List, Optional
 
 from alembic import command
 from alembic.config import Config
 from alembic.runtime.migration import MigrationContext
 from alembic.script import ScriptDirectory
-from sqlalchemy import text
-from sqlalchemy.ext.asyncio import create_async_engine, AsyncEngine
-from sqlalchemy.pool import StaticPool
-from sqlalchemy.pool import Pool
-from sqlalchemy import event
+from sqlalchemy import event, text
+from sqlalchemy.ext.asyncio import AsyncEngine, create_async_engine
+from sqlalchemy.pool import Pool, StaticPool
 
 from .config import settings
 from .logging import get_logger
@@ -159,7 +157,6 @@ class EnhancedDatabaseMigrator:
 				},
 			)
 
-
 		# Set up connection pool monitoring
 		self._setup_pool_monitoring()
 
@@ -215,7 +212,6 @@ class EnhancedDatabaseMigrator:
 					result = await conn.execute(text("SELECT version()"))
 					version_info = result.scalar()
 					connection_info["database_version"] = version_info
-
 
 				connection_info["connected"] = True
 				connection_info["connection_time"] = time.time() - start_time
@@ -537,22 +533,24 @@ class EnhancedDatabaseMigrator:
 		pool = self.engine.pool
 		pool_type = type(pool).__name__
 
-
-			# QueuePool and other pool types
-			return ConnectionPoolStats(
-				pool_size=pool.size(),
-				checked_in=pool.checkedin(),
-				checked_out=pool.checkedout(),
-				overflow=pool.overflow(),
-				invalid=pool.invalid(),
-				total_connections=self.connection_stats["total_connections"],
-				active_connections=pool.checkedout(),
-				idle_connections=pool.checkedin(),
-				pool_timeout=getattr(pool, "_timeout", 30),
-				max_overflow=getattr(pool, "_max_overflow", 0),
-			)
-		else:
-			# Unknown pool type - return None
+		try:
+			if all(hasattr(pool, attr) for attr in ("size", "checkedin", "checkedout")):
+				return ConnectionPoolStats(
+					pool_size=pool.size(),
+					checked_in=pool.checkedin(),
+					checked_out=pool.checkedout(),
+					overflow=getattr(pool, "overflow", lambda: 0)(),
+					invalid=getattr(pool, "invalid", lambda: 0)(),
+					total_connections=self.connection_stats["total_connections"],
+					active_connections=pool.checkedout(),
+					idle_connections=pool.checkedin(),
+					pool_timeout=getattr(pool, "_timeout", 30),
+					max_overflow=getattr(pool, "_max_overflow", 0),
+				)
+			logger.debug("Connection pool stats unavailable for pool type %s", pool_type)
+			return None
+		except Exception as e:
+			logger.error("Failed to gather connection pool stats: %s", e)
 			return None
 
 	async def get_database_health(self) -> Dict[str, Any]:

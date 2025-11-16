@@ -12,6 +12,8 @@ from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 
+from app.utils.datetime import utc_now
+
 logger = logging.getLogger(__name__)
 
 # Context variable for correlation ID
@@ -29,7 +31,7 @@ class CorrelationContext:
 	session_id: Optional[str] = None
 	request_id: Optional[str] = None
 	metadata: Dict[str, Any] = field(default_factory=dict)
-	created_at: datetime = field(default_factory=datetime.utcnow)
+	created_at: datetime = field(default_factory=utc_now)
 
 	def to_dict(self) -> Dict[str, Any]:
 		"""Convert to dictionary for logging."""

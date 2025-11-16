@@ -7,8 +7,8 @@
 
 import { useState, useCallback, useEffect } from 'react';
 
-import type { Notification, NotificationFilter } from '@/types/notification';
 import { logger } from '@/lib/logger';
+import type { Notification, NotificationFilter } from '@/types/notification';
 
 interface UseNotificationsOptions {
   autoFetch?: boolean;
@@ -33,7 +33,7 @@ interface UseNotificationsReturn {
  * Hook for managing notifications
  */
 export function useNotifications(
-  options: UseNotificationsOptions = {}
+  options: UseNotificationsOptions = {},
 ): UseNotificationsReturn {
   const { autoFetch = true, pollInterval } = options;
 
@@ -57,7 +57,7 @@ export function useNotifications(
 
       // For now, using mock data
       logger.info('Fetching notifications with filter:', filter);
-      
+
       // Simulate API delay
       await new Promise(resolve => setTimeout(resolve, 500));
 
@@ -77,7 +77,7 @@ export function useNotifications(
     try {
       // Optimistic update
       setNotifications(prev =>
-        prev.map(n => (n.id === id ? { ...n, read: true } : n))
+        prev.map(n => (n.id === id ? { ...n, read: true } : n)),
       );
 
       // In production, call API:
@@ -86,12 +86,12 @@ export function useNotifications(
       logger.info('Marked notification as read:', id);
     } catch (err) {
       logger.error('Error marking notification as read:', err);
-      
+
       // Rollback on error
       setNotifications(prev =>
-        prev.map(n => (n.id === id ? { ...n, read: false } : n))
+        prev.map(n => (n.id === id ? { ...n, read: false } : n)),
       );
-      
+
       throw err;
     }
   }, []);
@@ -103,7 +103,7 @@ export function useNotifications(
     try {
       // Optimistic update
       setNotifications(prev =>
-        prev.map(n => (n.id === id ? { ...n, read: false } : n))
+        prev.map(n => (n.id === id ? { ...n, read: false } : n)),
       );
 
       // In production, call API:
@@ -112,12 +112,12 @@ export function useNotifications(
       logger.info('Marked notification as unread:', id);
     } catch (err) {
       logger.error('Error marking notification as unread:', err);
-      
+
       // Rollback on error
       setNotifications(prev =>
-        prev.map(n => (n.id === id ? { ...n, read: true } : n))
+        prev.map(n => (n.id === id ? { ...n, read: true } : n)),
       );
-      
+
       throw err;
     }
   }, []);
@@ -126,10 +126,10 @@ export function useNotifications(
    * Mark all notifications as read
    */
   const markAllAsRead = useCallback(async () => {
-    try {
-      // Store previous state for rollback
-      const previousNotifications = notifications;
+    // Store previous state for rollback
+    const previousNotifications = notifications;
 
+    try {
       // Optimistic update
       setNotifications(prev => prev.map(n => ({ ...n, read: true })));
 
@@ -139,10 +139,10 @@ export function useNotifications(
       logger.info('Marked all notifications as read');
     } catch (err) {
       logger.error('Error marking all notifications as read:', err);
-      
+
       // Rollback on error
-      setNotifications(notifications);
-      
+      setNotifications(previousNotifications);
+
       throw err;
     }
   }, [notifications]);
@@ -151,10 +151,9 @@ export function useNotifications(
    * Delete a notification
    */
   const deleteNotification = useCallback(async (id: string) => {
-    try {
-      // Store deleted notification for potential rollback
-      const deletedNotification = notifications.find(n => n.id === id);
+    const previousNotifications = notifications;
 
+    try {
       // Optimistic update
       setNotifications(prev => prev.filter(n => n.id !== id));
 
@@ -164,8 +163,9 @@ export function useNotifications(
       logger.info('Deleted notification:', id);
     } catch (err) {
       logger.error('Error deleting notification:', err);
-      
-      // Rollback on error (would need to restore the notification)
+
+      // Rollback on error
+      setNotifications(previousNotifications);
       throw err;
     }
   }, [notifications]);
@@ -174,10 +174,9 @@ export function useNotifications(
    * Delete multiple notifications
    */
   const deleteMultiple = useCallback(async (ids: string[]) => {
-    try {
-      // Store deleted notifications for potential rollback
-      const deletedNotifications = notifications.filter(n => ids.includes(n.id));
+    const previousNotifications = notifications;
 
+    try {
       // Optimistic update
       setNotifications(prev => prev.filter(n => !ids.includes(n.id)));
 
@@ -187,8 +186,9 @@ export function useNotifications(
       logger.info('Deleted notifications:', ids);
     } catch (err) {
       logger.error('Error deleting notifications:', err);
-      
-      // Rollback on error (would need to restore the notifications)
+
+      // Rollback on error
+      setNotifications(previousNotifications);
       throw err;
     }
   }, [notifications]);

@@ -75,6 +75,30 @@ export const colors = {
         dark: '#1e40af',
     },
 
+    // Accent palettes for data visualization & highlights
+    accent: {
+        purple: {
+            400: '#a78bfa',
+            500: '#8b5cf6',
+        },
+        amber: {
+            400: '#fbbf24',
+            500: '#f59e0b',
+        },
+        cyan: {
+            400: '#22d3ee',
+            500: '#06b6d4',
+        },
+        pink: {
+            400: '#f472b6',
+            500: '#ec4899',
+        },
+        lime: {
+            400: '#a3e635',
+            500: '#84cc16',
+        },
+    },
+
     // Functional colors
     background: {
         DEFAULT: '#ffffff',
@@ -244,6 +268,29 @@ export const zIndex = {
     notification: 9999,
 } as const;
 
+export const dataVizPalette = {
+    light: [
+        colors.primary[500],
+        colors.accent.purple[500],
+        colors.secondary[500],
+        colors.accent.amber[500],
+        colors.error.DEFAULT,
+        colors.accent.cyan[500],
+        colors.accent.pink[500],
+        colors.accent.lime[500],
+    ],
+    dark: [
+        colors.primary[400],
+        colors.accent.purple[400],
+        colors.secondary[400],
+        colors.accent.amber[400],
+        colors.error.light,
+        colors.accent.cyan[400],
+        colors.accent.pink[400],
+        colors.accent.lime[400],
+    ],
+} as const;
+
 /**
  * Design token utilities
  */
@@ -256,6 +303,7 @@ export const tokens = {
     transitions,
     breakpoints,
     zIndex,
+    dataVizPalette,
 } as const;
 
 /**

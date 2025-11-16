@@ -1,0 +1,20 @@
+Provide specific suggestions to tailor this resume for the following job:
+
+Job Details:
+- Position: {{ job_title }}
+- Company: {{ company }}
+- Required Skills: {{ tech_stack }}
+- Job Description: {{ job_description[:500] if job_description|length > 500 else job_description }}
+
+Current Resume Sections:
+{% for section, content in resume_sections.items() %}
+{{ section }}: {{ content }}
+{% endfor %}
+
+Please provide specific, actionable suggestions for:
+1. Skills section - which skills to emphasize or add
+2. Experience section - how to reframe experience to match job requirements
+3. Summary/Objective - how to align with the job
+4. Keywords to include for ATS optimization
+
+Format your response as clear, numbered suggestions for each section.

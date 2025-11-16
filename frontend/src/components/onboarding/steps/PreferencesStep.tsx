@@ -16,23 +16,23 @@
 
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
 import {
   Briefcase,
   MapPin,
   DollarSign,
   Home,
   Building2,
-  TrendingUp,
   Check,
 } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
 
 import Input2 from '@/components/ui/Input2';
 import MultiSelect2 from '@/components/ui/MultiSelect2';
 import Select2 from '@/components/ui/Select2';
-import { fadeInUp, staggerContainer, staggerItem } from '@/lib/animations';
+import { staggerContainer, staggerItem } from '@/lib/animations';
+import { m } from '@/lib/motion';
 import { cn } from '@/lib/utils';
+
 import type { StepProps } from '../OnboardingWizard';
 
 /**
@@ -143,27 +143,27 @@ const PreferencesStep: React.FC<StepProps> = ({ data, onChange }) => {
   };
 
   return (
-    <motion.div
+    <m.div
       variants={staggerContainer}
       initial="hidden"
       animate="visible"
       className="space-y-8"
     >
       {/* Header */}
-      <motion.div variants={staggerItem} className="text-center">
+      <m.div variants={staggerItem} className="text-center">
         <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary-100 dark:bg-primary-900/30 mb-4">
           <Briefcase className="h-8 w-8 text-primary-600 dark:text-primary-400" />
         </div>
         <h3 className="text-xl font-semibold text-neutral-900 dark:text-neutral-100 mb-2">
-          What's your ideal job?
+          What&apos;s your ideal job?
         </h3>
         <p className="text-neutral-600 dark:text-neutral-400 max-w-2xl mx-auto">
           Tell us about your preferences so we can find the perfect opportunities for you.
         </p>
-      </motion.div>
+      </m.div>
 
       {/* Form fields */}
-      <motion.div variants={staggerItem} className="space-y-6">
+      <m.div variants={staggerItem} className="space-y-6">
         {/* Preferred job titles */}
         <div>
           <MultiSelect2
@@ -172,7 +172,6 @@ const PreferencesStep: React.FC<StepProps> = ({ data, onChange }) => {
             value={preferences.preferredJobTitles}
             onChange={(value) => updatePreference('preferredJobTitles', value)}
             placeholder="Select job titles you're interested in"
-            prefixIcon={<Briefcase className="h-4 w-4" />}
             helperText="Select at least one job title"
           />
         </div>
@@ -244,7 +243,7 @@ const PreferencesStep: React.FC<StepProps> = ({ data, onChange }) => {
                   'p-4 rounded-lg border-2 transition-all text-left',
                   preferences.workArrangement.includes(option.value)
                     ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/30'
-                    : 'border-neutral-200 dark:border-neutral-700 hover:border-primary-300 dark:hover:border-primary-700'
+                    : 'border-neutral-200 dark:border-neutral-700 hover:border-primary-300 dark:hover:border-primary-700',
                 )}
               >
                 <div className="flex items-start justify-between mb-2">
@@ -253,7 +252,7 @@ const PreferencesStep: React.FC<StepProps> = ({ data, onChange }) => {
                       'p-2 rounded-lg',
                       preferences.workArrangement.includes(option.value)
                         ? 'bg-primary-100 dark:bg-primary-900/50 text-primary-600 dark:text-primary-400'
-                        : 'bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-400'
+                        : 'bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-400',
                     )}
                   >
                     {option.icon}
@@ -277,12 +276,19 @@ const PreferencesStep: React.FC<StepProps> = ({ data, onChange }) => {
         <div>
           <Select2
             label="Company Size (Optional)"
-            options={companySizeOptions}
             value={preferences.companySize}
             onChange={(e) => updatePreference('companySize', e.target.value)}
-            placeholder="Select company size preference"
             prefixIcon={<Building2 className="h-4 w-4" />}
-          />
+          >
+            <option value="" disabled>
+              Select company size preference
+            </option>
+            {companySizeOptions.map(option => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </Select2>
         </div>
 
         {/* Industry (optional) */}
@@ -293,14 +299,13 @@ const PreferencesStep: React.FC<StepProps> = ({ data, onChange }) => {
             value={preferences.industry}
             onChange={(value) => updatePreference('industry', value)}
             placeholder="Select industries you're interested in"
-            prefixIcon={<TrendingUp className="h-4 w-4" />}
           />
         </div>
-      </motion.div>
+      </m.div>
 
       {/* Summary */}
       {preferences.preferredJobTitles.length > 0 && (
-        <motion.div
+        <m.div
           variants={staggerItem}
           className="p-6 bg-gradient-to-r from-primary-50 to-purple-50 dark:from-primary-900/20 dark:to-purple-900/20 rounded-xl border border-primary-200 dark:border-primary-800"
         >
@@ -330,9 +335,9 @@ const PreferencesStep: React.FC<StepProps> = ({ data, onChange }) => {
               </p>
             )}
           </div>
-        </motion.div>
+        </m.div>
       )}
-    </motion.div>
+    </m.div>
   );
 };
 

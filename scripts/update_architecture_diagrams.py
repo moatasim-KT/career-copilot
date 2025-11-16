@@ -13,6 +13,10 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Dict, List, Set
 
+sys.path.insert(0, "backend")
+
+from app.utils.datetime import utc_now
+
 
 @dataclass
 class DiagramValidationResult:
@@ -251,9 +255,7 @@ class ArchitectureDiagramManager:
 
 	def get_current_timestamp(self) -> str:
 		"""Get current timestamp"""
-		from datetime import datetime
-
-		return datetime.utcnow().isoformat()
+		return utc_now().isoformat()
 
 
 def main():

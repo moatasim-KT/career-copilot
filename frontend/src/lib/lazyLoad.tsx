@@ -9,7 +9,7 @@
 
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 
 
 /**
@@ -56,7 +56,7 @@ const DEFAULT_OPTIONS: Required<Omit<LazyLoadOptions, 'placeholder' | 'onVisible
 export function useLazyLoad<T extends HTMLElement = HTMLDivElement>(
   options: LazyLoadOptions = {},
 ): [React.RefObject<T | null>, boolean] {
-  const opts = { ...DEFAULT_OPTIONS, ...options };
+  const opts = useMemo(() => ({ ...DEFAULT_OPTIONS, ...options }), [options]);
   const ref = useRef<T>(null);
   const [isVisible, setIsVisible] = useState(false);
 
@@ -96,7 +96,7 @@ export function useLazyLoad<T extends HTMLElement = HTMLDivElement>(
     return () => {
       observer.disconnect();
     };
-  }, [opts.rootMargin, opts.threshold, opts.once, opts.onVisible]);
+  }, [opts]);
 
   return [ref, isVisible];
 }

@@ -75,7 +75,7 @@ async def import_jobs(
     except Exception as e:
         raise HTTPException(
             status_code=500,
-            detail=f"Import failed: {str(e)}"
+            detail=f"Import failed: {e!s}"
         )
 
 
@@ -133,5 +133,5 @@ async def import_applications(
     except Exception as e:
         raise HTTPException(
             status_code=500,
-            detail=f"Import failed: {str(e)}"
+            detail=f"Import failed: {e!s}"
         )

@@ -4,9 +4,9 @@ export function exportToCSV<T>(data: T[], columns: (keyof T)[], fileName: string
   const rows = data.map((row) => {
     return columns
       .map((col) => {
-        let value = row[col];
+        let value: T[keyof T] | string = row[col];
         if (typeof value === 'string') {
-          value = `"${value.replace(/"/g, '""')}"`;
+          value = `"${value.replace(/"/g, '""')}"` as T[keyof T];
         }
         return value;
       })

@@ -10,18 +10,17 @@
 
 'use client';
 
-import { useState, useRef } from 'react';
 import { User, Upload, Save, X, Plus } from 'lucide-react';
-import { motion } from 'framer-motion';
 import Image from 'next/image';
+import { useState, useRef } from 'react';
 
 import Button2 from '@/components/ui/Button2';
 import Input2 from '@/components/ui/Input2';
-import Textarea2 from '@/components/ui/Textarea2';
 import Select2 from '@/components/ui/Select2';
-import { MultiSelect2 } from '@/components/ui/MultiSelect2';
-import { cn } from '@/lib/utils';
+import Textarea2 from '@/components/ui/Textarea2';
 import { apiClient } from '@/lib/api/client';
+import { logger } from '@/lib/logger';
+import { m } from '@/lib/motion';
 
 interface ProfileData {
   name: string;
@@ -153,11 +152,11 @@ export default function ProfileSettingsPage() {
       });
 
       setHasChanges(false);
-      
+
       // Show success message
-      console.log('Profile saved successfully');
+      logger.info('Profile saved successfully');
     } catch (error) {
-      console.error('Failed to save profile:', error);
+      logger.error('Failed to save profile:', error);
       // Show error message
     } finally {
       setIsSaving(false);
@@ -313,7 +312,7 @@ export default function ProfileSettingsPage() {
         {/* Selected Skills */}
         <div className="flex flex-wrap gap-2">
           {profile.skills.map(skill => (
-            <motion.div
+            <m.div
               key={skill}
               initial={{ opacity: 0, scale: 0.8 }}
               animate={{ opacity: 1, scale: 1 }}
@@ -328,7 +327,7 @@ export default function ProfileSettingsPage() {
               >
                 <X className="w-3 h-3" />
               </button>
-            </motion.div>
+            </m.div>
           ))}
         </div>
 

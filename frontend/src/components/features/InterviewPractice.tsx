@@ -2,8 +2,8 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 
-import Button from '@/components/ui/Button';
-import Card from '@/components/ui/Card';
+import Button from '@/components/ui/Button2';
+import Card2 from '@/components/ui/Card2';
 import Textarea from '@/components/ui/Textarea';
 import { apiClient, Job } from '@/lib/api';
 import { logger } from '@/lib/logger';
@@ -62,7 +62,7 @@ export default function InterviewPractice({ selectedJob, onSessionComplete }: In
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showFeedback, setShowFeedback] = useState(false);
-  
+
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const [elapsedTime, setElapsedTime] = useState(0);
 
@@ -144,7 +144,7 @@ export default function InterviewPractice({ selectedJob, onSessionComplete }: In
     if (!currentSession || !currentAnswer.trim()) return;
 
     const answerDuration = startTime ? Math.floor((Date.now() - startTime.getTime()) / 1000) : 0;
-    
+
     const answer: InterviewAnswer = {
       question_id: currentSession.questions[currentQuestionIndex].id,
       answer: currentAnswer,
@@ -225,9 +225,9 @@ export default function InterviewPractice({ selectedJob, onSessionComplete }: In
   if (!currentSession) {
     return (
       <div className="space-y-6">
-        <Card className="p-6">
+        <Card2 className="p-6">
           <h3 className="text-lg font-semibold mb-4">Interview Practice</h3>
-          
+
           <div className="space-y-6">
             {/* Session Type Selection */}
             <div>
@@ -238,11 +238,10 @@ export default function InterviewPractice({ selectedJob, onSessionComplete }: In
                 {(['general', 'job_specific', 'behavioral', 'technical'] as const).map((type) => (
                   <div
                     key={type}
-                    className={`p-4 border rounded-lg cursor-pointer transition-colors ${
-                      sessionType === type
-                        ? 'border-blue-500 bg-blue-50'
-                        : 'border-gray-200 hover:border-gray-300'
-                    }`}
+                    className={`p-4 border rounded-lg cursor-pointer transition-colors ${sessionType === type
+                      ? 'border-blue-500 bg-blue-50'
+                      : 'border-gray-200 hover:border-gray-300'
+                      }`}
                     onClick={() => setSessionType(type)}
                   >
                     <h4 className="font-medium text-gray-900 mb-2">
@@ -289,11 +288,11 @@ export default function InterviewPractice({ selectedJob, onSessionComplete }: In
               {loading ? 'Starting Session...' : `Start ${getSessionTypeLabel(sessionType)}`}
             </Button>
           </div>
-        </Card>
+        </Card2>
 
         {/* Session History */}
         {sessionHistory.length > 0 && (
-          <Card className="p-6">
+          <Card2 className="p-6">
             <h4 className="text-lg font-semibold mb-4">Recent Sessions</h4>
             <div className="space-y-3">
               {sessionHistory.slice(-5).reverse().map((session) => (
@@ -301,24 +300,23 @@ export default function InterviewPractice({ selectedJob, onSessionComplete }: In
                   <div>
                     <p className="font-medium">{getSessionTypeLabel(session.session_type)}</p>
                     <p className="text-sm text-gray-600">
-                      {session.overall_score ? `Score: ${session.overall_score.toFixed(1)}/10` : 'In Progress'} • 
-                      {session.duration_minutes} minutes • 
+                      {session.overall_score ? `Score: ${session.overall_score.toFixed(1)}/10` : 'In Progress'} •
+                      {session.duration_minutes} minutes •
                       {new Date(session.created_at).toLocaleDateString()}
                     </p>
                   </div>
                   <div className="text-right">
-                    <span className={`px-2 py-1 rounded-full text-xs ${
-                      session.status === 'completed' 
-                        ? 'bg-green-100 text-green-800' 
-                        : 'bg-yellow-100 text-yellow-800'
-                    }`}>
+                    <span className={`px-2 py-1 rounded-full text-xs ${session.status === 'completed'
+                      ? 'bg-green-100 text-green-800'
+                      : 'bg-yellow-100 text-yellow-800'
+                      }`}>
                       {session.status}
                     </span>
                   </div>
                 </div>
               ))}
             </div>
-          </Card>
+          </Card2>
         )}
 
         {error && (
@@ -333,7 +331,7 @@ export default function InterviewPractice({ selectedJob, onSessionComplete }: In
   if (showFeedback && currentSession.status === 'completed') {
     return (
       <div className="space-y-6">
-        <Card className="p-6">
+        <Card2 className="p-6">
           <div className="text-center mb-6">
             <h3 className="text-2xl font-bold text-gray-900 mb-2">Interview Complete!</h3>
             <div className="flex items-center justify-center space-x-4">
@@ -357,7 +355,7 @@ export default function InterviewPractice({ selectedJob, onSessionComplete }: In
             {currentSession.questions.map((question, index) => {
               const answer = currentSession.answers[index];
               const feedback = currentSession.feedback[index];
-              
+
               return (
                 <div key={question.id} className="border rounded-lg p-4">
                   <div className="mb-3">
@@ -368,10 +366,9 @@ export default function InterviewPractice({ selectedJob, onSessionComplete }: In
                       <span>Type: {question.type}</span>
                       <span>Difficulty: {question.difficulty}</span>
                       <span>Your time: {formatTime(answer?.duration || 0)}</span>
-                      <span className={`font-medium ${
-                        feedback?.score >= 7 ? 'text-green-600' : 
+                      <span className={`font-medium ${feedback?.score >= 7 ? 'text-green-600' :
                         feedback?.score >= 5 ? 'text-yellow-600' : 'text-red-600'
-                      }`}>
+                        }`}>
                         Score: {feedback?.score}/10
                       </span>
                     </div>
@@ -390,7 +387,7 @@ export default function InterviewPractice({ selectedJob, onSessionComplete }: In
                           ))}
                         </ul>
                       </div>
-                      
+
                       <div>
                         <h5 className="font-medium text-yellow-700 mb-2">Areas for Improvement</h5>
                         <ul className="text-sm space-y-1">
@@ -402,7 +399,7 @@ export default function InterviewPractice({ selectedJob, onSessionComplete }: In
                           ))}
                         </ul>
                       </div>
-                      
+
                       <div>
                         <h5 className="font-medium text-blue-700 mb-2">Suggestions</h5>
                         <ul className="text-sm space-y-1">
@@ -429,7 +426,7 @@ export default function InterviewPractice({ selectedJob, onSessionComplete }: In
               Review Answers
             </Button>
           </div>
-        </Card>
+        </Card2>
       </div>
     );
   }
@@ -440,7 +437,7 @@ export default function InterviewPractice({ selectedJob, onSessionComplete }: In
 
   return (
     <div className="space-y-6">
-      <Card className="p-6">
+      <Card2 className="p-6">
         {/* Session Header */}
         <div className="flex items-center justify-between mb-6">
           <div>
@@ -460,7 +457,7 @@ export default function InterviewPractice({ selectedJob, onSessionComplete }: In
         {/* Progress Bar */}
         <div className="mb-6">
           <div className="w-full bg-gray-200 rounded-full h-2">
-            <div 
+            <div
               className="bg-blue-600 h-2 rounded-full transition-all duration-300"
               style={{ width: `${progress}%` }}
             ></div>
@@ -471,11 +468,10 @@ export default function InterviewPractice({ selectedJob, onSessionComplete }: In
         <div className="mb-6">
           <div className="bg-blue-50 p-4 rounded-lg mb-4">
             <div className="flex items-center justify-between mb-2">
-              <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                currentQuestion.difficulty === 'easy' ? 'bg-green-100 text-green-800' :
+              <span className={`px-2 py-1 rounded-full text-xs font-medium ${currentQuestion.difficulty === 'easy' ? 'bg-green-100 text-green-800' :
                 currentQuestion.difficulty === 'medium' ? 'bg-yellow-100 text-yellow-800' :
-                'bg-red-100 text-red-800'
-              }`}>
+                  'bg-red-100 text-red-800'
+                }`}>
                 {currentQuestion.difficulty}
               </span>
               <span className="text-sm text-gray-600">
@@ -535,7 +531,7 @@ export default function InterviewPractice({ selectedJob, onSessionComplete }: In
             </div>
           </div>
         </div>
-      </Card>
+      </Card2>
     </div>
   );
 }

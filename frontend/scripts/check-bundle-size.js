@@ -59,8 +59,7 @@ function getBudgetStatus(size) {
 
 function parseNextBuildOutput() {
   const buildManifestPath = path.join(__dirname, '../.next/build-manifest.json');
-  const pagesManifestPath = path.join(__dirname, '../.next/server/pages-manifest.json');
-  
+
   if (!fs.existsSync(buildManifestPath)) {
     console.error(`${colors.red}Error: Build manifest not found. Please run 'npm run build' first.${colors.reset}`);
     process.exit(1);
@@ -232,14 +231,14 @@ function createProgressBar(value, max, width = 20) {
   const percentage = Math.min(value / max, 1);
   const filled = Math.round(width * percentage);
   const empty = width - filled;
-  
+
   let color = colors.green;
   if (percentage > 1) {
     color = colors.red;
   } else if (percentage > 0.8) {
     color = colors.yellow;
   }
-  
+
   return `${color}${'█'.repeat(filled)}${colors.reset}${'░'.repeat(empty)}`;
 }
 

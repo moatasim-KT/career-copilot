@@ -86,7 +86,7 @@ function buildCSP(nonce: string): string {
 /**
  * Security headers middleware
  */
-export function securityHeaders(request: NextRequest) {
+export function securityHeaders(_request: NextRequest) {
     const nonce = generateNonce();
     const response = NextResponse.next();
 

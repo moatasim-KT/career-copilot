@@ -9,13 +9,13 @@ import json
 import os
 import sys
 from dataclasses import asdict, dataclass
-from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Type
 
 # Add backend to path
 sys.path.insert(0, "backend")
 
+from app.utils.datetime import utc_now
 from sqlalchemy import Boolean, Column, DateTime, Float, ForeignKey, Integer, String, Text
 from sqlalchemy.orm import DeclarativeBase, Mapped, relationship
 
@@ -59,7 +59,7 @@ class SchemaAnalyzer:
 			tables = self._analyze_model_file(model_file)
 			self.tables.extend(tables)
 
-		return SchemaInfo(tables=self.tables, generated_at=datetime.utcnow().isoformat())
+		return SchemaInfo(tables=self.tables, generated_at=utc_now().isoformat())
 
 	def _find_model_files(self) -> List[Path]:
 		"""Find all model definition files"""

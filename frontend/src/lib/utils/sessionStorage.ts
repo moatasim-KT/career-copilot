@@ -1,3 +1,5 @@
+import { logger } from '@/lib/logger';
+
 const SECRET_KEY = process.env.NEXT_PUBLIC_SESSION_STORAGE_SECRET_KEY || 'anothersecretkey';
 
 const encrypt = (text: string): string => {
@@ -13,7 +15,7 @@ const decrypt = (cipher: string): string => {
       String.fromCharCode(char.charCodeAt(0) ^ SECRET_KEY.charCodeAt(i % SECRET_KEY.length)),
     ).join('');
   } catch (error) {
-    console.error('Decryption failed:', error);
+    logger.error('Decryption failed:', error);
     return ''; // Return empty string or handle error as appropriate
   }
 };
@@ -25,7 +27,7 @@ export const sessionStorageWrapper = {
       const encryptedValue = encrypt(serializedValue);
       sessionStorage.setItem(key, encryptedValue);
     } catch (error) {
-      console.error(`Error setting item ${key} to sessionStorage:`, error);
+      logger.error(`Error setting item ${key} to sessionStorage:`, error);
       // Handle storage limit exceeded or other errors
     }
   },
@@ -39,7 +41,7 @@ export const sessionStorageWrapper = {
       const decryptedValue = decrypt(encryptedValue);
       return JSON.parse(decryptedValue);
     } catch (error) {
-      console.error(`Error getting item ${key} from sessionStorage:`, error);
+      logger.error(`Error getting item ${key} from sessionStorage:`, error);
       return null;
     }
   },
@@ -48,7 +50,7 @@ export const sessionStorageWrapper = {
     try {
       sessionStorage.removeItem(key);
     } catch (error) {
-      console.error(`Error removing item ${key} from sessionStorage:`, error);
+      logger.error(`Error removing item ${key} from sessionStorage:`, error);
     }
   },
 
@@ -56,7 +58,7 @@ export const sessionStorageWrapper = {
     try {
       sessionStorage.clear();
     } catch (error) {
-      console.error('Error clearing sessionStorage:', error);
+      logger.error('Error clearing sessionStorage:', error);
     }
   },
 };

@@ -17,24 +17,25 @@
 
 'use client';
 
-import React, { useState, useReducer, useEffect, useCallback } from 'react';
-import { AnimatePresence, motion } from 'framer-motion';
-import { useRouter } from 'next/navigation';
 import { ChevronLeft, ChevronRight, X, Check } from 'lucide-react';
-import { toast } from 'react-hot-toast';
+import React, { useState, useReducer, useEffect, useCallback } from 'react';
+import { toast } from 'sonner';
 
-import Modal2 from '@/components/ui/Modal2';
 import Button2 from '@/components/ui/Button2';
+import Modal2 from '@/components/ui/Modal2';
 import { ProgressBar } from '@/components/ui/ProgressBar';
 import { slideVariants } from '@/lib/animations';
 import apiClient from '@/lib/api/client';
+import { logger } from '@/lib/logger';
+import { AnimatePresence, m } from '@/lib/motion';
 
-import WelcomeStep from './steps/WelcomeStep';
-import SkillsStep from './steps/SkillsStep';
-import ResumeStep from './steps/ResumeStep';
-import PreferencesStep from './steps/PreferencesStep';
-import FeatureTourStep from './steps/FeatureTourStep';
 import CompletionStep from './steps/CompletionStep';
+import FeatureTourStep from './steps/FeatureTourStep';
+import PreferencesStep from './steps/PreferencesStep';
+import ResumeStep from './steps/ResumeStep';
+import SkillsStep from './steps/SkillsStep';
+import WelcomeStep from './steps/WelcomeStep';
+
 
 /**
  * Step configuration
@@ -184,7 +185,6 @@ const OnboardingWizard: React.FC<OnboardingWizardProps> = ({
   onComplete,
   startStep = 0,
 }) => {
-  const router = useRouter();
   const [currentStep, setCurrentStep] = useState(startStep);
   const [state, dispatch] = useReducer(onboardingReducer, initialState);
   const [isLoading, setIsLoading] = useState(false);
@@ -206,7 +206,7 @@ const OnboardingWizard: React.FC<OnboardingWizardProps> = ({
 
           // Find first incomplete step
           const lastCompletedIndex = steps.findIndex(
-            (step) => !response.data.onboarding?.[step.id]?.completed
+            (step) => !response.data.onboarding?.[step.id]?.completed,
           );
 
           if (lastCompletedIndex !== -1 && lastCompletedIndex > startStep) {
@@ -214,7 +214,7 @@ const OnboardingWizard: React.FC<OnboardingWizardProps> = ({
           }
         }
       } catch (error) {
-        console.error('Failed to load onboarding progress:', error);
+        logger.error('Failed to load onboarding progress:', error);
         toast.error('Failed to load your progress');
       } finally {
         setIsLoading(false);
@@ -252,7 +252,7 @@ const OnboardingWizard: React.FC<OnboardingWizardProps> = ({
       setHasUnsavedChanges(false);
       return true;
     } catch (error) {
-      console.error('Failed to save progress:', error);
+      logger.error('Failed to save progress:', error);
       toast.error('Failed to save your progress');
       return false;
     } finally {
@@ -272,6 +272,29 @@ const OnboardingWizard: React.FC<OnboardingWizardProps> = ({
   }, [currentStep]);
 
   /**
+   * Complete onboarding
+   */
+  const handleComplete = useCallback(async () => {
+    try {
+      await apiClient.user.updateProfile({
+        onboardingCompleted: true,
+        onboardingCompletedAt: new Date().toISOString(),
+      });
+
+      toast.success('Welcome to Career Copilot! 🎉');
+
+      if (onComplete) {
+        onComplete();
+      }
+
+      onClose();
+    } catch (error) {
+      logger.error('Failed to complete onboarding:', error);
+      toast.error('Failed to complete onboarding');
+    }
+  }, [onComplete, onClose]);
+
+  /**
    * Navigate to next step
    */
   const handleNext = useCallback(async () => {
@@ -288,7 +311,7 @@ const OnboardingWizard: React.FC<OnboardingWizardProps> = ({
       // Completed all steps
       handleComplete();
     }
-  }, [currentStep, state, saveProgress]);
+  }, [currentStep, state, saveProgress, handleComplete]);
 
   /**
    * Navigate to previous step
@@ -324,7 +347,7 @@ const OnboardingWizard: React.FC<OnboardingWizardProps> = ({
     } else {
       handleComplete();
     }
-  }, [currentStep, state, saveProgress]);
+  }, [currentStep, state, saveProgress, handleComplete]);
 
   /**
    * Skip entire onboarding
@@ -332,7 +355,7 @@ const OnboardingWizard: React.FC<OnboardingWizardProps> = ({
   const handleSkipAll = useCallback(async () => {
     if (hasUnsavedChanges) {
       const confirmed = window.confirm(
-        'You have unsaved changes. Are you sure you want to skip onboarding?'
+        'You have unsaved changes. Are you sure you want to skip onboarding?',
       );
       if (!confirmed) return;
     }
@@ -356,33 +379,10 @@ const OnboardingWizard: React.FC<OnboardingWizardProps> = ({
       toast.success('You can complete onboarding later from settings');
       onClose();
     } catch (error) {
-      console.error('Failed to skip onboarding:', error);
+      logger.error('Failed to skip onboarding:', error);
       toast.error('Failed to skip onboarding');
     }
   }, [hasUnsavedChanges, onClose]);
-
-  /**
-   * Complete onboarding
-   */
-  const handleComplete = useCallback(async () => {
-    try {
-      await apiClient.user.updateProfile({
-        onboardingCompleted: true,
-        onboardingCompletedAt: new Date().toISOString(),
-      });
-
-      toast.success('Welcome to Career Copilot! 🎉');
-      
-      if (onComplete) {
-        onComplete();
-      }
-
-      onClose();
-    } catch (error) {
-      console.error('Failed to complete onboarding:', error);
-      toast.error('Failed to complete onboarding');
-    }
-  }, [onComplete, onClose]);
 
   /**
    * Handle close with unsaved changes warning
@@ -390,7 +390,7 @@ const OnboardingWizard: React.FC<OnboardingWizardProps> = ({
   const handleClose = useCallback(() => {
     if (hasUnsavedChanges) {
       const confirmed = window.confirm(
-        'You have unsaved changes. Are you sure you want to close?'
+        'You have unsaved changes. Are you sure you want to close?',
       );
       if (!confirmed) return;
     }
@@ -489,13 +489,12 @@ const OnboardingWizard: React.FC<OnboardingWizardProps> = ({
             {steps.map((step, index) => (
               <div
                 key={step.id}
-                className={`flex-1 h-1 rounded-full transition-all duration-300 ${
-                  index < currentStep
-                    ? 'bg-success-500'
-                    : index === currentStep
+                className={`flex-1 h-1 rounded-full transition-all duration-300 ${index < currentStep
+                  ? 'bg-success-500'
+                  : index === currentStep
                     ? 'bg-primary-500'
                     : 'bg-neutral-200 dark:bg-neutral-700'
-                }`}
+                  }`}
                 title={step.title}
               />
             ))}
@@ -513,7 +512,7 @@ const OnboardingWizard: React.FC<OnboardingWizardProps> = ({
             </div>
           ) : (
             <AnimatePresence mode="wait">
-              <motion.div
+              <m.div
                 key={currentStep}
                 initial="hidden"
                 animate="visible"
@@ -528,7 +527,7 @@ const OnboardingWizard: React.FC<OnboardingWizardProps> = ({
                   onBack={handleBack}
                   onSkip={handleSkip}
                 />
-              </motion.div>
+              </m.div>
             </AnimatePresence>
           )}
         </div>

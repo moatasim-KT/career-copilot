@@ -10,8 +10,8 @@
 import dynamic from 'next/dynamic';
 import { Suspense } from 'react';
 
-import { AdvancedSearchSkeleton } from '@/components/loading/AdvancedSearchSkeleton';
 import type { AdvancedSearchProps } from '@/components/features/AdvancedSearch';
+import { AdvancedSearchSkeleton } from '@/components/loading/AdvancedSearchSkeleton';
 
 // Lazy load AdvancedSearch
 const AdvancedSearch = dynamic(
@@ -19,7 +19,7 @@ const AdvancedSearch = dynamic(
   {
     loading: () => <AdvancedSearchSkeleton />,
     ssr: false, // Advanced search is client-side only
-  }
+  },
 );
 
 export default function LazyAdvancedSearch(props: AdvancedSearchProps) {

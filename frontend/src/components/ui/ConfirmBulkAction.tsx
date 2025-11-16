@@ -1,8 +1,9 @@
 'use client';
 
-import { motion } from 'framer-motion';
 import { AlertTriangle } from 'lucide-react';
 import React from 'react';
+
+import { m } from '@/lib/motion';
 
 import Button2 from './Button2';
 import Modal, { ModalFooter } from './Modal';
@@ -41,7 +42,7 @@ export function ConfirmBulkAction({
 
   const handleConfirm = async () => {
     setIsConfirming(true);
-    
+
     if (showDontAskAgain && dontAskAgain && onDontAskAgainChange) {
       onDontAskAgainChange(true);
     }
@@ -73,7 +74,7 @@ export function ConfirmBulkAction({
         {/* Warning Icon and Message */}
         <div className="flex items-start space-x-3">
           {isDestructive && (
-            <motion.div
+            <m.div
               initial={{ scale: 0.8, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               transition={{
@@ -86,7 +87,7 @@ export function ConfirmBulkAction({
               <div className="flex items-center justify-center h-12 w-12 rounded-full bg-red-100 dark:bg-red-900/30">
                 <AlertTriangle className="h-6 w-6 text-red-600 dark:text-red-400" />
               </div>
-            </motion.div>
+            </m.div>
           )}
           <div className="flex-1">
             <p className="text-sm text-neutral-700 dark:text-neutral-300">
@@ -105,7 +106,7 @@ export function ConfirmBulkAction({
           {displayItems.length > 0 && (
             <ul className="space-y-1">
               {displayItems.map((item, index) => (
-                <motion.li
+                <m.li
                   key={index}
                   initial={{ opacity: 0, x: -10 }}
                   animate={{ opacity: 1, x: 0 }}
@@ -114,27 +115,27 @@ export function ConfirmBulkAction({
                 >
                   <span className="h-1.5 w-1.5 rounded-full bg-neutral-400 dark:bg-neutral-500" />
                   <span className="truncate">{item}</span>
-                </motion.li>
+                </m.li>
               ))}
             </ul>
           )}
 
           {/* Remaining Count */}
           {remainingCount > 0 && (
-            <motion.p
+            <m.p
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.3 }}
               className="text-sm text-neutral-500 dark:text-neutral-400 mt-2 italic"
             >
               and {remainingCount} more...
-            </motion.p>
+            </m.p>
           )}
         </div>
 
         {/* Warning Message for Destructive Actions */}
         {isDestructive && (
-          <motion.div
+          <m.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
@@ -146,12 +147,12 @@ export function ConfirmBulkAction({
             <p className="text-xs text-red-600 dark:text-red-400 mt-1">
               Please confirm that you want to proceed with this operation.
             </p>
-          </motion.div>
+          </m.div>
         )}
 
         {/* Don't Ask Again Checkbox */}
         {showDontAskAgain && (
-          <motion.div
+          <m.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
@@ -175,9 +176,9 @@ export function ConfirmBulkAction({
               htmlFor="dont-ask-again"
               className="text-sm text-neutral-700 dark:text-neutral-300 cursor-pointer select-none"
             >
-              Don't ask me again for this action
+              Don&apos;t ask me again for this action
             </label>
-          </motion.div>
+          </m.div>
         )}
       </div>
 
@@ -192,7 +193,7 @@ export function ConfirmBulkAction({
         </Button2>
         <Button2
           type="button"
-          variant={isDestructive ? 'destructive' : 'default'}
+          variant={isDestructive ? 'destructive' : 'primary'}
           onClick={handleConfirm}
           loading={isConfirming}
         >

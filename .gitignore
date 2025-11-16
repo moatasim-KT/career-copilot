@@ -115,10 +115,20 @@ reports/validation/*.json
 
 # Node modules (if any)
 node_modules/
+.pnpm-store/
 
 # Build artifacts
 .next/
 build/
+dist/
+out/
+.turbo/
+
+# Test results
+test-results/
+.playwright/
+playwright-report/
+coverage/
 
 # Secrets (CRITICAL: Never commit secrets)
 secrets/

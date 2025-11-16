@@ -14,15 +14,15 @@ import {
   HelpCircle,
   Plus,
   Search,
-  Moon,
   Sun,
-  LogOut,
   User,
   Bell,
   Download,
   Upload,
   type LucideIcon,
 } from 'lucide-react';
+
+import { logger } from '@/lib/logger';
 
 export interface Command {
   id: string;
@@ -193,13 +193,13 @@ export function searchCommands(commands: Command[], query: string): Command[] {
   }
 
   const lowerQuery = query.toLowerCase();
-  
+
   return commands.filter((command) => {
     // Search in label
     if (command.label.toLowerCase().includes(lowerQuery)) {
       return true;
     }
-    
+
     // Search in keywords
     return command.keywords.some((keyword) =>
       keyword.toLowerCase().includes(lowerQuery),
@@ -233,7 +233,7 @@ export function getCategoryLabel(category: string): string {
     setting: 'Settings',
     search: 'Search Results',
   };
-  
+
   return labels[category] || category;
 }
 
@@ -245,40 +245,40 @@ const MAX_RECENT_COMMANDS = 10;
 
 export function getRecentCommands(): string[] {
   if (typeof window === 'undefined') return [];
-  
+
   try {
     const stored = localStorage.getItem(RECENT_COMMANDS_KEY);
     return stored ? JSON.parse(stored) : [];
   } catch (error) {
-    console.error('Failed to read recent commands:', error);
+    logger.error('Failed to read recent commands:', error);
     return [];
   }
 }
 
 export function addRecentCommand(commandId: string): void {
   if (typeof window === 'undefined') return;
-  
+
   try {
     const recent = getRecentCommands();
-    
+
     // Remove if already exists
     const filtered = recent.filter((id) => id !== commandId);
-    
+
     // Add to front
     const updated = [commandId, ...filtered].slice(0, MAX_RECENT_COMMANDS);
-    
+
     localStorage.setItem(RECENT_COMMANDS_KEY, JSON.stringify(updated));
   } catch (error) {
-    console.error('Failed to save recent command:', error);
+    logger.error('Failed to save recent command:', error);
   }
 }
 
 export function clearRecentCommands(): void {
   if (typeof window === 'undefined') return;
-  
+
   try {
     localStorage.removeItem(RECENT_COMMANDS_KEY);
   } catch (error) {
-    console.error('Failed to clear recent commands:', error);
+    logger.error('Failed to clear recent commands:', error);
   }
 }

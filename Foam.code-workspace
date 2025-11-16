@@ -5,23 +5,100 @@
         }
     ],
     "settings": {
-        "foam.openDailyNotes": true,
+        "foam.openDailyNotes": false,
         "foam.files.ignore": [
+            // VS Code & Git
             "**/.vscode/**",
-            "**/node_modules/**",
             "**/.git/**",
-            "**/backend/__pycache__/**",
-            "**/backend/.venv/**",
+            // Node & Dependencies
+            "**/node_modules/**",
+            "**/.pnpm-store/**",
+            // Python Virtual Environments & Cache (CRITICAL - contains library docs)
+            "**/.venv/**",
+            "**/venv/**",
+            "**/env/**",
+            "**/__pycache__/**",
+            "**/.pytest_cache/**",
+            "**/site-packages/**",
+            // Build & Output Directories
+            "**/dist/**",
+            "**/build/**",
+            "**/.next/**",
+            "**/.turbo/**",
+            "**/out/**",
+            // Coverage & Test Reports
+            "**/htmlcov/**",
+            "**/coverage/**",
+            "**/.coverage",
+            "**/test-results/**",
+            "**/.playwright/**",
+            "**/playwright-report/**",
+            // Data & Logs
             "**/data/**",
             "**/logs/**",
             "**/reports/**",
             "**/secrets/**",
-            "**/tests/**",
-            "**/*.pyc",
-            "**/*.log"
+            "**/*.log",
+            // Archive & Legacy Files
+            "**/.archive/**",
+            "**/archive/**",
+            // Temporary & Cache Files
+            "**/.DS_Store",
+            "**/tmp/**",
+            "**/temp/**",
+            "**/.cache/**",
+            // Package Manager Lock Files
+            "**/package-lock.json",
+            "**/yarn.lock",
+            "**/pnpm-lock.yaml",
+            // Backup Files
+            "**/*.bak",
+            "**/*.old",
+            "**/*.swp",
+            "**/*~"
         ],
         "foam.links.completion": "on",
-        "foam.dateSnippets.afterCompletion": "createNote"
+        "foam.dateSnippets.afterCompletion": "createNote",
+        // VS Code search exclusions
+        "search.exclude": {
+            "**/.venv": true,
+            "**/venv": true,
+            "**/node_modules": true,
+            "**/__pycache__": true,
+            "**/.pytest_cache": true,
+            "**/htmlcov": true,
+            "**/coverage": true,
+            "**/.next": true,
+            "**/dist": true,
+            "**/build": true,
+            "**/data": true,
+            "**/logs": true,
+            "**/reports": true,
+            "**/secrets": true,
+            "**/.git": true,
+            "**/.DS_Store": true,
+            "**/package-lock.json": true,
+            "**/yarn.lock": true,
+            "**/pnpm-lock.yaml": true
+        },
+        // File watcher exclusions
+        "files.watcherExclude": {
+            "**/.git/**": true,
+            "**/node_modules/**": true,
+            "**/.venv/**": true,
+            "**/venv/**": true,
+            "**/__pycache__/**": true,
+            "**/.pytest_cache/**": true,
+            "**/htmlcov/**": true,
+            "**/coverage/**": true,
+            "**/.next/**": true,
+            "**/dist/**": true,
+            "**/build/**": true,
+            "**/data/**": true,
+            "**/logs/**": true,
+            "**/reports/**": true,
+            "**/secrets/**": true
+        }
     },
     "extensions": {
         "recommendations": [

@@ -1,27 +1,28 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import { format, subDays, parseISO } from 'date-fns';
+import { TrendingUp, TrendingDown, Minus } from 'lucide-react';
+import { useCallback, useEffect, useState } from 'react';
 import {
-  LineChart,
+  Area,
+  Brush,
+  CartesianGrid,
+  ComposedChart,
+  Legend,
   Line,
+  Tooltip,
   XAxis,
   YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
   ResponsiveContainer,
-  Brush,
-  ReferenceLine,
-  Area,
-  ComposedChart,
 } from 'recharts';
-import { format, subDays, parseISO } from 'date-fns';
-import { motion } from 'framer-motion';
-import { TrendingUp, TrendingDown, Minus } from 'lucide-react';
-import { ChartWrapper } from './ChartWrapper';
-import { Button2 } from '@/components/ui/Button2';
+
+
+import Button2 from '@/components/ui/Button2';
 import { apiClient } from '@/lib/api';
 import { logger } from '@/lib/logger';
+import { m } from '@/lib/motion';
+
+import { ChartWrapper } from './ChartWrapper';
 
 interface ApplicationTimelineData {
   date: string;
@@ -50,7 +51,7 @@ interface CustomTooltipProps {
 const CustomTooltip: React.FC<CustomTooltipProps> = ({ active, payload, label }) => {
   if (active && payload && payload.length) {
     return (
-      <motion.div
+      <m.div
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
         className="bg-white dark:bg-neutral-800 p-3 rounded-lg shadow-lg border border-neutral-200 dark:border-neutral-700"
@@ -68,7 +69,7 @@ const CustomTooltip: React.FC<CustomTooltipProps> = ({ active, payload, label })
             </span>
           </div>
         ))}
-      </motion.div>
+      </m.div>
     );
   }
   return null;
@@ -99,7 +100,6 @@ export const ApplicationTimelineChart: React.FC<ApplicationTimelineChartProps> =
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showLegend, setShowLegend] = useState(true);
-  const [showTrend, setShowTrend] = useState(false);
   const [showCumulative, setShowCumulative] = useState(false);
   const [selectedRange, setSelectedRange] = useState<number>(30);
   const [isDarkMode, setIsDarkMode] = useState(false);
@@ -109,25 +109,25 @@ export const ApplicationTimelineChart: React.FC<ApplicationTimelineChartProps> =
     const checkDarkMode = () => {
       setIsDarkMode(document.documentElement.classList.contains('dark'));
     };
-    
+
     checkDarkMode();
-    
+
     const observer = new MutationObserver(checkDarkMode);
     observer.observe(document.documentElement, {
       attributes: true,
       attributeFilter: ['class'],
     });
-    
+
     return () => observer.disconnect();
   }, []);
 
   const fetchData = useCallback(async () => {
     setIsLoading(true);
     setError(null);
-    
+
     try {
       const response = await apiClient.getApplications(0, 1000);
-      
+
       if (response.error || !response.data) {
         throw new Error(response.error || 'Failed to fetch data');
       }
@@ -340,7 +340,7 @@ export const ApplicationTimelineChart: React.FC<ApplicationTimelineChartProps> =
               iconType="line"
             />
           )}
-          
+
           {/* Main line with area */}
           <Area
             type="monotone"
@@ -352,7 +352,7 @@ export const ApplicationTimelineChart: React.FC<ApplicationTimelineChartProps> =
             animationDuration={800}
             animationEasing="ease-out"
           />
-          
+
           {/* Cumulative line */}
           {showCumulative && (
             <Line

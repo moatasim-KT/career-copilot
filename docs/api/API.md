@@ -1,626 +1,99 @@
-# API Documentation
+# API Reference
 
-## Overview
+Career Copilot exposes a FastAPI-based `/api/v1` surface backed by PostgreSQL, Redis, Celery workers, and multi-provider LLM integrations. This document summarizes the major route groups, conventions, and supporting tooling.
 
-Career Copilot provides a comprehensive RESTful API for managing job applications, user profiles, and AI-powered content generation.
+## Generating the OpenAPI Spec
 
-- **Base URL**: `http://localhost:8000`
-- **API Version**: v1
-- **Documentation**: `http://localhost:8000/docs` (Swagger UI)
-- **Alternative Docs**: `http://localhost:8000/redoc` (ReDoc)
-
-## Authentication
-
-### JWT Authentication
-
-All API endpoints (except public ones) require JWT authentication.
-
-#### Login
-
-```http
-POST /api/v1/auth/login
-Content-Type: application/json
-
-{
-  "email": "user@example.com",
-  "password": "password123"
-}
-```
-
-**Response:**
-```json
-{
-  "access_token": "eyJ0eXAiOiJKV1QiLCJhbGc...",
-  "refresh_token": "eyJ0eXAiOiJKV1QiLCJhbGc...",
-  "token_type": "bearer"
-}
-```
-
-#### Using Token
-
-```http
-GET /api/v1/jobs
-Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGc...
-```
-
-## Endpoints
-
-### Jobs
-
-**Implementation**: [[../../backend/app/api/v1/jobs.py|backend/app/api/v1/jobs.py]]  
-**Service Layer**: [[../../backend/app/services/job_service.py|backend/app/services/job_service.py]]  
-**Models**: [[../../backend/app/models/job.py|backend/app/models/job.py]]  
-**Schemas**: [[../../backend/app/schemas/job.py|backend/app/schemas/job.py]]
-
-#### List Jobs
-
-```http
-GET /api/v1/jobs?skip=0&limit=20&location=Berlin&source=linkedin
-```
-
-**Query Parameters:**
-- `skip` (int): Number of records to skip (default: 0)
-- `limit` (int): Maximum records to return (default: 20, max: 100)
-- `location` (string): Filter by location
-- `source` (string): Filter by source (linkedin, indeed, stepstone, etc.)
-- `is_active` (bool): Filter by active status
-
-**Response:**
-```json
-{
-  "items": [
-    {
-      "id": 1,
-      "title": "Senior Data Scientist",
-      "company": "TechCorp GmbH",
-      "location": "Berlin, Germany",
-      "description": "We are looking for...",
-      "source": "linkedin",
-      "url": "https://linkedin.com/jobs/...",
-      "scraped_at": "2025-11-07T10:00:00Z",
-      "is_active": true
-    }
-  ],
-  "total": 150,
-  "skip": 0,
-  "limit": 20
-}
-```
-
-#### Get Job Details
-
-```http
-GET /api/v1/jobs/{job_id}
-```
-
-**Response:**
-```json
-{
-  "id": 1,
-  "title": "Senior Data Scientist",
-  "company": "TechCorp GmbH",
-  "location": "Berlin, Germany",
-  "description": "Detailed job description...",
-  "requirements": ["Python", "Machine Learning", "SQL"],
-  "salary_range": "€70,000 - €90,000",
-  "source": "linkedin",
-  "url": "https://linkedin.com/jobs/...",
-  "scraped_at": "2025-11-07T10:00:00Z",
-  "is_active": true
-}
-```
-
-#### Search Jobs
-
-```http
-POST /api/v1/jobs/search
-Content-Type: application/json
-
-{
-  "query": "machine learning engineer",
-  "location": "Berlin",
-  "skills": ["Python", "TensorFlow"],
-  "min_salary": 60000
-}
-```
-
-**Response:**
-```json
-{
-  "results": [
-    {
-      "id": 1,
-      "title": "Machine Learning Engineer",
-      "company": "AI Startup",
-      "relevance_score": 0.95,
-      "match_details": {
-        "matched_skills": ["Python", "TensorFlow"],
-        "missing_skills": ["PyTorch"]
-      }
-    }
-  ],
-  "total": 10
-}
-```
-
-### Applications
-
-#### List Applications
-
-```http
-GET /api/v1/applications?skip=0&limit=20&status=pending
-```
-
-**Query Parameters:**
-- `skip` (int): Number of records to skip
-- `limit` (int): Maximum records to return
-- `status` (string): Filter by status (pending, applied, interviewing, rejected, accepted)
-
-**Response:**
-```json
-{
-  "items": [
-    {
-      "id": 1,
-      "job_id": 123,
-      "job_title": "Senior Data Scientist",
-      "company": "TechCorp GmbH",
-      "status": "applied",
-      "applied_at": "2025-11-01T14:30:00Z",
-      "last_updated": "2025-11-02T09:00:00Z"
-    }
-  ],
-  "total": 25,
-  "skip": 0,
-  "limit": 20
-}
-```
-
-#### Create Application
-
-```http
-POST /api/v1/applications
-Content-Type: application/json
-
-{
-  "job_id": 123,
-  "cover_letter": "Dear Hiring Manager...",
-  "custom_resume": "path/to/resume.pdf",
-  "notes": "Applied via company website"
-}
-```
-
-**Response:**
-```json
-{
-  "id": 1,
-  "job_id": 123,
-  "status": "pending",
-  "applied_at": "2025-11-07T10:00:00Z",
-  "message": "Application created successfully"
-}
-```
-
-#### Update Application Status
-
-```http
-PUT /api/v1/applications/{application_id}
-Content-Type: application/json
-
-{
-  "status": "interviewing",
-  "notes": "Phone interview scheduled for next week"
-}
-```
-
-**Response:**
-```json
-{
-  "id": 1,
-  "status": "interviewing",
-  "last_updated": "2025-11-07T10:00:00Z",
-  "message": "Application updated successfully"
-}
-```
-
-### AI Services
-
-#### Generate Resume
-
-```http
-POST /api/v1/ai/resume/generate
-Content-Type: application/json
-
-{
-  "job_id": 123,
-  "template": "modern",
-  "include_skills": true,
-  "highlight_experience": true
-}
-```
-
-**Response:**
-```json
-{
-  "resume_url": "/uploads/resumes/user_1_job_123.pdf",
-  "preview_text": "MOATASIM FAROOQUE\nSenior Data Scientist...",
-  "generated_at": "2025-11-07T10:00:00Z"
-}
-```
-
-#### Generate Cover Letter
-
-```http
-POST /api/v1/ai/cover-letter/generate
-Content-Type: application/json
-
-{
-  "job_id": 123,
-  "tone": "professional",
-  "length": "medium"
-}
-```
-
-**Response:**
-```json
-{
-  "cover_letter": "Dear Hiring Manager,\n\nI am writing to express...",
-  "word_count": 350,
-  "generated_at": "2025-11-07T10:00:00Z"
-}
-```
-
-#### Analyze Job Match
-
-```http
-POST /api/v1/ai/analyze-match
-Content-Type: application/json
-
-{
-  "job_id": 123,
-  "user_id": 1
-}
-```
-
-**Response:**
-```json
-{
-  "match_score": 0.85,
-  "strengths": [
-    "Strong Python skills",
-    "Relevant ML experience"
-  ],
-  "gaps": [
-    "Limited cloud experience",
-    "No Scala knowledge"
-  ],
-  "recommendations": [
-    "Highlight your PyTorch projects",
-    "Mention AWS certification pursuit"
-  ]
-}
-```
-
-### User Profile
-
-#### Get User Profile
-
-```http
-GET /api/v1/users/me
-```
-
-**Response:**
-```json
-{
-  "id": 1,
-  "email": "moatasim@example.com",
-  "full_name": "Moatasim Farooque",
-  "skills": ["Python", "Machine Learning", "SQL"],
-  "experience_years": 5,
-  "education": [
-    {
-      "degree": "Master's in Computer Science",
-      "institution": "University Name",
-      "year": 2018
-    }
-  ],
-  "preferences": {
-    "locations": ["Berlin", "Munich"],
-    "job_types": ["Full-time"],
-    "remote": true
-  }
-}
-```
-
-#### Update User Profile
-
-```http
-PUT /api/v1/users/me
-Content-Type: application/json
-
-{
-  "full_name": "Moatasim Farooque",
-  "skills": ["Python", "Machine Learning", "Deep Learning"],
-  "preferences": {
-    "locations": ["Berlin", "Amsterdam"],
-    "remote": true
-  }
-}
-```
-
-**Response:**
-```json
-{
-  "id": 1,
-  "message": "Profile updated successfully",
-  "updated_at": "2025-11-07T10:00:00Z"
-}
-```
-
-### Analytics
-
-#### Get Application Statistics
-
-```http
-GET /api/v1/analytics/applications/stats
-```
-
-**Response:**
-```json
-{
-  "total_applications": 50,
-  "by_status": {
-    "pending": 5,
-    "applied": 20,
-    "interviewing": 10,
-    "rejected": 12,
-    "accepted": 3
-  },
-  "response_rate": 0.60,
-  "average_response_time_days": 7.5,
-  "success_rate": 0.06
-}
-```
-
-#### Get Job Market Insights
-
-```http
-GET /api/v1/analytics/market/insights?location=Berlin
-```
-
-**Response:**
-```json
-{
-  "total_jobs": 1500,
-  "trending_skills": [
-    {"skill": "Python", "count": 890},
-    {"skill": "Machine Learning", "count": 650}
-  ],
-  "average_salary": 75000,
-  "top_companies": [
-    {"company": "TechCorp", "job_count": 45}
-  ],
-  "growth_trend": "increasing"
-}
-```
-
-### Job Scraping
-
-#### Trigger Manual Scrape
-
-```http
-POST /api/v1/scraping/trigger
-Content-Type: application/json
-
-{
-  "sources": ["linkedin", "indeed"],
-  "location": "Berlin",
-  "keywords": ["data scientist"]
-}
-```
-
-**Response:**
-```json
-{
-  "task_id": "abc-123-def-456",
-  "status": "queued",
-  "message": "Scraping task queued successfully"
-}
-```
-
-#### Get Scraping Status
-
-```http
-GET /api/v1/scraping/status/{task_id}
-```
-
-**Response:**
-```json
-{
-  "task_id": "abc-123-def-456",
-  "status": "completed",
-  "jobs_scraped": 150,
-  "sources_completed": ["linkedin", "indeed"],
-  "started_at": "2025-11-07T10:00:00Z",
-  "completed_at": "2025-11-07T10:15:00Z"
-}
-```
-
-## Error Handling
-
-### Error Response Format
-
-```json
-{
-  "success": false,
-  "error": {
-    "code": "VALIDATION_ERROR",
-    "message": "Invalid input data",
-    "details": [
-      {
-        "field": "email",
-        "message": "Invalid email format"
-      }
-    ]
-  },
-  "timestamp": "2025-11-07T10:00:00Z"
-}
-```
-
-### Error Codes
-
-- `400` - Bad Request (validation errors)
-- `401` - Unauthorized (authentication required)
-- `403` - Forbidden (insufficient permissions)
-- `404` - Not Found (resource doesn't exist)
-- `409` - Conflict (duplicate resource)
-- `422` - Unprocessable Entity (semantic errors)
-- `429` - Too Many Requests (rate limit exceeded)
-- `500` - Internal Server Error
-- `503` - Service Unavailable
-
-## Rate Limiting
-
-- **Default**: 60 requests per minute per IP
-- **Authenticated**: 120 requests per minute per user
-- **Scraping**: 10 requests per minute
-
-**Headers:**
-```http
-X-RateLimit-Limit: 60
-X-RateLimit-Remaining: 45
-X-RateLimit-Reset: 1699358400
-```
-
-## Pagination
-
-All list endpoints support pagination:
-
-```http
-GET /api/v1/jobs?skip=20&limit=10
-```
-
-**Response includes:**
-```json
-{
-  "items": [...],
-  "total": 150,
-  "skip": 20,
-  "limit": 10,
-  "has_more": true
-}
-```
-
-## Filtering & Sorting
-
-```http
-GET /api/v1/jobs?sort_by=scraped_at&order=desc&filter[location]=Berlin
-```
-
-**Supported:**
-- `sort_by`: Field to sort by
-- `order`: `asc` or `desc`
-- `filter[field]`: Filter by field value
-
-## Webhooks (Future Feature)
-
-Subscribe to events:
-
-```http
-POST /api/v1/webhooks
-Content-Type: application/json
-
-{
-  "url": "https://your-app.com/webhook",
-  "events": ["application.created", "job.matched"],
-  "secret": "webhook_secret_key"
-}
-```
-
-## WebSocket (Future Feature)
-
-Real-time updates:
-
-```javascript
-const ws = new WebSocket('ws://localhost:8000/ws/notifications');
-
-ws.onmessage = (event) => {
-  const data = JSON.parse(event.data);
-  console.log('New notification:', data);
-};
-```
-
-## Code Examples
-
-### Python
-
-```python
-import requests
-
-# Login
-response = requests.post(
-    'http://localhost:8000/api/v1/auth/login',
-    json={'email': 'user@example.com', 'password': 'password123'}
-)
-token = response.json()['access_token']
-
-# Get jobs
-headers = {'Authorization': f'Bearer {token}'}
-jobs = requests.get(
-    'http://localhost:8000/api/v1/jobs',
-    headers=headers,
-    params={'location': 'Berlin', 'limit': 10}
-)
-print(jobs.json())
-```
-
-### JavaScript/TypeScript
-
-```typescript
-// Login
-const login = async () => {
-  const response = await fetch('http://localhost:8000/api/v1/auth/login', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ email: 'user@example.com', password: 'password123' })
-  });
-  const { access_token } = await response.json();
-  return access_token;
-};
-
-// Get jobs
-const getJobs = async (token: string) => {
-  const response = await fetch('http://localhost:8000/api/v1/jobs?location=Berlin', {
-    headers: { 'Authorization': `Bearer ${token}` }
-  });
-  return await response.json();
-};
-```
-
-### cURL
+The canonical schema is generated directly from the FastAPI application and stored alongside the frontend for typed API clients.
 
 ```bash
-# Login
-curl -X POST http://localhost:8000/api/v1/auth/login \
-  -H "Content-Type: application/json" \
-  -d '{"email":"user@example.com","password":"password123"}'
-
-# Get jobs
-curl http://localhost:8000/api/v1/jobs?location=Berlin \
-  -H "Authorization: Bearer YOUR_TOKEN"
+python scripts/generate_openapi_docs.py   # Writes frontend/openapi.json
 ```
 
-## Interactive Documentation
+Import `frontend/openapi.json` into Postman, Stoplight, or Spectral for contract testing, or serve it via `npx openapi-format frontend/openapi.json --html` for a browsable reference.
 
-Visit these URLs when the backend is running:
+## Authentication & Users (`backend/app/api/v1/auth.py`)
 
-- **Swagger UI**: <http://localhost:8000/docs>
-- **ReDoc**: <http://localhost:8000/redoc>
-- **OpenAPI Schema**: <http://localhost:8000/openapi.json>
+| Method | Path | Description |
+|--------|------|-------------|
+| `POST` | `/api/v1/auth/register` | Create a credentialed user account and return a JWT access token. |
+| `POST` | `/api/v1/auth/login` | Exchange username/email + password for a short-lived JWT. |
+| `POST` | `/api/v1/auth/logout` | Stateless acknowledgement used by the frontend to clear local tokens. |
+| `GET`  | `/api/v1/auth/me` | Fetch the authenticated user resolved by `get_current_user`. |
+| `GET`  | `/api/v1/auth/oauth/google/login` | Redirect to Google OAuth consent. |
+| `GET`  | `/api/v1/auth/oauth/google/callback` | Handle OAuth callback, mint tokens, and link accounts. |
 
-## Next Steps
+Tokens are validated by `decode_access_token`; admin-only routes depend on `get_admin_user` which enforces `User.is_admin` unless `DISABLE_AUTH=true` for dev environments.
 
-- [Installation Guide](../setup/INSTALLATION.md) - Set up the API
-- [Development Guide](../development/DEVELOPMENT.md) - Develop with the API
-- [Architecture](../architecture/ARCHITECTURE.md) - Understand the system
-- [Troubleshooting](../troubleshooting/COMMON_ISSUES.md) - Common API issues
+## Jobs & Market Data (`backend/app/api/v1/jobs.py`, `market.py`, `linkedin_jobs.py`)
+
+| Method | Path | Highlights |
+|--------|------|------------|
+| `GET`  | `/api/v1/jobs` | Paginated list of tracked jobs (newest first) scoped to the authenticated user. |
+| `POST` | `/api/v1/jobs` | Create/import a job with metadata (title, company, salary, remote option, tech stack, etc.). |
+| `GET`  | `/api/v1/jobs/{job_id}` | Fetch a single job with full description + derived previews. |
+| `PATCH`| `/api/v1/jobs/{job_id}` | Update any mutable fields (status, salary bands, notes, application URL). |
+| `DELETE`| `/api/v1/jobs/{job_id}` | Permanently remove a job. |
+| `GET`  | `/api/v1/jobs/search` | Advanced filters (location, salary, tech stack, remote only) with cache-backed responses. |
+| `GET`  | `/api/v1/jobs/recommendations` | Quick recommendation algorithm that blends saved jobs with skill overlap scoring. |
+| `GET`  | `/api/v1/jobs/insights` | Aggregated stats for dashboards (counts by status, salary histograms, etc.). |
+
+Supplementary routers (`market`, `linkedin_jobs`) surface curated market snapshots and third-party job feeds for ingestion pipelines.
+
+## Applications & Pipelines (`backend/app/api/v1/applications.py`, `bulk_operations.py`, `import_data.py`, `export.py`)
+
+| Method | Path | Description |
+|--------|------|-------------|
+| `GET`  | `/api/v1/applications` | List applications with status filters, sort options, pagination, and Kanban metadata. |
+| `POST` | `/api/v1/applications` | Create a new application attached to an existing job or ad-hoc entry. |
+| `PATCH`| `/api/v1/applications/{application_id}` | Update status, interviews, feedback, or attachments. |
+| `DELETE`| `/api/v1/applications/{application_id}` | Delete an application (soft-delete if enabled). |
+| `POST` | `/api/v1/applications/{application_id}/status` | Shortcut endpoint for status transitions (used by bulk actions + timeline UI). |
+| `POST` | `/api/v1/bulk_operations/applications/status` | Batch update statuses for multiple IDs. |
+| `POST` | `/api/v1/import/applications` | CSV/JSON ingestion with validation + deduplication. |
+| `GET`  | `/api/v1/export/applications.{csv|xlsx|pdf}` | Export filtered applications for reporting. |
+
+## Recommendations, AI Content & Resume Tools (`backend/app/api/v1/recommendations.py`, `enhanced_recommendations.py`, `resume.py`)
+
+- `GET /api/v1/recommendations/jobs` – Personalized job matches with `match_score`, remote flag, and tech stack details.
+- `GET /api/v1/recommendations/skills-gap` – Computes skill coverage vs. top market skills; powers the Skill Gap Analysis tab.
+- `POST /api/v1/resume/upload` – Accepts PDF/DOCX resumes, launches async parsing, and returns `upload_id` + parsing status.
+- `GET /api/v1/resume/{upload_id}/status` – Poll endpoint used by the Resume Upload UI to surface extraction progress + profile suggestions.
+- `POST /api/v1/content/generate` (see service wiring) – Multi-mode generator that supports `cover_letter`, `resume_tailoring`, and `email_template` categories with prompt/tone controls.
+- `POST /api/v1/enhanced-recommendations/run` – Triggers deeper AI workflows (semantic matching, multi-source ranking) via Celery tasks.
+
+All AI-facing routes invoke `LLMService`, which picks a provider based on `task_category` (analysis, generation, comparison) and respects rate limits defined in `config/llm_config.json`.
+
+## Notifications & Collaboration (`backend/app/api/v1/notifications.py`, `websocket_notifications.py`, `social.py`)
+
+| Method | Path | Description |
+|--------|------|-------------|
+| `GET`  | `/api/v1/notifications` | Fetch paginated notification feed with read/unread state. |
+| `POST` | `/api/v1/notifications/mark-read` | Batch mark IDs as read. |
+| `GET`  | `/api/v1/notifications/settings` | Retrieve push/email preferences. |
+| `PATCH`| `/api/v1/notifications/settings` | Update categories, quiet hours, and channels. |
+| `GET`  | `/api/v1/notifications/socket-token` | Mint a short-lived token for the websocket notification channel (`/api/v1/ws/notifications`). |
+| `GET`  | `/api/v1/social/activity` | Activity feeds, shared resumes/jobs, leaderboard stats. |
+
+## System Health & Operations (`backend/app/api/v1/health.py`, `job_ingestion.py`, `feedback.py`, `help_articles.py`)
+
+- `GET /health` – Readiness probe (database + Redis ping).
+- `GET /api/v1/job-ingestion/status` – Surface Celery job ingestion metrics and queue depth.
+- `POST /api/v1/job-ingestion/run` – Kick off targeted scrapers (LinkedIn, LandingJobs, EU Tech boards, etc.).
+- `POST /api/v1/feedback` – Accepts in-product feedback with optional screenshot references.
+- `GET /api/v1/help-articles` – CMS-driven help content consumed by the in-app Help Center.
+
+## Error Codes & Conventions
+
+- Errors follow FastAPI’s `{ "detail": "message" }` structure unless a richer schema is specified.
+- Validation failures emit the standard `422` payload (`detail` array with `loc`, `msg`, `type`).
+- Auth failures respond with `401` + `WWW-Authenticate: Bearer`; RBAC violations surface `403` and `"Admin access required"`.
+- Long-running tasks (scraping, AI pipelines) return `202 Accepted` with `task_id` tracked in Celery/Redis.
+
+## Versioning & Stability
+
+- All production routes reside under `/api/v1`. Introduce `/api/v2` for breaking changes and keep `/api/v1` backward compatible until decommissioned.
+- Schema evolution is managed via Alembic migrations; keep Pydantic response models in sync.
+- Websocket contracts are defined in `backend/app/api/websockets.py` and mirrored by the frontend `RealtimeProvider`.
+
+For the most accurate view, regenerate `frontend/openapi.json` and explore it via your preferred OpenAPI viewer.

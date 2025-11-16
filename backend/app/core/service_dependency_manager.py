@@ -4,13 +4,15 @@ Manages service startup order, health checks, and dependency validation.
 """
 
 import asyncio
-from datetime import datetime, timedelta
-from typing import Dict, List, Optional, Any, Set
 from dataclasses import dataclass, field
+from datetime import datetime, timedelta
 from enum import Enum
+from typing import Any, Dict, List, Optional, Set
 
-from .logging import get_logger
+from app.utils.datetime import utc_now
+
 from .config import settings
+from .logging import get_logger
 
 logger = get_logger(__name__)
 settings = get_settings()
@@ -156,12 +158,12 @@ class ServiceDependencyManager:
 				"healthy": healthy,
 				"status_code": response.status_code,
 				"response_time_ms": response.elapsed.total_seconds() * 1000,
-				"timestamp": datetime.now().isoformat(),
+				"timestamp": utc_now().isoformat(),
 			}
 
 			if healthy:
 				status.health_check_count += 1
-				status.last_health_check = datetime.now()
+				status.last_health_check = utc_now()
 				if status.state != ServiceState.HEALTHY:
 					status.state = ServiceState.HEALTHY
 					logger.info(f"✅ {service_name} health restored")
@@ -179,7 +181,7 @@ class ServiceDependencyManager:
 			status.last_error = str(e)
 			status.state = ServiceState.UNHEALTHY
 
-			return {"healthy": False, "error": str(e), "timestamp": datetime.now().isoformat()}
+			return {"healthy": False, "error": str(e), "timestamp": utc_now().isoformat()}
 
 	async def wait_for_service_ready(self, service_name: str) -> bool:
 		"""Wait for a service to become ready."""
@@ -194,11 +196,11 @@ class ServiceDependencyManager:
 
 		logger.info(f"⏳ Waiting for {service_name} to become ready...")
 
-		start_time = datetime.now()
+		start_time = utc_now()
 		timeout = timedelta(seconds=service.startup_timeout)
 		attempt = 0
 
-		while datetime.now() - start_time < timeout:
+		while utc_now() - start_time < timeout:
 			attempt += 1
 
 			health_result = await self.perform_health_check(service_name)
@@ -252,7 +254,7 @@ class ServiceDependencyManager:
 		"""Mark a service as starting."""
 		status = self.service_status[service_name]
 		status.state = ServiceState.STARTING
-		status.start_time = datetime.now()
+		status.start_time = utc_now()
 		logger.info(f"🔧 {service_name} is starting...")
 
 	def mark_service_running(self, service_name: str):
@@ -282,7 +284,7 @@ class ServiceDependencyManager:
 
 			uptime = 0.0
 			if status.start_time:
-				uptime = (datetime.now() - status.start_time).total_seconds()
+				uptime = (utc_now() - status.start_time).total_seconds()
 
 			result[name] = {
 				"name": name,

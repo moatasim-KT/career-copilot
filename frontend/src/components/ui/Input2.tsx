@@ -1,10 +1,10 @@
 'use client';
 
-import { motion, AnimatePresence } from 'framer-motion';
 import { X, Loader2 } from 'lucide-react';
 import { forwardRef, InputHTMLAttributes, ReactNode, useState, useEffect } from 'react';
 
 import { errorMessageVariants, shakeVariants } from '@/lib/animations';
+import { m, AnimatePresence } from '@/lib/motion';
 import { cn } from '@/lib/utils';
 
 export interface Input2Props extends Omit<InputHTMLAttributes<HTMLInputElement>, 'size'> {
@@ -163,7 +163,7 @@ export const Input2 = forwardRef<HTMLInputElement, Input2Props>(
             <div className={cn('w-full', className)}>
                 {/* Label */}
                 {label && (
-                    <motion.label
+                    <m.label
                         htmlFor={props.id}
                         className="mb-1.5 block text-sm font-medium text-neutral-700 dark:text-neutral-300"
                         initial={{ opacity: 0, y: -5 }}
@@ -172,25 +172,25 @@ export const Input2 = forwardRef<HTMLInputElement, Input2Props>(
                     >
                         {label}
                         {required && <span className="ml-1 text-error-500">*</span>}
-                    </motion.label>
+                    </m.label>
                 )}
 
                 {/* Input wrapper */}
-                <motion.div 
+                <m.div 
                     className="relative"
                     animate={shouldShake ? 'shake' : 'default'}
                     variants={shakeVariants}
                 >
                     {/* Prefix icon */}
                     {prefixIcon && (
-                        <motion.div 
+                        <m.div 
                             className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400 dark:text-neutral-500"
                             initial={{ opacity: 0, scale: 0.8 }}
                             animate={{ opacity: 1, scale: 1 }}
                             transition={{ duration: 0.2, ease: 'easeOut' }}
                         >
                             {prefixIcon}
-                        </motion.div>
+                        </m.div>
                     )}
 
                     {/* Input */}
@@ -226,7 +226,7 @@ export const Input2 = forwardRef<HTMLInputElement, Input2Props>(
                     <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1">
                         <AnimatePresence mode="wait">
                             {loading && (
-                                <motion.div
+                                <m.div
                                     key="loader"
                                     initial={{ opacity: 0, scale: 0.8 }}
                                     animate={{ opacity: 1, scale: 1 }}
@@ -234,11 +234,11 @@ export const Input2 = forwardRef<HTMLInputElement, Input2Props>(
                                     transition={{ duration: 0.15 }}
                                 >
                                     <Loader2 className="h-4 w-4 animate-spin text-neutral-400 dark:text-neutral-500" />
-                                </motion.div>
+                                </m.div>
                             )}
 
                             {!loading && clearable && value && (
-                                <motion.button
+                                <m.button
                                     key="clear"
                                     type="button"
                                     onClick={handleClear}
@@ -252,11 +252,11 @@ export const Input2 = forwardRef<HTMLInputElement, Input2Props>(
                                     transition={{ duration: 0.15 }}
                                 >
                                     <X className="h-4 w-4" />
-                                </motion.button>
+                                </m.button>
                             )}
 
                             {!loading && suffixIcon && (
-                                <motion.div 
+                                <m.div 
                                     key="suffix"
                                     className="text-neutral-400 dark:text-neutral-500"
                                     initial={{ opacity: 0, scale: 0.8 }}
@@ -264,16 +264,16 @@ export const Input2 = forwardRef<HTMLInputElement, Input2Props>(
                                     transition={{ duration: 0.2, ease: 'easeOut' }}
                                 >
                                     {suffixIcon}
-                                </motion.div>
+                                </m.div>
                             )}
                         </AnimatePresence>
                     </div>
-                </motion.div>
+                </m.div>
 
                 {/* Message */}
                 <AnimatePresence mode="wait">
                     {message && (
-                        <motion.p 
+                        <m.p 
                             key={message}
                             className={cn('mt-1.5 text-sm overflow-hidden', messageColor)}
                             initial="hidden"
@@ -282,7 +282,7 @@ export const Input2 = forwardRef<HTMLInputElement, Input2Props>(
                             variants={errorMessageVariants}
                         >
                             {message}
-                        </motion.p>
+                        </m.p>
                     )}
                 </AnimatePresence>
             </div>

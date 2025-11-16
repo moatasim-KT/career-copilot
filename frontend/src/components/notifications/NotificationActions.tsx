@@ -16,9 +16,9 @@ import {
 import Link from 'next/link';
 import { useState } from 'react';
 
-import type { Notification, NotificationAction } from '@/types/notification';
-import { cn } from '@/lib/utils';
 import Button2 from '@/components/ui/Button2';
+import { cn } from '@/lib/utils';
+import type { Notification, NotificationAction } from '@/types/notification';
 
 interface NotificationActionsProps {
   notification: Notification;

@@ -3,8 +3,8 @@
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 
-import { getWebSocketClient } from '@/lib/websocket';
 import { logger } from '@/lib/logger';
+import { getWebSocketClient } from '@/lib/websocket';
 
 /**
  * Hook to monitor network status and handle reconnection
@@ -19,7 +19,7 @@ import { logger } from '@/lib/logger';
 
 export function useNetworkStatus() {
   const [isOnline, setIsOnline] = useState(
-    typeof window !== 'undefined' ? navigator.onLine : true
+    typeof window !== 'undefined' ? navigator.onLine : true,
   );
   const [isReconnecting, setIsReconnecting] = useState(false);
 

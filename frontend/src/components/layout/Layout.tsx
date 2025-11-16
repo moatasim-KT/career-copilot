@@ -1,7 +1,7 @@
 'use client';
 
 import { ReactNode, useEffect } from 'react';
-import { toast } from 'react-hot-toast';
+import { toast } from 'sonner';
 
 import NotificationSystem from '@/components/notifications/NotificationSystem';
 import { webSocketService } from '@/lib/api/websocket';
@@ -61,8 +61,8 @@ export default function AppLayout({ children }: AppLayoutProps) {
       webSocketService.off('job:recommendation', handleJobRecommendation);
       webSocketService.off('application:status_change', handleApplicationStatusChange);
       webSocketService.off('notification:new', handleNewNotification);
-      webSocketService.off('reconnecting', () => {}); // Remove dummy listener
-      webSocketService.off('connected', () => {}); // Remove dummy listener
+      webSocketService.off('reconnecting', () => { }); // Remove dummy listener
+      webSocketService.off('connected', () => { }); // Remove dummy listener
       window.removeEventListener('online', handleOnline);
       window.removeEventListener('offline', handleOffline);
     };

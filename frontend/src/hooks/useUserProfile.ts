@@ -7,8 +7,8 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
 import { apiClient, type UserProfile } from '@/lib/api/api';
-import { queryKeys, getCacheConfig } from '@/lib/queryClient';
 import { logger } from '@/lib/logger';
+import { queryKeys, getCacheConfig } from '@/lib/queryClient';
 
 /**
  * Hook to fetch user profile

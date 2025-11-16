@@ -9,6 +9,8 @@
 
 'use client';
 
+import { logger } from '@/lib/logger';
+
 // Dynamic import to handle optional dependency
 let posthog: any = null;
 
@@ -17,7 +19,7 @@ if (typeof window !== 'undefined') {
     try {
         posthog = require('posthog-js');
     } catch {
-        console.warn('PostHog is not installed. Analytics features will be disabled.');
+        logger.warn('PostHog is not installed. Analytics features will be disabled.');
     }
 }
 
@@ -45,22 +47,22 @@ let isInitialized = false;
  */
 export function initPostHog(config: PostHogConfig): void {
     if (!posthog) {
-        console.warn('PostHog not available. Analytics disabled.');
+        logger.warn('PostHog not available. Analytics disabled.');
         return;
     }
 
     if (isInitialized) {
-        console.warn('PostHog already initialized');
+        logger.warn('PostHog already initialized');
         return;
     }
 
     if (!config.enabled && process.env.NODE_ENV !== 'production') {
-        console.log('PostHog disabled in development');
+        logger.info('PostHog disabled in development');
         return;
     }
 
     if (!config.apiKey) {
-        console.error('PostHog API key is required');
+        logger.error('PostHog API key is required');
         return;
     }
 

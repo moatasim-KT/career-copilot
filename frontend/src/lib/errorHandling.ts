@@ -9,6 +9,8 @@
 
 import { toast } from 'sonner';
 
+import { logger } from '@/lib/logger';
+
 /**
  * Error types for classification
  */
@@ -258,7 +260,7 @@ export function handleError(
 
   // Log to console in development
   if (logToConsole && process.env.NODE_ENV === 'development') {
-    console.error('[Error Handler]', {
+    logger.error('[Error Handler]', {
       type: errorType,
       message: errorMessage,
       error,
@@ -295,7 +297,7 @@ export function handleError(
         });
       });
     } catch (sentryError) {
-      console.error('[Sentry Error]', sentryError);
+      logger.error('[Sentry Error]', sentryError);
     }
   }
 
@@ -311,7 +313,7 @@ export function handleError(
         label: 'Retry',
         onClick: () => {
           // The calling code should handle retry logic
-          console.log('Retry clicked');
+          logger.info('Retry clicked');
         },
       };
     }

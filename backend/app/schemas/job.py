@@ -124,3 +124,34 @@ class JobResponse(BaseModel):
 	created_at: datetime
 	updated_at: datetime
 	currency: str | None
+
+
+class JobPreviewCompany(BaseModel):
+	"""Company metadata for job preview cards."""
+
+	name: str
+	logo: str | None = None
+
+
+class JobPreviewSalary(BaseModel):
+	"""Salary information for preview cards."""
+
+	min: int | None = None
+	max: int | None = None
+	currency: str | None = None
+
+
+class JobPreview(BaseModel):
+	"""Lightweight job representation consumed by onboarding/widgets."""
+
+	id: int
+	title: str
+	company: JobPreviewCompany
+	location: str | None = None
+	salary: JobPreviewSalary | None = None
+	type: str | None = None
+	posted_at: datetime | None = Field(default=None, alias="postedAt")
+	tags: list[str] = Field(default_factory=list)
+	source: str | None = None
+
+	model_config = {"populate_by_name": True}

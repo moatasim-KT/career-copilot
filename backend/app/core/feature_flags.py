@@ -12,12 +12,14 @@ This module provides a comprehensive feature flags system that allows for:
 import json
 import threading
 import time
+from abc import ABC, abstractmethod
+from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from enum import Enum
 from pathlib import Path
 from typing import Any, Dict, List, Optional
-from dataclasses import dataclass, field
-from abc import ABC, abstractmethod
+
+from app.utils.datetime import utc_now
 
 try:
 	from .logging import get_logger
@@ -76,8 +78,8 @@ class FeatureFlag:
 	rollout_config: Optional[RolloutConfig] = None
 	dependencies: List[str] = field(default_factory=list)
 	tags: List[str] = field(default_factory=list)
-	created_at: datetime = field(default_factory=datetime.utcnow)
-	updated_at: datetime = field(default_factory=datetime.utcnow)
+	created_at: datetime = field(default_factory=utc_now)
+	updated_at: datetime = field(default_factory=utc_now)
 	created_by: Optional[str] = None
 	metadata: Dict[str, Any] = field(default_factory=dict)
 
@@ -445,7 +447,7 @@ class FeatureFlagManager:
 			return False
 
 		flag.state = state
-		flag.updated_at = datetime.now(timezone.utc)
+		flag.updated_at = utc_now()
 		await self.provider.set_flag(flag)
 
 		# Clear cache for this flag
@@ -470,7 +472,7 @@ class FeatureFlagManager:
 		flag.rollout_config.strategy = RolloutStrategy.PERCENTAGE
 		flag.rollout_config.percentage = percentage
 		flag.state = FeatureState.ROLLOUT
-		flag.updated_at = datetime.now(timezone.utc)
+		flag.updated_at = utc_now()
 
 		await self.provider.set_flag(flag)
 

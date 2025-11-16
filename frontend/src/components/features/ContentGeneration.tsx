@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 
 import Button2 from '@/components/ui/Button2';
-import Card from '@/components/ui/Card';
+import Card2 from '@/components/ui/Card2';
 import Textarea from '@/components/ui/Textarea';
 import { apiClient, Job } from '@/lib/api';
 import { logger } from '@/lib/logger';
@@ -191,7 +191,7 @@ export default function ContentGeneration({
 
   return (
     <div className="space-y-6">
-      <Card className="p-6">
+      <Card2 className="p-6">
         <h3 className="text-lg font-semibold mb-4">AI Content Generation</h3>
 
         {!generatedContent ? (
@@ -206,11 +206,10 @@ export default function ContentGeneration({
                   type => (
                     <div
                       key={type}
-                      className={`p-4 border rounded-lg cursor-pointer transition-colors ${
-                        contentType === type
+                      className={`p-4 border rounded-lg cursor-pointer transition-colors ${contentType === type
                           ? 'border-blue-500 bg-blue-50'
                           : 'border-neutral-200 hover:border-neutral-300'
-                      }`}
+                        }`}
                       onClick={() => setContentType(type)}
                     >
                       <h4 className="font-medium text-neutral-900 mb-2">
@@ -390,7 +389,7 @@ export default function ContentGeneration({
             <p className="text-sm text-red-600">{error}</p>
           </div>
         )}
-      </Card>
+      </Card2>
     </div>
   );
 }

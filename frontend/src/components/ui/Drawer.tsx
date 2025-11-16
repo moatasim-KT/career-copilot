@@ -1,8 +1,8 @@
-import { AnimatePresence, motion } from 'framer-motion';
 import { X } from 'lucide-react';
 import React, { useEffect } from 'react';
 
 import { backdropVariants, drawerVariants } from '@/lib/animations';
+import { AnimatePresence, m } from '@/lib/motion';
 
 export interface DrawerProps {
     isOpen: boolean;
@@ -58,7 +58,7 @@ export default function Drawer({
     return (
         <AnimatePresence mode="wait">
             {isOpen && (
-                <motion.div
+                <m.div
                     className="fixed inset-0 z-50 flex"
                     initial="hidden"
                     animate="visible"
@@ -70,7 +70,7 @@ export default function Drawer({
                     <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
                     
                     {/* Drawer content */}
-                    <motion.div
+                    <m.div
                         className={`fixed bg-white dark:bg-gray-900 shadow-xl overflow-y-auto ${posClass} ${sizeClass} ${
                             position === 'left' ? 'rounded-r-lg' : 
                             position === 'right' ? 'rounded-l-lg' : 
@@ -94,8 +94,8 @@ export default function Drawer({
                             </button>
                         </div>
                         <div className="p-4">{children}</div>
-                    </motion.div>
-                </motion.div>
+                    </m.div>
+                </m.div>
             )}
         </AnimatePresence>
     );

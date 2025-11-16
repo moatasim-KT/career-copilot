@@ -31,7 +31,7 @@ export interface UseOfflineModeReturn extends OfflineModeState, OfflineModeActio
  */
 export function useOfflineMode(): UseOfflineModeReturn {
   const [isOnline, setIsOnline] = useState(
-    typeof navigator !== 'undefined' ? navigator.onLine : true
+    typeof navigator !== 'undefined' ? navigator.onLine : true,
   );
   const [showOfflineBanner, setShowOfflineBanner] = useState(false);
 
@@ -143,7 +143,7 @@ export function useNetworkAction<T extends (...args: any[]) => any>(
   options?: {
     offlineMessage?: string;
     showToast?: boolean;
-  }
+  },
 ): T {
   const { isOnline } = useOfflineMode();
   const { offlineMessage = 'This action requires an internet connection.', showToast = true } =

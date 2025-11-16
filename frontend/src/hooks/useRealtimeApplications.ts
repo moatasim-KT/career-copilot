@@ -1,12 +1,12 @@
 'use client';
 
-import { useEffect, useCallback } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
+import { useEffect, useCallback } from 'react';
 import { toast } from 'sonner';
 
-import { getWebSocketClient } from '@/lib/websocket';
 import { logger } from '@/lib/logger';
-import type { ApplicationResponse } from '@/lib/api/client';
+import { getWebSocketClient } from '@/lib/websocket';
+import type { Application } from '@/types/application';
 
 /**
  * Hook for real-time application status updates via WebSocket
@@ -23,7 +23,7 @@ interface ApplicationStatusChangeEvent {
   application_id: number;
   old_status: string;
   new_status: string;
-  application?: ApplicationResponse;
+  application?: Application;
   job_title?: string;
   company?: string;
 }
@@ -38,16 +38,6 @@ const STATUS_LABELS: Record<string, string> = {
   declined: 'Declined',
 };
 
-const STATUS_COLORS: Record<string, string> = {
-  interested: 'text-blue-600',
-  applied: 'text-yellow-600',
-  interview: 'text-purple-600',
-  offer: 'text-green-600',
-  rejected: 'text-red-600',
-  accepted: 'text-green-700',
-  declined: 'text-neutral-600',
-};
-
 export function useRealtimeApplications() {
   const queryClient = useQueryClient();
 
@@ -55,7 +45,7 @@ export function useRealtimeApplications() {
     logger.info('[Realtime Applications] Status change received:', data);
 
     const newStatusLabel = STATUS_LABELS[data.new_status] || data.new_status;
-    const jobInfo = data.job_title && data.company 
+    const jobInfo = data.job_title && data.company
       ? `${data.job_title} at ${data.company}`
       : `Application #${data.application_id}`;
 
@@ -82,12 +72,13 @@ export function useRealtimeApplications() {
 
     // Update application in cache if we have the full data
     if (data.application) {
-      queryClient.setQueryData<ApplicationResponse[]>(
+      const updatedApplication = data.application;
+      queryClient.setQueryData<Application[]>(
         ['applications'],
         (old) => {
           if (!old) return old;
           return old.map(app =>
-            app.id === data.application_id ? data.application! : app
+            app.id === data.application_id ? updatedApplication : app,
           );
         },
       );

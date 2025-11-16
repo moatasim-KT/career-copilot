@@ -92,14 +92,18 @@ class CacheService:
 
 	def _deserialize_data(self, data: bytes) -> Any:
 		"""Deserialize data from Redis storage"""
+
 		try:
 			# Try JSON first (faster)
 			decoded_data = json.loads(data.decode("utf-8"))
 			return self._json_deserializer(decoded_data)
 		except (json.JSONDecodeError, UnicodeDecodeError):
+			# Fall back to pickle for backward compatibility
+			# NOTE: Only deserialize pickle data from trusted sources (internal cache)
+			# This is acceptable as we control the cache storage and only serialize
+			# our own objects. Never deserialize pickle data from user input.
 			try:
-				# Fall back to pickle
-				return pickle.loads(data)
+				return pickle.loads(data)  # nosec B301 - Internal cache only
 			except Exception as e:
 				logger.error(f"Failed to deserialize data: {e}")
 				return None

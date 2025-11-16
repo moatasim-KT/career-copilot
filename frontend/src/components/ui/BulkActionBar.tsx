@@ -1,16 +1,19 @@
 'use client';
 
-import { motion, AnimatePresence } from 'framer-motion';
 import { X } from 'lucide-react';
 import React from 'react';
 
+import { logger } from '@/lib/logger';
+import { m, AnimatePresence } from '@/lib/motion';
+
 import Button2 from './Button2';
+
 
 export interface BulkAction {
   id: string;
   label: string;
   icon: React.ComponentType<{ className?: string }>;
-  variant?: 'default' | 'destructive' | 'outline' | 'ghost';
+  variant?: 'primary' | 'secondary' | 'destructive' | 'outline' | 'ghost' | 'success' | 'link' | 'gradient';
   requiresConfirmation?: boolean;
   action: (selectedIds: string[] | number[]) => Promise<void> | void;
   disabled?: boolean;
@@ -43,7 +46,7 @@ export function BulkActionBar({
     try {
       await action.action(selectedIds);
     } catch (error) {
-      console.error('Bulk action failed:', error);
+      logger.error('Bulk action failed:', error);
     } finally {
       setIsExecuting(false);
       setExecutingActionId(null);
@@ -53,7 +56,7 @@ export function BulkActionBar({
   return (
     <AnimatePresence>
       {selectedCount > 0 && (
-        <motion.div
+        <m.div
           initial={{ y: 100, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           exit={{ y: 100, opacity: 0 }}
@@ -79,7 +82,7 @@ export function BulkActionBar({
               <div className="flex items-center justify-between gap-4">
                 {/* Selection Count */}
                 <div className="flex items-center space-x-3">
-                  <motion.div
+                  <m.div
                     key={selectedCount}
                     initial={{ scale: 0.8, opacity: 0 }}
                     animate={{ scale: 1, opacity: 1 }}
@@ -99,7 +102,7 @@ export function BulkActionBar({
                     "
                   >
                     {selectedCount}
-                  </motion.div>
+                  </m.div>
                   <div>
                     <p className="text-sm font-medium text-neutral-900 dark:text-neutral-100">
                       {selectedCount} {selectedCount === 1 ? 'item' : 'items'} selected
@@ -117,13 +120,13 @@ export function BulkActionBar({
                     const isThisActionExecuting = executingActionId === action.id;
 
                     return (
-                      <motion.div
+                      <m.div
                         key={action.id}
                         whileHover={{ scale: action.disabled ? 1 : 1.02 }}
                         whileTap={{ scale: action.disabled ? 1 : 0.98 }}
                       >
                         <Button2
-                          variant={action.variant || 'default'}
+                          variant={action.variant || 'primary'}
                           onClick={() => handleActionClick(action)}
                           disabled={action.disabled || isExecuting}
                           loading={isThisActionExecuting}
@@ -132,12 +135,12 @@ export function BulkActionBar({
                           {!isThisActionExecuting && <Icon className="h-4 w-4" />}
                           <span>{action.label}</span>
                         </Button2>
-                      </motion.div>
+                      </m.div>
                     );
                   })}
 
                   {/* Clear Selection Button */}
-                  <motion.div
+                  <m.div
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
                   >
@@ -151,12 +154,12 @@ export function BulkActionBar({
                       <X className="h-4 w-4" />
                       <span className="hidden sm:inline">Clear</span>
                     </Button2>
-                  </motion.div>
+                  </m.div>
                 </div>
               </div>
             </div>
           </div>
-        </motion.div>
+        </m.div>
       )}
     </AnimatePresence>
   );

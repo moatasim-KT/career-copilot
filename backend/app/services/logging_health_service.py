@@ -6,9 +6,10 @@ import os
 import time
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
-from typing import Dict, Any
+from typing import Any, Dict
 
-from ..core.logging import get_logger, get_audit_logger
+from ..core.logging import get_audit_logger, get_logger
+from ..utils.datetime import utc_now
 
 logger = get_logger(__name__)
 
@@ -67,7 +68,7 @@ class LoggingHealthService:
 					try:
 						stat_info = path.stat()
 						status["size_bytes"] = stat_info.st_size
-						status["modified_time"] = datetime.fromtimestamp(stat_info.st_mtime).isoformat()
+						status["modified_time"] = datetime.fromtimestamp(stat_info.st_mtime, tz=timezone.utc).isoformat()
 						status["writable"] = os.access(path, os.W_OK)
 						status["readable"] = os.access(path, os.R_OK)
 					except Exception as e:
@@ -83,7 +84,7 @@ class LoggingHealthService:
 
 		# Test standard logging
 		try:
-			test_message = f"Logging test at {datetime.now(timezone.utc).isoformat()}"
+			test_message = f"Logging test at {utc_now().isoformat()}"
 			logger.info(test_message)
 			test_results["standard_logging"] = {"success": True, "test_message": test_message}
 		except Exception as e:
@@ -95,7 +96,7 @@ class LoggingHealthService:
 			audit_logger.log_system_event(
 				event_type="logging_health_test",
 				component="logging_health_service",
-				details={"test": True, "timestamp": datetime.now(timezone.utc).isoformat()},
+				details={"test": True, "timestamp": utc_now().isoformat()},
 			)
 			test_results["audit_logging"] = {"success": True, "message": "Audit logging test completed"}
 		except Exception as e:
@@ -106,9 +107,7 @@ class LoggingHealthService:
 			import structlog
 
 			struct_logger = structlog.get_logger(__name__)
-			struct_logger.info(
-				"Structured logging test", test=True, timestamp=datetime.now(timezone.utc).isoformat(), component="logging_health_service"
-			)
+			struct_logger.info("Structured logging test", test=True, timestamp=utc_now().isoformat(), component="logging_health_service")
 			test_results["structured_logging"] = {"success": True, "message": "Structured logging test completed"}
 		except Exception as e:
 			test_results["structured_logging"] = {"success": False, "error": str(e)}
@@ -129,7 +128,7 @@ class LoggingHealthService:
 					rotation_status[name] = {
 						"size_mb": round(size_mb, 2),
 						"needs_rotation": size_mb > 100,
-						"last_modified": datetime.fromtimestamp(stat_info.st_mtime).isoformat(),
+						"last_modified": datetime.fromtimestamp(stat_info.st_mtime, tz=timezone.utc).isoformat(),
 					}
 				except Exception as e:
 					rotation_status[name] = {"error": str(e)}
@@ -144,8 +143,8 @@ class LoggingHealthService:
 			if "log" in name and "dir" not in name and path.exists():
 				try:
 					stat_info = path.stat()
-					modified_time = datetime.fromtimestamp(stat_info.st_mtime)
-					time_since_modified = datetime.now() - modified_time
+					modified_time = datetime.fromtimestamp(stat_info.st_mtime, tz=timezone.utc)
+					time_since_modified = utc_now() - modified_time
 
 					activity[name] = {
 						"last_modified": modified_time.isoformat(),
@@ -209,7 +208,7 @@ class LoggingHealthService:
 				"activity": activity_status,
 			},
 			"check_duration_ms": round((time.time() - start_time) * 1000, 2),
-			"timestamp": datetime.now(timezone.utc).isoformat(),
+			"timestamp": utc_now().isoformat(),
 		}
 
 		# Store in history
@@ -217,7 +216,7 @@ class LoggingHealthService:
 		if len(self.health_history) > self.max_history:
 			self.health_history = self.health_history[-self.max_history :]
 
-		self.last_health_check = datetime.now(timezone.utc)
+		self.last_health_check = utc_now()
 
 		return health_result
 

@@ -27,6 +27,7 @@ import { useState, useRef } from 'react';
 import Button2 from '@/components/ui/Button2';
 import Card2 from '@/components/ui/Card2';
 import Input2 from '@/components/ui/Input2';
+import { logger } from '@/lib/logger';
 
 interface DeleteConfirmation {
   type: 'applications' | 'jobs' | 'account' | null;
@@ -68,7 +69,7 @@ export default function DataSettingsPage() {
   const userEmail = 'john.doe@example.com'; // In production, get from auth context
 
   const handleExportData = async (type: 'all' | 'applications' | 'jobs') => {
-    console.log('Exporting data:', type);
+    logger.info('Exporting data:', type);
     // In production, this would call the export API from task 20.5
     // await apiClient.data.export(type);
   };
@@ -104,7 +105,7 @@ export default function DataSettingsPage() {
 
       setRestorePreview(preview);
     } catch (error) {
-      console.error('Failed to parse backup file:', error);
+      logger.error('Failed to parse backup file:', error);
       setRestoreError('Invalid backup file. Please select a valid JSON backup file.');
       setRestoreFile(null);
       setRestoreData(null);
@@ -125,7 +126,7 @@ export default function DataSettingsPage() {
       // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 2000));
 
-      console.log('Restoring data:', restoreData);
+      logger.info('Restoring data:', restoreData);
 
       setRestoreSuccess(true);
 
@@ -138,7 +139,7 @@ export default function DataSettingsPage() {
         setRestoreSuccess(false);
       }, 2000);
     } catch (error) {
-      console.error('Failed to restore data:', error);
+      logger.error('Failed to restore data:', error);
       setRestoreError('Failed to restore data. Please try again.');
     } finally {
       setIsRestoring(false);
@@ -158,23 +159,23 @@ export default function DataSettingsPage() {
       if (deleteConfirmation.type === 'account') {
         // Delete account
         // await apiClient.user.deleteAccount();
-        console.log('Account deletion initiated');
+        logger.info('Account deletion initiated');
       } else {
         // Delete specific data type
         // await apiClient.data.delete(deleteConfirmation.type);
-        console.log('Deleted data:', deleteConfirmation.type);
+        logger.info('Deleted data:', deleteConfirmation.type);
       }
 
       setDeleteConfirmation({ type: null, email: '', confirmText: '' });
       setShowDeleteAccount(false);
     } catch (error) {
-      console.error('Failed to delete data:', error);
+      logger.error('Failed to delete data:', error);
     } finally {
       setIsDeleting(false);
     }
   };
 
-  const canConfirmDelete = 
+  const canConfirmDelete =
     deleteConfirmation.type === 'account'
       ? deleteConfirmation.email === userEmail
       : deleteConfirmation.confirmText.toLowerCase() === 'delete';

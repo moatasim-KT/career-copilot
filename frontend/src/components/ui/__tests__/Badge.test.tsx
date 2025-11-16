@@ -1,7 +1,7 @@
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
-import Badge from '../Badge';
+import { Badge } from '../Badge';
 
 describe('Badge', () => {
     it('renders children correctly', () => {
@@ -33,8 +33,8 @@ describe('Badge', () => {
         expect(badge).toHaveClass('bg-yellow-100', 'text-yellow-800');
     });
 
-    it('renders with danger variant', () => {
-        const { container } = render(<Badge variant="danger">Danger</Badge>);
+    it('renders with error variant', () => {
+        const { container } = render(<Badge variant="error">Error</Badge>);
         const badge = container.firstChild as HTMLElement;
         expect(badge).toHaveClass('bg-red-100', 'text-red-800');
     });
@@ -63,20 +63,5 @@ describe('Badge', () => {
         expect(badge).toHaveClass('custom-class');
     });
 
-    it('calls onClick when clicked', async () => {
-        const user = userEvent.setup();
-        const handleClick = jest.fn();
-        render(<Badge onClick={handleClick}>Clickable</Badge>);
-
-        const badge = screen.getByText('Clickable');
-        await user.click(badge);
-
-        expect(handleClick).toHaveBeenCalledTimes(1);
-    });
-
-    it('adds cursor-pointer class when onClick is provided', () => {
-        const { container } = render(<Badge onClick={() => { }}>Clickable</Badge>);
-        const badge = container.firstChild as HTMLElement;
-        expect(badge).toHaveClass('cursor-pointer');
-    });
+    // Badge component does not support onClick - these tests are removed
 });

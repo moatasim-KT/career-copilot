@@ -1,0 +1,35 @@
+{
+    "name": "email_template_generator",
+    "version": "1.0.0",
+    "description": "Professional email template generator for job applications",
+    "category": "emails",
+    "author": "career_copilot",
+    "tags": [
+        "email",
+        "job-application",
+        "professional-communication"
+    ],
+    "variables": [
+        "email_type",
+        "job_title",
+        "company",
+        "user_name",
+        "custom_instructions"
+    ],
+    "default_values": {
+        "custom_instructions": ""
+    },
+    "validation_rules": {
+        "email_type": "required",
+        "job_title": "required",
+        "company": "required",
+        "user_name": "required"
+    },
+    "email_types": [
+        "follow_up",
+        "thank_you",
+        "inquiry"
+    ],
+    "created_at": "2025-11-16T00:00:00Z",
+    "last_updated": "2025-11-16T00:00:00Z"
+}

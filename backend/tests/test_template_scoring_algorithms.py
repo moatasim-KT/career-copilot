@@ -6,23 +6,15 @@ Tests the ATS compatibility, readability scoring, and keyword extraction.
 import pytest
 from sqlalchemy.orm import Session
 
-from app.models.template import ResumeTemplate
+from app.models.template import DocumentTemplate
 from app.models.user import User
 from app.services.template_service import TemplateService
 
 
 @pytest.fixture
 def sample_user(db: Session):
-	"""Create a sample user for testing."""
-	user = User(
-		email="test@example.com",
-		username="testuser",
-		full_name="Test User",
-		hashed_password="hashed_password",
-	)
-	db.add(user)
-	db.commit()
-	db.refresh(user)
+	"""Get the test user created by conftest (id=1)."""
+	user = db.query(User).filter(User.id == 1).first()
 	return user
 
 
@@ -35,10 +27,11 @@ def template_service(db: Session):
 @pytest.fixture
 def complete_template(db: Session, sample_user):
 	"""Create a complete, well-structured resume template."""
-	template = ResumeTemplate(
+	template = DocumentTemplate(
 		user_id=sample_user.id,
 		name="Professional Resume",
 		description="Complete ATS-friendly template",
+		template_content="# Professional Resume\n\n## Header\n{full_name}\n\n## Professional Summary\n{summary_text}\n\n## Work Experience\n{title}\n\n## Skills\n{skills_list}\n\n## Education\n{degree}",
 		template_structure={
 			"sections": [
 				{"id": "header", "title": "Header", "fields": [{"name": "full_name", "type": "text"}]},
@@ -58,10 +51,11 @@ def complete_template(db: Session, sample_user):
 @pytest.fixture
 def incomplete_template(db: Session, sample_user):
 	"""Create an incomplete template missing key sections."""
-	template = ResumeTemplate(
+	template = DocumentTemplate(
 		user_id=sample_user.id,
 		name="Basic Resume",
 		description="Missing key sections",
+		template_content="# Basic Resume\n\n## Header\n{full_name}\n\n## Other Info\n{info}",
 		template_structure={
 			"sections": [
 				{"id": "header", "title": "Header", "fields": [{"name": "full_name", "type": "text"}]},
@@ -78,10 +72,11 @@ def incomplete_template(db: Session, sample_user):
 @pytest.fixture
 def complex_formatted_template(db: Session, sample_user):
 	"""Create a template with complex formatting (bad for ATS)."""
-	template = ResumeTemplate(
+	template = DocumentTemplate(
 		user_id=sample_user.id,
 		name="Fancy Resume",
 		description="Complex formatting with tables and images",
+		template_content="# Fancy Resume\n\n<table><tr><td>{full_name}</td></tr></table>\n\n![Logo](logo.png)\n\n{title}\n\n<div style='column-count: 2'>{skills_list}</div>",
 		template_structure={
 			"sections": [
 				{"id": "header", "title": "Header", "fields": [{"name": "full_name", "type": "text"}], "layout": "table"},
@@ -145,10 +140,11 @@ class TestReadabilityScoring:
 		"""Test that templates with too many sections are penalized."""
 		# Create template with 12 sections (excessive)
 		sections = [{"id": f"section_{i}", "title": f"Section {i}", "fields": []} for i in range(12)]
-		template = ResumeTemplate(
+		template = DocumentTemplate(
 			user_id=sample_user.id,
 			name="Over-complicated Resume",
 			description="Too many sections",
+			template_content="# Over-complicated Resume\n\n" + "\n\n".join([f"## Section {i}" for i in range(12)]),
 			template_structure={"sections": sections},
 		)
 		db.add(template)
@@ -161,10 +157,11 @@ class TestReadabilityScoring:
 
 	def test_missing_section_headers_penalized(self, db: Session, sample_user, template_service):
 		"""Test that sections without headers are penalized."""
-		template = ResumeTemplate(
+		template = DocumentTemplate(
 			user_id=sample_user.id,
 			name="Headerless Resume",
 			description="Missing section titles",
+			template_content="# Headerless Resume\n\nSection content without headers",
 			template_structure={
 				"sections": [
 					{"id": "section1", "fields": []},  # No title

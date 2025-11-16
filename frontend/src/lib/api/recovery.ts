@@ -3,7 +3,10 @@
  * Provides fallback mechanisms for handling various error scenarios
  */
 
+import { logger } from '@/lib/logger';
+
 import { get, set } from './cache';
+
 
 // ============================================================================
 // Types
@@ -14,11 +17,11 @@ export interface RecoveryStrategy {
     canRecover: (error: Error) => boolean;
     recover: <T>(
         error: Error,
-        context: RecoveryContext<T>
+        context: RecoveryContext
     ) => Promise<T | null>;
 }
 
-export interface RecoveryContext<T> {
+export interface RecoveryContext {
     url: string;
     options: RequestInit;
     requestId: string;
@@ -65,7 +68,7 @@ export class TokenRefreshRecovery implements RecoveryStrategy {
 
     async recover<T>(
         error: Error,
-        context: RecoveryContext<T>,
+        context: RecoveryContext,
     ): Promise<T | null> {
         const maxAttempts = this.config.maxRefreshAttempts || 1;
 
@@ -150,7 +153,7 @@ export class CacheFallbackRecovery implements RecoveryStrategy {
 
     async recover<T>(
         error: Error,
-        context: RecoveryContext<T>,
+        context: RecoveryContext,
     ): Promise<T | null> {
         try {
             const cacheKey = this.getCacheKey(context.url, context.options);
@@ -166,19 +169,19 @@ export class CacheFallbackRecovery implements RecoveryStrategy {
 
             // Check if cached data is fresh enough
             if (age <= maxAge) {
-                console.warn(`Using cached data for ${context.url} (age: ${age}ms)`);
+                logger.warn(`Using cached data for ${context.url} (age: ${age}ms)`);
                 return cachedData.data;
             }
 
             // If stale cache is allowed, use it anyway
             if (this.config.allowStale) {
-                console.warn(`Using stale cached data for ${context.url} (age: ${age}ms)`);
+                logger.warn(`Using stale cached data for ${context.url} (age: ${age}ms)`);
                 return cachedData.data;
             }
 
             return null;
         } catch (cacheError) {
-            console.error('Cache fallback error:', cacheError);
+            logger.error('Cache fallback error:', cacheError);
             return null;
         }
     }
@@ -209,7 +212,7 @@ export class CacheFallbackRecovery implements RecoveryStrategy {
             // Cache for 24 hours by default
             await set(cacheKey, entry, 86400000);
         } catch (error) {
-            console.error('Failed to cache response:', error);
+            logger.error('Failed to cache response:', error);
         }
     }
 }
@@ -243,7 +246,7 @@ export class ProgressiveRetryRecovery implements RecoveryStrategy {
 
     async recover<T>(
         error: Error,
-        context: RecoveryContext<T>,
+        context: RecoveryContext,
     ): Promise<T | null> {
         const retryCount = context.retryCount || 0;
 
@@ -257,7 +260,7 @@ export class ProgressiveRetryRecovery implements RecoveryStrategy {
             this.config.maxDelay,
         );
 
-        console.log(`Retry attempt ${retryCount + 1}/${this.config.maxAttempts} after ${delay}ms`);
+        logger.info(`Retry attempt ${retryCount + 1}/${this.config.maxAttempts} after ${delay}ms`);
 
         // Wait before retrying
         await new Promise(resolve => setTimeout(resolve, delay));
@@ -298,7 +301,7 @@ export class DegradedModeRecovery implements RecoveryStrategy {
 
     async recover<T>(
         error: Error,
-        context: RecoveryContext<T>,
+        context: RecoveryContext,
     ): Promise<T | null> {
         const degradedUrl = this.getDegradedEndpoint(context.url);
 
@@ -306,7 +309,7 @@ export class DegradedModeRecovery implements RecoveryStrategy {
             return null;
         }
 
-        console.warn(`Falling back to degraded endpoint: ${degradedUrl}`);
+        logger.warn(`Falling back to degraded endpoint: ${degradedUrl}`);
 
         try {
             const response = await fetch(degradedUrl, context.options);
@@ -318,7 +321,7 @@ export class DegradedModeRecovery implements RecoveryStrategy {
             const data = await response.json();
             return data;
         } catch (degradedError) {
-            console.error('Degraded mode failed:', degradedError);
+            logger.error('Degraded mode failed:', degradedError);
             return null;
         }
     }
@@ -372,29 +375,29 @@ export class RecoveryManager {
      */
     async recover<T>(
         error: Error,
-        context: RecoveryContext<T>,
+        context: RecoveryContext,
     ): Promise<T | null> {
-        console.log(`Attempting recovery for error: ${error.name} - ${error.message}`);
+        logger.info(`Attempting recovery for error: ${error.name} - ${error.message}`);
 
         for (const strategy of this.strategies) {
             if (strategy.canRecover(error)) {
-                console.log(`Trying recovery strategy: ${strategy.name}`);
+                logger.info(`Trying recovery strategy: ${strategy.name}`);
 
                 try {
-                    const result = await strategy.recover(error, context);
+                    const result = await strategy.recover<T>(error, context);
 
                     if (result !== null) {
-                        console.log(`Recovery successful using: ${strategy.name}`);
+                        logger.info(`Recovery successful using: ${strategy.name}`);
                         return result;
                     }
                 } catch (recoveryError) {
-                    console.error(`Recovery strategy ${strategy.name} failed:`, recoveryError);
+                    logger.error(`Recovery strategy ${strategy.name} failed:`, recoveryError);
                     // Continue to next strategy
                 }
             }
         }
 
-        console.log('All recovery strategies failed');
+        logger.info('All recovery strategies failed');
         return null;
     }
 }

@@ -1,5 +1,6 @@
 'use client';
 
+import { DollarSign, TrendingUp } from 'lucide-react';
 import React, { useState, useEffect, useCallback } from 'react';
 import {
   BarChart,
@@ -14,12 +15,14 @@ import {
   Cell,
   LabelList,
 } from 'recharts';
-import { motion } from 'framer-motion';
-import { DollarSign, TrendingUp } from 'lucide-react';
-import { ChartWrapper } from './ChartWrapper';
-import { Button2 } from '@/components/ui/Button2';
+
+
+import Button from '@/components/ui/Button2';
 import { apiClient } from '@/lib/api';
 import { logger } from '@/lib/logger';
+import { m } from '@/lib/motion';
+
+import { ChartWrapper } from './ChartWrapper';
 
 interface SalaryDistributionData {
   range: string;
@@ -40,7 +43,7 @@ const CustomTooltip: React.FC<CustomTooltipProps> = ({ active, payload, label })
   if (active && payload && payload.length) {
     const data = payload[0].payload;
     return (
-      <motion.div
+      <m.div
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
         className="bg-white dark:bg-neutral-800 p-3 rounded-lg shadow-lg border border-neutral-200 dark:border-neutral-700"
@@ -73,7 +76,7 @@ const CustomTooltip: React.FC<CustomTooltipProps> = ({ active, payload, label })
             </div>
           )}
         </div>
-      </motion.div>
+      </m.div>
     );
   }
   return null;
@@ -112,25 +115,25 @@ export const SalaryDistributionChart: React.FC<SalaryDistributionChartProps> = (
     const checkDarkMode = () => {
       setIsDarkMode(document.documentElement.classList.contains('dark'));
     };
-    
+
     checkDarkMode();
-    
+
     const observer = new MutationObserver(checkDarkMode);
     observer.observe(document.documentElement, {
       attributes: true,
       attributeFilter: ['class'],
     });
-    
+
     return () => observer.disconnect();
   }, []);
 
   const fetchData = useCallback(async () => {
     setIsLoading(true);
     setError(null);
-    
+
     try {
       const response = await apiClient.getJobs(0, 1000);
-      
+
       if (response.error || !response.data) {
         throw new Error(response.error || 'Failed to fetch data');
       }
@@ -279,20 +282,20 @@ export const SalaryDistributionChart: React.FC<SalaryDistributionChartProps> = (
       {/* Controls */}
       <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
         <div className="flex items-center space-x-2">
-          <Button2
+          <Button
             size="sm"
             variant={showAverage ? 'primary' : 'ghost'}
             onClick={() => setShowAverage(!showAverage)}
           >
             Show Average
-          </Button2>
-          <Button2
+          </Button>
+          <Button
             size="sm"
             variant={showLegend ? 'primary' : 'ghost'}
             onClick={() => setShowLegend(!showLegend)}
           >
             Legend
-          </Button2>
+          </Button>
         </div>
 
         {userTargetSalary && (
@@ -328,11 +331,11 @@ export const SalaryDistributionChart: React.FC<SalaryDistributionChartProps> = (
               iconType="rect"
             />
           )}
-          
+
           <Bar
             dataKey="count"
             name="Jobs"
-            onClick={handleBarClick}
+            onClick={(data: any) => handleBarClick(data as SalaryDistributionData)}
             animationDuration={800}
             animationEasing="ease-out"
             style={{ cursor: 'pointer' }}

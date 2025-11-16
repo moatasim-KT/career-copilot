@@ -4,6 +4,7 @@ import { AlertCircle, RefreshCw, Bug, Home, ArrowLeft } from 'lucide-react';
 import React, { Component, ErrorInfo, ReactNode } from 'react';
 
 import { classifyError, formatErrorForLogging, ErrorType } from '@/lib/errorHandling';
+import { logger } from '@/lib/logger';
 
 interface Props {
 	children: ReactNode;
@@ -40,7 +41,7 @@ export class ErrorBoundary extends Component<Props, State> {
 	componentDidCatch(error: Error, errorInfo: ErrorInfo) {
 		// Log error to console in development
 		if (process.env.NODE_ENV === 'development') {
-			console.error('ErrorBoundary caught:', error, errorInfo);
+			logger.error('ErrorBoundary caught:', error, errorInfo);
 		}
 
 		// Log error for monitoring (Sentry, etc.)
@@ -84,7 +85,7 @@ export class ErrorBoundary extends Component<Props, State> {
 					});
 				});
 			} catch (sentryError) {
-				console.error('[Sentry Error]', sentryError);
+				logger.error('[Sentry Error]', sentryError);
 			}
 		} else {
 			// Log to console in development
@@ -94,7 +95,7 @@ export class ErrorBoundary extends Component<Props, State> {
 					componentStack: errorInfo.componentStack,
 				},
 			});
-			console.error('[Error Monitoring]', errorLog);
+			logger.error('[Error Monitoring]', errorLog);
 		}
 	}
 
@@ -121,7 +122,7 @@ export class ErrorBoundary extends Component<Props, State> {
 		};
 
 		// In production, this would send to backend or open issue tracker
-		console.log('Report issue:', issueData);
+		logger.info('Report issue:', issueData);
 
 		// For now, copy to clipboard
 		navigator.clipboard.writeText(JSON.stringify(issueData, null, 2));

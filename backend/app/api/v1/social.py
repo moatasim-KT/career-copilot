@@ -19,13 +19,15 @@ from pydantic import BaseModel, Field
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from ...core.database import get_db
 from app.dependencies import get_current_user
+
+from ...core.database import get_db
 from ...core.logging import get_logger
 from ...core.single_user import MOATASIM_EXPERIENCE_LEVEL, MOATASIM_SKILLS, MOATASIM_USER_ID
 from ...models.user import User
 from ...services.cache_service import cache_service
 from ...services.career_resources_service import CareerResourcesService
+from ...utils.datetime import utc_now
 
 router = APIRouter(prefix="/social", tags=["career-resources", "social"])
 logger = get_logger(__name__)
@@ -219,8 +221,8 @@ async def create_social_post(
 			description=post.content,
 			status=FeedbackStatus.OPEN,
 			priority=FeedbackPriority.LOW,
-			created_at=datetime.utcnow(),
-			updated_at=datetime.utcnow(),
+			created_at=utc_now(),
+			updated_at=utc_now(),
 		)
 
 		db.add(new_post)

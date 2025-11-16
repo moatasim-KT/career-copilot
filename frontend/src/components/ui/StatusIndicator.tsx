@@ -77,7 +77,7 @@ export default function StatusIndicator({
           `status-dot-${variant}`,
           sizeConfig.dot,
           pulse && 'status-dot-pulse',
-          className
+          className,
         )}
         role="status"
         aria-label={ariaLabel || `Status: ${variant}`}
@@ -94,7 +94,7 @@ export default function StatusIndicator({
         sizeConfig.padding,
         sizeConfig.text,
         pulse && 'status-dot-pulse',
-        className
+        className,
       )}
       role="status"
       aria-label={ariaLabel || `Status: ${label}`}
@@ -103,7 +103,7 @@ export default function StatusIndicator({
         className={cn(
           'status-dot',
           `status-dot-${variant}`,
-          sizeConfig.dot
+          sizeConfig.dot,
         )}
         aria-hidden="true"
       />

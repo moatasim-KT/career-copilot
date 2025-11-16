@@ -5,6 +5,7 @@
 
 'use client';
 
+import { formatDistanceToNow, format } from 'date-fns';
 import {
   Bell,
   Search,
@@ -16,10 +17,13 @@ import {
   ChevronDown,
 } from 'lucide-react';
 import { useState, useMemo } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { formatDistanceToNow, format } from 'date-fns';
 
-import type { Notification, NotificationCategory, NotificationFilter } from '@/types/notification';
+import { Badge } from '@/components/ui/Badge';
+import Button2 from '@/components/ui/Button2';
+import Card2 from '@/components/ui/Card2';
+import { Checkbox } from '@/components/ui/Checkbox';
+import Input2 from '@/components/ui/Input2';
+import { m, AnimatePresence } from '@/lib/motion';
 import {
   getCategoryIcon,
   getCategoryColor,
@@ -27,11 +31,7 @@ import {
   categoryLabels,
 } from '@/lib/notificationTemplates';
 import { cn } from '@/lib/utils';
-import Button2 from '@/components/ui/Button2';
-import Input2 from '@/components/ui/Input2';
-import Card2 from '@/components/ui/Card2';
-import Badge from '@/components/ui/Badge';
-import { Checkbox } from '@/components/ui/Checkbox';
+import type { Notification, NotificationCategory, NotificationFilter } from '@/types/notification';
 
 // Mock notifications - in production, this would come from API
 const generateMockNotifications = (): Notification[] => {
@@ -42,7 +42,7 @@ const generateMockNotifications = (): Notification[] => {
     const category = categories[Math.floor(Math.random() * categories.length)];
     const isRead = Math.random() > 0.4;
     const daysAgo = Math.floor(Math.random() * 30);
-    
+
     notifications.push({
       id: `${i}`,
       userId: '1',
@@ -79,7 +79,7 @@ function NotificationItem({
   const categoryColor = getCategoryColor(notification.category);
 
   return (
-    <motion.div
+    <m.div
       layout
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
@@ -87,7 +87,7 @@ function NotificationItem({
       className={cn(
         'group relative p-4 border border-neutral-200 dark:border-neutral-700 rounded-lg hover:shadow-md transition-all',
         !notification.read && 'bg-primary-50/30 dark:bg-primary-900/10 border-primary-200 dark:border-primary-800',
-        isSelected && 'ring-2 ring-primary-500 dark:ring-primary-400'
+        isSelected && 'ring-2 ring-primary-500 dark:ring-primary-400',
       )}
     >
       <div className="flex items-start gap-4">
@@ -101,7 +101,7 @@ function NotificationItem({
         {/* Category Icon */}
         <div className={cn(
           'flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center',
-          categoryColor
+          categoryColor,
         )}>
           <CategoryIcon className="w-5 h-5" />
         </div>
@@ -120,7 +120,7 @@ function NotificationItem({
               </div>
               <span className={cn(
                 'inline-block text-xs px-2 py-0.5 rounded-full font-medium mb-2',
-                categoryColor
+                categoryColor,
               )}>
                 {getCategoryLabel(notification.category)}
               </span>
@@ -167,7 +167,7 @@ function NotificationItem({
           </div>
         </div>
       </div>
-    </motion.div>
+    </m.div>
   );
 }
 
@@ -214,7 +214,7 @@ export default function NotificationsPage() {
   const totalPages = Math.ceil(filteredNotifications.length / itemsPerPage);
   const paginatedNotifications = filteredNotifications.slice(
     (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
+    currentPage * itemsPerPage,
   );
 
   const unreadCount = notifications.filter(n => !n.read).length;
@@ -242,7 +242,7 @@ export default function NotificationsPage() {
 
   const handleMarkAsRead = (id: string) => {
     setNotifications(prev =>
-      prev.map(n => (n.id === id ? { ...n, read: true } : n))
+      prev.map(n => (n.id === id ? { ...n, read: true } : n)),
     );
   };
 
@@ -257,7 +257,7 @@ export default function NotificationsPage() {
 
   const handleBulkMarkAsRead = () => {
     setNotifications(prev =>
-      prev.map(n => (selectedIds.has(n.id) ? { ...n, read: true } : n))
+      prev.map(n => (selectedIds.has(n.id) ? { ...n, read: true } : n)),
     );
     setSelectedIds(new Set());
   };
@@ -293,8 +293,8 @@ export default function NotificationsPage() {
     setCurrentPage(1);
   };
 
-  const activeFilterCount = 
-    (filter.categories?.length || 0) + 
+  const activeFilterCount =
+    (filter.categories?.length || 0) +
     (filter.read !== undefined ? 1 : 0) +
     (searchQuery ? 1 : 0);
 
@@ -348,7 +348,7 @@ export default function NotificationsPage() {
             )}
             <ChevronDown className={cn(
               'w-4 h-4 ml-2 transition-transform',
-              showFilters && 'rotate-180'
+              showFilters && 'rotate-180',
             )} />
           </Button2>
         </div>
@@ -356,7 +356,7 @@ export default function NotificationsPage() {
         {/* Filter Panel */}
         <AnimatePresence>
           {showFilters && (
-            <motion.div
+            <m.div
               initial={{ height: 0, opacity: 0 }}
               animate={{ height: 'auto', opacity: 1 }}
               exit={{ height: 0, opacity: 0 }}
@@ -427,7 +427,7 @@ export default function NotificationsPage() {
                   </div>
                 )}
               </div>
-            </motion.div>
+            </m.div>
           )}
         </AnimatePresence>
       </Card2>
@@ -435,7 +435,7 @@ export default function NotificationsPage() {
       {/* Bulk Actions */}
       <AnimatePresence>
         {selectedCount > 0 && (
-          <motion.div
+          <m.div
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
@@ -473,7 +473,7 @@ export default function NotificationsPage() {
                 </div>
               </div>
             </Card2>
-          </motion.div>
+          </m.div>
         )}
       </AnimatePresence>
 
@@ -519,7 +519,7 @@ export default function NotificationsPage() {
               />
             ))
           ) : (
-            <motion.div
+            <m.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
@@ -540,7 +540,7 @@ export default function NotificationsPage() {
                   </Button2>
                 )}
               </Card2>
-            </motion.div>
+            </m.div>
           )}
         </AnimatePresence>
       </div>

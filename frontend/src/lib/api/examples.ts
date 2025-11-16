@@ -3,6 +3,8 @@
  * This file demonstrates various recovery configurations
  */
 
+import { logger } from '@/lib/logger';
+
 import { APIClient } from './api';
 import {
     RecoveryManager,
@@ -70,16 +72,16 @@ export function createAuthApiClient(
                     const { access_token } = await response.json();
                     return access_token;
                 } catch (error) {
-                    console.error('Token refresh failed:', error);
+                    logger.error('Token refresh failed:', error);
                     return null;
                 }
             },
             onTokenRefreshed: (newToken) => {
-                console.log('Token refreshed successfully');
+                logger.info('Token refreshed successfully');
                 setAccessToken(newToken);
             },
             onRefreshFailed: (error) => {
-                console.error('Token refresh failed, redirecting to login:', error);
+                logger.error('Token refresh failed, redirecting to login:', error);
                 // Redirect to login page
                 if (typeof window !== 'undefined') {
                     window.location.href = '/login';
@@ -141,7 +143,7 @@ export function createProductionApiClient(options?: {
                     onTokenRefresh?.(token);
                 },
                 onRefreshFailed: (error) => {
-                    console.error('Token refresh failed:', error);
+                    logger.error('Token refresh failed:', error);
                     onRecoveryFailure?.();
                 },
                 maxRefreshAttempts: 2,
@@ -220,18 +222,18 @@ export function createDevApiClient() {
     // Add logging interceptor
     apiClient.addRequestInterceptor({
         onRequest: async (config: RequestInit, url: string) => {
-            console.log('🚀 Request:', url, config.method || 'GET');
+            logger.info('🚀 Request:', url, config.method || 'GET');
             return config;
         },
     });
 
     apiClient.addResponseInterceptor({
         onResponse: async (response: Response) => {
-            console.log('✅ Response:', response.url, response.status);
+            logger.info('✅ Response:', response.url, response.status);
             return response;
         },
         onResponseError: (error: Error) => {
-            console.error('❌ Response Error:', error);
+            logger.error('❌ Response Error:', error);
         },
     });
 

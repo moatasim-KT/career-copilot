@@ -5,8 +5,8 @@
 
 'use client';
 
-import { useState } from 'react';
 import { ArrowRight, Network, CheckCircle2 } from 'lucide-react';
+import { useState } from 'react';
 
 import { PrefetchLink } from '@/components/ui/PrefetchLink';
 import { usePrefetchRoutes } from '@/hooks/useRoutePrefetch';
@@ -85,7 +85,7 @@ export default function PrefetchDemoPage() {
           <p className="text-neutral-600 dark:text-neutral-400 mb-6">
             Hover over these links to see individual prefetch requests
           </p>
-          
+
           <div className="space-y-3">
             {criticalRoutes.map((route) => (
               <PrefetchLink
@@ -125,7 +125,7 @@ export default function PrefetchDemoPage() {
             </li>
             <li className="flex items-start gap-2">
               <span className="font-semibold">3.</span>
-              <span>Filter by "Fetch/XHR" or "All"</span>
+              <span>Filter by &quot;Fetch/XHR&quot; or &quot;All&quot;</span>
             </li>
             <li className="flex items-start gap-2">
               <span className="font-semibold">4.</span>

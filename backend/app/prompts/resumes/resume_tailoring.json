@@ -1,0 +1,31 @@
+{
+    "name": "resume_tailoring",
+    "version": "1.0.0",
+    "description": "Generate specific resume tailoring suggestions for job applications",
+    "category": "resumes",
+    "author": "career_copilot",
+    "tags": [
+        "resume",
+        "tailoring",
+        "ats-optimization",
+        "job-matching"
+    ],
+    "variables": [
+        "job_title",
+        "company",
+        "tech_stack",
+        "job_description",
+        "resume_sections"
+    ],
+    "default_values": {
+        "tech_stack": "Not specified",
+        "job_description": "Not provided"
+    },
+    "validation_rules": {
+        "job_title": "required",
+        "company": "required",
+        "resume_sections": "required"
+    },
+    "created_at": "2025-11-16T00:00:00Z",
+    "last_updated": "2025-11-16T00:00:00Z"
+}

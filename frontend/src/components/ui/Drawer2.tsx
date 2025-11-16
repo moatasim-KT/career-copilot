@@ -1,10 +1,10 @@
 'use client';
 
-import { AnimatePresence, motion } from 'framer-motion';
 import { X } from 'lucide-react';
 import { forwardRef, useEffect, useRef } from 'react';
 
 import { backdropVariants, drawerVariants } from '@/lib/animations';
+import { AnimatePresence, m } from '@/lib/motion';
 import { cn } from '@/lib/utils';
 
 export interface Drawer2Props {
@@ -98,7 +98,7 @@ export const Drawer2 = forwardRef<HTMLDivElement, Drawer2Props>(
         return (
             <AnimatePresence mode="wait">
                 {open && (
-                    <motion.div
+                    <m.div
                         className={cn(
                             'fixed inset-0 z-50 flex',
                             overlayClassName,
@@ -116,7 +116,7 @@ export const Drawer2 = forwardRef<HTMLDivElement, Drawer2Props>(
                         <div className="absolute inset-0 glass" />
                         
                         {/* Drawer content */}
-                        <motion.div
+                        <m.div
                             ref={ref || drawerRef}
                             className={cn(
                                 'absolute bg-white dark:bg-neutral-900 shadow-xl outline-none overflow-y-auto',
@@ -160,8 +160,8 @@ export const Drawer2 = forwardRef<HTMLDivElement, Drawer2Props>(
                                 )}
                                 <div>{children}</div>
                             </div>
-                        </motion.div>
-                    </motion.div>
+                        </m.div>
+                    </m.div>
                 )}
             </AnimatePresence>
         );

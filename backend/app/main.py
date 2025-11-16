@@ -83,9 +83,9 @@ async def lifespan(app: FastAPI):
 		start_scheduler()
 		logger.info("✅ Scheduler started")
 	elif os.getenv("DISABLE_SCHEDULER_IN_TESTS") == "True":
-		logger.info("ℹ️ Scheduler disabled for testing environment.")
+		logger.info("Info: scheduler disabled for testing environment.")
 	else:
-		logger.info("ℹ️ Scheduler disabled by configuration.")
+		logger.info("Info: scheduler disabled by configuration.")
 
 	# Initialize Celery (workers should be started separately)
 	logger.info("✅ Celery application configured")
@@ -117,6 +117,25 @@ def create_app() -> FastAPI:
 	logger.info(f"Job Scraping Enabled: {settings.enable_job_scraping}")
 	logger.info(f"CORS Origins: {settings.cors_origins}")
 	logger.info(f"ResumeParserService Version: {ResumeParserService.__version__}")
+
+	# ⚠️ SECURITY WARNING: Check if authentication is disabled
+	if getattr(settings, "disable_auth", False):
+		logger.warning("=" * 80)
+		logger.warning("⚠️  SECURITY WARNING: AUTHENTICATION IS DISABLED!")
+		logger.warning("⚠️  This is ONLY acceptable in development environments.")
+		logger.warning("⚠️  ")
+		logger.warning(f"⚠️  Current environment: {settings.environment}")
+		if settings.environment.lower() == "production":
+			logger.error("❌ CRITICAL: Authentication is disabled in PRODUCTION!")
+			logger.error("❌ This is a severe security risk!")
+			logger.error("❌ Set DISABLE_AUTH=false or remove it from environment")
+			logger.error("=" * 80)
+			# In production, we could raise an exception here to prevent startup
+			# raise RuntimeError("Cannot start in production with authentication disabled")
+		else:
+			logger.warning("⚠️  To enable authentication, set DISABLE_AUTH=false")
+		logger.warning("=" * 80)
+
 	logger.info("-----------------------------")
 
 	# Create FastAPI application

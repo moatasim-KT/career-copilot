@@ -12,7 +12,8 @@
  * - Automatic rollback on errors
  */
 
-import { useQueryClient, useMutation, type UseMutationOptions } from '@tanstack/react-query';
+import { useQueryClient, useMutation } from '@tanstack/react-query';
+
 import { logger } from './logger';
 
 /**
@@ -23,22 +24,22 @@ export interface OptimisticUpdateConfig<TData, TVariables, TContext> {
    * Query key to update optimistically
    */
   queryKey: readonly unknown[];
-  
+
   /**
    * Function to update the cached data optimistically
    */
   updater: (oldData: TData | undefined, variables: TVariables) => TData;
-  
+
   /**
    * Optional: Additional query keys to invalidate after success
    */
   invalidateKeys?: readonly unknown[][];
-  
+
   /**
    * Optional: Custom error handler
    */
   onError?: (error: Error, variables: TVariables, context: TContext | undefined) => void;
-  
+
   /**
    * Optional: Custom success handler
    */
@@ -61,62 +62,62 @@ export interface OptimisticUpdateConfig<TData, TVariables, TContext> {
  * });
  * ```
  */
-export function useOptimisticMutation<TData, TVariables, TError = Error, TContext = unknown>(
+export function useOptimisticMutation<TData, TVariables, _TError = Error, TContext = unknown>(
   config: OptimisticUpdateConfig<TData, TVariables, TContext> & {
     mutationFn: (variables: TVariables) => Promise<any>;
-  }
+  },
 ) {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: config.mutationFn,
-    
+
     onMutate: async (variables) => {
       // Cancel outgoing refetches
       await queryClient.cancelQueries({ queryKey: config.queryKey });
-      
+
       // Snapshot previous value
       const previousData = queryClient.getQueryData<TData>(config.queryKey);
-      
+
       // Optimistically update
       if (previousData !== undefined) {
         const newData = config.updater(previousData, variables);
         queryClient.setQueryData(config.queryKey, newData);
         logger.debug('Optimistic update applied', { queryKey: config.queryKey });
       }
-      
+
       return { previousData } as TContext;
     },
-    
+
     onError: (error, variables, context) => {
       // Rollback on error
-      if (context && 'previousData' in context) {
+      if (context && typeof context === 'object' && 'previousData' in context) {
         queryClient.setQueryData(config.queryKey, (context as any).previousData);
         logger.warn('Optimistic update rolled back', { queryKey: config.queryKey, error });
       }
-      
+
       if (config.onError) {
         config.onError(error as Error, variables, context);
       }
     },
-    
+
     onSuccess: (data, variables, context) => {
       // Update with server response
       queryClient.setQueryData(config.queryKey, data);
       logger.debug('Optimistic update confirmed', { queryKey: config.queryKey });
-      
+
       // Invalidate related queries
       if (config.invalidateKeys) {
         config.invalidateKeys.forEach(key => {
           queryClient.invalidateQueries({ queryKey: key });
         });
       }
-      
+
       if (config.onSuccess) {
         config.onSuccess(data, variables, context);
       }
     },
-    
+
     onSettled: () => {
       // Refetch to ensure consistency
       queryClient.invalidateQueries({ queryKey: config.queryKey });
@@ -135,14 +136,14 @@ export function useOptimisticListMutation<TItem extends { id: number | string },
     invalidateKeys?: readonly unknown[][];
     onError?: (error: Error, variables: TVariables, context: any) => void;
     onSuccess?: (data: TItem, variables: TVariables, context: any) => void;
-  }
+  },
 ) {
   return useOptimisticMutation<TItem[], TVariables, Error, { previousData: TItem[] | undefined }>({
     ...config,
     updater: (oldData, variables) => {
       if (!oldData) return [];
       return oldData.map(item =>
-        item.id === variables.id ? { ...item, ...variables } : item
+        item.id === variables.id ? { ...item, ...variables } : item,
       );
     },
   });
@@ -159,7 +160,7 @@ export function useOptimisticAddMutation<TItem, TVariables>(
     invalidateKeys?: readonly unknown[][];
     onError?: (error: Error, variables: TVariables, context: any) => void;
     onSuccess?: (data: TItem, variables: TVariables, context: any) => void;
-  }
+  },
 ) {
   return useOptimisticMutation<TItem[], TVariables, Error, { previousData: TItem[] | undefined }>({
     ...config,
@@ -180,7 +181,7 @@ export function useOptimisticRemoveMutation<TItem extends { id: number | string 
     invalidateKeys?: readonly unknown[][];
     onError?: (error: Error, id: number | string, context: any) => void;
     onSuccess?: (data: void, id: number | string, context: any) => void;
-  }
+  },
 ) {
   return useOptimisticMutation<TItem[], number | string, Error, { previousData: TItem[] | undefined }>({
     ...config,
@@ -275,7 +276,7 @@ export function useOptimisticCreateApplication() {
  */
 export function useOptimisticDeleteApplication() {
   return useOptimisticRemoveMutation({
-    mutationFn: async (id: number) => {
+    mutationFn: async (id: number | string) => {
       // Simulate API call
       await fetch(`/api/applications/${id}`, {
         method: 'DELETE',
@@ -298,14 +299,14 @@ export function useOptimisticDeleteApplication() {
 export function performOptimisticUpdate<TData>(
   queryClient: any,
   queryKey: readonly unknown[],
-  updater: (oldData: TData | undefined) => TData
+  updater: (oldData: TData | undefined) => TData,
 ) {
-  const previousData = queryClient.getQueryData<TData>(queryKey);
+  const previousData = queryClient.getQueryData(queryKey) as TData | undefined;
   const newData = updater(previousData);
   queryClient.setQueryData(queryKey, newData);
-  
+
   logger.debug('Manual optimistic update applied', { queryKey });
-  
+
   return {
     rollback: () => {
       queryClient.setQueryData(queryKey, previousData);
@@ -319,15 +320,15 @@ export function performOptimisticUpdate<TData>(
  */
 export function useOptimisticUpdateTester() {
   const queryClient = useQueryClient();
-  
+
   return {
     /**
      * Test optimistic update that succeeds
      */
     testSuccess: async (queryKey: readonly unknown[]) => {
       logger.info('Testing successful optimistic update', { queryKey });
-      
-      const update = performOptimisticUpdate(
+
+      performOptimisticUpdate(
         queryClient,
         queryKey,
         (old: any) => {
@@ -335,22 +336,22 @@ export function useOptimisticUpdateTester() {
             return [...old, { id: Date.now(), test: true }];
           }
           return old;
-        }
+        },
       );
-      
+
       // Simulate API delay
       await new Promise(resolve => setTimeout(resolve, 1000));
-      
+
       // Success - keep the update
       logger.info('Optimistic update succeeded', { queryKey });
     },
-    
+
     /**
      * Test optimistic update that fails
      */
     testFailure: async (queryKey: readonly unknown[]) => {
       logger.info('Testing failed optimistic update', { queryKey });
-      
+
       const update = performOptimisticUpdate(
         queryClient,
         queryKey,
@@ -359,12 +360,12 @@ export function useOptimisticUpdateTester() {
             return [...old, { id: Date.now(), test: true }];
           }
           return old;
-        }
+        },
       );
-      
+
       // Simulate API delay
       await new Promise(resolve => setTimeout(resolve, 1000));
-      
+
       // Failure - rollback
       update.rollback();
       logger.warn('Optimistic update failed and rolled back', { queryKey });

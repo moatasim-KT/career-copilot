@@ -10,6 +10,9 @@
 'use client';
 
 import { AlertCircle, RefreshCw } from 'lucide-react';
+import { useEffect } from 'react';
+
+import { logger } from '@/lib/logger';
 
 interface GlobalErrorProps {
   error: Error & { digest?: string };
@@ -17,6 +20,16 @@ interface GlobalErrorProps {
 }
 
 export default function GlobalError({ error, reset }: GlobalErrorProps) {
+  useEffect(() => {
+    logger.error(
+      'Global error boundary triggered',
+      error,
+      {
+        digest: error.digest,
+      },
+    );
+  }, [error]);
+
   return (
     <html>
       <body>

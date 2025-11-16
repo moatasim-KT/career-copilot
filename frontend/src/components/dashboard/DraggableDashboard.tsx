@@ -21,13 +21,14 @@ import {
   sortableKeyboardCoordinates,
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
-import { motion, AnimatePresence } from 'framer-motion';
 import { RotateCcw, Settings, GripVertical } from 'lucide-react';
 import { useState } from 'react';
 
-import { DraggableWidget } from './DraggableWidget';
 import { useDashboardLayout } from '@/hooks/useDashboardLayout';
+import { m, AnimatePresence } from '@/lib/motion';
 import { DashboardWidget as DashboardWidgetType } from '@/types/dashboard';
+
+import { DraggableWidget } from './DraggableWidget';
 
 interface DraggableDashboardProps {
   children: (widget: DashboardWidgetType) => React.ReactNode;
@@ -139,7 +140,7 @@ export function DraggableDashboard({ children }: DraggableDashboardProps) {
       {/* Widget Settings Panel */}
       <AnimatePresence>
         {showSettings && (
-          <motion.div
+          <m.div
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
@@ -151,7 +152,7 @@ export function DraggableDashboard({ children }: DraggableDashboardProps) {
             <p className="text-sm text-neutral-600 dark:text-neutral-400 mb-4">
               All widgets are currently visible. Widget visibility controls coming soon.
             </p>
-          </motion.div>
+          </m.div>
         )}
       </AnimatePresence>
 

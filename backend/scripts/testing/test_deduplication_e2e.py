@@ -24,7 +24,7 @@ from app.core.database import SessionLocal
 from app.models.job import Job
 from app.models.user import User
 from app.services.job_deduplication_service import JobDeduplicationService
-from app.services.job_scraping_service import JobScrapingService
+from app.services.job_service import JobManagementSystem
 
 
 class DeduplicationE2ETest:
@@ -32,7 +32,7 @@ class DeduplicationE2ETest:
 
 	def __init__(self):
 		self.db = SessionLocal()
-		self.scraping_service = JobScrapingService(self.db)
+		self.scraping_service = JobManagementSystem(self.db)
 		self.dedup_service = JobDeduplicationService(self.db)
 		self.test_user = None
 

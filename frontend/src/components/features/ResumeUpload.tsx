@@ -2,8 +2,8 @@
 
 import React, { useState, useCallback } from 'react';
 
-import Button from '@/components/ui/Button';
-import Card from '@/components/ui/Card';
+import Button from '@/components/ui/Button2';
+import Card2 from '@/components/ui/Card2';
 import { apiClient } from '@/lib/api';
 
 interface ParsedResumeData {
@@ -64,7 +64,7 @@ export default function ResumeUpload({ onUploadComplete, onProfileUpdate }: Resu
     e.preventDefault();
     e.stopPropagation();
     setDragActive(false);
-    
+
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
       const droppedFile = e.dataTransfer.files[0];
       if (validateFile(droppedFile)) {
@@ -80,17 +80,17 @@ export default function ResumeUpload({ onUploadComplete, onProfileUpdate }: Resu
       'application/msword',
       'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
     ];
-    
+
     if (!allowedTypes.includes(file.type)) {
       setError('Please upload a PDF, DOC, or DOCX file');
       return false;
     }
-    
+
     if (file.size > 10 * 1024 * 1024) { // 10MB limit
       setError('File size must be less than 10MB');
       return false;
     }
-    
+
     return true;
   };
 
@@ -112,7 +112,7 @@ export default function ResumeUpload({ onUploadComplete, onProfileUpdate }: Resu
 
     try {
       const response = await apiClient.uploadResume(file);
-      
+
       if (response.error) {
         setError(response.error);
         return;
@@ -120,13 +120,13 @@ export default function ResumeUpload({ onUploadComplete, onProfileUpdate }: Resu
 
       if (response.data) {
         setUploadResult(response.data as ParsedResumeData);
-        
+
         // Start polling for parsing status if pending
         if (response.data.parsing_status === 'pending') {
           setParsing(true);
           pollParsingStatus(response.data.upload_id);
         }
-        
+
         onUploadComplete?.(response.data as ParsedResumeData);
       }
     } catch (_err) {
@@ -147,10 +147,10 @@ export default function ResumeUpload({ onUploadComplete, onProfileUpdate }: Resu
             'Authorization': `Bearer ${localStorage.getItem('token')}`,
           },
         });
-        
+
         if (response.ok) {
           const data = await response.json();
-          
+
           if (data.parsing_status === 'completed') {
             setUploadResult(prev => prev ? { ...prev, ...data } : data);
             setParsing(false);
@@ -161,7 +161,7 @@ export default function ResumeUpload({ onUploadComplete, onProfileUpdate }: Resu
             return;
           }
         }
-        
+
         attempts++;
         if (attempts < maxAttempts) {
           setTimeout(poll, 1000); // Poll every second
@@ -188,7 +188,7 @@ export default function ResumeUpload({ onUploadComplete, onProfileUpdate }: Resu
 
     try {
       const response = await apiClient.updateUserProfile(updates);
-      
+
       if (response.error) {
         setError(response.error);
         return;
@@ -211,16 +211,15 @@ export default function ResumeUpload({ onUploadComplete, onProfileUpdate }: Resu
 
   return (
     <div className="space-y-6">
-      <Card className="p-6">
+      <Card2 className="p-6">
         <h3 className="text-lg font-semibold mb-4">Upload Resume</h3>
-        
+
         {!file && !uploadResult && (
           <div
-            className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
-              dragActive 
-                ? 'border-blue-500 bg-blue-50' 
-                : 'border-gray-300 hover:border-gray-400'
-            }`}
+            className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${dragActive
+              ? 'border-blue-500 bg-blue-50'
+              : 'border-gray-300 hover:border-gray-400'
+              }`}
             onDragEnter={handleDrag}
             onDragLeave={handleDrag}
             onDragOver={handleDrag}
@@ -274,7 +273,7 @@ export default function ResumeUpload({ onUploadComplete, onProfileUpdate }: Resu
                 Remove
               </Button>
             </div>
-            
+
             <div className="flex space-x-3">
               <Button
                 onClick={handleUpload}
@@ -292,12 +291,12 @@ export default function ResumeUpload({ onUploadComplete, onProfileUpdate }: Resu
             <p className="text-sm text-red-600">{error}</p>
           </div>
         )}
-      </Card>
+      </Card2>
 
       {uploadResult && (
-        <Card className="p-6">
+        <Card2 className="p-6">
           <h4 className="text-lg font-semibold mb-4">Parsing Results</h4>
-          
+
           {parsing && (
             <div className="flex items-center space-x-3 p-4 bg-blue-50 rounded-lg">
               <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-600"></div>
@@ -348,7 +347,7 @@ export default function ResumeUpload({ onUploadComplete, onProfileUpdate }: Resu
               {uploadResult.suggestions?.profile_updates && (
                 <div className="border-t pt-4">
                   <h5 className="font-medium mb-3">Profile Update Suggestions</h5>
-                  
+
                   {uploadResult.suggestions.profile_updates.skills_to_add.length > 0 && (
                     <div className="mb-4">
                       <p className="text-sm text-neutral-600 mb-2">Skills to add to your profile:</p>
@@ -391,7 +390,7 @@ export default function ResumeUpload({ onUploadComplete, onProfileUpdate }: Resu
               Upload Another Resume
             </Button>
           </div>
-        </Card>
+        </Card2>
       )}
     </div>
   );

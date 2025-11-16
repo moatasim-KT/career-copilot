@@ -18,11 +18,11 @@
 'use client';
 
 import { useVirtualizer } from '@tanstack/react-virtual';
-import { motion, AnimatePresence } from 'framer-motion';
 import React, { useRef } from 'react';
 
 import ApplicationCard, { Application } from '@/components/ui/ApplicationCard';
 import { fadeVariants, staggerItem } from '@/lib/animations';
+import { m, AnimatePresence } from '@/lib/motion';
 
 /**
  * VirtualApplicationList Props
@@ -98,7 +98,7 @@ export function VirtualApplicationList({
   // Handle empty state
   if (applications.length === 0) {
     return (
-      <motion.div
+      <m.div
         className="text-center py-12 text-neutral-500 dark:text-neutral-400"
         variants={fadeVariants}
         initial="hidden"
@@ -125,7 +125,7 @@ export function VirtualApplicationList({
             Applications you submit will appear here
           </p>
         </div>
-      </motion.div>
+      </m.div>
     );
   }
 
@@ -153,7 +153,7 @@ export function VirtualApplicationList({
             const isSelected = selectedApplicationIds.includes(application.id);
 
             return (
-              <motion.div
+              <m.div
                 key={application.id}
                 variants={staggerItem}
                 initial="hidden"
@@ -189,7 +189,7 @@ export function VirtualApplicationList({
                     onSelect={() => onSelectApplication(application.id)}
                   />
                 </div>
-              </motion.div>
+              </m.div>
             );
           })}
         </AnimatePresence>
@@ -287,7 +287,7 @@ export function VirtualApplicationListGrid({
 
   if (applications.length === 0) {
     return (
-      <motion.div
+      <m.div
         className="text-center py-12 text-neutral-500 dark:text-neutral-400"
         variants={fadeVariants}
         initial="hidden"
@@ -314,7 +314,7 @@ export function VirtualApplicationListGrid({
             Applications you submit will appear here
           </p>
         </div>
-      </motion.div>
+      </m.div>
     );
   }
 
@@ -358,7 +358,7 @@ export function VirtualApplicationListGrid({
                   const isSelected = selectedApplicationIds.includes(application.id);
 
                   return (
-                    <motion.div
+                    <m.div
                       key={application.id}
                       variants={staggerItem}
                       initial="hidden"
@@ -382,7 +382,7 @@ export function VirtualApplicationListGrid({
                         isSelected={isSelected}
                         onSelect={() => onSelectApplication(application.id)}
                       />
-                    </motion.div>
+                    </m.div>
                   );
                 })}
               </div>

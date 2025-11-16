@@ -22,59 +22,67 @@
 
 'use client';
 
-import { useState } from 'react';
 import { HelpCircle, ExternalLink } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
+import { useState, useEffect, useCallback } from 'react';
 
+import { logger } from '@/lib/logger';
+import { m } from '@/lib/motion';
 import { cn } from '@/lib/utils';
+
 import { Popover, PopoverTrigger, PopoverContent } from './Popover';
+
 
 export interface HelpIconProps {
   /**
    * Title of the help content
    */
   title?: string;
-  
+
   /**
    * Main help content (can be string or React node)
    */
   content: React.ReactNode;
-  
+
   /**
    * Optional link to full documentation
    */
   docsLink?: string;
-  
+
   /**
    * Size of the icon
    */
   size?: 'sm' | 'md' | 'lg';
-  
+
   /**
    * Position of the popover
    */
   position?: 'top' | 'bottom' | 'left' | 'right';
-  
+
   /**
    * Custom className for the icon button
    */
   className?: string;
-  
+
   /**
    * Custom className for the popover content
    */
   contentClassName?: string;
-  
+
   /**
    * Trigger on hover (default: true)
    */
   triggerOnHover?: boolean;
-  
+
   /**
    * Aria label for accessibility
    */
   ariaLabel?: string;
+
+  /**
+   * Notifies parent when the popover open state changes
+   */
+  onOpenChange?: (open: boolean) => void;
 }
 
 const sizeStyles = {
@@ -100,14 +108,20 @@ export function HelpIcon({
   contentClassName,
   triggerOnHover = true,
   ariaLabel = 'Help',
+  onOpenChange,
 }: HelpIconProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
 
+  const updateOpenState = useCallback((open: boolean) => {
+    setIsOpen(open);
+    onOpenChange?.(open);
+  }, [onOpenChange]);
+
   const handleMouseEnter = () => {
     if (triggerOnHover) {
       setIsHovered(true);
-      setIsOpen(true);
+      updateOpenState(true);
     }
   };
 
@@ -117,18 +131,18 @@ export function HelpIcon({
       // Delay closing to allow moving to popover
       setTimeout(() => {
         if (!isHovered) {
-          setIsOpen(false);
+          updateOpenState(false);
         }
       }, 100);
     }
   };
 
   const handleClick = () => {
-    setIsOpen(!isOpen);
+    updateOpenState(!isOpen);
   };
 
   return (
-    <Popover open={isOpen} onOpenChange={setIsOpen}>
+    <Popover open={isOpen} onOpenChange={updateOpenState}>
       <PopoverTrigger asChild>
         <button
           type="button"
@@ -165,7 +179,7 @@ export function HelpIcon({
           onMouseLeave={() => {
             setIsHovered(false);
             if (triggerOnHover) {
-              setIsOpen(false);
+              updateOpenState(false);
             }
           }}
         >
@@ -285,46 +299,47 @@ export function FeatureHint({
 }: FeatureHintProps) {
   const [hasBeenSeen, setHasBeenSeen] = useState(false);
 
-  // Check if feature has been seen
-  useState(() => {
-    if (typeof window !== 'undefined') {
-      try {
-        const hints = localStorage.getItem('first-time-hints');
-        if (hints) {
-          const parsed = JSON.parse(hints);
-          setHasBeenSeen(!!parsed[featureId]?.seen);
-        }
-      } catch (error) {
-        console.error('Failed to check feature hint:', error);
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    try {
+      const hints = localStorage.getItem('first-time-hints');
+      if (hints) {
+        const parsed = JSON.parse(hints);
+        setHasBeenSeen(Boolean(parsed[featureId]?.seen));
       }
+    } catch (error) {
+      logger.error('Failed to check feature hint:', error);
     }
-  });
+  }, [featureId]);
 
-  const handleOpen = () => {
-    // Mark as seen when opened
-    if (!hasBeenSeen && typeof window !== 'undefined') {
-      try {
-        const hints = localStorage.getItem('first-time-hints');
-        const parsed = hints ? JSON.parse(hints) : {};
-        parsed[featureId] = {
-          seen: true,
-          dismissedAt: new Date().toISOString(),
-        };
-        localStorage.setItem('first-time-hints', JSON.stringify(parsed));
-        setHasBeenSeen(true);
-      } catch (error) {
-        console.error('Failed to mark feature hint as seen:', error);
-      }
+  const handleOpen = useCallback(() => {
+    if (hasBeenSeen || typeof window === 'undefined') return;
+    try {
+      const hints = localStorage.getItem('first-time-hints');
+      const parsed = hints ? JSON.parse(hints) : {};
+      parsed[featureId] = {
+        seen: true,
+        dismissedAt: new Date().toISOString(),
+      };
+      localStorage.setItem('first-time-hints', JSON.stringify(parsed));
+      setHasBeenSeen(true);
+    } catch (error) {
+      logger.error('Failed to mark feature hint as seen:', error);
     }
-  };
+  }, [featureId, hasBeenSeen]);
 
   return (
     <div className={cn('relative inline-flex', className)}>
-      <HelpIcon {...helpIconProps} />
-      
+      <HelpIcon
+        {...helpIconProps}
+        onOpenChange={(open) => {
+          if (open) handleOpen();
+        }}
+      />
+
       {/* Pulse indicator for unseen features */}
       {!hasBeenSeen && showPulse && (
-        <motion.span
+        <m.span
           className="absolute -top-0.5 -right-0.5 flex h-2 w-2"
           initial={{ scale: 0 }}
           animate={{ scale: 1 }}
@@ -332,7 +347,7 @@ export function FeatureHint({
         >
           <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary-400 opacity-75" />
           <span className="relative inline-flex rounded-full h-2 w-2 bg-primary-500" />
-        </motion.span>
+        </m.span>
       )}
     </div>
   );

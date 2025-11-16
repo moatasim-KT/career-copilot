@@ -9,6 +9,8 @@
 
 'use client';
 
+import { logger } from '@/lib/logger';
+
 // Dynamic import to handle optional dependency
 let Sentry: any = null;
 
@@ -17,7 +19,7 @@ if (typeof window !== 'undefined') {
   try {
     Sentry = require('@sentry/nextjs');
   } catch {
-    console.warn('Sentry is not installed. Error tracking will be disabled.');
+    logger.warn('Sentry is not installed. Error tracking will be disabled.');
   }
 }
 
@@ -47,12 +49,12 @@ export interface SentryConfig {
  */
 export function initSentry(config: SentryConfig): void {
   if (!Sentry) {
-    console.warn('Sentry not available. Error tracking disabled.');
+    logger.warn('Sentry not available. Error tracking disabled.');
     return;
   }
 
   if (!config.enabled && process.env.NODE_ENV !== 'production') {
-    console.log('Sentry disabled in development');
+    logger.info('Sentry disabled in development');
     return;
   }
 

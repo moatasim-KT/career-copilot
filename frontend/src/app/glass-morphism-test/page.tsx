@@ -18,6 +18,7 @@ import Modal2 from '@/components/ui/Modal2';
 import MultiSelect2 from '@/components/ui/MultiSelect2';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/Popover';
 import Tooltip from '@/components/ui/Tooltip';
+import { logger } from '@/lib/logger';
 
 export default function GlassMorphismTestPage() {
   const [modalOpen, setModalOpen] = useState(false);
@@ -34,7 +35,7 @@ export default function GlassMorphismTestPage() {
       label: 'Action 1',
       icon: <Plus className="w-4 h-4" />,
       variant: 'primary',
-      onClick: async () => console.log('Action 1'),
+      onClick: async () => logger.info('Action 1'),
     },
   ];
 

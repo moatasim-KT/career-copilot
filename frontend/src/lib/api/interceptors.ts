@@ -2,7 +2,10 @@
  * API Interceptors for logging, monitoring, and debugging
  */
 
+import { logger } from '@/lib/logger';
+
 import type { RequestInterceptor, ResponseInterceptor } from './api';
+
 
 // ============================================================================
 // Logging Interceptor
@@ -50,13 +53,13 @@ export function createLoggingInterceptor(options: LoggingOptions = {}): {
                         }
                     }
 
-                    console.log('[API Request]', logData);
+                    logger.info('[API Request]', logData);
                 }
                 return config;
             },
             onRequestError: (error: Error) => {
                 if (logErrors) {
-                    console.error('[API Request Error]', {
+                    logger.error('[API Request Error]', {
                         error: error.message,
                         timestamp: new Date().toISOString(),
                     });
@@ -66,7 +69,7 @@ export function createLoggingInterceptor(options: LoggingOptions = {}): {
         response: {
             onResponse: async (response: Response) => {
                 if (logResponses) {
-                    console.log('[API Response]', {
+                    logger.info('[API Response]', {
                         url: response.url,
                         status: response.status,
                         statusText: response.statusText,
@@ -77,7 +80,7 @@ export function createLoggingInterceptor(options: LoggingOptions = {}): {
             },
             onResponseError: (error: Error) => {
                 if (logErrors) {
-                    console.error('[API Response Error]', {
+                    logger.error('[API Response Error]', {
                         error: error.message,
                         timestamp: new Date().toISOString(),
                     });
@@ -136,7 +139,7 @@ export function createPerformanceInterceptor(
 
                     // Log slow requests
                     if (duration > 3000) {
-                        console.warn('[Slow API Request]', {
+                        logger.warn('[Slow API Request]', {
                             url: response.url,
                             duration: `${duration}ms`,
                             status: response.status,

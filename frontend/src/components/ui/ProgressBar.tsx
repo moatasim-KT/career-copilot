@@ -1,10 +1,10 @@
 'use client';
 
-import { motion } from 'framer-motion';
 import { forwardRef, HTMLAttributes } from 'react';
 
-import { cn } from '@/lib/utils';
 import { progressBarVariants } from '@/lib/animations';
+import { m } from '@/lib/motion';
+import { cn } from '@/lib/utils';
 
 export interface ProgressBarProps extends Omit<HTMLAttributes<HTMLDivElement>, 'children'> {
   /**
@@ -131,7 +131,7 @@ export const ProgressBar = forwardRef<HTMLDivElement, ProgressBarProps>(
         >
           {isIndeterminate ? (
             // Indeterminate progress
-            <motion.div
+            <m.div
               className={cn(
                 'absolute inset-y-0 w-1/3 rounded-full',
                 colors[color],
@@ -141,7 +141,7 @@ export const ProgressBar = forwardRef<HTMLDivElement, ProgressBarProps>(
             />
           ) : (
             // Determinate progress
-            <motion.div
+            <m.div
               className={cn(
                 'h-full rounded-full',
                 colors[color],

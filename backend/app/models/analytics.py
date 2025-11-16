@@ -1,6 +1,7 @@
-from sqlalchemy import Column, Integer, String, DateTime, JSON
+from sqlalchemy import JSON, Column, DateTime, Integer, String
+
 from ..core.database import Base
-from datetime import datetime
+from ..utils import utc_now
 
 
 class Analytics(Base):
@@ -10,4 +11,4 @@ class Analytics(Base):
 	user_id = Column(Integer, index=True, nullable=True)  # Nullable for system-level analytics
 	type = Column(String, index=True, nullable=False)
 	data = Column(JSON, nullable=False)
-	generated_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+	generated_at = Column(DateTime, default=utc_now, nullable=False)

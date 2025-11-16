@@ -102,7 +102,7 @@ class MemoryManager:
 
 	def create_temp_file(self, content: bytes, extension: str = ".tmp") -> Tuple[str, str]:
 		"""Create a temporary file and return (file_id, file_path)."""
-		file_id = hashlib.md5(content).hexdigest()[:16]
+		file_id = hashlib.md5(content, usedforsecurity=False).hexdigest()[:16]
 		temp_dir = Path(settings.temp_directory)
 		temp_dir.mkdir(exist_ok=True)
 
@@ -190,7 +190,7 @@ class EmbeddingCache:
 
 	def get_embedding(self, text: str, embedding_model) -> List[float]:
 		"""Get embedding from cache or compute if not cached."""
-		text_hash = hashlib.md5(text.encode()).hexdigest()
+		text_hash = hashlib.md5(text.encode(), usedforsecurity=False).hexdigest()
 
 		if text_hash in self.cache:
 			self.access_times[text_hash] = time.time()

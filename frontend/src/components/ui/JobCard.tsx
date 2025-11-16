@@ -1,5 +1,5 @@
 
-import { Briefcase, MapPin, Clock } from 'lucide-react';
+import { Briefcase, MapPin } from 'lucide-react';
 
 export interface Job {
   id: string;

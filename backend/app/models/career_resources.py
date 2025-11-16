@@ -4,7 +4,6 @@ Career Resources Models
 Database models for career resources, bookmarks, and feedback tracking.
 """
 
-from datetime import datetime
 from typing import Optional
 from uuid import uuid4
 
@@ -14,6 +13,7 @@ from sqlalchemy.dialects.postgresql import UUID as PostgresUUID
 from sqlalchemy.orm import relationship
 
 from ..core.database import Base
+from ..utils import utc_now
 
 
 class CareerResourceModel(Base):
@@ -40,8 +40,8 @@ class CareerResourceModel(Base):
 	learning_outcomes = Column(String, default="[]")
 
 	# Metadata
-	created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
-	updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+	created_at = Column(DateTime, default=utc_now, nullable=False)
+	updated_at = Column(DateTime, default=utc_now, onupdate=utc_now)
 	deleted_at = Column(DateTime)
 
 	# Relationships
@@ -73,8 +73,8 @@ class ResourceBookmarkModel(Base):
 	estimated_completion_date = Column(DateTime)
 
 	# Timestamps
-	created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
-	updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+	created_at = Column(DateTime, default=utc_now, nullable=False)
+	updated_at = Column(DateTime, default=utc_now, onupdate=utc_now)
 	completed_at = Column(DateTime)
 	archived_at = Column(DateTime)
 
@@ -116,8 +116,8 @@ class ResourceFeedbackModel(Base):
 	would_recommend = Column(Boolean)
 
 	# Timestamps
-	created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
-	updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+	created_at = Column(DateTime, default=utc_now, nullable=False)
+	updated_at = Column(DateTime, default=utc_now, onupdate=utc_now)
 	completed_at = Column(DateTime)
 
 	# Relationships
@@ -152,7 +152,7 @@ class ResourceView(Base):
 	filters_used = Column(String, default="[]")
 
 	# Timestamp
-	viewed_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+	viewed_at = Column(DateTime, default=utc_now, nullable=False)
 
 	# Relationships
 	user = relationship("User", backref="resource_views")
@@ -189,8 +189,8 @@ class LearningPath(Base):
 	created_by_user_id = Column(Integer, ForeignKey("users.id", ondelete="SET NULL"))
 
 	# Timestamps
-	created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
-	updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+	created_at = Column(DateTime, default=utc_now, nullable=False)
+	updated_at = Column(DateTime, default=utc_now, onupdate=utc_now)
 
 	# Relationships
 	creator = relationship("User", backref="created_learning_paths")
@@ -220,8 +220,8 @@ class LearningPathEnrollment(Base):
 	status = Column(String(50), default="active")  # active, paused, completed, abandoned
 
 	# Timestamps
-	enrolled_at = Column(DateTime, default=datetime.utcnow, nullable=False)
-	last_activity_at = Column(DateTime, default=datetime.utcnow)
+	enrolled_at = Column(DateTime, default=utc_now, nullable=False)
+	last_activity_at = Column(DateTime, default=utc_now)
 	completed_at = Column(DateTime)
 
 	# Relationships

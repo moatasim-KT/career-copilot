@@ -2,7 +2,6 @@
 SQLAlchemy database models for analysis history and agent execution.
 """
 
-from datetime import datetime
 from uuid import uuid4
 
 from sqlalchemy import JSON, Boolean, Column, DateTime, ForeignKey, Integer, Numeric, String, Text
@@ -10,6 +9,7 @@ from sqlalchemy.dialects.postgresql import UUID as PostgresUUID
 from sqlalchemy.orm import relationship
 
 from ..core.database import Base
+from ..utils import utc_now
 
 
 class AnalysisHistory(Base):
@@ -30,8 +30,8 @@ class AnalysisHistory(Base):
 	analysis_metadata = Column(JSON)
 
 	# Timestamps
-	created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
-	updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+	created_at = Column(DateTime, default=utc_now, nullable=False)
+	updated_at = Column(DateTime, default=utc_now, onupdate=utc_now)
 	completed_at = Column(DateTime)
 	deleted_at = Column(DateTime)
 
@@ -57,7 +57,7 @@ class AgentExecution(Base):
 	provider = Column(String(50))  # alias for llm_provider for compatibility
 
 	# Execution details
-	started_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+	started_at = Column(DateTime, default=utc_now, nullable=False)
 	completed_at = Column(DateTime)
 	execution_time = Column(Numeric(10, 3))  # seconds
 	duration = Column(Numeric(10, 3))  # alias for execution_time for compatibility
@@ -81,8 +81,8 @@ class AgentExecution(Base):
 	execution_metadata = Column(JSON)
 
 	# Timestamps
-	created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
-	updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+	created_at = Column(DateTime, default=utc_now, nullable=False)
+	updated_at = Column(DateTime, default=utc_now, onupdate=utc_now)
 
 	# Relationships
 	analysis = relationship("AnalysisHistory", back_populates="agent_executions")
@@ -104,8 +104,8 @@ class UserSettings(Base):
 	ai_model_preference = Column(String(50), default="groq", nullable=False)
 
 	# Timestamps
-	created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
-	updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
+	created_at = Column(DateTime, default=utc_now, nullable=False)
+	updated_at = Column(DateTime, default=utc_now, onupdate=utc_now, nullable=False)
 
 	# Relationships
 	user = relationship("User", back_populates="settings")
@@ -131,7 +131,7 @@ class AuditLog(Base):
 	severity = Column(String(20), default="info", nullable=False)
 
 	# Timestamps
-	created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+	created_at = Column(DateTime, default=utc_now, nullable=False)
 
 
 class SecurityEvent(Base):
@@ -151,7 +151,7 @@ class SecurityEvent(Base):
 	event_metadata = Column(JSON, nullable=True)
 
 	# Timestamps
-	created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+	created_at = Column(DateTime, default=utc_now, nullable=False)
 
 
 class ContractAnalysis(Base):
@@ -166,5 +166,5 @@ class ContractAnalysis(Base):
 	results = Column(JSON)
 
 	# Timestamps
-	created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
-	updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+	created_at = Column(DateTime, default=utc_now, nullable=False)
+	updated_at = Column(DateTime, default=utc_now, onupdate=utc_now)

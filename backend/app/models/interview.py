@@ -1,13 +1,13 @@
 """Interview models"""
 
 import enum
-from datetime import datetime
 from typing import Any, ClassVar
 
 from sqlalchemy import Column, DateTime, Enum, Float, ForeignKey, Integer, String, Text
 from sqlalchemy.orm import relationship
 
 from app.core.database import Base
+from app.utils import utc_now
 
 
 class InterviewType(enum.Enum):
@@ -33,12 +33,12 @@ class InterviewSession(Base):
 	job_id = Column(Integer, ForeignKey("jobs.id"), nullable=True, index=True)
 	interview_type = Column(Enum(InterviewType), nullable=False)
 	status = Column(Enum(InterviewStatus), default=InterviewStatus.started, index=True)
-	started_at = Column(DateTime, default=datetime.utcnow)
+	started_at = Column(DateTime, default=utc_now)
 	completed_at = Column(DateTime, nullable=True)
 	feedback = Column(Text, nullable=True)
 	score = Column(Float, nullable=True)
-	created_at = Column(DateTime, default=datetime.utcnow, index=True)
-	updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+	created_at = Column(DateTime, default=utc_now, index=True)
+	updated_at = Column(DateTime, default=utc_now, onupdate=utc_now)
 
 	user = relationship("User")
 	job = relationship("Job")
@@ -57,7 +57,7 @@ class InterviewQuestion(Base):
 	answer_text = Column(Text, nullable=True)
 	feedback = Column(Text, nullable=True)
 	score = Column(Float, nullable=True)
-	created_at = Column(DateTime, default=datetime.utcnow, index=True)
-	updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+	created_at = Column(DateTime, default=utc_now, index=True)
+	updated_at = Column(DateTime, default=utc_now, onupdate=utc_now)
 
 	session = relationship("app.models.interview.InterviewSession", back_populates="questions")

@@ -79,7 +79,7 @@ export function AdvancedSearchHelp() {
       content={
         <div className="space-y-2">
           <p>
-            Build complex queries using AND/OR logic to find exactly what you're looking for.
+            Build complex queries using AND/OR logic to find exactly what you&apos;re looking for.
           </p>
           <ul className="text-sm space-y-1 mt-2">
             <li>• Combine multiple filters</li>
@@ -390,7 +390,7 @@ export function KeyboardShortcutsHelp() {
 export function EmailFieldHelp() {
   return (
     <InlineHelp>
-      We'll use this email for notifications and account recovery. We never share your email.
+      We&apos;ll use this email for notifications and account recovery. We never share your email.
     </InlineHelp>
   );
 }
@@ -414,7 +414,7 @@ export function SalaryRangeHelp() {
 export function LocationFieldHelp() {
   return (
     <InlineHelp>
-      Enter cities, states, or "Remote" for remote positions. You can add multiple locations.
+      Enter cities, states, or &quot;Remote&quot; for remote positions. You can add multiple locations.
     </InlineHelp>
   );
 }
@@ -422,7 +422,7 @@ export function LocationFieldHelp() {
 export function JobTitleFieldHelp() {
   return (
     <InlineHelp>
-      Add job titles you're interested in. We'll use these to find matching opportunities.
+      Add job titles you&apos;re interested in. We&apos;ll use these to find matching opportunities.
     </InlineHelp>
   );
 }
@@ -531,7 +531,7 @@ export const errorMessagesWithHelp = {
   },
   notFoundError: {
     title: 'Not Found',
-    message: 'The item you're looking for doesn't exist or has been deleted.',
+    message: "The item you're looking for doesn't exist or has been deleted.",
     help: 'Try searching for it or check if you have the correct link.',
   },
   serverError: {

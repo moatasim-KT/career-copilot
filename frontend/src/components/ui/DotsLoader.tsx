@@ -1,10 +1,10 @@
 'use client';
 
-import { motion } from 'framer-motion';
 import { forwardRef, HTMLAttributes } from 'react';
 
-import { cn } from '@/lib/utils';
 import { dotsLoadingVariants } from '@/lib/animations';
+import { m } from '@/lib/motion';
+import { cn } from '@/lib/utils';
 
 export interface DotsLoaderProps extends Omit<HTMLAttributes<HTMLDivElement>, 'children'> {
   /**
@@ -76,20 +76,20 @@ export const DotsLoader = forwardRef<HTMLDivElement, DotsLoaderProps>(
         className={cn('inline-flex items-center justify-center gap-1.5', className)}
         {...props}
       >
-        <motion.div
+        <m.div
           variants={dotsLoadingVariants.container}
           initial="hidden"
           animate="visible"
           className="flex items-center gap-1.5"
         >
           {[0, 1, 2].map((index) => (
-            <motion.div
+            <m.div
               key={index}
               variants={dotsLoadingVariants.dot}
               className={cn('rounded-full', dotSizes[size], colors[color])}
             />
           ))}
-        </motion.div>
+        </m.div>
 
         <span className="sr-only">{label}</span>
       </div>

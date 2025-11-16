@@ -47,11 +47,11 @@ export function ApplicationsTable({ applications, onApplicationClick }: Applicat
       header: 'Status',
       cell: ({ row }) => {
         const status = row.getValue('status') as string;
-        let variant: 'default' | 'secondary' | 'destructive' | 'outline' = 'default';
+        let variant: 'default' | 'info' | 'error' | 'primary' = 'default';
         if (status === 'applied') {
-          variant = 'secondary';
+          variant = 'info';
         } else if (status === 'rejected') {
-          variant = 'destructive';
+          variant = 'error';
         }
         return <Badge variant={variant}>{status}</Badge>;
       },

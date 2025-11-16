@@ -1,10 +1,10 @@
 'use client';
 
-import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, X } from 'lucide-react';
 import { forwardRef, useState, useRef, useEffect } from 'react';
 
 import { errorMessageVariants, shakeVariants } from '@/lib/animations';
+import { m, AnimatePresence } from '@/lib/motion';
 import { cn } from '@/lib/utils';
 
 export interface DatePicker2Props {
@@ -149,7 +149,7 @@ export const DatePicker2 = forwardRef<HTMLDivElement, DatePicker2Props>(
         return (
             <div ref={ref} className={cn('w-full', className)}>
                 {label && (
-                    <motion.label 
+                    <m.label 
                         className="mb-1.5 block text-sm font-medium text-neutral-700"
                         initial={{ opacity: 0, y: -5 }}
                         animate={{ opacity: 1, y: 0 }}
@@ -157,9 +157,9 @@ export const DatePicker2 = forwardRef<HTMLDivElement, DatePicker2Props>(
                     >
                         {label}
                         {required && <span className="ml-1 text-error-500">*</span>}
-                    </motion.label>
+                    </m.label>
                 )}
-                <motion.div 
+                <m.div 
                     className="relative"
                     animate={shouldShake ? 'shake' : 'default'}
                     variants={shakeVariants}
@@ -187,7 +187,7 @@ export const DatePicker2 = forwardRef<HTMLDivElement, DatePicker2Props>(
                     />
                     <AnimatePresence>
                         {displayValue && !disabled && (
-                            <motion.button
+                            <m.button
                                 type="button"
                                 onClick={clearSelection}
                                 className="absolute right-8 top-1/2 -translate-y-1/2 text-neutral-400 dark:text-neutral-500 hover:text-neutral-600 dark:hover:text-neutral-300 transition-colors"
@@ -200,7 +200,7 @@ export const DatePicker2 = forwardRef<HTMLDivElement, DatePicker2Props>(
                                 transition={{ duration: 0.15 }}
                             >
                                 <X className="h-4 w-4" />
-                            </motion.button>
+                            </m.button>
                         )}
                     </AnimatePresence>
                     <CalendarIcon className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-neutral-400 dark:text-neutral-500 pointer-events-none" />
@@ -208,7 +208,7 @@ export const DatePicker2 = forwardRef<HTMLDivElement, DatePicker2Props>(
                     {/* Calendar popover with glass morphism */}
                     <AnimatePresence>
                         {showCalendar && (
-                            <motion.div 
+                            <m.div 
                                 ref={calendarRef} 
                                 className="absolute z-50 mt-2 w-full glass rounded-lg shadow-lg p-4"
                                 initial={{ opacity: 0, y: -10, scale: 0.95 }}
@@ -273,7 +273,7 @@ export const DatePicker2 = forwardRef<HTMLDivElement, DatePicker2Props>(
                                         (maxDate && dateObj > maxDate) ||
                                         disabled;
                                     return (
-                                        <motion.button
+                                        <m.button
                                             key={day}
                                             type="button"
                                             disabled={isDisabled}
@@ -291,17 +291,17 @@ export const DatePicker2 = forwardRef<HTMLDivElement, DatePicker2Props>(
                                             transition={{ duration: 0.15 }}
                                         >
                                             {day}
-                                        </motion.button>
+                                        </m.button>
                                     );
                                 })}
                             </div>
-                            </motion.div>
+                            </m.div>
                         )}
                     </AnimatePresence>
-                </motion.div>
+                </m.div>
                 <AnimatePresence mode="wait">
                     {message && (
-                        <motion.p 
+                        <m.p 
                             key={message}
                             className={cn('mt-1.5 text-sm overflow-hidden', messageColor)}
                             initial="hidden"
@@ -310,7 +310,7 @@ export const DatePicker2 = forwardRef<HTMLDivElement, DatePicker2Props>(
                             variants={errorMessageVariants}
                         >
                             {message}
-                        </motion.p>
+                        </m.p>
                     )}
                 </AnimatePresence>
             </div>

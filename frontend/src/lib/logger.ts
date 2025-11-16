@@ -1,5 +1,3 @@
-
-
 /**
  * Logger utility for the frontend application
  * Provides controlled logging with environment-based filtering
@@ -31,7 +29,7 @@ class Logger {
    */
   log(message: string, ...args: any[]): void {
     if (this.shouldLog('log')) {
-      console.log(`[LOG] ${message}`, ...args);
+      logger.info(`[LOG] ${message}`, ...args);
     }
   }
 
@@ -40,7 +38,7 @@ class Logger {
    */
   info(message: string, ...args: any[]): void {
     if (this.shouldLog('info')) {
-      console.info(`[INFO] ${message}`, ...args);
+      logger.info(`[INFO] ${message}`, ...args);
     }
   }
 
@@ -49,7 +47,7 @@ class Logger {
    */
   warn(message: string, ...args: any[]): void {
     if (this.shouldLog('warn')) {
-      console.warn(`[WARN] ${message}`, ...args);
+      logger.warn(`[WARN] ${message}`, ...args);
     }
   }
 
@@ -58,7 +56,7 @@ class Logger {
    */
   error(message: string, error?: Error | unknown, ...args: any[]): void {
     if (this.shouldLog('error')) {
-      console.error(`[ERROR] ${message}`, error, ...args);
+      logger.error(`[ERROR] ${message}`, error, ...args);
     }
 
     // Send to monitoring in production
@@ -72,7 +70,7 @@ class Logger {
    */
   debug(message: string, ...args: any[]): void {
     if (this.isDevelopment && this.shouldLog('debug')) {
-      console.debug(`[DEBUG] ${message}`, ...args);
+      logger.debug(`[DEBUG] ${message}`, ...args);
     }
   }
 
@@ -103,10 +101,10 @@ class Logger {
         error:
           error instanceof Error
             ? {
-                name: error.name,
-                message: error.message,
-                stack: error.stack,
-              }
+              name: error.name,
+              message: error.message,
+              stack: error.stack,
+            }
             : error,
         timestamp: new Date().toISOString(),
         userAgent:

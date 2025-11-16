@@ -38,10 +38,10 @@ function section(title) {
 
 function exec(command, options = {}) {
   try {
-    return execSync(command, { 
-      encoding: 'utf8', 
+    return execSync(command, {
+      encoding: 'utf8',
       stdio: options.silent ? 'pipe' : 'inherit',
-      ...options 
+      ...options
     });
   } catch (error) {
     if (!options.ignoreError) {
@@ -74,6 +74,7 @@ try {
   report += `## Build Status\n\n✅ Build completed successfully\n\n`;
 } catch (error) {
   log('✗ Build failed', 'red');
+  log(error.message, 'red');
   report += `## Build Status\n\n❌ Build failed\n\n`;
   fs.writeFileSync(reportFile, report);
   process.exit(1);
@@ -85,18 +86,17 @@ log('Analyzing bundle sizes...', 'blue');
 try {
   const buildDir = path.join(__dirname, '..', '.next');
   const buildManifest = path.join(buildDir, 'build-manifest.json');
-  
+
   if (fs.existsSync(buildManifest)) {
-    const manifest = JSON.parse(fs.readFileSync(buildManifest, 'utf8'));
     report += `## Bundle Size Analysis\n\n`;
-    
+
     // Get static files
     const staticDir = path.join(buildDir, 'static', 'chunks');
     if (fs.existsSync(staticDir)) {
       const files = fs.readdirSync(staticDir);
       let totalSize = 0;
       const fileSizes = [];
-      
+
       files.forEach(file => {
         if (file.endsWith('.js')) {
           const filePath = path.join(staticDir, file);
@@ -106,22 +106,22 @@ try {
           fileSizes.push({ file, size: sizeKB });
         }
       });
-      
+
       // Sort by size descending
       fileSizes.sort((a, b) => parseFloat(b.size) - parseFloat(a.size));
-      
+
       report += `### JavaScript Bundles\n\n`;
       report += `**Total Size:** ${(totalSize / 1024).toFixed(2)} KB\n\n`;
       report += `| File | Size (KB) | Status |\n`;
       report += `|------|-----------|--------|\n`;
-      
+
       fileSizes.slice(0, 10).forEach(({ file, size }) => {
         const status = parseFloat(size) > 200 ? '⚠️ Large' : '✅ OK';
         report += `| ${file} | ${size} | ${status} |\n`;
       });
-      
+
       report += `\n`;
-      
+
       if (totalSize / 1024 > 250) {
         log('⚠ Total bundle size exceeds 250KB target', 'yellow');
         report += `⚠️ **Warning:** Total bundle size exceeds 250KB target\n\n`;
@@ -133,6 +133,7 @@ try {
   }
 } catch (error) {
   log('⚠ Could not analyze bundle sizes', 'yellow');
+  log(error.message, 'red');
   report += `⚠️ Bundle size analysis unavailable\n\n`;
 }
 
@@ -144,44 +145,45 @@ log('This may take several minutes...', 'yellow');
 try {
   // Run Lighthouse CI
   exec('npx lhci autorun --config=lighthouserc.json', { ignoreError: true });
-  
+
   // Check for Lighthouse results
   const lhciDir = path.join(__dirname, '..', '.lighthouseci');
   if (fs.existsSync(lhciDir)) {
     log('✓ Lighthouse audits completed', 'green');
     report += `## Lighthouse Audit Results\n\n`;
     report += `Lighthouse audits completed. Results saved to \`.lighthouseci/\` directory.\n\n`;
-    
+
     // Try to parse results
     const files = fs.readdirSync(lhciDir);
     const manifestFile = files.find(f => f.includes('manifest'));
-    
+
     if (manifestFile) {
       try {
         const manifest = JSON.parse(fs.readFileSync(path.join(lhciDir, manifestFile), 'utf8'));
-        
+
         report += `### Summary\n\n`;
         report += `| Page | Performance | Accessibility | Best Practices | SEO |\n`;
         report += `|------|-------------|---------------|----------------|-----|\n`;
-        
+
         manifest.forEach(result => {
           const url = result.url.replace('http://localhost:3000', '');
           const perf = Math.round(result.summary.performance * 100);
           const a11y = Math.round(result.summary.accessibility * 100);
           const bp = Math.round(result.summary['best-practices'] * 100);
           const seo = Math.round(result.summary.seo * 100);
-          
+
           const perfStatus = perf >= 95 ? '✅' : perf >= 90 ? '⚠️' : '❌';
           const a11yStatus = a11y >= 95 ? '✅' : a11y >= 90 ? '⚠️' : '❌';
           const bpStatus = bp >= 95 ? '✅' : bp >= 90 ? '⚠️' : '❌';
           const seoStatus = seo >= 90 ? '✅' : seo >= 85 ? '⚠️' : '❌';
-          
+
           report += `| ${url || '/'} | ${perfStatus} ${perf} | ${a11yStatus} ${a11y} | ${bpStatus} ${bp} | ${seoStatus} ${seo} |\n`;
         });
-        
+
         report += `\n`;
       } catch (e) {
         log('⚠ Could not parse Lighthouse results', 'yellow');
+        log(e.message, 'yellow');
       }
     }
   } else {
@@ -190,6 +192,7 @@ try {
   }
 } catch (error) {
   log('⚠ Lighthouse audit encountered issues', 'yellow');
+  log(error.message, 'yellow');
   report += `⚠️ Lighthouse audit encountered issues\n\n`;
 }
 

@@ -12,6 +12,7 @@
  */
 
 import { useQuery, useQueryClient, type UseQueryOptions } from '@tanstack/react-query';
+
 import { logger } from './logger';
 
 /**
@@ -23,27 +24,27 @@ export interface SWROptions<TData> extends Omit<UseQueryOptions<TData>, 'queryKe
    * During this time, cached data is returned without revalidation
    */
   staleTime?: number;
-  
+
   /**
    * Time in milliseconds before unused data is garbage collected
    */
   gcTime?: number;
-  
+
   /**
    * Whether to refetch when component mounts
    */
   refetchOnMount?: boolean;
-  
+
   /**
    * Whether to refetch when window regains focus
    */
   refetchOnWindowFocus?: boolean;
-  
+
   /**
    * Whether to refetch when network reconnects
    */
   refetchOnReconnect?: boolean;
-  
+
   /**
    * Whether to show cached data while revalidating
    * This is the core of the SWR pattern
@@ -81,10 +82,10 @@ const DEFAULT_SWR_CONFIG: SWROptions<any> = {
 export function useSWR<TData>(
   queryKey: readonly unknown[],
   queryFn: () => Promise<TData>,
-  options: SWROptions<TData> = {}
+  options: SWROptions<TData> = {},
 ) {
   const mergedOptions = { ...DEFAULT_SWR_CONFIG, ...options };
-  
+
   const result = useQuery({
     queryKey,
     queryFn: async () => {
@@ -95,10 +96,10 @@ export function useSWR<TData>(
     },
     ...mergedOptions,
   });
-  
+
   // Determine if data is stale (being revalidated)
   const isStale = result.isFetching && !result.isLoading;
-  
+
   return {
     ...result,
     isStale, // True when showing cached data while fetching fresh data
@@ -110,7 +111,7 @@ export function useSWR<TData>(
  */
 export function useRevalidate() {
   const queryClient = useQueryClient();
-  
+
   return {
     /**
      * Revalidate a specific query
@@ -119,7 +120,7 @@ export function useRevalidate() {
       logger.info('Manual revalidation triggered', { queryKey });
       return queryClient.invalidateQueries({ queryKey });
     },
-    
+
     /**
      * Revalidate all queries
      */
@@ -127,7 +128,7 @@ export function useRevalidate() {
       logger.info('Manual revalidation triggered for all queries');
       return queryClient.invalidateQueries();
     },
-    
+
     /**
      * Refetch a specific query immediately
      */
@@ -143,15 +144,15 @@ export function useRevalidate() {
  */
 export function useIsRevalidating(queryKey?: readonly unknown[]) {
   const queryClient = useQueryClient();
-  
+
   if (queryKey) {
     const query = queryClient.getQueryState(queryKey);
-    return query?.isFetching && !query?.isLoading;
+    return query?.fetchStatus === 'fetching' && query?.status !== 'pending';
   }
-  
+
   // Check if any query is revalidating
   const queries = queryClient.getQueryCache().getAll();
-  return queries.some(query => query.state.isFetching && !query.state.isLoading);
+  return queries.some(query => query.state.fetchStatus === 'fetching' && query.state.status !== 'pending');
 }
 
 /**
@@ -162,18 +163,18 @@ export async function prefetchSWR<TData>(
   queryClient: any,
   queryKey: readonly unknown[],
   queryFn: () => Promise<TData>,
-  options: SWROptions<TData> = {}
+  options: SWROptions<TData> = {},
 ) {
   const mergedOptions = { ...DEFAULT_SWR_CONFIG, ...options };
-  
+
   logger.debug('SWR: Prefetching data', { queryKey });
-  
+
   await queryClient.prefetchQuery({
     queryKey,
     queryFn,
     ...mergedOptions,
   });
-  
+
   logger.debug('SWR: Prefetch complete', { queryKey });
 }
 
@@ -185,13 +186,13 @@ export function useJobsWithSWR(filters: Record<string, any> = {}) {
     ['jobs', 'list', filters],
     async () => {
       // Simulate API call
-      const response = await fetch('/api/jobs?' + new URLSearchParams(filters));
+      const response = await fetch(`/api/jobs?${new URLSearchParams(filters)}`);
       return response.json();
     },
     {
       staleTime: 5 * 60 * 1000, // 5 minutes
       gcTime: 10 * 60 * 1000, // 10 minutes
-    }
+    },
   );
 }
 
@@ -203,13 +204,13 @@ export function useApplicationsWithSWR(filters: Record<string, any> = {}) {
     ['applications', 'list', filters],
     async () => {
       // Simulate API call
-      const response = await fetch('/api/applications?' + new URLSearchParams(filters));
+      const response = await fetch(`/api/applications?${new URLSearchParams(filters)}`);
       return response.json();
     },
     {
       staleTime: 1 * 60 * 1000, // 1 minute
       gcTime: 5 * 60 * 1000, // 5 minutes
-    }
+    },
   );
 }
 
@@ -228,7 +229,7 @@ export function useUserProfileWithSWR() {
       staleTime: 30 * 60 * 1000, // 30 minutes
       gcTime: 60 * 60 * 1000, // 1 hour
       refetchOnWindowFocus: true, // Refetch when user returns to tab
-    }
+    },
   );
 }
 
@@ -248,7 +249,7 @@ export function useAnalyticsWithSWR() {
       gcTime: 30 * 60 * 1000, // 30 minutes
       refetchOnMount: false, // Don't auto-refetch on mount
       refetchOnWindowFocus: false, // Don't auto-refetch on focus
-    }
+    },
   );
 }
 
@@ -268,6 +269,6 @@ export function useNotificationsWithSWR() {
       gcTime: 5 * 60 * 1000, // 5 minutes
       refetchOnWindowFocus: true, // Refetch when user returns to tab
       refetchOnReconnect: true, // Refetch when network reconnects
-    }
+    },
   );
 }

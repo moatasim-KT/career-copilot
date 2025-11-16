@@ -11,9 +11,10 @@ from apscheduler.executors.pool import ProcessPoolExecutor, ThreadPoolExecutor
 from apscheduler.jobstores.sqlalchemy import SQLAlchemyJobStore
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.triggers.cron import CronTrigger
-from celery import Celery
 from celery.schedules import crontab
 from pytz import utc
+
+from celery import Celery
 
 from ..core.config import get_settings
 from ..core.database import SessionLocal
@@ -22,14 +23,17 @@ from ..models.application import Application
 from ..models.user import User
 from ..services.analytics_service import AnalyticsService
 from ..services.job_recommendation_service import get_job_recommendation_service
-from ..services.job_scraping_service import JobScrapingService
+from ..services.job_service import JobManagementSystem
 from ..services.notification_service import NotificationService
 from ..services.recommendation_engine import RecommendationEngine
 from ..services.websocket_service import websocket_service
 
 logger = get_logger(__name__)
+
+
 def get_current_settings():
 	return get_settings()
+
 
 # ============================================================================
 # CELERY CONFIGURATION AND SETUP
@@ -154,7 +158,7 @@ async def scrape_jobs():
 	logger.info("=" * 80)
 
 	db = SessionLocal()
-	scraping_service: JobScrapingService | None = None
+	scraping_service: JobManagementSystem | None = None
 	_settings = get_current_settings()
 	try:
 		# Check if job scraping is enabled
@@ -162,7 +166,7 @@ async def scrape_jobs():
 			logger.info("Job scraping is disabled. Skipping job ingestion.")
 			return
 
-		scraping_service = JobScrapingService(db)
+		scraping_service = JobManagementSystem(db)
 
 		# Query all users with skills and preferred_locations
 		users = db.query(User).filter(User.skills.isnot(None), User.preferred_locations.isnot(None)).all()

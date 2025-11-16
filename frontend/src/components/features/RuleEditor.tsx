@@ -6,33 +6,33 @@
 
 'use client';
 
-import { motion } from 'framer-motion';
 import { Trash2, AlertCircle } from 'lucide-react';
 import { useState, useEffect, useMemo } from 'react';
 
 import Button2 from '@/components/ui/Button2';
-import Card, { CardContent } from '@/components/ui/Card';
+import Card2, { CardContent } from '@/components/ui/Card2';
 import Input from '@/components/ui/Input';
 import Select from '@/components/ui/Select';
 import { fadeVariants } from '@/lib/animations';
+import { m } from '@/lib/motion';
 import type { SearchRule, SearchField, SearchOperator, FieldType } from '@/types/search';
 
 export interface RuleEditorProps {
   /** The rule being edited */
   rule: SearchRule;
-  
+
   /** Available fields */
   fields: SearchField[];
-  
+
   /** Callback when rule changes */
   onChange: (rule: SearchRule) => void;
-  
+
   /** Callback when rule should be deleted */
   onDelete: () => void;
-  
+
   /** Whether the editor is disabled */
   disabled?: boolean;
-  
+
   /** Custom class name */
   className?: string;
 }
@@ -238,13 +238,13 @@ export function RuleEditor({
   const needsTwoValues = operatorNeedsTwoValues(rule.operator);
 
   return (
-    <motion.div
+    <m.div
       className={className}
       variants={fadeVariants}
       initial="hidden"
       animate="visible"
     >
-      <Card className="bg-white dark:bg-neutral-800 border-neutral-200 dark:border-neutral-700">
+      <Card2 className="bg-white dark:bg-neutral-800 border-neutral-200 dark:border-neutral-700">
         <CardContent className="p-3">
           <div className="flex items-start space-x-2">
             {/* Field Selector */}
@@ -321,7 +321,7 @@ export function RuleEditor({
 
           {/* Validation Error */}
           {validationError && (
-            <motion.div
+            <m.div
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: 'auto' }}
               exit={{ opacity: 0, height: 0 }}
@@ -329,22 +329,22 @@ export function RuleEditor({
             >
               <AlertCircle className="h-3 w-3 flex-shrink-0" />
               <span>{validationError}</span>
-            </motion.div>
+            </m.div>
           )}
 
           {/* Help Text */}
           {currentField?.helpText && !validationError && (
-            <motion.div
+            <m.div
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: 'auto' }}
               className="mt-2 text-xs text-neutral-500 dark:text-neutral-400"
             >
               {currentField.helpText}
-            </motion.div>
+            </m.div>
           )}
         </CardContent>
-      </Card>
-    </motion.div>
+      </Card2>
+    </m.div>
   );
 }
 

@@ -223,11 +223,11 @@ describe('useMediaQuery', () => {
             addListener: jest.fn(),
             removeListener: jest.fn(),
             addEventListener: jest.fn((event, handler) => {
-                if (event === 'change') listeners.push(handler);
+                if (event === 'change') listeners.push(handler as (e: MediaQueryListEvent) => void);
             }),
             removeEventListener: jest.fn(),
             dispatchEvent: jest.fn(),
-        });
+        } as any);
 
         const { result } = renderHook(() => useMediaQuery('(min-width: 768px)'));
 

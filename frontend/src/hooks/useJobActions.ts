@@ -7,8 +7,8 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 import { apiClient, type Job } from '@/lib/api/api';
-import { queryKeys } from '@/lib/queryClient';
 import { logger } from '@/lib/logger';
+import { queryKeys } from '@/lib/queryClient';
 
 /**
  * Hook to save/bookmark a job
@@ -24,7 +24,7 @@ export function useSaveJob() {
       // For now, we'll update the job with a saved flag
       const response = await apiClient.updateJob(jobId, { 
         // @ts-ignore - saved field may not exist on Job type yet
-        saved: true 
+        saved: true, 
       });
       if (response.error) {
         throw new Error(response.error);
@@ -42,7 +42,7 @@ export function useSaveJob() {
       queryClient.setQueriesData({ queryKey: queryKeys.jobs.all }, (old: any) => {
         if (!Array.isArray(old)) return old;
         return old.map((job: Job) =>
-          job.id === jobId ? { ...job, saved: true } : job
+          job.id === jobId ? { ...job, saved: true } : job,
         );
       });
       
@@ -97,7 +97,7 @@ export function useUnsaveJob() {
       // For now, we'll update the job with a saved flag
       const response = await apiClient.updateJob(jobId, { 
         // @ts-ignore - saved field may not exist on Job type yet
-        saved: false 
+        saved: false, 
       });
       if (response.error) {
         throw new Error(response.error);
@@ -115,7 +115,7 @@ export function useUnsaveJob() {
       queryClient.setQueriesData({ queryKey: queryKeys.jobs.all }, (old: any) => {
         if (!Array.isArray(old)) return old;
         return old.map((job: Job) =>
-          job.id === jobId ? { ...job, saved: false } : job
+          job.id === jobId ? { ...job, saved: false } : job,
         );
       });
       

@@ -8,7 +8,7 @@ import { z } from 'zod';
 import { logger } from '../logger';
 
 import { RecoveryManager, CacheFallbackRecovery, TokenRefreshRecovery, createDefaultRecoveryManager, type RecoveryContext, type TokenRefreshConfig } from './recovery';
-import {   UserProfileSchema,  ApiResponseSchema } from './schemas';
+import { UserProfileSchema } from './schemas';
 
 // ============================================================================
 // Error Classes
@@ -585,7 +585,7 @@ export class APIClient {
         }
 
         // Attempt recovery for errors
-        const recoveryContext: RecoveryContext<T> = {
+        const recoveryContext: RecoveryContext = {
           url,
           options,
           requestId,
@@ -733,7 +733,7 @@ export class APIClient {
     // and filtering client-side, or use the status filter if query matches a status
     const params = new URLSearchParams();
     params.append('limit', limit.toString());
-    
+
     // Check if query matches a status
     const statuses = ['interested', 'applied', 'interview', 'offer', 'rejected', 'accepted', 'declined'];
     const matchedStatus = statuses.find(s => s.toLowerCase().includes(query.toLowerCase()));
@@ -774,6 +774,18 @@ export class APIClient {
         headers: this.getHeaders(),
         body: JSON.stringify(applicationData),
       },
+    );
+  }
+
+  async deleteApplication(applicationId: number): Promise<ApiResponse<void>> {
+    return this.makeRequest(
+      `deleteApplication-${applicationId}`,
+      `${this.baseUrl}/api/v1/applications/${applicationId}`,
+      {
+        method: 'DELETE',
+        headers: this.getHeaders(),
+      },
+      false, // Don't retry deletes
     );
   }
 
@@ -1178,6 +1190,77 @@ export class APIClient {
         headers: this.getHeaders(),
       },
       false, // Don't retry unsubscriptions
+    );
+  }
+
+  // Generic HTTP methods for custom endpoints
+  async get<T = any>(endpoint: string, config?: RequestInit): Promise<ApiResponse<T>> {
+    const url = endpoint.startsWith('http') ? endpoint : `${this.baseUrl}${endpoint}`;
+    return this.makeRequest(
+      `get-${endpoint}`,
+      url,
+      {
+        method: 'GET',
+        headers: this.getHeaders(),
+        ...config,
+      },
+    );
+  }
+
+  async post<T = any>(endpoint: string, data?: any, config?: RequestInit): Promise<ApiResponse<T>> {
+    const url = endpoint.startsWith('http') ? endpoint : `${this.baseUrl}${endpoint}`;
+    return this.makeRequest(
+      `post-${endpoint}`,
+      url,
+      {
+        method: 'POST',
+        headers: this.getHeaders(),
+        body: data ? JSON.stringify(data) : undefined,
+        ...config,
+      },
+      false, // Don't auto-retry POST requests
+    );
+  }
+
+  async put<T = any>(endpoint: string, data?: any, config?: RequestInit): Promise<ApiResponse<T>> {
+    const url = endpoint.startsWith('http') ? endpoint : `${this.baseUrl}${endpoint}`;
+    return this.makeRequest(
+      `put-${endpoint}`,
+      url,
+      {
+        method: 'PUT',
+        headers: this.getHeaders(),
+        body: data ? JSON.stringify(data) : undefined,
+        ...config,
+      },
+    );
+  }
+
+  async delete<T = any>(endpoint: string, config?: RequestInit): Promise<ApiResponse<T>> {
+    const url = endpoint.startsWith('http') ? endpoint : `${this.baseUrl}${endpoint}`;
+    return this.makeRequest(
+      `delete-${endpoint}`,
+      url,
+      {
+        method: 'DELETE',
+        headers: this.getHeaders(),
+        ...config,
+      },
+      false, // Don't auto-retry DELETE requests
+    );
+  }
+
+  async patch<T = any>(endpoint: string, data?: any, config?: RequestInit): Promise<ApiResponse<T>> {
+    const url = endpoint.startsWith('http') ? endpoint : `${this.baseUrl}${endpoint}`;
+    return this.makeRequest(
+      `patch-${endpoint}`,
+      url,
+      {
+        method: 'PATCH',
+        headers: this.getHeaders(),
+        body: data ? JSON.stringify(data) : undefined,
+        ...config,
+      },
     );
   }
 }

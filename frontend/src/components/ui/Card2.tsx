@@ -1,10 +1,10 @@
 
 'use client';
 
-import { motion } from 'framer-motion';
 import { ReactNode, forwardRef, HTMLAttributes } from 'react';
 
 import { fadeInUp, staggerItem } from '@/lib/animations';
+import { m } from '@/lib/motion';
 import { cn } from '@/lib/utils';
 
 export interface CardProps extends HTMLAttributes<HTMLDivElement> {
@@ -105,7 +105,7 @@ export const Card = forwardRef<HTMLDivElement, CardProps>(
           />
         )}
 
-        <motion.div
+        <m.div
           ref={ref}
           className={cn(
             'bg-white dark:bg-neutral-800 rounded-xl border border-neutral-200 dark:border-neutral-700',
@@ -138,13 +138,15 @@ export const Card = forwardRef<HTMLDivElement, CardProps>(
           )}
 
           <div className="relative">{children}</div>
-        </motion.div>
+        </m.div>
       </div>
     );
   },
 );
 
 Card.displayName = 'Card';
+
+export { Card as Card2 };
 
 export const CardHeader = ({ children, className }: { children: ReactNode; className?: string }) => (
   <div className={cn('mb-4 space-y-1.5', className)}>{children}</div>

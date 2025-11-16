@@ -2,14 +2,15 @@
 Database optimization service for performance improvements
 """
 
-from sqlalchemy import text
-from sqlalchemy.orm import Session
-from typing import Dict, Any, List
 import time
 from datetime import datetime, timedelta, timezone
+from typing import Any, Dict, List
 
-from app.core.database import engine
+from sqlalchemy import text
+from sqlalchemy.orm import Session
+
 from app.core.config import get_settings
+from app.core.database import engine
 from app.core.logging import get_logger
 from app.models import *  # Import all models
 
@@ -163,7 +164,6 @@ class DatabaseOptimizationService:
 					{"table_name": table_name},
 				)
 
-
 			return bool(result.fetchone())
 		except Exception as e:
 			logger.error(f"Error checking if table {table_name} exists: {e}")
@@ -182,7 +182,6 @@ class DatabaseOptimizationService:
                 """),
 					{"index_name": index_name},
 				)
-
 
 			return bool(result.fetchone())
 		except Exception as e:
@@ -474,7 +473,7 @@ class DatabaseOptimizationService:
 
 			for table in tables:
 				try:
-					result = db.execute(text(f"SELECT COUNT(*) FROM {table}"))
+					result = db.execute(text(f"SELECT COUNT(*) FROM {table}"))  # nosec B608 - table names are hardcoded
 					count = result.scalar()
 					stats[f"{table}_count"] = count
 				except Exception as e:

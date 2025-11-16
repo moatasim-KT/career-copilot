@@ -5,8 +5,9 @@
 
 'use client';
 
-import { motion, AnimatePresence } from 'framer-motion';
 import React, { useState, useRef, KeyboardEvent, ChangeEvent } from 'react';
+
+import { m, AnimatePresence } from '@/lib/motion';
 
 // ============================================================================
 // Types
@@ -163,7 +164,7 @@ export function TagInput({
                 {/* Tags */}
                 <AnimatePresence>
                     {tags.map((tag) => (
-                        <motion.div
+                        <m.div
                             key={tag.id}
                             initial={{ opacity: 0, scale: 0.8 }}
                             animate={{ opacity: 1, scale: 1 }}
@@ -184,7 +185,7 @@ export function TagInput({
                                     </svg>
                                 </button>
                             )}
-                        </motion.div>
+                        </m.div>
                     ))}
                 </AnimatePresence>
 

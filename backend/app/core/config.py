@@ -26,6 +26,13 @@ class Settings:
 	def __init__(self) -> None:
 		self._u: UnifiedSettings = get_config()
 
+	@staticmethod
+	def _env_bool(name: str, default: bool = True) -> bool:
+		value = os.getenv(name)
+		if value is None:
+			return default
+		return value.lower() in {"1", "true", "yes", "on"}
+
 	# -------- Core/backward-compatible properties --------
 	@property
 	def database_url(self) -> str:
@@ -145,11 +152,55 @@ class Settings:
 
 	@property
 	def SCRAPING_ENABLE_INDEED(self) -> bool:
-		return os.getenv("SCRAPING_ENABLE_INDEED", "false").lower() in {"1", "true", "yes"}
+		return self._env_bool("SCRAPING_ENABLE_INDEED", default=False)
 
 	@property
 	def SCRAPING_ENABLE_LINKEDIN(self) -> bool:
-		return os.getenv("SCRAPING_ENABLE_LINKEDIN", "false").lower() in {"1", "true", "yes"}
+		return self._env_bool("SCRAPING_ENABLE_LINKEDIN", default=False)
+
+	@property
+	def SCRAPING_ENABLE_ARBEITNOW(self) -> bool:
+		return self._env_bool("SCRAPING_ENABLE_ARBEITNOW", default=True)
+
+	@property
+	def SCRAPING_ENABLE_BERLINSTARTUPJOBS(self) -> bool:
+		return self._env_bool("SCRAPING_ENABLE_BERLINSTARTUPJOBS", default=True)
+
+	@property
+	def SCRAPING_ENABLE_RELOCATEME(self) -> bool:
+		return self._env_bool("SCRAPING_ENABLE_RELOCATEME", default=True)
+
+	@property
+	def SCRAPING_ENABLE_EURES(self) -> bool:
+		return self._env_bool("SCRAPING_ENABLE_EURES", default=True)
+
+	@property
+	def SCRAPING_ENABLE_LANDINGJOBS(self) -> bool:
+		return self._env_bool("SCRAPING_ENABLE_LANDINGJOBS", default=True)
+
+	@property
+	def SCRAPING_ENABLE_EUTECHJOBS(self) -> bool:
+		return self._env_bool("SCRAPING_ENABLE_EUTECHJOBS", default=True)
+
+	@property
+	def SCRAPING_ENABLE_EUROTECHJOBS(self) -> bool:
+		return self._env_bool("SCRAPING_ENABLE_EUROTECHJOBS", default=True)
+
+	@property
+	def SCRAPING_ENABLE_AIJOBSNET(self) -> bool:
+		return self._env_bool("SCRAPING_ENABLE_AIJOBSNET", default=True)
+
+	@property
+	def SCRAPING_ENABLE_DATACAREER(self) -> bool:
+		return self._env_bool("SCRAPING_ENABLE_DATACAREER", default=True)
+
+	@property
+	def SCRAPING_ENABLE_FIRECRAWL(self) -> bool:
+		return self._env_bool("SCRAPING_ENABLE_FIRECRAWL", default=False)
+
+	@property
+	def SCRAPING_ENABLE_EU_PLAYWRIGHT(self) -> bool:
+		return self._env_bool("SCRAPING_ENABLE_EU_PLAYWRIGHT", default=False)
 
 	@property
 	def SCRAPING_RATE_LIMIT_MIN(self) -> float:
@@ -158,6 +209,11 @@ class Settings:
 	@property
 	def SCRAPING_RATE_LIMIT_MAX(self) -> float:
 		return float(os.getenv("SCRAPING_RATE_LIMIT_MAX", "3.0"))
+
+	@property
+	def UPLOAD_DIR(self) -> str:
+		"""Get upload directory path."""
+		return self._u.upload_dir
 
 	# -------- Generic delegation --------
 	def __getattr__(self, name: str) -> Any:

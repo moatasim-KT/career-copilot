@@ -6,6 +6,7 @@ from datetime import datetime, timedelta, timezone
 from unittest.mock import MagicMock
 
 import pytest
+
 from app.models.job import Job
 from app.services.job_deduplication_service import JobDeduplicationService
 
@@ -206,7 +207,7 @@ class TestDuplicateDetection:
 		assert is_dup is False
 
 	def test_strict_mode_no_fuzzy_match(self, dedup_service):
-		is_dup, reason = dedup_service.are_jobs_duplicate(
+		is_dup, _reason = dedup_service.are_jobs_duplicate(
 			"Senior Software Engineer", "Google Inc", "SF", None, "Software Engineer", "Google", "San Francisco", None, strict_mode=True
 		)
 		assert is_dup is False
@@ -234,7 +235,7 @@ class TestFilterDuplicateJobs:
 			{"title": "Senior Software Engineer", "company": "Google Inc", "location": "San Francisco", "url": "https://example.com/job/1"},
 		]
 
-		unique_jobs, stats = dedup_service.filter_duplicate_jobs(jobs, None, strict_mode=False)
+		_unique_jobs, stats = dedup_service.filter_duplicate_jobs(jobs, None, strict_mode=False)
 
 		assert stats["unique_output"] == 1
 		assert stats["duplicates_by_url"] == 1
@@ -246,12 +247,12 @@ class TestFilterDuplicateJobs:
 			{"title": "Data Scientist", "company": "Microsoft", "location": "Seattle"},  # Valid
 		]
 
-		unique_jobs, stats = dedup_service.filter_duplicate_jobs(jobs, None, strict_mode=False)
+		_unique_jobs, stats = dedup_service.filter_duplicate_jobs(jobs, None, strict_mode=False)
 
 		assert stats["unique_output"] == 1
 
 	def test_empty_input(self, dedup_service):
-		unique_jobs, stats = dedup_service.filter_duplicate_jobs([], None, strict_mode=False)
+		_unique_jobs, stats = dedup_service.filter_duplicate_jobs([], None, strict_mode=False)
 
 		assert stats["total_input"] == 0
 		assert stats["unique_output"] == 0

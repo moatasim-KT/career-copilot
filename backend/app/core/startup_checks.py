@@ -193,13 +193,13 @@ class StartupValidator:
 
 				for table in tables:
 					try:
-						result = await session.execute(text(f"SELECT COUNT(*) FROM {table}"))
+						result = await session.execute(text(f"SELECT COUNT(*) FROM {table}"))  # nosec B608 - Table name from hardcoded whitelist
 						count = result.scalar()
 						table_status[table] = {"exists": True, "count": count}
 					except Exception as e:
 						table_status[table] = {"exists": False, "error": str(e)}
 
-				details["tables"] = table_status
+			details["tables"] = table_status
 
 			# Check if all required tables exist
 			all_tables_exist = all(status["exists"] for status in table_status.values())
@@ -447,7 +447,7 @@ async def ensure_database_initialized() -> bool:
 
 			for table in critical_tables:
 				try:
-					result = await session.execute(text(f"SELECT COUNT(*) FROM {table} LIMIT 1"))
+					result = await session.execute(text(f"SELECT COUNT(*) FROM {table} LIMIT 1"))  # nosec B608 - Table names are hardcoded
 					count = result.scalar()
 					existing_tables.append(table)
 					logger.info(f"✅ Table '{table}' exists with {count} records")

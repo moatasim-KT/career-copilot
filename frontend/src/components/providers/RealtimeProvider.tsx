@@ -3,13 +3,13 @@
 import { useEffect } from 'react';
 import { Toaster } from 'sonner';
 
-import { initializeWebSocket, destroyWebSocket } from '@/lib/websocket';
-import { logger } from '@/lib/logger';
-import { useRealtimeJobs } from '@/hooks/useRealtimeJobs';
-import { useRealtimeApplications } from '@/hooks/useRealtimeApplications';
-import { useRealtimeNotifications } from '@/hooks/useRealtimeNotifications';
-import { useNetworkStatus } from '@/hooks/useNetworkStatus';
 import { useDataResync } from '@/hooks/useDataResync';
+import { useNetworkStatus } from '@/hooks/useNetworkStatus';
+import { useRealtimeApplications } from '@/hooks/useRealtimeApplications';
+import { useRealtimeJobs } from '@/hooks/useRealtimeJobs';
+import { useRealtimeNotifications } from '@/hooks/useRealtimeNotifications';
+import { logger } from '@/lib/logger';
+import { initializeWebSocket, destroyWebSocket } from '@/lib/websocket';
 
 /**
  * RealtimeProvider Component
@@ -29,9 +29,9 @@ interface RealtimeProviderProps {
   enableWebSocket?: boolean;
 }
 
-export function RealtimeProvider({ 
-  children, 
-  enableWebSocket = true 
+export function RealtimeProvider({
+  children,
+  enableWebSocket = true,
 }: RealtimeProviderProps) {
   // Initialize real-time hooks
   useRealtimeJobs();
@@ -49,7 +49,7 @@ export function RealtimeProvider({
     logger.info('[RealtimeProvider] Initializing WebSocket connection');
 
     // Initialize WebSocket connection
-    const wsClient = initializeWebSocket();
+    initializeWebSocket();
 
     // Cleanup on unmount
     return () => {

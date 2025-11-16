@@ -12,6 +12,7 @@ from ..models.content_generation import ContentGeneration
 from ..models.content_version import ContentVersion
 from ..models.job import Job
 from ..models.user import User
+from ..prompts import PromptRegistry
 from ..services.llm_service import get_llm_service
 from .cache_service import cache_service
 
@@ -23,6 +24,7 @@ class ContentGeneratorService:
 
 	def __init__(self):
 		self.llm_manager = get_llm_service()
+		self.prompt_registry = PromptRegistry()
 
 		# Enhanced content templates with more options
 		self.cover_letter_templates = {
@@ -401,7 +403,38 @@ class ContentGeneratorService:
 		job_tech_stack: str,
 		custom_instructions: Optional[str] = None,
 	) -> str:
-		"""Create a prompt for cover letter generation"""
+		"""Create a prompt for cover letter generation using prompt registry"""
+
+		# Use the prompt registry instead of hardcoded prompt
+		template = self.prompt_registry.get_template("cover_letter_generator")
+		if template:
+			prompt = template.render(
+				job_title=job.title,
+				company=job.company,
+				location=job.location or "Not specified",
+				tech_stack=job_tech_stack,
+				job_description=job.description or "Not provided",
+				user_name=user.username,
+				user_skills=user_skills,
+				experience_level=user.experience_level or "Not specified",
+				tone=tone,
+				custom_instructions=custom_instructions or "",
+			)
+		else:
+			prompt = None
+
+		return prompt if prompt else self._create_cover_letter_prompt_fallback(user, job, tone, user_skills, job_tech_stack, custom_instructions)
+
+	def _create_cover_letter_prompt_fallback(
+		self,
+		user: User,
+		job: Job,
+		tone: str,
+		user_skills: str,
+		job_tech_stack: str,
+		custom_instructions: Optional[str] = None,
+	) -> str:
+		"""Fallback method for cover letter prompt generation"""
 
 		tone_instructions = {
 			"professional": "Write in a professional, formal tone. Be respectful and business-like.",
@@ -440,7 +473,27 @@ class ContentGeneratorService:
 		return prompt
 
 	def _create_resume_tailoring_prompt(self, user: User, job: Job, resume_sections: Dict[str, str]) -> str:
-		"""Create a prompt for resume tailoring suggestions"""
+		"""Create a prompt for resume tailoring suggestions using prompt registry"""
+
+		job_tech_stack = ", ".join(job.tech_stack) if job.tech_stack else "Not specified"
+
+		# Use the prompt registry
+		template = self.prompt_registry.get_template("resume_tailoring")
+		if template:
+			prompt = template.render(
+				job_title=job.title,
+				company=job.company,
+				tech_stack=job_tech_stack,
+				job_description=job.description or "Not provided",
+				resume_sections=resume_sections,
+			)
+		else:
+			prompt = None
+
+		return prompt if prompt else self._create_resume_tailoring_prompt_fallback(user, job, resume_sections)
+
+	def _create_resume_tailoring_prompt_fallback(self, user: User, job: Job, resume_sections: Dict[str, str]) -> str:
+		"""Fallback method for resume tailoring prompt generation"""
 
 		sections_text = "\n".join([f"{section}: {content}" for section, content in resume_sections.items()])
 		job_tech_stack = ", ".join(job.tech_stack) if job.tech_stack else "Not specified"
@@ -475,7 +528,31 @@ class ContentGeneratorService:
 		template_type: str,
 		custom_instructions: Optional[str] = None,
 	) -> str:
-		"""Create a prompt for email template generation"""
+		"""Create a prompt for email template generation using prompt registry"""
+
+		# Use the prompt registry
+		template = self.prompt_registry.get_template("email_template_generator")
+		if template:
+			prompt = template.render(
+				email_type=template_type,
+				job_title=job.title,
+				company=job.company,
+				user_name=user.username,
+				custom_instructions=custom_instructions or "",
+			)
+		else:
+			prompt = None
+
+		return prompt if prompt else self._create_email_template_prompt_fallback(user, job, template_type, custom_instructions)
+
+	def _create_email_template_prompt_fallback(
+		self,
+		user: User,
+		job: Job,
+		template_type: str,
+		custom_instructions: Optional[str] = None,
+	) -> str:
+		"""Fallback method for email template prompt generation"""
 
 		template_instructions = {
 			"follow_up": "Write a polite follow-up email to check on application status",
@@ -498,7 +575,8 @@ class ContentGeneratorService:
         Instructions:
         - Keep it concise and professional
         - Include appropriate subject line
-        - Be respectful of the recipient's time
+        - Be courteous and respectful
+        - Maintain professional tone throughout
         - Include a clear call to action if appropriate
 
         {f"Additional Instructions: {custom_instructions}" if custom_instructions else ""}
@@ -588,17 +666,16 @@ class ContentGeneratorService:
 		    Improved content string
 		"""
 		try:
-			prompt = f"""
-            Please improve the following {content_type} based on the user's feedback:
+			# Use the prompt registry
+			template = self.prompt_registry.get_template("content_improvement")
+			if template:
+				prompt = template.render(content_type=content_type, original_content=original_content, feedback=feedback)
+			else:
+				prompt = None
 
-            Original Content:
-            {original_content}
-
-            User Feedback:
-            {feedback}
-
-            Please provide an improved version that addresses the feedback while maintaining the overall structure and professionalism.
-            """
+			# Fall back to hardcoded prompt if template not found
+			if not prompt:
+				prompt = self._improve_content_prompt_fallback(original_content, feedback, content_type)
 
 			improved_content = await self.llm_manager.generate_response(prompt)
 
@@ -611,6 +688,20 @@ class ContentGeneratorService:
 		except Exception as e:
 			logger.error(f"Error improving content: {e!s}")
 			return original_content
+
+	def _improve_content_prompt_fallback(self, original_content: str, feedback: str, content_type: str) -> str:
+		"""Fallback method for content improvement prompt generation"""
+		return f"""
+            Please improve the following {content_type} based on the user's feedback:
+
+            Original Content:
+            {original_content}
+
+            User Feedback:
+            {feedback}
+
+            Please provide an improved version that addresses the feedback while maintaining the overall structure and professionalism.
+            """
 
 	def create_content_version(
 		self,

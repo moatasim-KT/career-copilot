@@ -103,7 +103,10 @@ async def trigger_ingestion_for_all_users(
 	db: AsyncSession = Depends(get_db),
 ) -> Dict[str, Any]:
 	"""Queue ingestion for multiple users (admin helper)."""
-	# TODO: enforce admin permission check once RBAC is in place.
+	# Check admin permission (basic RBAC - assumes is_admin field exists on User model)
+	if not getattr(current_user, "is_admin", False):
+		raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Admin privileges required for bulk job ingestion")
+
 	try:
 		logger.info("Queuing ingestion for %s users", "selected" if user_ids else "all active")
 		background_tasks.add_task(

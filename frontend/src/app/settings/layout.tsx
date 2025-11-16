@@ -21,10 +21,10 @@ import {
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
 
-import { cn } from '@/lib/utils';
 import Card2 from '@/components/ui/Card2';
+import { m, AnimatePresence } from '@/lib/motion';
+import { cn } from '@/lib/utils';
 
 interface SettingsNavItem {
   href: string;
@@ -97,14 +97,14 @@ function SettingsNavLink({ item, isActive, onClick, className }: SettingsNavLink
         isActive
           ? 'bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300'
           : 'text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800',
-        className
+        className,
       )}
     >
       <Icon className={cn(
         'w-5 h-5 mt-0.5 flex-shrink-0',
         isActive
           ? 'text-primary-600 dark:text-primary-400'
-          : 'text-neutral-500 dark:text-neutral-400 group-hover:text-neutral-700 dark:group-hover:text-neutral-300'
+          : 'text-neutral-500 dark:text-neutral-400 group-hover:text-neutral-700 dark:group-hover:text-neutral-300',
       )} />
       <div className="flex-1 min-w-0">
         <div className="text-sm font-medium">{item.label}</div>
@@ -183,7 +183,7 @@ export default function SettingsLayout({
             {isMobileMenuOpen && (
               <>
                 {/* Backdrop */}
-                <motion.div
+                <m.div
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
@@ -194,7 +194,7 @@ export default function SettingsLayout({
                 />
 
                 {/* Drawer */}
-                <motion.div
+                <m.div
                   initial={{ x: '-100%' }}
                   animate={{ x: 0 }}
                   exit={{ x: '-100%' }}
@@ -227,7 +227,7 @@ export default function SettingsLayout({
                       ))}
                     </nav>
                   </div>
-                </motion.div>
+                </m.div>
               </>
             )}
           </AnimatePresence>

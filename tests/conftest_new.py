@@ -19,6 +19,8 @@ from unittest.mock import Mock
 
 import pytest
 
+from backend.app.utils.datetime import utc_now
+
 # ============================================================================
 # Pytest Configuration
 # ============================================================================
@@ -94,7 +96,7 @@ def test_user():
 			"locations": ["San Francisco", "Remote"],
 			"preferences": {"salary_min": 90000, "company_size": ["startup", "medium"]},
 		},
-		"created_at": datetime.utcnow(),
+		"created_at": utc_now(),
 	}
 
 
@@ -117,7 +119,7 @@ def test_users():
 				"locations": locations[i % 5],
 				"preferences": {"salary_min": 70000 + (i * 10000), "company_size": ["startup", "medium", "large"][: (i % 3) + 1]},
 			},
-			"created_at": datetime.utcnow() - timedelta(days=i),
+			"created_at": utc_now() - timedelta(days=i),
 		}
 		users.append(user)
 
@@ -139,7 +141,7 @@ def test_job():
 		"location": "San Francisco, CA",
 		"tech_stack": ["Python", "Django", "PostgreSQL"],
 		"status": "Not Applied",
-		"date_added": datetime.utcnow() - timedelta(days=1),
+		"date_added": utc_now() - timedelta(days=1),
 		"link": "https://techcorp.com/jobs/1",
 		"salary_min": 120000,
 		"salary_max": 160000,
@@ -159,7 +161,7 @@ def test_jobs():
 			"location": "San Francisco, CA",
 			"tech_stack": ["Python", "Django", "PostgreSQL"],
 			"status": "Not Applied",
-			"date_added": datetime.utcnow() - timedelta(days=1),
+			"date_added": utc_now() - timedelta(days=1),
 			"link": "https://techcorp.com/jobs/1",
 			"salary_min": 120000,
 			"salary_max": 160000,
@@ -171,8 +173,8 @@ def test_jobs():
 			"location": "Remote",
 			"tech_stack": ["React", "Node.js", "MongoDB"],
 			"status": "Applied",
-			"date_added": datetime.utcnow() - timedelta(days=2),
-			"date_applied": datetime.utcnow() - timedelta(hours=6),
+			"date_added": utc_now() - timedelta(days=2),
+			"date_applied": utc_now() - timedelta(hours=6),
 			"link": "https://startupxyz.com/careers/2",
 			"salary_min": 95000,
 			"salary_max": 130000,
@@ -184,9 +186,9 @@ def test_jobs():
 			"location": "Austin, TX",
 			"tech_stack": ["Kubernetes", "Docker", "AWS"],
 			"status": "Interview Scheduled",
-			"date_added": datetime.utcnow() - timedelta(days=3),
-			"date_applied": datetime.utcnow() - timedelta(days=1),
-			"interview_date": datetime.utcnow() + timedelta(days=2),
+			"date_added": utc_now() - timedelta(days=3),
+			"date_applied": utc_now() - timedelta(days=1),
+			"interview_date": utc_now() + timedelta(days=2),
 			"link": "https://cloudco.com/careers/devops",
 			"salary_min": 110000,
 			"salary_max": 150000,
@@ -198,7 +200,7 @@ def test_jobs():
 			"location": "New York, NY",
 			"tech_stack": ["React", "TypeScript", "CSS"],
 			"status": "Not Applied",
-			"date_added": datetime.utcnow() - timedelta(days=4),
+			"date_added": utc_now() - timedelta(days=4),
 			"link": "https://designstudio.com/jobs/frontend",
 			"salary_min": 90000,
 			"salary_max": 120000,
@@ -210,8 +212,8 @@ def test_jobs():
 			"location": "Remote",
 			"tech_stack": ["Python", "Spark", "Airflow"],
 			"status": "Rejected",
-			"date_added": datetime.utcnow() - timedelta(days=10),
-			"date_applied": datetime.utcnow() - timedelta(days=8),
+			"date_added": utc_now() - timedelta(days=10),
+			"date_applied": utc_now() - timedelta(days=8),
 			"link": "https://datacorp.com/careers/data-engineer",
 			"salary_min": 115000,
 			"salary_max": 145000,

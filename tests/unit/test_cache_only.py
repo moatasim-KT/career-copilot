@@ -5,6 +5,8 @@ from datetime import datetime
 
 import pytest
 
+from backend.app.utils.datetime import utc_now
+
 
 # Inline cache implementation for testing (moved outside for reusability)
 class SimpleCache:
@@ -81,7 +83,7 @@ class RecommendationCache:
 		"""Cache recommendations for a user"""
 		cache_key = self.cache._generate_key("recommendations", user_id=user_id, filters=filters or {})
 
-		cached_data = {**recommendations, "cached_at": datetime.utcnow().isoformat() + "Z", "cache_ttl": self.ttl}
+		cached_data = {**recommendations, "cached_at": utc_now().isoformat() + "Z", "cache_ttl": self.ttl}
 
 		self.cache.set(cache_key, cached_data, ttl=self.ttl)
 

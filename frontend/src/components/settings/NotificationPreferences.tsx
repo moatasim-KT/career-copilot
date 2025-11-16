@@ -16,25 +16,26 @@ import {
   Send,
 } from 'lucide-react';
 import { useState } from 'react';
-import { motion } from 'framer-motion';
 
-import type { NotificationCategory, NotificationPreference, NotificationSettings } from '@/types/notification';
+import Button2 from '@/components/ui/Button2';
+import Card2 from '@/components/ui/Card2';
+import { Checkbox } from '@/components/ui/Checkbox';
+import Input2 from '@/components/ui/Input2';
+import Select2 from '@/components/ui/Select2';
+import { logger } from '@/lib/logger';
+import { m } from '@/lib/motion';
 import {
   getCategoryIcon,
   getCategoryLabel,
   categoryLabels,
 } from '@/lib/notificationTemplates';
-import { cn } from '@/lib/utils';
-import Button2 from '@/components/ui/Button2';
-import Card2 from '@/components/ui/Card2';
-import { Checkbox } from '@/components/ui/Checkbox';
-import Select2 from '@/components/ui/Select2';
-import Input2 from '@/components/ui/Input2';
 import {
   isPushNotificationSupported,
   getNotificationPermission,
   showTestNotification,
 } from '@/lib/pushNotifications';
+import { cn } from '@/lib/utils';
+import type { NotificationCategory, NotificationPreference, NotificationSettings } from '@/types/notification';
 
 // Default preferences
 const defaultPreferences: NotificationPreference[] = (
@@ -99,7 +100,7 @@ function CategoryPreferenceRow({ preference, onChange }: CategoryPreferenceRowPr
 
       {/* Detailed Settings */}
       {preference.enabled && (
-        <motion.div
+        <m.div
           initial={{ opacity: 0, height: 0 }}
           animate={{ opacity: 1, height: 'auto' }}
           exit={{ opacity: 0, height: 0 }}
@@ -190,7 +191,7 @@ function CategoryPreferenceRow({ preference, onChange }: CategoryPreferenceRowPr
               }
             />
           </div>
-        </motion.div>
+        </m.div>
       )}
     </div>
   );
@@ -209,7 +210,7 @@ export default function NotificationPreferences() {
     setSettings(prev => ({
       ...prev,
       preferences: prev.preferences.map(p =>
-        p.category === updatedPreference.category ? updatedPreference : p
+        p.category === updatedPreference.category ? updatedPreference : p,
       ),
     }));
     setHasChanges(true);
@@ -221,11 +222,11 @@ export default function NotificationPreferences() {
       doNotDisturb: prev.doNotDisturb
         ? { ...prev.doNotDisturb, enabled }
         : {
-            enabled,
-            startTime: '22:00',
-            endTime: '08:00',
-            days: [0, 1, 2, 3, 4, 5, 6],
-          },
+          enabled,
+          startTime: '22:00',
+          endTime: '08:00',
+          days: [0, 1, 2, 3, 4, 5, 6],
+        },
     }));
     setHasChanges(true);
   };
@@ -236,11 +237,11 @@ export default function NotificationPreferences() {
       doNotDisturb: prev.doNotDisturb
         ? { ...prev.doNotDisturb, [field]: value }
         : {
-            enabled: true,
-            startTime: field === 'startTime' ? value : '22:00',
-            endTime: field === 'endTime' ? value : '08:00',
-            days: [0, 1, 2, 3, 4, 5, 6],
-          },
+          enabled: true,
+          startTime: field === 'startTime' ? value : '22:00',
+          endTime: field === 'endTime' ? value : '08:00',
+          days: [0, 1, 2, 3, 4, 5, 6],
+        },
     }));
     setHasChanges(true);
   };
@@ -252,18 +253,18 @@ export default function NotificationPreferences() {
 
   const handleSave = async () => {
     setIsSaving(true);
-    
+
     // Simulate API call
     await new Promise(resolve => setTimeout(resolve, 1000));
-    
+
     // In production, save to backend:
     // await apiClient.updateNotificationSettings(settings);
-    
+
     setIsSaving(false);
     setHasChanges(false);
-    
+
     // Show success toast
-    console.log('Notification preferences saved:', settings);
+    logger.info('Notification preferences saved:', settings);
   };
 
   const handleReset = () => {
@@ -276,9 +277,9 @@ export default function NotificationPreferences() {
     try {
       await showTestNotification();
       // Show success message
-      console.log('Test notification sent');
+      logger.info('Test notification sent');
     } catch (error) {
-      console.error('Failed to send test notification:', error);
+      logger.error('Failed to send test notification:', error);
       // Show error message
     } finally {
       setIsSendingTest(false);
@@ -315,8 +316,8 @@ export default function NotificationPreferences() {
                   {pushPermission.granted
                     ? 'Enabled - You will receive push notifications'
                     : pushPermission.denied
-                    ? 'Blocked - Please enable in browser settings'
-                    : 'Not enabled - Click to enable push notifications'}
+                      ? 'Blocked - Please enable in browser settings'
+                      : 'Not enabled - Click to enable push notifications'}
                 </p>
               </div>
             </div>
@@ -348,7 +349,7 @@ export default function NotificationPreferences() {
                 'w-6 h-6',
                 settings.globalMute
                   ? 'text-red-600 dark:text-red-400'
-                  : 'text-neutral-600 dark:text-neutral-400'
+                  : 'text-neutral-600 dark:text-neutral-400',
               )} />
             </div>
             <div>
@@ -391,7 +392,7 @@ export default function NotificationPreferences() {
           </div>
 
           {settings.doNotDisturb?.enabled && (
-            <motion.div
+            <m.div
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: 'auto' }}
               exit={{ opacity: 0, height: 0 }}
@@ -442,11 +443,11 @@ export default function NotificationPreferences() {
                             doNotDisturb: prev.doNotDisturb
                               ? { ...prev.doNotDisturb, days: newDays }
                               : {
-                                  enabled: true,
-                                  startTime: '22:00',
-                                  endTime: '08:00',
-                                  days: newDays,
-                                },
+                                enabled: true,
+                                startTime: '22:00',
+                                endTime: '08:00',
+                                days: newDays,
+                              },
                           }));
                           setHasChanges(true);
                         }}
@@ -454,7 +455,7 @@ export default function NotificationPreferences() {
                           'w-10 h-10 rounded-full text-sm font-medium transition-colors',
                           isActive
                             ? 'bg-primary-600 dark:bg-primary-500 text-white'
-                            : 'bg-neutral-200 dark:bg-neutral-700 text-neutral-600 dark:text-neutral-400 hover:bg-neutral-300 dark:hover:bg-neutral-600'
+                            : 'bg-neutral-200 dark:bg-neutral-700 text-neutral-600 dark:text-neutral-400 hover:bg-neutral-300 dark:hover:bg-neutral-600',
                         )}
                       >
                         {day}
@@ -463,7 +464,7 @@ export default function NotificationPreferences() {
                   })}
                 </div>
               </div>
-            </motion.div>
+            </m.div>
           )}
         </div>
       </Card2>

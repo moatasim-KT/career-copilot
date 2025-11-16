@@ -3,7 +3,6 @@ Job Source Manager Service
 Manages job sources, their configurations, and user preferences
 """
 
-from datetime import datetime
 from typing import Any, ClassVar, Dict, List, Optional
 
 from sqlalchemy import delete, select, update
@@ -12,6 +11,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from ..core.logging import get_logger
 from ..models.user import User
 from ..models.user_job_preferences import UserJobPreferences
+from ..utils.datetime import utc_now
 
 logger = get_logger(__name__)
 
@@ -153,7 +153,7 @@ class JobSourceManager:
 			sources_info.append(
 				{
 					**source_data,
-					"last_updated": datetime.utcnow().isoformat(),
+					"last_updated": utc_now().isoformat(),
 					"status": "active" if source_data["is_active"] else "inactive",
 				}
 			)
@@ -163,7 +163,7 @@ class JobSourceManager:
 		"""Get information about a specific job source"""
 		if source in self.JOB_SOURCES:
 			source_data = self.JOB_SOURCES[source].copy()
-			source_data["last_updated"] = datetime.utcnow().isoformat()
+			source_data["last_updated"] = utc_now().isoformat()
 			source_data["status"] = "active" if source_data["is_active"] else "inactive"
 			return source_data
 		return None
@@ -203,7 +203,7 @@ class JobSourceManager:
 						enabled_sources=enabled_sources,
 						preferred_locations=preferred_locations or prefs.preferred_locations,
 						preferred_categories=preferred_categories or prefs.preferred_categories,
-						updated_at=datetime.utcnow(),
+						updated_at=utc_now(),
 					)
 				)
 			else:
@@ -416,9 +416,9 @@ class JobSourceManager:
 
 		cutoff = None
 		try:
-			from datetime import datetime, timedelta
+			from datetime import timedelta
 
-			cutoff = datetime.utcnow() - timedelta(days=max(1, int(timeframe_days)))
+			cutoff = utc_now() - timedelta(days=max(1, int(timeframe_days)))
 		except Exception:
 			cutoff = None
 

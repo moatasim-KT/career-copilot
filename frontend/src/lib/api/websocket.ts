@@ -57,7 +57,6 @@ class WebSocketService {
   private baseUrl: string;
   private shouldReconnect = true; // Flag to control reconnection
   private messageQueue: Record<string, unknown>[] = [];
-  private messageQueue: Record<string, unknown>[] = [];
 
   constructor() {
     this.baseUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8002';
@@ -102,9 +101,6 @@ class WebSocketService {
             type: 'auth',
             token: this.token,
           });
-
-          // Process offline message queue
-          this.processMessageQueue();
 
           // Process offline message queue
           this.processMessageQueue();
@@ -448,17 +444,6 @@ class WebSocketService {
     }, delay);
   }
 
-  /**
-   * Process the offline message queue
-   */
-  private processMessageQueue(): void {
-    while (this.messageQueue.length > 0) {
-      const message = this.messageQueue.shift();
-      if (message) {
-        this.sendMessage(message);
-      }
-    }
-  }
   getConnectionInfo(): {
     connected: boolean;
     reconnectAttempts: number;

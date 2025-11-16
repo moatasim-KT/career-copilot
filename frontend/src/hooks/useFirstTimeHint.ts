@@ -18,6 +18,8 @@
 
 import { useEffect, useState, useCallback } from 'react';
 
+import { logger } from '@/lib/logger';
+
 const STORAGE_KEY = 'first-time-hints';
 
 interface HintState {
@@ -39,7 +41,7 @@ function getHintStates(): HintState {
       return JSON.parse(stored);
     }
   } catch (error) {
-    console.error('Failed to read hints from localStorage:', error);
+    logger.error('Failed to read hints from localStorage:', error);
   }
   
   return {};
@@ -54,7 +56,7 @@ function saveHintStates(states: HintState): void {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(states));
   } catch (error) {
-    console.error('Failed to save hints to localStorage:', error);
+    logger.error('Failed to save hints to localStorage:', error);
   }
 }
 
@@ -96,7 +98,7 @@ function resetAllHints(): void {
   try {
     localStorage.removeItem(STORAGE_KEY);
   } catch (error) {
-    console.error('Failed to reset hints:', error);
+    logger.error('Failed to reset hints:', error);
   }
 }
 
@@ -129,7 +131,7 @@ export function useFirstTimeHint(
   options: {
     autoShow?: boolean; // Automatically show on mount (default: true)
     delay?: number; // Delay before showing hint in ms (default: 500)
-  } = {}
+  } = {},
 ): UseFirstTimeHintReturn {
   const { autoShow = true, delay = 500 } = options;
   

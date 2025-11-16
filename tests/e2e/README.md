@@ -2,6 +2,13 @@
 
 This directory contains a comprehensive end-to-end testing framework for the Career Copilot application.
 
+## Quick Links
+- [[../../docs/index|Main Documentation Hub]]
+- [[../../docs/development/testing-strategies.md|Testing Strategies]]
+- [[../../backend/tests/README.md|Backend Test Infrastructure]]
+- [[../../frontend/docs/FUNCTIONAL_TESTING_GUIDE.md|Functional Testing Guide]]
+- [[../../frontend/docs/UAT_GUIDE.md|User Acceptance Testing Guide]]
+
 ## Tech Stack
 
 - **Frontend**: Next.js/React with TypeScript

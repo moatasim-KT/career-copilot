@@ -16,13 +16,16 @@ const eslintConfig = [// Base JavaScript configuration
     {
         files: ['**/*.test.{js,jsx,ts,tsx}', '**/*.spec.{js,jsx,ts,tsx}'],
         languageOptions: {
+            parser: typescriptParser,
             parserOptions: {
                 ecmaVersion: 'latest',
                 sourceType: 'module',
                 ecmaFeatures: { jsx: true },
             },
             globals: {
+                ...globals.browser,
                 ...globals.jest,
+                ...globals.node,
             },
         },
     },
@@ -119,6 +122,7 @@ const eslintConfig = [// Base JavaScript configuration
             'no-debugger': 'warn', // RELAXED: Changed to warn
             'no-alert': 'off', // RELAXED: Allow alerts
             'no-unused-vars': 'off', // Using @typescript-eslint/no-unused-vars instead
+            'no-undef': 'off', // TypeScript handles undefined symbols via type checking
             'no-var': 'error',
             'object-shorthand': 'error',
             'prefer-arrow-callback': 'error',
@@ -274,7 +278,7 @@ const eslintConfig = [// Base JavaScript configuration
             '**/*.stories.ts',
             '.storybook/**',
             '**/__tests__/**',
-            'frontend/.venv/**',
+            '.venv/**',
         ],
     }];
 

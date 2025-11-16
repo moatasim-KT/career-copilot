@@ -2,13 +2,15 @@
 Task Queue Manager for coordinating background job processing
 """
 
-from typing import Dict, Any, List, Optional
+from datetime import timedelta
+from typing import Any, Dict, List, Optional
+
 from celery.result import AsyncResult
-from datetime import datetime, timedelta, timezone
 
 from app.core.celery_app import celery_app
 from app.core.logging import get_logger
 from app.services.cache_service import get_cache_service
+from app.utils.datetime import utc_now
 
 logger = get_logger(__name__)
 
@@ -53,7 +55,7 @@ class TaskQueueManager:
 				"resume_upload_id": resume_upload_id,
 				"filename": filename,
 				"priority": priority,
-				"submitted_at": datetime.now(timezone.utc).isoformat(),
+				"submitted_at": utc_now().isoformat(),
 			},
 		)
 
@@ -68,7 +70,7 @@ class TaskQueueManager:
 
 		self._store_task_metadata(
 			result.id,
-			{"type": "batch_resume_parsing", "resume_count": len(resume_upload_ids), "submitted_at": datetime.now(timezone.utc).isoformat()},
+			{"type": "batch_resume_parsing", "resume_count": len(resume_upload_ids), "submitted_at": utc_now().isoformat()},
 		)
 
 		logger.info(f"Submitted batch resume parsing task {result.id} for {len(resume_upload_ids)} resumes")
@@ -94,7 +96,7 @@ class TaskQueueManager:
 				"job_id": job_id,
 				"tone": tone,
 				"priority": priority,
-				"submitted_at": datetime.now(timezone.utc).isoformat(),
+				"submitted_at": utc_now().isoformat(),
 			},
 		)
 
@@ -116,7 +118,7 @@ class TaskQueueManager:
 				"user_id": user_id,
 				"job_id": job_id,
 				"priority": priority,
-				"submitted_at": datetime.now(timezone.utc).isoformat(),
+				"submitted_at": utc_now().isoformat(),
 			},
 		)
 
@@ -131,7 +133,7 @@ class TaskQueueManager:
 
 		self._store_task_metadata(
 			result.id,
-			{"type": "batch_content_generation", "request_count": len(content_requests), "submitted_at": datetime.now(timezone.utc).isoformat()},
+			{"type": "batch_content_generation", "request_count": len(content_requests), "submitted_at": utc_now().isoformat()},
 		)
 
 		logger.info(f"Submitted batch content generation task {result.id} for {len(content_requests)} requests")
@@ -148,7 +150,7 @@ class TaskQueueManager:
 		result = scrape_jobs_for_user_async.apply_async(args=[user_id], **task_options)
 
 		self._store_task_metadata(
-			result.id, {"type": "job_scraping", "user_id": user_id, "priority": priority, "submitted_at": datetime.now(timezone.utc).isoformat()}
+			result.id, {"type": "job_scraping", "user_id": user_id, "priority": priority, "submitted_at": utc_now().isoformat()}
 		)
 
 		logger.info(f"Submitted job scraping task {result.id} for user {user_id}")
@@ -160,9 +162,7 @@ class TaskQueueManager:
 
 		result = batch_scrape_jobs.delay(user_ids)
 
-		self._store_task_metadata(
-			result.id, {"type": "batch_job_scraping", "user_count": len(user_ids), "submitted_at": datetime.now(timezone.utc).isoformat()}
-		)
+		self._store_task_metadata(result.id, {"type": "batch_job_scraping", "user_count": len(user_ids), "submitted_at": utc_now().isoformat()})
 
 		logger.info(f"Submitted batch job scraping task {result.id} for {len(user_ids)} users")
 		return result.id
@@ -184,7 +184,7 @@ class TaskQueueManager:
 				"user_id": user_id,
 				"email_type": email_type,
 				"priority": priority,
-				"submitted_at": datetime.now(timezone.utc).isoformat(),
+				"submitted_at": utc_now().isoformat(),
 			},
 		)
 
@@ -199,7 +199,7 @@ class TaskQueueManager:
 
 		self._store_task_metadata(
 			result.id,
-			{"type": "job_alerts", "user_id": user_id, "match_count": len(job_matches), "submitted_at": datetime.now(timezone.utc).isoformat()},
+			{"type": "job_alerts", "user_id": user_id, "match_count": len(job_matches), "submitted_at": utc_now().isoformat()},
 		)
 
 		logger.info(f"Submitted job alerts task {result.id} for user {user_id} with {len(job_matches)} matches")
@@ -213,7 +213,7 @@ class TaskQueueManager:
 
 		result = generate_user_analytics.delay(user_id)
 
-		self._store_task_metadata(result.id, {"type": "user_analytics", "user_id": user_id, "submitted_at": datetime.now(timezone.utc).isoformat()})
+		self._store_task_metadata(result.id, {"type": "user_analytics", "user_id": user_id, "submitted_at": utc_now().isoformat()})
 
 		logger.info(f"Submitted user analytics task {result.id} for user {user_id}")
 		return result.id
@@ -224,7 +224,7 @@ class TaskQueueManager:
 
 		result = generate_system_analytics.delay()
 
-		self._store_task_metadata(result.id, {"type": "system_analytics", "submitted_at": datetime.now(timezone.utc).isoformat()})
+		self._store_task_metadata(result.id, {"type": "system_analytics", "submitted_at": utc_now().isoformat()})
 
 		logger.info(f"Submitted system analytics task {result.id}")
 		return result.id
@@ -329,7 +329,7 @@ class TaskQueueManager:
 				"total_active": sum(len(tasks) for tasks in (active_tasks or {}).values()),
 				"total_scheduled": sum(len(tasks) for tasks in (scheduled_tasks or {}).values()),
 				"total_reserved": sum(len(tasks) for tasks in (reserved_tasks or {}).values()),
-				"timestamp": datetime.now(timezone.utc).isoformat(),
+				"timestamp": utc_now().isoformat(),
 			}
 
 		except Exception as e:
@@ -342,7 +342,7 @@ class TaskQueueManager:
 			# This would typically involve cleaning up task results from the result backend
 			# For now, we'll just clean up our metadata cache
 
-			cutoff_time = datetime.now(timezone.utc) - timedelta(days=days_old)
+			cutoff_time = utc_now() - timedelta(days=days_old)
 			cleaned_count = 0
 
 			# Clean up task metadata (simplified implementation)

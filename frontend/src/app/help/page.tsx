@@ -14,26 +14,31 @@
 
 'use client';
 
-import { useState, useMemo } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
 import {
   Search,
   ChevronDown,
-  ChevronRight,
   BookOpen,
   Lightbulb,
   AlertCircle,
   Settings,
   Shield,
   Video,
-  ExternalLink,
   Mail,
   MessageCircle,
 } from 'lucide-react';
+import dynamic from 'next/dynamic';
+import { useState, useMemo } from 'react';
 
-import { cn } from '@/lib/utils';
+import { useFeatureTour } from '@/components/help/FeatureTour';
 import { Card2 } from '@/components/ui/Card2';
-import { FeatureTour, useFeatureTour } from '@/components/help/FeatureTour';
+import { m, AnimatePresence } from '@/lib/motion';
+import { cn } from '@/lib/utils';
+
+// Lazy load FeatureTour to reduce initial bundle size
+const FeatureTour = dynamic(() => import('@/components/help/FeatureTour').then(mod => ({ default: mod.FeatureTour })), {
+  loading: () => null, // Don't show loading state for feature tour
+  ssr: false,
+});
 
 interface FAQItem {
   id: string;
@@ -300,7 +305,7 @@ export default function HelpPage() {
         (item) =>
           item.question.toLowerCase().includes(query) ||
           item.answer.toLowerCase().includes(query) ||
-          item.keywords.some((keyword) => keyword.toLowerCase().includes(query))
+          item.keywords.some((keyword) => keyword.toLowerCase().includes(query)),
       );
     }
 
@@ -478,8 +483,8 @@ export default function HelpPage() {
                 {searchQuery
                   ? `Search Results (${filteredFAQs.length})`
                   : selectedCategory
-                  ? 'Frequently Asked Questions'
-                  : 'All Questions'}
+                    ? 'Frequently Asked Questions'
+                    : 'All Questions'}
               </h2>
 
               {filteredFAQs.length === 0 ? (
@@ -509,17 +514,17 @@ export default function HelpPage() {
                           <span className="text-base font-medium text-neutral-900 dark:text-neutral-100">
                             {item.question}
                           </span>
-                          <motion.div
+                          <m.div
                             animate={{ rotate: isExpanded ? 180 : 0 }}
                             transition={{ duration: 0.2 }}
                           >
                             <ChevronDown className="h-5 w-5 text-neutral-500 flex-shrink-0" />
-                          </motion.div>
+                          </m.div>
                         </button>
 
                         <AnimatePresence>
                           {isExpanded && (
-                            <motion.div
+                            <m.div
                               initial={{ height: 0, opacity: 0 }}
                               animate={{ height: 'auto', opacity: 1 }}
                               exit={{ height: 0, opacity: 0 }}
@@ -531,7 +536,7 @@ export default function HelpPage() {
                                   {item.answer}
                                 </p>
                               </div>
-                            </motion.div>
+                            </m.div>
                           )}
                         </AnimatePresence>
                       </Card2>
@@ -577,7 +582,7 @@ export default function HelpPage() {
                 Still need help?
               </h2>
               <p className="text-neutral-600 dark:text-neutral-400 mb-4">
-                Can't find what you're looking for? Our support team is here to help.
+                Can&apos;t find what you&apos;re looking for? Our support team is here to help.
               </p>
               <div className="flex flex-wrap gap-3">
                 <a

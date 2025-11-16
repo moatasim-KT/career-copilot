@@ -3,6 +3,8 @@
  * Example usage and configuration helpers
  */
 
+import { logger } from '@/lib/logger';
+
 import {
     createDefaultRecoveryManager,
     DegradedModeRecovery,
@@ -18,7 +20,7 @@ import {
  * Example: Configure API client with token refresh
  */
 export function createApiClientWithTokenRefresh(
-    baseUrl: string,
+    _baseUrl: string,
     getRefreshToken: () => Promise<string | null>,
     onTokenRefreshed: (token: string) => void,
 ) {
@@ -26,7 +28,7 @@ export function createApiClientWithTokenRefresh(
         refreshTokenFn: getRefreshToken,
         onTokenRefreshed,
         onRefreshFailed: (error) => {
-            console.error('Token refresh failed:', error);
+            logger.error('Token refresh failed:', error);
             // Redirect to login or show notification
         },
         maxRefreshAttempts: 2,
@@ -41,7 +43,7 @@ export function createApiClientWithTokenRefresh(
 /**
  * Example: Configure API client with cache fallback
  */
-export function createApiClientWithCacheFallback(baseUrl: string) {
+export function createApiClientWithCacheFallback(_baseUrl: string) {
     const cacheFallbackConfig: CacheFallbackConfig = {
         enabled: true,
         maxAge: 3600000, // 1 hour
@@ -57,7 +59,7 @@ export function createApiClientWithCacheFallback(baseUrl: string) {
  * Example: Configure API client with all recovery strategies
  */
 export function createResilientApiClient(
-    baseUrl: string,
+    _baseUrl: string,
     tokenRefreshFn?: () => Promise<string | null>,
     onTokenRefreshed?: (token: string) => void,
 ) {
@@ -66,7 +68,7 @@ export function createResilientApiClient(
             refreshTokenFn: tokenRefreshFn,
             onTokenRefreshed,
             onRefreshFailed: (error) => {
-                console.error('Token refresh failed:', error);
+                logger.error('Token refresh failed:', error);
             },
             maxRefreshAttempts: 2,
         }

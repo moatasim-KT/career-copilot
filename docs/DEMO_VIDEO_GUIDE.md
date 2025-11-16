@@ -1,4 +1,12 @@
-# Demo Video Recording Guide
+# Demo Video Creation Guide
+
+**Quick Links**: [[career-copilot/README|Project README]] | [[docs/index|Documentation Hub]] | [[USER_GUIDE]] | [[DEVELOPER_GUIDE]]
+
+**Related**:
+- [[LOCAL_SETUP]] - Setup for demo recording
+- [[FRONTEND_QUICK_START]] - Frontend demo
+- [[PROJECT_STATUS]] - Current features to demo
+- [[ARCHITECTURE]] - System architecture for technical demo
 
 This guide provides instructions for recording demonstration videos for Career Copilot.
 

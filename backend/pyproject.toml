@@ -65,6 +65,7 @@ dependencies = [
     "beautifulsoup4>=4.12.0", # For HTML parsing in scraping services
     "feedparser>=6.0.0",      # For RSS/Atom feed parsing in scraping
     "fake-useragent>=1.4.0",  # For rotating user agents in scrapers
+    "playwright>=1.48.0",     # For headless browser scraping of EU company sites
     "openpyxl>=3.1.2",        # For Excel generation
     "PyPDF2>=3.0.1",
     "reportlab>=4.0.0",       # For PDF generation in exports
@@ -82,6 +83,8 @@ dev = [
     "pre-commit>=3.6.0",
     "faker",
     "locust>=2.17.0",
+    "pip-audit>=2.7.1",
+    "semgrep>=1.43.0",
 ]
 ai = [
     "openai>=1.6.0",

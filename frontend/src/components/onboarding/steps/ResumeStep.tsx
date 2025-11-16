@@ -16,16 +16,18 @@
 
 'use client';
 
+import { Upload, FileText, Check, X, AlertCircle, Loader2 } from 'lucide-react';
 import React, { useState, useCallback } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Upload, FileText, Check, X, AlertCircle, Loader2, Download } from 'lucide-react';
-import { toast } from 'react-hot-toast';
+import { toast } from 'sonner';
 
 import Button2 from '@/components/ui/Button2';
-import { fadeInUp, staggerContainer, staggerItem } from '@/lib/animations';
+import { staggerContainer, staggerItem } from '@/lib/animations';
+import { logger } from '@/lib/logger';
+import { m } from '@/lib/motion';
 import { cn } from '@/lib/utils';
-import apiClient from '@/lib/api/client';
+
 import type { StepProps } from '../OnboardingWizard';
+
 
 /**
  * Supported file types
@@ -66,6 +68,50 @@ const ResumeStep: React.FC<StepProps> = ({ data, onChange, onSkip }) => {
 
     return null;
   };
+
+  /**
+   * Parse resume with AI
+   */
+  const handleParse = useCallback(async (fileToparse: File) => {
+    setIsParsing(true);
+
+    try {
+      const formData = new FormData();
+      formData.append('resume', fileToparse);
+
+      // In production, call actual API endpoint
+      // const response = await apiClient.post('/resume/parse', formData);
+
+      // Simulate API call
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+
+      // Mock parse result
+      const mockResult = {
+        skills: [
+          { value: 'react', label: 'React', proficiency: 'Advanced' },
+          { value: 'typescript', label: 'TypeScript', proficiency: 'Advanced' },
+          { value: 'nodejs', label: 'Node.js', proficiency: 'Intermediate' },
+          { value: 'python', label: 'Python', proficiency: 'Intermediate' },
+        ],
+        experience: '5-10',
+        jobTitle: 'Senior Full-Stack Developer',
+        summary: 'Experienced developer with 7 years in web development',
+      };
+
+      setParseResult(mockResult);
+      onChange({
+        parseResult: mockResult,
+        parsedAt: new Date().toISOString(),
+      });
+
+      toast.success('Resume parsed successfully! Skills extracted.');
+    } catch (error) {
+      logger.error('Parse error:', error);
+      toast.error('Failed to parse resume. You can still continue.');
+    } finally {
+      setIsParsing(false);
+    }
+  }, [onChange]);
 
   /**
    * Handle file upload
@@ -110,58 +156,13 @@ const ResumeStep: React.FC<StepProps> = ({ data, onChange, onSkip }) => {
         // Auto-parse resume
         handleParse(selectedFile);
       } catch (error) {
-        console.error('Upload error:', error);
+        logger.error('Upload error:', error);
         setIsUploading(false);
         toast.error('Failed to upload resume');
       }
     },
-    [onChange]
+    [handleParse, onChange],
   );
-
-  /**
-   * Parse resume with AI
-   */
-  const handleParse = async (fileToparse: File) => {
-    setIsParsing(true);
-
-    try {
-      const formData = new FormData();
-      formData.append('resume', fileToparse);
-
-      // In production, call actual API endpoint
-      // const response = await apiClient.post('/resume/parse', formData);
-
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 2000));
-
-      // Mock parse result
-      const mockResult = {
-        skills: [
-          { value: 'react', label: 'React', proficiency: 'Advanced' },
-          { value: 'typescript', label: 'TypeScript', proficiency: 'Advanced' },
-          { value: 'nodejs', label: 'Node.js', proficiency: 'Intermediate' },
-          { value: 'python', label: 'Python', proficiency: 'Intermediate' },
-        ],
-        experience: '5-10',
-        jobTitle: 'Senior Full-Stack Developer',
-        summary: 'Experienced developer with 7 years in web development',
-      };
-
-      setParseResult(mockResult);
-      onChange({
-        ...data,
-        parseResult: mockResult,
-        parsedAt: new Date().toISOString(),
-      });
-
-      toast.success('Resume parsed successfully! Skills extracted.');
-    } catch (error) {
-      console.error('Parse error:', error);
-      toast.error('Failed to parse resume. You can still continue.');
-    } finally {
-      setIsParsing(false);
-    }
-  };
 
   /**
    * Handle drag events
@@ -221,14 +222,14 @@ const ResumeStep: React.FC<StepProps> = ({ data, onChange, onSkip }) => {
   };
 
   return (
-    <motion.div
+    <m.div
       variants={staggerContainer}
       initial="hidden"
       animate="visible"
       className="space-y-8"
     >
       {/* Header */}
-      <motion.div variants={staggerItem} className="text-center">
+      <m.div variants={staggerItem} className="text-center">
         <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary-100 dark:bg-primary-900/30 mb-4">
           <FileText className="h-8 w-8 text-primary-600 dark:text-primary-400" />
         </div>
@@ -236,13 +237,13 @@ const ResumeStep: React.FC<StepProps> = ({ data, onChange, onSkip }) => {
           Upload Your Resume
         </h3>
         <p className="text-neutral-600 dark:text-neutral-400 max-w-2xl mx-auto">
-          Upload your resume and we'll use AI to extract your skills and experience.
+          Upload your resume and we&apos;ll use AI to extract your skills and experience.
           This step is optional but helps us provide better recommendations.
         </p>
-      </motion.div>
+      </m.div>
 
       {/* Upload area */}
-      <motion.div variants={staggerItem}>
+      <m.div variants={staggerItem}>
         {!file ? (
           <div
             onDragEnter={handleDragEnter}
@@ -254,7 +255,7 @@ const ResumeStep: React.FC<StepProps> = ({ data, onChange, onSkip }) => {
               isDragging
                 ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20'
                 : 'border-neutral-300 dark:border-neutral-700 hover:border-primary-400 dark:hover:border-primary-600',
-              isUploading && 'pointer-events-none opacity-50'
+              isUploading && 'pointer-events-none opacity-50',
             )}
           >
             <input
@@ -275,7 +276,7 @@ const ResumeStep: React.FC<StepProps> = ({ data, onChange, onSkip }) => {
                   </p>
                   <div className="max-w-xs mx-auto">
                     <div className="h-2 bg-neutral-200 dark:bg-neutral-700 rounded-full overflow-hidden">
-                      <motion.div
+                      <m.div
                         className="h-full bg-primary-600"
                         initial={{ width: 0 }}
                         animate={{ width: `${uploadProgress}%` }}
@@ -391,10 +392,10 @@ const ResumeStep: React.FC<StepProps> = ({ data, onChange, onSkip }) => {
             </div>
           </div>
         )}
-      </motion.div>
+      </m.div>
 
       {/* Info cards */}
-      <motion.div
+      <m.div
         variants={staggerItem}
         className="grid grid-cols-1 md:grid-cols-2 gap-4"
       >
@@ -427,20 +428,20 @@ const ResumeStep: React.FC<StepProps> = ({ data, onChange, onSkip }) => {
             </div>
           </div>
         </div>
-      </motion.div>
+      </m.div>
 
       {/* Skip option */}
       {!file && (
-        <motion.div variants={staggerItem} className="text-center pt-4">
+        <m.div variants={staggerItem} className="text-center pt-4">
           <p className="text-sm text-neutral-600 dark:text-neutral-400 mb-3">
-            Don't have your resume handy?
+            Don&apos;t have your resume handy?
           </p>
           <Button2 variant="ghost" onClick={onSkip}>
             Skip this step
           </Button2>
-        </motion.div>
+        </m.div>
       )}
-    </motion.div>
+    </m.div>
   );
 };
 

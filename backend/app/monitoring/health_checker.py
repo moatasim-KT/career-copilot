@@ -5,7 +5,7 @@ Comprehensive health checking system for all system components.
 import asyncio
 import time
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import datetime
 from enum import Enum
 from typing import Dict, Optional, Any
 
@@ -17,6 +17,7 @@ from ..core.database import SessionLocal
 
 from ..core.config import get_settings
 from ..core.logging import get_logger
+from ..utils.datetime import utc_now
 
 logger = get_logger(__name__)
 settings = get_settings()
@@ -56,7 +57,7 @@ class HealthChecker:
 	async def check_overall_health(self) -> Dict[str, Any]:
 		"""Check overall system health."""
 		# Use cached result if recent
-		if self.cached_health and self.last_health_check and (datetime.now(timezone.utc) - self.last_health_check).total_seconds() < self.cache_ttl:
+		if self.cached_health and self.last_health_check and (utc_now() - self.last_health_check).total_seconds() < self.cache_ttl:
 			return self.cached_health
 
 		start_time = time.time()
@@ -85,7 +86,7 @@ class HealthChecker:
 						message=f"Health check error: {component!s}",
 						details={},
 						response_time_ms=0.0,
-						last_check=datetime.now(timezone.utc),
+						last_check=utc_now(),
 						error=str(component),
 					)
 				)
@@ -103,7 +104,7 @@ class HealthChecker:
 		# Build result
 		result = {
 			"status": overall_status.value,
-			"timestamp": datetime.now(timezone.utc).isoformat(),
+			"timestamp": utc_now().isoformat(),
 			"response_time_ms": total_response_time * 1000,
 			"components": {
 				component.name: {
@@ -120,7 +121,7 @@ class HealthChecker:
 
 		# Cache result
 		self.cached_health = result
-		self.last_health_check = datetime.now(timezone.utc)
+		self.last_health_check = utc_now()
 
 		return result
 
@@ -141,7 +142,7 @@ class HealthChecker:
 				message="Database connection healthy",
 				details={},
 				response_time_ms=response_time,
-				last_check=datetime.now(timezone.utc),
+				last_check=utc_now(),
 			)
 
 		except Exception as e:
@@ -152,7 +153,7 @@ class HealthChecker:
 				message="Database health check failed",
 				details={},
 				response_time_ms=response_time,
-				last_check=datetime.now(timezone.utc),
+				last_check=utc_now(),
 				error=str(e),
 			)
 
@@ -168,7 +169,7 @@ class HealthChecker:
 					message="Redis disabled",
 					details={"enabled": False},
 					response_time_ms=0.0,
-					last_check=datetime.now(timezone.utc),
+					last_check=utc_now(),
 				)
 
 			from ..core.cache import cache_service
@@ -190,7 +191,7 @@ class HealthChecker:
 					message="Redis connection healthy",
 					details={"test_successful": True},
 					response_time_ms=response_time,
-					last_check=datetime.now(timezone.utc),
+					last_check=utc_now(),
 				)
 			else:
 				return ComponentHealth(
@@ -199,7 +200,7 @@ class HealthChecker:
 					message="Redis test failed",
 					details={"test_successful": False},
 					response_time_ms=response_time,
-					last_check=datetime.now(timezone.utc),
+					last_check=utc_now(),
 				)
 
 		except Exception as e:
@@ -210,7 +211,7 @@ class HealthChecker:
 				message="Redis health check failed",
 				details={},
 				response_time_ms=response_time,
-				last_check=datetime.now(timezone.utc),
+				last_check=utc_now(),
 				error=str(e),
 			)
 
@@ -246,7 +247,7 @@ class HealthChecker:
 				message=message,
 				details=service_health,
 				response_time_ms=response_time,
-				last_check=datetime.now(timezone.utc),
+				last_check=utc_now(),
 			)
 
 		except Exception as e:
@@ -257,7 +258,7 @@ class HealthChecker:
 				message="AI service health check failed",
 				details={},
 				response_time_ms=response_time,
-				last_check=datetime.now(timezone.utc),
+				last_check=utc_now(),
 				error=str(e),
 			)
 
@@ -287,7 +288,7 @@ class HealthChecker:
 				message=message,
 				details=health_info,
 				response_time_ms=response_time,
-				last_check=datetime.now(timezone.utc),
+				last_check=utc_now(),
 			)
 
 		except Exception as e:
@@ -298,7 +299,7 @@ class HealthChecker:
 				message="Vector store health check failed",
 				details={},
 				response_time_ms=response_time,
-				last_check=datetime.now(timezone.utc),
+				last_check=utc_now(),
 				error=str(e),
 			)
 
@@ -358,7 +359,7 @@ class HealthChecker:
 					"disk_free_gb": disk.free / 1024 / 1024 / 1024,
 				},
 				response_time_ms=response_time,
-				last_check=datetime.now(timezone.utc),
+				last_check=utc_now(),
 			)
 
 		except Exception as e:
@@ -369,7 +370,7 @@ class HealthChecker:
 				message="System resource check failed",
 				details={},
 				response_time_ms=response_time,
-				last_check=datetime.now(timezone.utc),
+				last_check=utc_now(),
 				error=str(e),
 			)
 
@@ -415,7 +416,7 @@ class HealthChecker:
 				message=message,
 				details=integration_results,
 				response_time_ms=response_time,
-				last_check=datetime.now(timezone.utc),
+				last_check=utc_now(),
 			)
 
 		except Exception as e:
@@ -426,7 +427,7 @@ class HealthChecker:
 				message="External integration health check failed",
 				details={},
 				response_time_ms=response_time,
-				last_check=datetime.now(timezone.utc),
+				last_check=utc_now(),
 				error=str(e),
 			)
 
@@ -474,7 +475,7 @@ class HealthChecker:
 		"""Kubernetes liveness probe - basic application health."""
 		try:
 			# Basic checks that indicate the application is alive
-			current_time = datetime.now(timezone.utc)
+			current_time = utc_now()
 
 			# Check if we can allocate memory
 			test_data = "x" * 1000
@@ -488,7 +489,7 @@ class HealthChecker:
 			return {"status": "alive", "timestamp": current_time.isoformat(), "checks": ["memory", "filesystem"]}
 
 		except Exception as e:
-			return {"status": "dead", "timestamp": datetime.now(timezone.utc).isoformat(), "error": str(e)}
+			return {"status": "dead", "timestamp": utc_now().isoformat(), "error": str(e)}
 
 	async def check_readiness(self) -> Dict[str, Any]:
 		"""Kubernetes readiness probe - ready to serve requests."""
@@ -498,24 +499,24 @@ class HealthChecker:
 
 			# Application is ready if database is at least degraded
 			if db_health.status in [HealthStatus.HEALTHY, HealthStatus.DEGRADED]:
-				return {"status": "ready", "timestamp": datetime.now(timezone.utc).isoformat(), "database_status": db_health.status.value}
+				return {"status": "ready", "timestamp": utc_now().isoformat(), "database_status": db_health.status.value}
 			else:
 				return {
 					"status": "not_ready",
-					"timestamp": datetime.now(timezone.utc).isoformat(),
+					"timestamp": utc_now().isoformat(),
 					"reason": "Database unhealthy",
 					"database_status": db_health.status.value,
 				}
 
 		except Exception as e:
-			return {"status": "not_ready", "timestamp": datetime.now(timezone.utc).isoformat(), "error": str(e)}
+			return {"status": "not_ready", "timestamp": utc_now().isoformat(), "error": str(e)}
 
 	def get_health_summary(self) -> Dict[str, Any]:
 		"""Get cached health summary."""
 		if self.cached_health:
 			return self.cached_health
 		else:
-			return {"status": "unknown", "message": "Health check not yet performed", "timestamp": datetime.now(timezone.utc).isoformat()}
+			return {"status": "unknown", "message": "Health check not yet performed", "timestamp": utc_now().isoformat()}
 
 	def get_python_version(self) -> str:
 		"""Get Python version information."""

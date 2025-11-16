@@ -1,4 +1,3 @@
-from datetime import datetime
 from typing import Any, Dict, List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query
@@ -10,6 +9,7 @@ from app.dependencies import get_current_user
 from ...core.database import get_db
 from ...models.feedback import HelpArticle, HelpArticleVote
 from ...models.user import User
+from ...utils.datetime import utc_now
 
 router = APIRouter()
 
@@ -283,7 +283,7 @@ async def vote_help_article(
 				article.helpful_votes += 1
 
 			existing_vote.is_helpful = helpful
-			existing_vote.updated_at = datetime.utcnow()
+			existing_vote.updated_at = utc_now()
 	else:
 		# Create new vote
 		new_vote = HelpArticleVote(article_id=article_id, user_id=current_user.id, is_helpful=helpful)

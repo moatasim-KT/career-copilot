@@ -15,7 +15,6 @@ import { test, expect, Page } from '@playwright/test';
 
 // Test configuration
 const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 
 // Helper functions
 async function login(page: Page, email: string, password: string) {
@@ -24,12 +23,6 @@ async function login(page: Page, email: string, password: string) {
   await page.fill('input[name="password"]', password);
   await page.click('button[type="submit"]');
   await page.waitForURL(`${BASE_URL}/dashboard`);
-}
-
-async function logout(page: Page) {
-  await page.click('[data-testid="user-menu"]');
-  await page.click('text=Logout');
-  await page.waitForURL(`${BASE_URL}/login`);
 }
 
 // Test data
@@ -242,7 +235,7 @@ test.describe('User Flow 3: Track application → Update status', () => {
     // Verify filtered results
     const applications = page.locator('[data-testid="application-card"]');
     const count = await applications.count();
-    
+
     for (let i = 0; i < count; i++) {
       await expect(applications.nth(i)).toContainText(/interviewing/i);
     }

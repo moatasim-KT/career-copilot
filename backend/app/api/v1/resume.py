@@ -8,8 +8,9 @@ from fastapi import APIRouter, BackgroundTasks, Depends, File, HTTPException, Re
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from ...core.database import get_db
 from app.dependencies import get_current_user
+
+from ...core.database import get_db
 from ...models.content_generation import ContentGeneration
 from ...models.job import Job
 from ...models.resume_upload import ResumeUpload
@@ -30,7 +31,7 @@ from ...schemas.resume import (
 from ...services.content_generator_service import ContentGeneratorService
 from ...services.content_quality_service import ContentQualityService
 from ...services.job_description_parser_service import JobDescriptionParserService
-# from ...services.profile_service import ProfileService  # TODO: Fix missing schemas
+from ...services.profile_service import ProfileService
 from ...services.resume_parser_service import ResumeParserService
 
 # NOTE: This file has been converted to use AsyncSession.
@@ -44,7 +45,8 @@ resume_parser = ResumeParserService()
 job_description_parser = JobDescriptionParserService()
 content_generator = ContentGeneratorService()
 content_quality = ContentQualityService()
-# profile_service = ProfileService()  # TODO: Fix missing schemas
+# Note: ProfileService requires sync Session, cannot be initialized here with async endpoint
+# Initialize per-request when needed with sync database session
 
 
 # Basic resume endpoints

@@ -1,12 +1,12 @@
 'use client';
 
-import { motion, AnimatePresence } from 'framer-motion';
 import { Download, FileText, FileSpreadsheet } from 'lucide-react';
 import { useState } from 'react';
 
 import { exportToCSV } from '@/lib/export/exportToCSV';
 import { exportToPDF, type PDFColumn } from '@/lib/export/exportToPDF';
 import { logger } from '@/lib/logger';
+import { m, AnimatePresence } from '@/lib/motion';
 
 import Button2 from './Button2';
 
@@ -183,7 +183,7 @@ export function ExportDropdown<T extends Record<string, any>>({
         {isOpen && (
           <>
             {/* Backdrop */}
-            <motion.div
+            <m.div
               className="fixed inset-0 z-40"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -192,7 +192,7 @@ export function ExportDropdown<T extends Record<string, any>>({
             />
 
             {/* Dropdown Menu */}
-            <motion.div
+            <m.div
               className="absolute right-0 mt-2 w-64 bg-white dark:bg-neutral-800 rounded-lg shadow-lg border border-neutral-200 dark:border-neutral-700 z-50 overflow-hidden"
               initial={{ opacity: 0, y: -10, scale: 0.95 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -221,7 +221,7 @@ export function ExportDropdown<T extends Record<string, any>>({
                   {selectedIds.length > 0 && ` • ${selectedIds.length} selected`}
                 </div>
               )}
-            </motion.div>
+            </m.div>
           </>
         )}
       </AnimatePresence>

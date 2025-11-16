@@ -1,32 +1,31 @@
 /**
- * Animation System
- * 
+ * Animation Library
  * Centralized animation variants and configurations for Framer Motion.
- * Provides consistent animations across the application.
+ * These variants are optimized for performance and consistency.
  */
 
-import { Variants } from 'framer-motion';
+import { Variants } from '@/lib/motion';
 
 /**
  * Fade animation variants
  */
 export const fadeVariants: Variants = {
-  hidden: { 
-    opacity: 0, 
+  hidden: {
+    opacity: 0,
   },
-  visible: { 
-    opacity: 1, 
-    transition: { 
+  visible: {
+    opacity: 1,
+    transition: {
       duration: 0.2,
       ease: 'easeOut',
-    }, 
+    },
   },
-  exit: { 
-    opacity: 0, 
-    transition: { 
+  exit: {
+    opacity: 0,
+    transition: {
       duration: 0.15,
       ease: 'easeIn',
-    }, 
+    },
   },
 };
 
@@ -35,12 +34,12 @@ export const fadeVariants: Variants = {
  */
 export const slideVariants = {
   left: {
-    hidden: { 
-      x: -20, 
-      opacity: 0, 
+    hidden: {
+      x: -20,
+      opacity: 0,
     },
-    visible: { 
-      x: 0, 
+    visible: {
+      x: 0,
       opacity: 1,
       transition: {
         duration: 0.3,
@@ -49,12 +48,12 @@ export const slideVariants = {
     },
   },
   right: {
-    hidden: { 
-      x: 20, 
-      opacity: 0, 
+    hidden: {
+      x: 20,
+      opacity: 0,
     },
-    visible: { 
-      x: 0, 
+    visible: {
+      x: 0,
       opacity: 1,
       transition: {
         duration: 0.3,
@@ -63,12 +62,12 @@ export const slideVariants = {
     },
   },
   up: {
-    hidden: { 
-      y: 20, 
-      opacity: 0, 
+    hidden: {
+      y: 20,
+      opacity: 0,
     },
-    visible: { 
-      y: 0, 
+    visible: {
+      y: 0,
       opacity: 1,
       transition: {
         duration: 0.3,
@@ -77,12 +76,12 @@ export const slideVariants = {
     },
   },
   down: {
-    hidden: { 
-      y: -20, 
-      opacity: 0, 
+    hidden: {
+      y: -20,
+      opacity: 0,
     },
-    visible: { 
-      y: 0, 
+    visible: {
+      y: 0,
       opacity: 1,
       transition: {
         duration: 0.3,
@@ -96,20 +95,20 @@ export const slideVariants = {
  * Scale animation variants
  */
 export const scaleVariants: Variants = {
-  hidden: { 
-    scale: 0.95, 
-    opacity: 0, 
+  hidden: {
+    scale: 0.95,
+    opacity: 0,
   },
-  visible: { 
-    scale: 1, 
+  visible: {
+    scale: 1,
     opacity: 1,
     transition: {
       duration: 0.2,
       ease: 'easeOut',
     },
   },
-  exit: { 
-    scale: 0.95, 
+  exit: {
+    scale: 0.95,
     opacity: 0,
     transition: {
       duration: 0.15,
@@ -122,8 +121,8 @@ export const scaleVariants: Variants = {
  * Stagger container for animating children sequentially
  */
 export const staggerContainer: Variants = {
-  hidden: { 
-    opacity: 0, 
+  hidden: {
+    opacity: 0,
   },
   visible: {
     opacity: 1,
@@ -138,9 +137,9 @@ export const staggerContainer: Variants = {
  * Stagger item for use within staggerContainer
  */
 export const staggerItem: Variants = {
-  hidden: { 
-    y: 20, 
-    opacity: 0, 
+  hidden: {
+    y: 20,
+    opacity: 0,
   },
   visible: {
     y: 0,
@@ -156,20 +155,20 @@ export const staggerItem: Variants = {
  * Spring animation configurations
  */
 export const springConfigs = {
-  gentle: { 
-    type: 'spring' as const, 
-    stiffness: 100, 
-    damping: 15, 
+  gentle: {
+    type: 'spring' as const,
+    stiffness: 100,
+    damping: 15,
   },
-  bouncy: { 
-    type: 'spring' as const, 
-    stiffness: 300, 
-    damping: 20, 
+  bouncy: {
+    type: 'spring' as const,
+    stiffness: 300,
+    damping: 20,
   },
-  stiff: { 
-    type: 'spring' as const, 
-    stiffness: 400, 
-    damping: 30, 
+  stiff: {
+    type: 'spring' as const,
+    stiffness: 400,
+    damping: 30,
   },
   smooth: {
     type: 'spring' as const,
@@ -224,9 +223,9 @@ export const tapScale = {
  * List item animation variants
  */
 export const listItemVariants: Variants = {
-  hidden: { 
-    x: -10, 
-    opacity: 0, 
+  hidden: {
+    x: -10,
+    opacity: 0,
   },
   visible: (index: number) => ({
     x: 0,
@@ -243,13 +242,13 @@ export const listItemVariants: Variants = {
  * Modal/Dialog animation variants
  */
 export const modalVariants: Variants = {
-  hidden: { 
-    scale: 0.95, 
+  hidden: {
+    scale: 0.95,
     opacity: 0,
     y: 20,
   },
-  visible: { 
-    scale: 1, 
+  visible: {
+    scale: 1,
     opacity: 1,
     y: 0,
     transition: {
@@ -257,8 +256,8 @@ export const modalVariants: Variants = {
       ease: [0, 0, 0.2, 1] as const,
     },
   },
-  exit: { 
-    scale: 0.95, 
+  exit: {
+    scale: 0.95,
     opacity: 0,
     y: 20,
     transition: {
@@ -272,16 +271,16 @@ export const modalVariants: Variants = {
  * Backdrop animation variants
  */
 export const backdropVariants: Variants = {
-  hidden: { 
-    opacity: 0, 
+  hidden: {
+    opacity: 0,
   },
-  visible: { 
+  visible: {
     opacity: 1,
     transition: {
       duration: 0.2,
     },
   },
-  exit: { 
+  exit: {
     opacity: 0,
     transition: {
       duration: 0.15,
@@ -295,7 +294,7 @@ export const backdropVariants: Variants = {
 export const drawerVariants = {
   left: {
     hidden: { x: '-100%' },
-    visible: { 
+    visible: {
       x: 0,
       transition: {
         type: 'spring' as const,
@@ -303,7 +302,7 @@ export const drawerVariants = {
         damping: 30,
       },
     },
-    exit: { 
+    exit: {
       x: '-100%',
       transition: {
         duration: 0.2,
@@ -313,7 +312,7 @@ export const drawerVariants = {
   },
   right: {
     hidden: { x: '100%' },
-    visible: { 
+    visible: {
       x: 0,
       transition: {
         type: 'spring' as const,
@@ -321,7 +320,7 @@ export const drawerVariants = {
         damping: 30,
       },
     },
-    exit: { 
+    exit: {
       x: '100%',
       transition: {
         duration: 0.2,
@@ -331,7 +330,7 @@ export const drawerVariants = {
   },
   bottom: {
     hidden: { y: '100%' },
-    visible: { 
+    visible: {
       y: 0,
       transition: {
         type: 'spring' as const,
@@ -339,7 +338,7 @@ export const drawerVariants = {
         damping: 30,
       },
     },
-    exit: { 
+    exit: {
       y: '100%',
       transition: {
         duration: 0.2,
@@ -727,7 +726,7 @@ export const dotsLoadingVariants = {
       opacity: 1,
       transition: {
         duration: 0.4,
-        ease: 'easeInOut',
+        ease: 'easeInOut' as const,
       },
     },
   },

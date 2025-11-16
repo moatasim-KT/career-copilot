@@ -10,12 +10,18 @@ from typing import Dict, List, Optional
 from app.schemas.job import JobCreate
 
 from .adzuna_scraper import AdzunaScraper
+from .aijobs_scraper import AIJobsNetScraper
 from .arbeitnow_scraper import ArbeitnowScraper
 from .base_scraper import BaseScraper, RateLimiter
 from .berlinstartupjobs_scraper import BerlinStartupJobsScraper
+from .datacareer_scraper import DataCareerScraper
+from .eu_company_playwright_scraper import EUCompanyPlaywrightScraper
 from .eures_scraper import EuresScraper
+from .eurotechjobs_scraper import EuroTechJobsScraper
+from .eutechjobs_scraper import EUTechJobsScraper
 from .firecrawl_scraper import FirecrawlScraper
 from .indeed_scraper import IndeedScraper
+from .landingjobs_scraper import LandingJobsScraper
 from .rapidapi_jsearch_scraper import RapidAPIJSearchScraper
 from .relocateme_scraper import RelocateMeScraper
 from .themuse_scraper import TheMuseScraper
@@ -39,8 +45,14 @@ class ScrapingConfig:
 	enable_berlinstartupjobs: bool = True
 	enable_relocateme: bool = True
 	enable_eures: bool = True
+	enable_landingjobs: bool = True
+	enable_eutechjobs: bool = True
+	enable_aijobsnet: bool = True
+	enable_datacareer: bool = True
+	enable_eurotechjobs: bool = True
 	# Advanced scraping with Firecrawl
 	enable_firecrawl: bool = True
+	enable_eu_company_playwright: bool = False
 	rate_limit_min_delay: float = 1.0
 	rate_limit_max_delay: float = 3.0
 	deduplication_enabled: bool = True
@@ -68,19 +80,19 @@ class ScraperManager:
 				scrapers["adzuna"] = AdzunaScraper(rate_limiter=rate_limiter)
 			except ValueError as e:
 				logger.warning(f"Adzuna scraper not initialized: {e}")
-		
+
 		if self.config.enable_themuse:
 			try:
 				scrapers["themuse"] = TheMuseScraper(rate_limiter=rate_limiter)
 			except ValueError as e:
 				logger.warning(f"The Muse scraper not initialized: {e}")
-		
+
 		if self.config.enable_rapidapi_jsearch:
 			try:
 				scrapers["rapidapi_jsearch"] = RapidAPIJSearchScraper(rate_limiter=rate_limiter)
 			except ValueError as e:
 				logger.warning(f"RapidAPI JSearch scraper not initialized: {e}")
-		
+
 		# EU Visa-Sponsorship focused scrapers
 		if self.config.enable_arbeitnow:
 			try:
@@ -88,28 +100,63 @@ class ScraperManager:
 				logger.info("✅ Arbeitnow scraper initialized (Germany visa sponsorship)")
 			except ValueError as e:
 				logger.warning(f"Arbeitnow scraper not initialized: {e}")
-		
+
 		if self.config.enable_berlinstartupjobs:
 			try:
 				scrapers["berlinstartupjobs"] = BerlinStartupJobsScraper(rate_limiter=rate_limiter)
 				logger.info("✅ Berlin Startup Jobs scraper initialized (Berlin visa sponsorship)")
 			except ValueError as e:
 				logger.warning(f"Berlin Startup Jobs scraper not initialized: {e}")
-		
+
 		if self.config.enable_relocateme:
 			try:
 				scrapers["relocateme"] = RelocateMeScraper(rate_limiter=rate_limiter)
 				logger.info("✅ Relocate.me scraper initialized (EU relocation support)")
 			except ValueError as e:
 				logger.warning(f"Relocate.me scraper not initialized: {e}")
-		
+
 		if self.config.enable_eures:
 			try:
 				scrapers["eures"] = EuresScraper(rate_limiter=rate_limiter)
 				logger.info("✅ EURES scraper initialized (Official EU job portal)")
 			except ValueError as e:
 				logger.warning(f"EURES scraper not initialized: {e}")
-		
+
+		if self.config.enable_landingjobs:
+			try:
+				scrapers["landingjobs"] = LandingJobsScraper(rate_limiter=rate_limiter)
+				logger.info("✅ Landing.jobs scraper initialized (EU relocation feed)")
+			except ValueError as e:
+				logger.warning(f"Landing.jobs scraper not initialized: {e}")
+
+		if self.config.enable_eutechjobs:
+			try:
+				scrapers["eutechjobs"] = EUTechJobsScraper(rate_limiter=rate_limiter)
+				logger.info("✅ EU Tech Jobs scraper initialized")
+			except ValueError as e:
+				logger.warning(f"EU Tech Jobs scraper not initialized: {e}")
+
+		if self.config.enable_eurotechjobs:
+			try:
+				scrapers["eurotechjobs"] = EuroTechJobsScraper(rate_limiter=rate_limiter)
+				logger.info("✅ EuroTechJobs scraper initialized (EU ML focus)")
+			except ValueError as e:
+				logger.warning(f"EuroTechJobs scraper not initialized: {e}")
+
+		if self.config.enable_aijobsnet:
+			try:
+				scrapers["aijobsnet"] = AIJobsNetScraper(rate_limiter=rate_limiter)
+				logger.info("✅ AIJobs.net scraper initialized (EU AI/DS roles)")
+			except ValueError as e:
+				logger.warning(f"AIJobs.net scraper not initialized: {e}")
+
+		if self.config.enable_datacareer:
+			try:
+				scrapers["datacareer"] = DataCareerScraper(rate_limiter=rate_limiter)
+				logger.info("✅ DataCareer.eu scraper initialized (onsite EU data roles)")
+			except ValueError as e:
+				logger.warning(f"DataCareer.eu scraper not initialized: {e}")
+
 		# Advanced scraping with Firecrawl (company career pages)
 		if self.config.enable_firecrawl:
 			try:
@@ -117,6 +164,13 @@ class ScraperManager:
 				logger.info("✅ Firecrawl scraper initialized (Company career pages: Google, Anthropic, DeepMind, etc.)")
 			except ValueError as e:
 				logger.warning(f"Firecrawl scraper not initialized: {e}")
+
+		if self.config.enable_eu_company_playwright:
+			try:
+				scrapers["eu_company_playwright"] = EUCompanyPlaywrightScraper(rate_limiter=rate_limiter)
+				logger.info("✅ Playwright-based EU company scraper initialized")
+			except Exception as e:
+				logger.warning(f"EU company Playwright scraper not initialized: {e}")
 
 		logger.info(f"Initialized {len(scrapers)} scrapers: {list(scrapers.keys())}")
 		return scrapers

@@ -2,6 +2,13 @@
 
 This directory contains the test infrastructure for the Career Copilot backend.
 
+## Quick Links
+- [[../../docs/index|Main Documentation Hub]]
+- [[../../docs/development/testing-strategies.md|Testing Strategies]]
+- [[../README.md#testing|Backend Testing Guide]]
+- [[../../tests/e2e/README.md|E2E Testing Framework]]
+- [[../../frontend/docs/FUNCTIONAL_TESTING_GUIDE.md|Functional Testing Guide]]
+
 ## Test Fixtures
 
 The `conftest.py` file provides comprehensive test fixtures that automatically handle database setup and teardown.

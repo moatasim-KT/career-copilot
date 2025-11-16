@@ -1,20 +1,46 @@
-"""
-Security utilities for password hashing and verification, and JWT token handling.
-"""
+"""Security utilities for hashing, token generation, and token validation."""
 
-from datetime import datetime, timedelta
+from datetime import timedelta
 from typing import Any, Union
 
-from jose import jwt
+from jose import JWTError, jwt
 from passlib.context import CryptContext
+from pydantic import BaseModel, ValidationError
+
+from app.core.config import get_settings
+from app.core.logging import get_logger
+from app.utils.datetime import utc_now
 
 # Password hashing context
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+pwd_context = CryptContext(schemes=["bcrypt", "sha256_crypt"], default="bcrypt", deprecated="auto")
+logger = get_logger(__name__)
 
-# JWT settings (should be loaded from config in a real app)
-SECRET_KEY = "super-secret-key"  # Replace with a strong, randomly generated key
-ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 30
+
+class TokenPayload(BaseModel):
+	"""Typed payload stored inside JWT access tokens."""
+
+	sub: str
+	email: str | None = None
+	exp: int
+	iat: int | None = None
+
+
+class InvalidTokenError(Exception):
+	"""Raised when a JWT cannot be decoded or validated."""
+
+
+def _get_jwt_settings() -> tuple[str, str, int]:
+	"""Fetch secret, algorithm, and expiration (minutes) from unified settings."""
+	settings = get_settings()
+	secret_proxy = settings.jwt_secret_key
+	secret_value = secret_proxy.get_secret_value().strip() if secret_proxy else ""
+	if not secret_value:
+		raise RuntimeError("JWT secret key is not configured. Set JWT_SECRET_KEY or secrets/jwt_secret.txt.")
+
+	algorithm = getattr(settings, "jwt_algorithm", "HS256")
+	expiration_hours = getattr(settings, "jwt_expiration_hours", 24)
+	default_expiration_minutes = max(1, int(expiration_hours) * 60)
+	return secret_value, algorithm, default_expiration_minutes
 
 
 def create_access_token(data: dict, expires_delta: Union[timedelta, None] = None) -> str:
@@ -28,14 +54,22 @@ def create_access_token(data: dict, expires_delta: Union[timedelta, None] = None
 	Returns:
 		str: Encoded JWT access token
 	"""
+	secret, algorithm, default_minutes = _get_jwt_settings()
 	to_encode = data.copy()
-	if expires_delta:
-		expire = datetime.utcnow() + expires_delta
-	else:
-		expire = datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
-	to_encode.update({"exp": expire})
-	encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
-	return encoded_jwt
+	expire_delta = expires_delta or timedelta(minutes=default_minutes)
+	expire = utc_now() + expire_delta
+	to_encode.update({"exp": expire, "iat": utc_now()})
+	return jwt.encode(to_encode, secret, algorithm=algorithm)
+
+
+def decode_access_token(token: str) -> TokenPayload:
+	"""Decode and validate a JWT access token, returning the typed payload."""
+	secret, algorithm, _ = _get_jwt_settings()
+	try:
+		payload: dict[str, Any] = jwt.decode(token, secret, algorithms=[algorithm])
+		return TokenPayload(**payload)
+	except (JWTError, ValidationError) as exc:
+		raise InvalidTokenError("Could not validate credentials") from exc
 
 
 def get_password_hash(password: str) -> str:
@@ -48,7 +82,11 @@ def get_password_hash(password: str) -> str:
 	Returns:
 		str: Hashed password
 	"""
-	return pwd_context.hash(password)
+	try:
+		return pwd_context.hash(password)
+	except ValueError as exc:
+		logger.warning("bcrypt hashing failed (%s); falling back to sha256_crypt", exc)
+		return pwd_context.hash(password, scheme="sha256_crypt")
 
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:

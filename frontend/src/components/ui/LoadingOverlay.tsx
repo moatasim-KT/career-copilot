@@ -1,14 +1,15 @@
 'use client';
 
-import { motion, AnimatePresence } from 'framer-motion';
-import { ReactNode, forwardRef, HTMLAttributes } from 'react';
+import { ReactNode, forwardRef } from 'react';
 
-import { cn } from '@/lib/utils';
 import { loadingOverlayVariants } from '@/lib/animations';
-import Spinner2 from './Spinner2';
-import DotsLoader from './DotsLoader';
+import { m, AnimatePresence } from '@/lib/motion';
+import { cn } from '@/lib/utils';
 
-export interface LoadingOverlayProps extends Omit<HTMLAttributes<HTMLDivElement>, 'children'> {
+import DotsLoader from './DotsLoader';
+import Spinner2 from './Spinner2';
+
+export interface LoadingOverlayProps {
   /**
    * Whether the overlay is visible
    */
@@ -43,6 +44,11 @@ export interface LoadingOverlayProps extends Omit<HTMLAttributes<HTMLDivElement>
    * Background opacity (0-1)
    */
   opacity?: number;
+
+  /**
+   * Additional CSS classes
+   */
+  className?: string;
 }
 
 /**
@@ -97,7 +103,6 @@ export const LoadingOverlay = forwardRef<HTMLDivElement, LoadingOverlayProps>(
       fullScreen = true,
       opacity = 0.8,
       className,
-      ...props
     },
     ref,
   ) => {
@@ -123,7 +128,7 @@ export const LoadingOverlay = forwardRef<HTMLDivElement, LoadingOverlayProps>(
     return (
       <AnimatePresence>
         {visible && (
-          <motion.div
+          <m.div
             ref={ref}
             variants={loadingOverlayVariants}
             initial="hidden"
@@ -136,11 +141,11 @@ export const LoadingOverlay = forwardRef<HTMLDivElement, LoadingOverlayProps>(
             )}
             style={{
               backgroundColor: `rgba(255, 255, 255, ${opacity})`,
+              backdropFilter: blur ? 'blur(4px)' : undefined,
             }}
             role="status"
             aria-live="polite"
             aria-busy="true"
-            {...props}
           >
             {/* Dark mode background */}
             <div className="absolute inset-0 bg-neutral-900/80 dark:bg-neutral-950/90" />
@@ -150,17 +155,17 @@ export const LoadingOverlay = forwardRef<HTMLDivElement, LoadingOverlayProps>(
               {renderIndicator()}
 
               {message && (
-                <motion.p
+                <m.p
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.1, duration: 0.3 }}
                   className="text-sm font-medium text-neutral-700 dark:text-neutral-300"
                 >
                   {message}
-                </motion.p>
+                </m.p>
               )}
             </div>
-          </motion.div>
+          </m.div>
         )}
       </AnimatePresence>
     );

@@ -1,10 +1,12 @@
 'use client';
 
-import React, { useState } from 'react';
-import Image from 'next/image';
-import { Card2 } from '@/components/ui/Card2';
-import { Button2 } from '@/components/ui/Button2';
 import { Check, X, Info } from 'lucide-react';
+import Image from 'next/image';
+import React, { useState } from 'react';
+
+import Button from '@/components/ui/Button2';
+import { Card2 } from '@/components/ui/Card2';
+
 
 /**
  * Image Quality Test Page
@@ -144,14 +146,14 @@ export default function ImageQualityTestPage() {
             <h2 className="text-2xl font-semibold text-neutral-900 dark:text-neutral-100">
               Format Support
             </h2>
-            <Button2
+            <Button
               variant="ghost"
               size="sm"
               onClick={() => setShowInfo(!showInfo)}
             >
               <Info className="w-4 h-4 mr-2" />
               {showInfo ? 'Hide' : 'Show'} Details
-            </Button2>
+            </Button>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -216,14 +218,14 @@ export default function ImageQualityTestPage() {
           {/* Quality Selector */}
           <div className="flex flex-wrap gap-2 mb-6">
             {imageTests.map((test) => (
-              <Button2
+              <Button
                 key={test.id}
                 variant={selectedTest === test.id ? 'primary' : 'outline'}
                 size="sm"
                 onClick={() => setSelectedTest(test.id)}
               >
                 {test.name}
-              </Button2>
+              </Button>
             ))}
           </div>
 
@@ -289,8 +291,8 @@ export default function ImageQualityTestPage() {
               <ol className="list-decimal list-inside space-y-1 ml-4">
                 <li>Open DevTools (F12) → Network tab</li>
                 <li>Reload this page</li>
-                <li>Filter by "Img" or "Images"</li>
-                <li>Check the "Type" column - should show "webp" or "avif"</li>
+                <li>Filter by &quot;Img&quot; or &quot;Images&quot;</li>
+                <li>Check the &quot;Type&quot; column - should show &quot;webp&quot; or &quot;avif&quot;</li>
               </ol>
             </div>
 
@@ -299,7 +301,7 @@ export default function ImageQualityTestPage() {
                 2. Check File Sizes
               </h3>
               <ol className="list-decimal list-inside space-y-1 ml-4">
-                <li>In Network tab, check the "Size" column</li>
+                <li>In Network tab, check the &quot;Size&quot; column</li>
                 <li>Images should be significantly smaller than original</li>
                 <li>WebP: ~30% smaller, AVIF: ~50% smaller</li>
               </ol>
@@ -335,8 +337,8 @@ export default function ImageQualityTestPage() {
               </h3>
               <ol className="list-decimal list-inside space-y-1 ml-4">
                 <li>Run Lighthouse audit (DevTools → Lighthouse)</li>
-                <li>Check "Properly sized images" - should be 100%</li>
-                <li>Check "Efficient image formats" - should be 100%</li>
+                <li>Check &quot;Properly sized images&quot; - should be 100%</li>
+                <li>Check &quot;Efficient image formats&quot; - should be 100%</li>
                 <li>Performance score should be 95+</li>
               </ol>
             </div>

@@ -15,9 +15,6 @@
 
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
-import { useRouter } from 'next/navigation';
 import {
   CheckCircle2,
   Sparkles,
@@ -27,10 +24,14 @@ import {
   ArrowRight,
   Settings,
 } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import React, { useState, useEffect } from 'react';
 
 import Button2 from '@/components/ui/Button2';
 import { fadeInUp, staggerContainer, staggerItem, checkmarkVariants } from '@/lib/animations';
 import apiClient from '@/lib/api/client';
+import { logger } from '@/lib/logger';
+import { m } from '@/lib/motion';
 
 import type { StepProps } from '../OnboardingWizard';
 
@@ -75,7 +76,7 @@ const CompletionStep: React.FC<StepProps> = ({ data }) => {
           setRecommendedJobs(response.data);
         }
       } catch (error) {
-        console.error('Failed to fetch recommended jobs:', error);
+        logger.error('Failed to fetch recommended jobs:', error);
       } finally {
         setIsLoading(false);
       }
@@ -104,7 +105,7 @@ const CompletionStep: React.FC<StepProps> = ({ data }) => {
   };
 
   return (
-    <motion.div
+    <m.div
       variants={staggerContainer}
       initial="hidden"
       animate="visible"
@@ -114,7 +115,7 @@ const CompletionStep: React.FC<StepProps> = ({ data }) => {
       {showConfetti && (
         <div className="fixed inset-0 pointer-events-none z-50">
           {[...Array(50)].map((_, i) => (
-            <motion.div
+            <m.div
               key={i}
               className="absolute w-2 h-2 rounded-full"
               style={{
@@ -145,8 +146,8 @@ const CompletionStep: React.FC<StepProps> = ({ data }) => {
       )}
 
       {/* Success animation */}
-      <motion.div variants={staggerItem} className="text-center">
-        <motion.div
+      <m.div variants={staggerItem} className="text-center">
+        <m.div
           initial={{ scale: 0 }}
           animate={{ scale: 1 }}
           transition={{
@@ -157,13 +158,13 @@ const CompletionStep: React.FC<StepProps> = ({ data }) => {
           }}
           className="inline-flex items-center justify-center w-24 h-24 rounded-full bg-gradient-to-br from-success-500 to-emerald-500 mb-6 relative"
         >
-          <motion.svg
+          <m.svg
             className="w-12 h-12 text-white"
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
           >
-            <motion.path
+            <m.path
               strokeLinecap="round"
               strokeLinejoin="round"
               strokeWidth={2}
@@ -172,29 +173,29 @@ const CompletionStep: React.FC<StepProps> = ({ data }) => {
               initial="hidden"
               animate="visible"
             />
-          </motion.svg>
+          </m.svg>
 
           {/* Glow effect */}
           <div className="absolute inset-0 rounded-full bg-success-500 opacity-20 blur-xl animate-pulse" />
-        </motion.div>
+        </m.div>
 
-        <motion.h3
+        <m.h3
           variants={fadeInUp}
           className="text-3xl font-bold text-neutral-900 dark:text-neutral-100 mb-3"
         >
           You&apos;re all set! 🎉
-        </motion.h3>
-        <motion.p
+        </m.h3>
+        <m.p
           variants={fadeInUp}
           className="text-lg text-neutral-600 dark:text-neutral-400 max-w-2xl mx-auto"
         >
           Welcome to Career Copilot! Your profile is complete and we&apos;re ready to help you
           find your dream job.
-        </motion.p>
-      </motion.div>
+        </m.p>
+      </m.div>
 
       {/* Stats summary */}
-      <motion.div
+      <m.div
         variants={staggerItem}
         className="grid grid-cols-1 md:grid-cols-3 gap-4"
       >
@@ -221,7 +222,7 @@ const CompletionStep: React.FC<StepProps> = ({ data }) => {
             bg: 'bg-primary-100 dark:bg-primary-900/30',
           },
         ].map((stat, index) => (
-          <motion.div
+          <m.div
             key={index}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -241,12 +242,12 @@ const CompletionStep: React.FC<StepProps> = ({ data }) => {
                 </p>
               </div>
             </div>
-          </motion.div>
+          </m.div>
         ))}
-      </motion.div>
+      </m.div>
 
       {/* Recommended jobs */}
-      <motion.div variants={staggerItem} className="space-y-4">
+      <m.div variants={staggerItem} className="space-y-4">
         <div className="flex items-center justify-between">
           <h4 className="text-lg font-semibold text-neutral-900 dark:text-neutral-100">
             Jobs we think you&apos;ll love
@@ -274,7 +275,7 @@ const CompletionStep: React.FC<StepProps> = ({ data }) => {
         ) : recommendedJobs.length > 0 ? (
           <div className="space-y-4">
             {recommendedJobs.map((job, index) => (
-              <motion.div
+              <m.div
                 key={job.id}
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
@@ -312,7 +313,7 @@ const CompletionStep: React.FC<StepProps> = ({ data }) => {
                   </div>
                   <ArrowRight className="h-5 w-5 text-neutral-400 flex-shrink-0" />
                 </div>
-              </motion.div>
+              </m.div>
             ))}
           </div>
         ) : (
@@ -323,10 +324,10 @@ const CompletionStep: React.FC<StepProps> = ({ data }) => {
             </p>
           </div>
         )}
-      </motion.div>
+      </m.div>
 
       {/* Action buttons */}
-      <motion.div
+      <m.div
         variants={staggerItem}
         className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-6"
       >
@@ -351,10 +352,10 @@ const CompletionStep: React.FC<StepProps> = ({ data }) => {
         >
           Browse Jobs
         </Button2>
-      </motion.div>
+      </m.div>
 
       {/* Footer note */}
-      <motion.div
+      <m.div
         variants={staggerItem}
         className="text-center pt-6 border-t border-neutral-200 dark:border-neutral-700"
       >
@@ -368,8 +369,8 @@ const CompletionStep: React.FC<StepProps> = ({ data }) => {
           <Settings className="h-4 w-4" />
           Go to Settings
         </button>
-      </motion.div>
-    </motion.div>
+      </m.div>
+    </m.div>
   );
 };
 

@@ -71,11 +71,18 @@ async def get_user_feedback(
 	current_user: User = Depends(get_current_user),
 	db: AsyncSession = Depends(get_db),
 ):
-	"""Get user's feedback items"""
-	# TODO: Fix FeedbackService to use async queries
-	# feedback_service = FeedbackService(db)
-	# feedback_items = feedback_service.get_user_feedback(current_user.id, status_filter, limit, offset)
-	# Temporary stub: return empty list
+	"""Get user's feedback items
+
+	Note: FeedbackService currently uses synchronous queries (SQLAlchemy Session).
+	For production use with async endpoints, consider:
+	1. Converting FeedbackService to use AsyncSession and async queries, OR
+	2. Using run_sync() to execute sync code in async context, OR
+	3. Implementing async queries directly in this endpoint
+
+	Current implementation returns empty list to maintain API contract.
+	"""
+	# FeedbackService requires sync Session, but endpoint uses AsyncSession
+	# Temporary: return empty list until service is converted to async
 	feedback_items = []
 
 	response = []

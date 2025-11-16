@@ -1,4 +1,5 @@
 import '@testing-library/jest-dom';
+import 'jest-axe/extend-expect';
 
 import { TextDecoder, TextEncoder } from 'util';
 

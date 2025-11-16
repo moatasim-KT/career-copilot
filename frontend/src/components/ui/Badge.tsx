@@ -1,6 +1,8 @@
 'use client';
 
-import { motion } from 'framer-motion';
+import React from 'react';
+
+import { m } from '@/lib/motion';
 import { cn } from '@/lib/utils';
 
 /**
@@ -10,7 +12,7 @@ import { cn } from '@/lib/utils';
  * Commonly used for notification counts, new items, etc.
  */
 
-interface BadgeProps {
+interface BadgeProps extends React.HTMLAttributes<HTMLSpanElement> {
   children: React.ReactNode;
   variant?: 'default' | 'primary' | 'success' | 'warning' | 'error' | 'info';
   size?: 'sm' | 'md' | 'lg';
@@ -41,6 +43,7 @@ export function Badge({
   className,
   animate = false,
   pulse = false,
+  ...rest
 }: BadgeProps) {
   const badgeContent = (
     <span
@@ -53,6 +56,7 @@ export function Badge({
         pulse && 'animate-pulse',
         className,
       )}
+      {...rest}
     >
       {children}
     </span>
@@ -60,14 +64,14 @@ export function Badge({
 
   if (animate) {
     return (
-      <motion.span
+      <m.span
         initial={{ scale: 0 }}
         animate={{ scale: 1 }}
         exit={{ scale: 0 }}
         transition={{ type: 'spring', stiffness: 500, damping: 30 }}
       >
         {badgeContent}
-      </motion.span>
+      </m.span>
     );
   }
 
@@ -88,6 +92,10 @@ export function NotificationBadge({ count, max = 99, className }: NotificationBa
   if (count === 0) return null;
 
   const displayCount = count > max ? `${max}+` : count;
+  const notificationLabel =
+    count > max
+      ? `${max} or more unread notifications`
+      : `${displayCount} unread notification${count === 1 ? '' : 's'}`;
 
   return (
     <Badge
@@ -95,6 +103,10 @@ export function NotificationBadge({ count, max = 99, className }: NotificationBa
       size="sm"
       animate
       className={cn('absolute -top-1 -right-1', className)}
+      role="status"
+      aria-label={notificationLabel}
+      aria-live="polite"
+      aria-atomic="true"
     >
       {displayCount}
     </Badge>
@@ -124,9 +136,15 @@ export function StatusBadge({ status, label, showDot = true, className }: Status
   const config = statusConfig[status];
 
   return (
-    <Badge variant={config.variant} size="md" className={cn('gap-1.5', className)}>
+    <Badge
+      variant={config.variant}
+      size="md"
+      className={cn('gap-1.5', className)}
+      role="status"
+      aria-label={`${config.label} status`}
+    >
       {showDot && (
-        <span className={cn('w-1.5 h-1.5 rounded-full', config.dotColor)} />
+        <span className={cn('w-1.5 h-1.5 rounded-full', config.dotColor)} aria-hidden="true" />
       )}
       {config.label}
     </Badge>

@@ -1,0 +1,19 @@
+Dear Hiring Manager,
+
+I am writing to express my strong interest in the {{ job_title }} position at {{ company }}. With my background in {{ user_skills }} and {{ experience_level }} of professional experience, I am confident in my ability to contribute meaningfully to your team.
+
+{% if company_mission %}
+I am particularly drawn to {{ company }}'s commitment to {{ company_mission }}. This alignment with my professional values and career goals makes this opportunity especially compelling.
+{% endif %}
+
+Throughout my career, I have developed expertise in:
+{% for skill in user_skills.split(',')[:3] %}
+- {{ skill.strip() }}
+{% endfor %}
+
+These skills, combined with my proven track record of delivering results, position me well to make an immediate impact in the {{ job_title }} role.
+
+I would welcome the opportunity to discuss how my experience and qualifications align with {{ company }}'s needs. Thank you for considering my application.
+
+Sincerely,
+{{ user_name }}

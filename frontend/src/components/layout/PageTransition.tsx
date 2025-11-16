@@ -1,10 +1,10 @@
 'use client';
 
-import { AnimatePresence, motion } from 'framer-motion';
 import { usePathname } from 'next/navigation';
 import React from 'react';
 
 import { pageTransition } from '@/lib/animations';
+import { AnimatePresence, m, MotionProvider } from '@/lib/motion';
 
 interface PageTransitionProps {
     children: React.ReactNode;
@@ -26,17 +26,19 @@ export default function PageTransition({ children }: PageTransitionProps) {
     const pathname = usePathname();
 
     return (
-        <AnimatePresence mode="wait" initial={false}>
-            <motion.div
-                key={pathname}
-                variants={pageTransition}
-                initial="initial"
-                animate="animate"
-                exit="exit"
-                style={{ minHeight: '100vh' }}
-            >
-                {children}
-            </motion.div>
-        </AnimatePresence>
+        <MotionProvider>
+            <AnimatePresence mode="wait" initial={false}>
+                <m.div
+                    key={pathname}
+                    variants={pageTransition}
+                    initial="initial"
+                    animate="animate"
+                    exit="exit"
+                    style={{ minHeight: '100vh' }}
+                >
+                    {children}
+                </m.div>
+            </AnimatePresence>
+        </MotionProvider>
     );
 }

@@ -7,9 +7,10 @@
 
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { motion } from 'framer-motion';
 import { GripVertical } from 'lucide-react';
 import { ReactNode } from 'react';
+
+import { m } from '@/lib/motion';
 
 interface DraggableWidgetProps {
   id: string;
@@ -40,7 +41,7 @@ export function DraggableWidget({ id, children, gridSpan }: DraggableWidgetProps
   const colSpanClass = gridSpan?.cols === 2 ? 'lg:col-span-2' : 'lg:col-span-1';
 
   return (
-    <motion.div
+    <m.div
       ref={setNodeRef}
       style={style}
       className={`relative group ${colSpanClass}`}
@@ -67,6 +68,6 @@ export function DraggableWidget({ id, children, gridSpan }: DraggableWidgetProps
       {isDragging && (
         <div className="absolute inset-0 border-2 border-dashed border-blue-500 dark:border-blue-400 rounded-lg bg-blue-50/50 dark:bg-blue-900/20 pointer-events-none" />
       )}
-    </motion.div>
+    </m.div>
   );
 }

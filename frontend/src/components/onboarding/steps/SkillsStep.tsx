@@ -16,13 +16,13 @@
 
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
 import { Search, Plus, X, Star, TrendingUp, Code, Database, Cloud, Palette } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
 
+import { Badge } from '@/components/ui/Badge';
 import Input2 from '@/components/ui/Input2';
-import Badge from '@/components/ui/Badge';
 import { staggerContainer, staggerItem } from '@/lib/animations';
+import { m, AnimatePresence } from '@/lib/motion';
 import { cn } from '@/lib/utils';
 
 import type { StepProps } from '../OnboardingWizard';
@@ -114,7 +114,7 @@ const skillCategories = [
  * Flatten all skills for search
  */
 const allSkills = skillCategories.flatMap((category) =>
-  category.skills.map((skill) => ({ ...skill, category: category.name }))
+  category.skills.map((skill) => ({ ...skill, category: category.name })),
 );
 
 /**
@@ -162,8 +162,8 @@ const SkillsStep: React.FC<StepProps> = ({ data, onChange }) => {
   const handleProficiencyChange = (skillValue: string, proficiency: any) => {
     setSelectedSkills(
       selectedSkills.map((skill) =>
-        skill.value === skillValue ? { ...skill, proficiency } : skill
-      )
+        skill.value === skillValue ? { ...skill, proficiency } : skill,
+      ),
     );
   };
 
@@ -185,8 +185,8 @@ const SkillsStep: React.FC<StepProps> = ({ data, onChange }) => {
    */
   const filteredSkills = searchQuery
     ? allSkills.filter((skill) =>
-        skill.label.toLowerCase().includes(searchQuery.toLowerCase())
-      )
+      skill.label.toLowerCase().includes(searchQuery.toLowerCase()),
+    )
     : [];
 
   /**
@@ -201,14 +201,14 @@ const SkillsStep: React.FC<StepProps> = ({ data, onChange }) => {
   ];
 
   return (
-    <motion.div
+    <m.div
       variants={staggerContainer}
       initial="hidden"
       animate="visible"
       className="space-y-8"
     >
       {/* Header */}
-      <motion.div variants={staggerItem} className="text-center">
+      <m.div variants={staggerItem} className="text-center">
         <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary-100 dark:bg-primary-900/30 mb-4">
           <Star className="h-8 w-8 text-primary-600 dark:text-primary-400" />
         </div>
@@ -219,10 +219,10 @@ const SkillsStep: React.FC<StepProps> = ({ data, onChange }) => {
           Select your technical skills to help us match you with the right opportunities.
           You can add proficiency levels later.
         </p>
-      </motion.div>
+      </m.div>
 
       {/* Search */}
-      <motion.div variants={staggerItem}>
+      <m.div variants={staggerItem}>
         <Input2
           placeholder="Search for skills..."
           value={searchQuery}
@@ -235,7 +235,7 @@ const SkillsStep: React.FC<StepProps> = ({ data, onChange }) => {
         {/* Search results */}
         <AnimatePresence>
           {searchQuery && filteredSkills.length > 0 && (
-            <motion.div
+            <m.div
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
@@ -251,21 +251,21 @@ const SkillsStep: React.FC<StepProps> = ({ data, onChange }) => {
                       'px-3 py-1.5 rounded-full text-sm font-medium transition-colors',
                       selectedSkills.some((s) => s.value === skill.value)
                         ? 'bg-neutral-100 dark:bg-neutral-700 text-neutral-400 cursor-not-allowed'
-                        : 'bg-primary-50 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300 hover:bg-primary-100 dark:hover:bg-primary-900/50'
+                        : 'bg-primary-50 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300 hover:bg-primary-100 dark:hover:bg-primary-900/50',
                     )}
                   >
                     {skill.label}
                   </button>
                 ))}
               </div>
-            </motion.div>
+            </m.div>
           )}
         </AnimatePresence>
-      </motion.div>
+      </m.div>
 
       {/* Trending skills */}
       {!searchQuery && selectedSkills.length === 0 && (
-        <motion.div variants={staggerItem}>
+        <m.div variants={staggerItem}>
           <div className="flex items-center gap-2 mb-3">
             <TrendingUp className="h-4 w-4 text-neutral-600 dark:text-neutral-400" />
             <h4 className="text-sm font-medium text-neutral-700 dark:text-neutral-300">
@@ -283,12 +283,12 @@ const SkillsStep: React.FC<StepProps> = ({ data, onChange }) => {
               </button>
             ))}
           </div>
-        </motion.div>
+        </m.div>
       )}
 
       {/* Skill categories */}
       {!searchQuery && (
-        <motion.div variants={staggerItem} className="space-y-4">
+        <m.div variants={staggerItem} className="space-y-4">
           <h4 className="text-sm font-medium text-neutral-700 dark:text-neutral-300">
             Browse by Category
           </h4>
@@ -303,7 +303,7 @@ const SkillsStep: React.FC<StepProps> = ({ data, onChange }) => {
                   'p-4 rounded-lg border-2 transition-all text-left',
                   activeCategory === category.id
                     ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/30'
-                    : 'border-neutral-200 dark:border-neutral-700 hover:border-primary-300 dark:hover:border-primary-700'
+                    : 'border-neutral-200 dark:border-neutral-700 hover:border-primary-300 dark:hover:border-primary-700',
                 )}
               >
                 <div className="flex items-center gap-2 mb-1">
@@ -322,7 +322,7 @@ const SkillsStep: React.FC<StepProps> = ({ data, onChange }) => {
           {/* Category skills */}
           <AnimatePresence>
             {activeCategory && (
-              <motion.div
+              <m.div
                 initial={{ opacity: 0, height: 0 }}
                 animate={{ opacity: 1, height: 'auto' }}
                 exit={{ opacity: 0, height: 0 }}
@@ -339,7 +339,7 @@ const SkillsStep: React.FC<StepProps> = ({ data, onChange }) => {
                             handleAddSkill(
                               skill.value,
                               skill.label,
-                              skillCategories.find((c) => c.id === activeCategory)?.name
+                              skillCategories.find((c) => c.id === activeCategory)?.name,
                             )
                           }
                           disabled={selectedSkills.some((s) => s.value === skill.value)}
@@ -347,7 +347,7 @@ const SkillsStep: React.FC<StepProps> = ({ data, onChange }) => {
                             'px-3 py-1.5 rounded-full text-sm font-medium transition-colors',
                             selectedSkills.some((s) => s.value === skill.value)
                               ? 'bg-neutral-200 dark:bg-neutral-700 text-neutral-400 cursor-not-allowed'
-                              : 'bg-white dark:bg-neutral-800 text-neutral-700 dark:text-neutral-300 hover:bg-primary-50 dark:hover:bg-primary-900/30 border border-neutral-200 dark:border-neutral-700'
+                              : 'bg-white dark:bg-neutral-800 text-neutral-700 dark:text-neutral-300 hover:bg-primary-50 dark:hover:bg-primary-900/30 border border-neutral-200 dark:border-neutral-700',
                           )}
                         >
                           {skill.label}
@@ -355,15 +355,15 @@ const SkillsStep: React.FC<StepProps> = ({ data, onChange }) => {
                       ))}
                   </div>
                 </div>
-              </motion.div>
+              </m.div>
             )}
           </AnimatePresence>
-        </motion.div>
+        </m.div>
       )}
 
       {/* Selected skills */}
       {selectedSkills.length > 0 && (
-        <motion.div variants={staggerItem} className="space-y-4">
+        <m.div variants={staggerItem} className="space-y-4">
           <div className="flex items-center justify-between">
             <h4 className="text-sm font-medium text-neutral-700 dark:text-neutral-300">
               Your Skills ({selectedSkills.length})
@@ -379,7 +379,7 @@ const SkillsStep: React.FC<StepProps> = ({ data, onChange }) => {
           <div className="space-y-3">
             <AnimatePresence>
               {selectedSkills.map((skill) => (
-                <motion.div
+                <m.div
                   key={skill.value}
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
@@ -392,7 +392,7 @@ const SkillsStep: React.FC<StepProps> = ({ data, onChange }) => {
                         {skill.label}
                       </span>
                       {skill.category && (
-                        <Badge variant="secondary" size="sm">
+                        <Badge variant="info" size="sm">
                           {skill.category}
                         </Badge>
                       )}
@@ -418,15 +418,15 @@ const SkillsStep: React.FC<StepProps> = ({ data, onChange }) => {
                   >
                     <X className="h-4 w-4" />
                   </button>
-                </motion.div>
+                </m.div>
               ))}
             </AnimatePresence>
           </div>
-        </motion.div>
+        </m.div>
       )}
 
       {/* Add custom skill */}
-      <motion.div variants={staggerItem} className="pt-6 border-t border-neutral-200 dark:border-neutral-700">
+      <m.div variants={staggerItem} className="pt-6 border-t border-neutral-200 dark:border-neutral-700">
         <h4 className="text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-3">
           Don&apos;t see your skill? Add it manually
         </h4>
@@ -450,27 +450,27 @@ const SkillsStep: React.FC<StepProps> = ({ data, onChange }) => {
               'px-4 py-2 rounded-lg font-medium transition-colors flex items-center gap-2',
               customSkill.trim()
                 ? 'bg-primary-600 text-white hover:bg-primary-700'
-                : 'bg-neutral-200 dark:bg-neutral-700 text-neutral-400 cursor-not-allowed'
+                : 'bg-neutral-200 dark:bg-neutral-700 text-neutral-400 cursor-not-allowed',
             )}
           >
             <Plus className="h-4 w-4" />
             Add
           </button>
         </div>
-      </motion.div>
+      </m.div>
 
       {/* Helper text */}
       {selectedSkills.length === 0 && (
-        <motion.div
+        <m.div
           variants={staggerItem}
           className="text-center p-6 bg-neutral-50 dark:bg-neutral-800/50 rounded-lg"
         >
           <p className="text-sm text-neutral-600 dark:text-neutral-400">
             Select at least 3-5 skills to get better job recommendations
           </p>
-        </motion.div>
+        </m.div>
       )}
-    </motion.div>
+    </m.div>
   );
 };
 

@@ -39,6 +39,7 @@ class DocumentTemplate(Base):
 	# Relationships
 	user = relationship("User", back_populates="document_templates")
 	generated_documents = relationship("GeneratedDocument", back_populates="template", cascade="all, delete-orphan")
+	parent_template = relationship("DocumentTemplate", remote_side=[id], back_populates="child_templates")
 	child_templates = relationship("DocumentTemplate", back_populates="parent_template")
 
 	def __repr__(self):

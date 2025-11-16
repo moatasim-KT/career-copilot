@@ -4,8 +4,9 @@
  */
 
 import { useState, useEffect, useCallback } from 'react';
-import { DashboardWidget, DEFAULT_DASHBOARD_WIDGETS } from '@/types/dashboard';
+
 import { logger } from '@/lib/logger';
+import { DashboardWidget, DEFAULT_DASHBOARD_WIDGETS } from '@/types/dashboard';
 
 const STORAGE_KEY = 'dashboard-layout';
 
@@ -67,7 +68,7 @@ export function useDashboardLayout() {
         return updatedWidgets;
       });
     },
-    [saveLayout]
+    [saveLayout],
   );
 
   // Toggle widget visibility
@@ -77,13 +78,13 @@ export function useDashboardLayout() {
         const newWidgets = prevWidgets.map((widget) =>
           widget.id === widgetId
             ? { ...widget, visible: !widget.visible }
-            : widget
+            : widget,
         );
         saveLayout(newWidgets);
         return newWidgets;
       });
     },
-    [saveLayout]
+    [saveLayout],
   );
 
   // Reset to default layout

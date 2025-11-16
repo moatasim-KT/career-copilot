@@ -52,7 +52,7 @@ export default function CalendarSettingsPage() {
             setConnecting(provider);
             const redirectUri = `${window.location.origin}/settings/calendar/callback`;
             const response = await CalendarService.getAuthUrl(provider, redirectUri);
-            
+
             if (response.data?.authorization_url) {
                 // Redirect to OAuth provider
                 window.location.href = response.data.authorization_url;
@@ -138,7 +138,7 @@ export default function CalendarSettingsPage() {
                                     Connect your Google Calendar to automatically create and sync interview events.
                                     Events will be synced in real-time between Career Copilot and Google Calendar.
                                 </p>
-                                
+
                                 {isConnected('google') ? (
                                     <div className="space-y-2">
                                         <div className="text-sm">
@@ -206,7 +206,7 @@ export default function CalendarSettingsPage() {
                                     Connect your Microsoft Outlook calendar to automatically create and sync interview events.
                                     Events will be synced in real-time between Career Copilot and Outlook.
                                 </p>
-                                
+
                                 {isConnected('outlook') ? (
                                     <div className="space-y-2">
                                         <div className="text-sm">

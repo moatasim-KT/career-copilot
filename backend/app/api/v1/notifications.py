@@ -41,6 +41,7 @@ from ...schemas.notification import (
 	NotificationStatistics,
 )
 from ...services.notification_service import notification_service as scheduled_notification_service
+from ...utils.datetime import utc_now
 
 router = APIRouter(prefix="/notifications", tags=["notifications"])
 
@@ -155,7 +156,7 @@ async def mark_notification_read(
 
 	if not notification.is_read:
 		notification.is_read = True
-		notification.read_at = datetime.utcnow()
+		notification.read_at = utc_now()
 		await db.commit()
 		await db.refresh(notification)
 
@@ -233,7 +234,7 @@ async def mark_all_notifications_read(
 	count = 0
 	for notification in notifications:
 		notification.is_read = True
-		notification.read_at = datetime.utcnow()
+		notification.read_at = utc_now()
 		count += 1
 
 	await db.commit()
@@ -265,7 +266,7 @@ async def mark_notifications_read(
 	count = 0
 	for notification in notifications:
 		notification.is_read = True
-		notification.read_at = datetime.utcnow()
+		notification.read_at = utc_now()
 		count += 1
 
 	await db.commit()
@@ -386,7 +387,7 @@ async def update_notification_preferences(
 	for field, value in update_data.items():
 		setattr(preferences, field, value)
 
-	preferences.updated_at = datetime.utcnow()
+	preferences.updated_at = utc_now()
 
 	await db.commit()
 	await db.refresh(preferences)
@@ -591,7 +592,7 @@ async def get_notification_statistics(
 	notifications_by_priority = {row[0].value: row[1] for row in priority_result.all()}
 
 	# Notifications today
-	today_start = datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
+	today_start = utc_now().replace(hour=0, minute=0, second=0, microsecond=0)
 	today_query = (
 		select(func.count()).select_from(Notification).where(and_(Notification.user_id == current_user.id, Notification.created_at >= today_start))
 	)

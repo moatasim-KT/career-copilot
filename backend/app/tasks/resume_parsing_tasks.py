@@ -2,16 +2,17 @@
 Background tasks for resume parsing
 """
 
-from typing import Dict, Any
 import os
 import traceback
+from pathlib import Path
+from tempfile import gettempdir
+from typing import Any, Dict
 
 from app.core.celery_app import celery_app
 from app.core.database import get_db
 from app.core.logging import get_logger
 from app.models.resume_upload import ResumeUpload
 from app.services.resume_parser_service import ResumeParserService
-
 
 logger = get_logger(__name__)
 
@@ -72,12 +73,18 @@ def parse_resume_async(self, resume_upload_id: int, file_path: str, filename: st
 		db.commit()
 
 		# Clean up temporary file if needed
-		if os.path.exists(file_path) and "/tmp/" in file_path:
+		temp_dir = Path(gettempdir()).resolve()
+		try:
+			resolved_path = Path(file_path).resolve()
+		except FileNotFoundError:
+			resolved_path = Path(file_path)
+
+		if resolved_path.exists() and resolved_path.is_file() and resolved_path.is_relative_to(temp_dir):
 			try:
-				os.remove(file_path)
-				logger.info(f"Cleaned up temporary file: {file_path}")
+				resolved_path.unlink()
+				logger.info(f"Cleaned up temporary file: {resolved_path}")
 			except Exception as e:
-				logger.warning(f"Could not clean up temporary file {file_path}: {e}")
+				logger.warning(f"Could not clean up temporary file {resolved_path}: {e}")
 
 		self.update_state(state="SUCCESS", meta={"current": 100, "total": 100, "status": "Resume parsing completed successfully"})
 

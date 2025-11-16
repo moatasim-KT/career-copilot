@@ -21,10 +21,11 @@ import {
 } from 'lucide-react';
 import { useState } from 'react';
 
-import Badge from '@/components/ui/Badge';
+import { Badge } from '@/components/ui/Badge';
 import Button2 from '@/components/ui/Button2';
-import Card, { CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
+import Card2, { CardHeader, CardTitle, CardContent } from '@/components/ui/Card2';
 import apiClient from '@/lib/api/client';
+import { logger } from '@/lib/logger';
 
 interface SocialFeaturesProps {
     userId: string;
@@ -82,7 +83,7 @@ function ShareDialog({
 
     return (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-            <Card className="max-w-md w-full mx-4">
+            <Card2 className="max-w-md w-full mx-4">
                 <CardHeader>
                     <div className="flex items-center justify-between">
                         <CardTitle>Share Achievement</CardTitle>
@@ -111,29 +112,29 @@ function ShareDialog({
 
                     {/* Share Options */}
                     <div className="space-y-2">
-                                            <Button2
-                                                onClick={handleLinkedInShare}
-                                                className="w-full flex items-center justify-center gap-2 bg-[#0077b5] hover:bg-[#006399]"
-                                            >
-                                                <Linkedin className="w-5 h-5" />
-                                                Share on LinkedIn
-                                            </Button2>                    <Button2
-                        onClick={handleTwitterShare}
-                        className="w-full flex items-center justify-center gap-2 bg-[#1da1f2] hover:bg-[#1a91da]"
-                    >
-                        <Twitter className="w-5 h-5" />
-                        Share on Twitter
-                    </Button2>
-                                            <Button2
-                                                onClick={handleCopyLink}
-                                                variant="outline"
-                                                className="w-full flex items-center justify-center gap-2"
-                                            >
-                                                {copied ? <Check className="w-5 h-5" /> : <Copy className="w-5 h-5" />}
-                                                {copied ? 'Link Copied!' : 'Copy Link'}
-                                            </Button2>                    </div>
+                        <Button2
+                            onClick={handleLinkedInShare}
+                            className="w-full flex items-center justify-center gap-2 bg-[#0077b5] hover:bg-[#006399]"
+                        >
+                            <Linkedin className="w-5 h-5" />
+                            Share on LinkedIn
+                        </Button2>                    <Button2
+                            onClick={handleTwitterShare}
+                            className="w-full flex items-center justify-center gap-2 bg-[#1da1f2] hover:bg-[#1a91da]"
+                        >
+                            <Twitter className="w-5 h-5" />
+                            Share on Twitter
+                        </Button2>
+                        <Button2
+                            onClick={handleCopyLink}
+                            variant="outline"
+                            className="w-full flex items-center justify-center gap-2"
+                        >
+                            {copied ? <Check className="w-5 h-5" /> : <Copy className="w-5 h-5" />}
+                            {copied ? 'Link Copied!' : 'Copy Link'}
+                        </Button2>                    </div>
                 </CardContent>
-            </Card>
+            </Card2>
         </div>
     );
 }
@@ -149,7 +150,7 @@ function MentorCard({
     onConnect: () => void;
 }) {
     return (
-        <Card className="hover:shadow-md transition-shadow">
+        <Card2 className="hover:shadow-md transition-shadow">
             <CardContent className="p-4">
                 <div className="flex items-start gap-3">
                     {/* Avatar */}
@@ -180,7 +181,7 @@ function MentorCard({
                         {/* Expertise Tags */}
                         <div className="flex flex-wrap gap-1 mt-2">
                             {mentor.expertise.slice(0, 3).map((skill) => (
-                                <Badge key={skill} variant="secondary" className="text-xs">
+                                <Badge key={skill} variant="info" className="text-xs">
                                     {skill}
                                 </Badge>
                             ))}
@@ -203,7 +204,7 @@ function MentorCard({
                     </div>
                 </div>
             </CardContent>
-        </Card>
+        </Card2>
     );
 }
 
@@ -231,13 +232,13 @@ export function SocialFeatures({ userId, achievements = [] }: SocialFeaturesProp
             const { data, error } = await apiClient.social.getMentors(parseInt(userId), 10);
 
             if (error) {
-                console.error('Failed to load mentors:', error);
+                logger.error('Failed to load mentors:', error);
                 return;
             }
 
             setMentors(data || []);
         } catch (error) {
-            console.error('Failed to load mentors:', error);
+            logger.error('Failed to load mentors:', error);
         } finally {
             setLoading(false);
         }
@@ -253,7 +254,7 @@ export function SocialFeatures({ userId, achievements = [] }: SocialFeaturesProp
             const { error } = await apiClient.social.createConnection(parseInt(userId), mentorId);
 
             if (error) {
-                console.error('Failed to connect:', error);
+                logger.error('Failed to connect:', error);
                 alert('Failed to send connection request');
                 return;
             }
@@ -261,7 +262,7 @@ export function SocialFeatures({ userId, achievements = [] }: SocialFeaturesProp
             // Show success notification
             alert('Connection request sent!');
         } catch (error) {
-            console.error('Failed to connect:', error);
+            logger.error('Failed to connect:', error);
             alert('Failed to send connection request');
         }
     };
@@ -270,7 +271,7 @@ export function SocialFeatures({ userId, achievements = [] }: SocialFeaturesProp
         <div className="space-y-6">
             {/* Recent Achievements */}
             {achievements.length > 0 && (
-                <Card>
+                <Card2>
                     <CardHeader>
                         <CardTitle className="flex items-center gap-2">
                             <Award className="w-5 h-5 text-yellow-500" />
@@ -302,11 +303,11 @@ export function SocialFeatures({ userId, achievements = [] }: SocialFeaturesProp
                             ))}
                         </div>
                     </CardContent>
-                </Card>
+                </Card2>
             )}
 
             {/* Find Mentors */}
-            <Card>
+            <Card2>
                 <CardHeader>
                     <div className="flex items-center justify-between">
                         <CardTitle className="flex items-center gap-2">
@@ -345,7 +346,7 @@ export function SocialFeatures({ userId, achievements = [] }: SocialFeaturesProp
                         </div>
                     )}
                 </CardContent>
-            </Card>
+            </Card2>
 
             {/* Share Dialog */}
             {showShareDialog && selectedAchievement && (

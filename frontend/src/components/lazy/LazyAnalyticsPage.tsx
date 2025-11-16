@@ -45,7 +45,7 @@ const AnalyticsPage = dynamic(
       </div>
     ),
     ssr: false, // Disable SSR for charts as they're client-side only
-  }
+  },
 );
 
 export default function LazyAnalyticsPage() {

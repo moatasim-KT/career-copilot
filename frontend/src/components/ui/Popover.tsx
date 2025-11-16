@@ -6,7 +6,7 @@ import { cn } from '@/lib/utils';
 
 export function Popover({ children, open, onOpenChange }: { children: React.ReactNode; open: boolean; onOpenChange: (open: boolean) => void }) {
   return (
-    <HeadlessPopover open={open} onChange={onOpenChange} as="div" className="relative">
+    <HeadlessPopover as="div" className="relative" {...({ open, onClose: () => onOpenChange(false) } as any)}>
       {children}
     </HeadlessPopover>
   );

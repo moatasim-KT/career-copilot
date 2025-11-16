@@ -1,0 +1,198 @@
+name: Bundle Size Check
+
+on:
+  pull_request:
+    branches: [main, develop]
+    paths:
+      - 'frontend/**'
+      - '.github/workflows/bundle-size.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'frontend/**'
+
+jobs:
+  bundle-size:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build application
+        run: npm run build
+        env:
+          NODE_ENV: production
+          # Disable telemetry for CI
+          NEXT_TELEMETRY_DISABLED: 1
+
+      - name: Check bundle sizes
+        id: bundle-check
+        run: node scripts/check-bundle-size.js
+        continue-on-error: true
+
+      - name: Generate bundle analysis
+        if: always()
+        run: |
+          echo "## 📦 Bundle Size Report" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          # Get chunk information
+          if [ -d ".next/static/chunks" ]; then
+            TOTAL_SIZE=$(find .next/static/chunks -name "*.js" -type f -exec du -ch {} + | grep total$ | awk '{print $1}')
+            CHUNK_COUNT=$(find .next/static/chunks -name "*.js" -type f | wc -l)
+            LARGEST_CHUNK=$(find .next/static/chunks -name "*.js" -type f -exec du -h {} + | sort -rh | head -1)
+            
+            echo "### Summary" >> $GITHUB_STEP_SUMMARY
+            echo "- **Total Bundle Size**: $TOTAL_SIZE" >> $GITHUB_STEP_SUMMARY
+            echo "- **Number of Chunks**: $CHUNK_COUNT" >> $GITHUB_STEP_SUMMARY
+            echo "- **Largest Chunk**: $LARGEST_CHUNK" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            
+            echo "### Top 10 Largest Chunks" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "| Rank | Size | File |" >> $GITHUB_STEP_SUMMARY
+            echo "|------|------|------|" >> $GITHUB_STEP_SUMMARY
+            
+            find .next/static/chunks -name "*.js" -type f -exec du -h {} + | \
+              sort -rh | \
+              head -10 | \
+              nl | \
+              awk '{printf "| %s | %s | `%s` |\n", $1, $2, $3}' >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ Build output not found" >> $GITHUB_STEP_SUMMARY
+          fi
+
+      - name: Comment PR with bundle size
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const path = require('path');
+            
+            // Read bundle size information
+            const chunksDir = path.join(process.env.GITHUB_WORKSPACE, 'frontend/.next/static/chunks');
+            
+            if (!fs.existsSync(chunksDir)) {
+              console.log('Chunks directory not found');
+              return;
+            }
+            
+            const files = fs.readdirSync(chunksDir)
+              .filter(f => f.endsWith('.js'))
+              .map(f => {
+                const stat = fs.statSync(path.join(chunksDir, f));
+                return { name: f, size: stat.size };
+              })
+              .sort((a, b) => b.size - a.size);
+            
+            const totalSize = files.reduce((sum, f) => sum + f.size, 0);
+            const formatBytes = (bytes) => `${(bytes / 1024).toFixed(2)} KB`;
+            
+            const warningThreshold = 200 * 1024;
+            const errorThreshold = 250 * 1024;
+            
+            const largeChunks = files.filter(f => f.size > errorThreshold);
+            const warningChunks = files.filter(f => f.size > warningThreshold && f.size <= errorThreshold);
+            
+            let status = '✅ All bundles within limits';
+            if (largeChunks.length > 0) {
+              status = `❌ ${largeChunks.length} chunk(s) exceed size limit`;
+            } else if (warningChunks.length > 0) {
+              status = `⚠️ ${warningChunks.length} chunk(s) approaching size limit`;
+            }
+            
+            const comment = `## 📦 Bundle Size Analysis
+            
+            ${status}
+            
+            ### Summary
+            - **Total Size**: ${formatBytes(totalSize)}
+            - **Total Chunks**: ${files.length}
+            - **Largest Chunk**: ${formatBytes(files[0]?.size || 0)}
+            
+            ### Budget Status
+            - ✅ **OK**: < 200 KB
+            - ⚠️ **Warning**: 200-250 KB
+            - ❌ **Error**: > 250 KB
+            
+            ${largeChunks.length > 0 ? `
+            ### ❌ Chunks Exceeding Limit (${errorThreshold / 1024} KB)
+            ${largeChunks.slice(0, 5).map(f => `- \`${f.name}\`: ${formatBytes(f.size)}`).join('\n')}
+            ${largeChunks.length > 5 ? `\n_... and ${largeChunks.length - 5} more_` : ''}
+            ` : ''}
+            
+            ${warningChunks.length > 0 ? `
+            ### ⚠️ Chunks Approaching Limit
+            ${warningChunks.slice(0, 5).map(f => `- \`${f.name}\`: ${formatBytes(f.size)}`).join('\n')}
+            ${warningChunks.length > 5 ? `\n_... and ${warningChunks.length - 5} more_` : ''}
+            ` : ''}
+            
+            ### Top 5 Largest Chunks
+            ${files.slice(0, 5).map((f, i) => {
+              const emoji = f.size > errorThreshold ? '❌' : f.size > warningThreshold ? '⚠️' : '✅';
+              return `${i + 1}. ${emoji} \`${f.name}\`: **${formatBytes(f.size)}**`;
+            }).join('\n')}
+            
+            ---
+            <sub>💡 Run \`ANALYZE=true npm run build\` locally for detailed bundle analysis</sub>
+            `;
+            
+            // Find existing comment
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+            
+            const botComment = comments.find(c => 
+              c.user.type === 'Bot' && c.body.includes('Bundle Size Analysis')
+            );
+            
+            if (botComment) {
+              // Update existing comment
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: botComment.id,
+                body: comment,
+              });
+            } else {
+              // Create new comment
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: comment,
+              });
+            }
+
+      - name: Fail if bundle size exceeds limit
+        if: steps.bundle-check.outcome == 'failure'
+        run: |
+          echo "::error::Bundle size check failed. One or more bundles exceed the size limit."
+          exit 1
+
+      - name: Upload bundle analysis
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: bundle-analysis-${{ github.sha }}
+          path: |
+            frontend/.next/analyze/
+            frontend/.next/static/chunks/
+          retention-days: 30

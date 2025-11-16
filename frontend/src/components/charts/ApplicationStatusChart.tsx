@@ -1,12 +1,14 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
-import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend, Sector } from 'recharts';
 import { useRouter } from 'next/navigation';
-import { motion } from 'framer-motion';
-import { ChartWrapper } from './ChartWrapper';
+import { useState, useEffect, useCallback } from 'react';
+import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend, Sector } from 'recharts';
+
 import { apiClient } from '@/lib/api';
 import { logger } from '@/lib/logger';
+import { m } from '@/lib/motion';
+
+import { ChartWrapper } from './ChartWrapper';
 
 interface ApplicationStatusData {
   name: string;
@@ -44,7 +46,7 @@ const CustomTooltip: React.FC<CustomTooltipProps> = ({ active, payload }) => {
   if (active && payload && payload.length) {
     const data = payload[0].payload;
     return (
-      <motion.div
+      <m.div
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
         className="bg-white dark:bg-neutral-800 p-3 rounded-lg shadow-lg border border-neutral-200 dark:border-neutral-700"
@@ -58,7 +60,7 @@ const CustomTooltip: React.FC<CustomTooltipProps> = ({ active, payload }) => {
         <p className="text-sm text-neutral-600 dark:text-neutral-400">
           Percentage: <span className="font-medium">{data.percentage}%</span>
         </p>
-      </motion.div>
+      </m.div>
     );
   }
   return null;
@@ -153,7 +155,7 @@ interface ApplicationStatusChartProps {
  * - Interactive tooltips with counts and percentages
  * - Click slice to filter applications by status
  * - Smooth animations on load and data changes
- * - Dark mode support
+      window.location.href = `/applications?status=${data.name.toLowerCase()}`;
  * - Active slice highlighting
  * - CSV/PNG export
  * - Responsive design
@@ -166,7 +168,6 @@ export const ApplicationStatusChart: React.FC<ApplicationStatusChartProps> = ({
   const [data, setData] = useState<ApplicationStatusData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [activeIndex, setActiveIndex] = useState<number | undefined>(undefined);
   const [isDarkMode, setIsDarkMode] = useState(false);
 
   // Detect dark mode
@@ -174,26 +175,26 @@ export const ApplicationStatusChart: React.FC<ApplicationStatusChartProps> = ({
     const checkDarkMode = () => {
       setIsDarkMode(document.documentElement.classList.contains('dark'));
     };
-    
+
     checkDarkMode();
-    
+
     // Watch for theme changes
     const observer = new MutationObserver(checkDarkMode);
     observer.observe(document.documentElement, {
       attributes: true,
       attributeFilter: ['class'],
     });
-    
+
     return () => observer.disconnect();
   }, []);
 
   const fetchData = useCallback(async () => {
     setIsLoading(true);
     setError(null);
-    
+
     try {
       const response = await apiClient.getAnalyticsSummary();
-      
+
       if (response.error || !response.data) {
         throw new Error(response.error || 'Failed to fetch data');
       }
@@ -205,7 +206,7 @@ export const ApplicationStatusChart: React.FC<ApplicationStatusChartProps> = ({
         .map(([status, count]) => ({
           name: status.charAt(0).toUpperCase() + status.slice(1),
           value: count as number,
-          color: isDarkMode 
+          color: isDarkMode
             ? STATUS_COLORS_DARK[status.charAt(0).toUpperCase() + status.slice(1)] || '#9ca3af'
             : STATUS_COLORS[status.charAt(0).toUpperCase() + status.slice(1)] || '#6b7280',
           percentage: total > 0 ? Number(((count as number / total) * 100).toFixed(1)) : 0,
@@ -226,9 +227,9 @@ export const ApplicationStatusChart: React.FC<ApplicationStatusChartProps> = ({
     fetchData();
   }, [fetchData]);
 
-  const handlePieClick = (data: ApplicationStatusData, index: number) => {
+  const handlePieClick = (data: ApplicationStatusData) => {
     logger.info('ApplicationStatusChart: Slice clicked', { status: data.name });
-    
+
     if (onStatusClick) {
       onStatusClick(data.name.toLowerCase());
     } else {
@@ -262,12 +263,12 @@ export const ApplicationStatusChart: React.FC<ApplicationStatusChartProps> = ({
     alert('PNG export feature coming soon!');
   };
 
-  const onPieEnter = (_: any, index: number) => {
-    setActiveIndex(index);
+  const onPieEnter = (_: any, _index: number) => {
+    // Active slice highlighting - can be added back if needed
   };
 
   const onPieLeave = () => {
-    setActiveIndex(undefined);
+    // Active slice reset - can be added back if needed
   };
 
   if (data.length === 0 && !isLoading && !error) {
@@ -306,9 +307,8 @@ export const ApplicationStatusChart: React.FC<ApplicationStatusChartProps> = ({
       <ResponsiveContainer width="100%" height={350}>
         <PieChart>
           <Pie
-            activeIndex={activeIndex}
-            activeShape={renderActiveShape}
-            data={data}
+            activeShape={renderActiveShape as any}
+            data={data as any}
             cx="50%"
             cy="50%"
             innerRadius={60}
@@ -324,8 +324,8 @@ export const ApplicationStatusChart: React.FC<ApplicationStatusChartProps> = ({
             style={{ cursor: 'pointer' }}
           >
             {data.map((entry, index) => (
-              <Cell 
-                key={`cell-${index}`} 
+              <Cell
+                key={`cell-${index}`}
                 fill={entry.color}
                 className="transition-opacity hover:opacity-80"
               />

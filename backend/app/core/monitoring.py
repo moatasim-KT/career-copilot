@@ -112,6 +112,9 @@ class Alert:
 	resolved_at: Optional[datetime] = None
 
 
+from app.utils.datetime import utc_now
+
+
 @dataclass
 class SystemAlert:
 	"""System monitoring alert."""
@@ -121,7 +124,7 @@ class SystemAlert:
 	category: str
 	message: str
 	details: Dict[str, Any] = field(default_factory=dict)
-	timestamp: datetime = field(default_factory=datetime.utcnow)
+	timestamp: datetime = field(default_factory=utc_now)
 	resolved: bool = False
 	resolution_time: Optional[datetime] = None
 	auto_resolved: bool = False
@@ -181,7 +184,7 @@ class EnhancedAlertManager:
 			"id": f"alert_{int(time.time() * 1000)}",
 			"message": message,
 			"severity": severity,
-			"timestamp": datetime.now(timezone.utc).isoformat(),
+			"timestamp": utc_now().isoformat(),
 			"context": context or {},
 			"resolved": False,
 		}
@@ -210,7 +213,7 @@ class EnhancedAlertManager:
 			for alert in self.alerts:
 				if alert["id"] == alert_id:
 					alert["resolved"] = True
-					alert["resolved_at"] = datetime.now(timezone.utc).isoformat()
+					alert["resolved_at"] = utc_now().isoformat()
 					logger.info(f"Alert resolved: {alert_id}")
 					return True
 		return False
@@ -222,7 +225,7 @@ class EnhancedAlertManager:
 
 	def get_alert_summary(self, hours: int = 24) -> Dict[str, Any]:
 		"""Get alert summary for the specified time period."""
-		cutoff = datetime.now(timezone.utc) - timedelta(hours=hours)
+		cutoff = utc_now() - timedelta(hours=hours)
 
 		with self.alert_lock:
 			recent_alerts = [alert for alert in self.alerts if datetime.fromisoformat(alert["timestamp"]) > cutoff]
@@ -269,7 +272,7 @@ class EnhancedMetricsCollector:
 		# Alert handling
 		self.alerts: Dict[str, AlertRule] = {}
 		self.alert_handlers: List[Callable[[Alert, float], None]] = []
-		self.start_time = datetime.now(timezone.utc)
+		self.start_time = utc_now()
 
 		# System metrics
 		self._system_metrics_enabled = True
@@ -343,7 +346,7 @@ class EnhancedMetricsCollector:
 				self.start_time = None
 
 			def __enter__(self):
-				self.start_time = datetime.now()
+				self.start_time = utc_now()
 
 				# Track workflow start
 				self.collector.increment_counter(f"workflow_{self.workflow_name}_starts")
@@ -356,7 +359,7 @@ class EnhancedMetricsCollector:
 				return self
 
 			def __exit__(self, exc_type, exc_val, exc_tb):
-				end_time = datetime.now()
+				end_time = utc_now()
 				duration = (end_time - self.start_time).total_seconds()
 				success = exc_type is None
 
@@ -407,7 +410,7 @@ class EnhancedMetricsCollector:
 						logger.error(f"Failed to send workflow metrics to GCP: {e}")
 
 			async def __aenter__(self):
-				self.start_time = datetime.now()
+				self.start_time = utc_now()
 
 				# Track workflow start
 				self.collector.increment_counter(f"workflow_{self.workflow_name}_starts")
@@ -420,7 +423,7 @@ class EnhancedMetricsCollector:
 				return self
 
 			async def __aexit__(self, exc_type, exc_val, exc_tb):
-				end_time = datetime.now()
+				end_time = utc_now()
 				duration = (end_time - self.start_time).total_seconds()
 				success = exc_type is None
 
@@ -478,7 +481,7 @@ class EnhancedMetricsCollector:
 		if labels is None:
 			labels = {}
 
-		metric_point = MetricPoint(name=name, value=value, timestamp=datetime.now(timezone.utc), labels=labels, metric_type=metric_type)
+		metric_point = MetricPoint(name=name, value=value, timestamp=utc_now(), labels=labels, metric_type=metric_type)
 
 		# Store in memory
 		self.metrics[name].append(metric_point)
@@ -523,9 +526,7 @@ class EnhancedMetricsCollector:
 	def record_response_time(self, endpoint: str, duration_ms: float, status_code: int):
 		"""Record API response time."""
 		with self.metrics_lock:
-			self.response_times.append(
-				{"endpoint": endpoint, "duration_ms": duration_ms, "status_code": status_code, "timestamp": datetime.now(timezone.utc)}
-			)
+			self.response_times.append({"endpoint": endpoint, "duration_ms": duration_ms, "status_code": status_code, "timestamp": utc_now()})
 
 			# Update request counts
 			self.request_counts[endpoint] += 1
@@ -576,7 +577,7 @@ class EnhancedMetricsCollector:
 			rule_name=alert.name,
 			severity=alert.severity,
 			message=alert.description,
-			timestamp=datetime.now(timezone.utc),
+			timestamp=utc_now(),
 			value=value,
 			threshold=alert.threshold,
 			tags=alert.tags,
@@ -612,7 +613,7 @@ class EnhancedMetricsCollector:
 		if name not in self.metrics:
 			return {"error": "Metric not found"}
 
-		cutoff_time = datetime.now(timezone.utc) - timedelta(hours=duration_hours)
+		cutoff_time = utc_now() - timedelta(hours=duration_hours)
 		recent_points = [p for p in self.metrics[name] if hasattr(p, "timestamp") and p.timestamp >= cutoff_time]
 
 		if not recent_points:
@@ -627,9 +628,7 @@ class EnhancedMetricsCollector:
 			"max": max(values),
 			"avg": sum(values) / len(values),
 			"latest": values[-1],
-			"latest_timestamp": recent_points[-1].timestamp.isoformat()
-			if hasattr(recent_points[-1], "timestamp")
-			else datetime.now(timezone.utc).isoformat(),
+			"latest_timestamp": recent_points[-1].timestamp.isoformat() if hasattr(recent_points[-1], "timestamp") else utc_now().isoformat(),
 		}
 
 	def get_all_metrics_summary(self) -> Dict[str, Any]:
@@ -641,7 +640,7 @@ class EnhancedMetricsCollector:
 
 	def get_metrics_summary(self, hours: int = 1) -> Dict[str, Any]:
 		"""Get comprehensive metrics summary."""
-		cutoff = datetime.now(timezone.utc) - timedelta(hours=hours)
+		cutoff = utc_now() - timedelta(hours=hours)
 
 		with self.metrics_lock:
 			# Filter recent traces
@@ -703,7 +702,7 @@ class ProductionMonitor:
 	def log_error(self, error: Exception, severity: AlertSeverity = AlertSeverity.MEDIUM, context: Optional[Dict] = None):
 		"""Log an error with context."""
 		error_entry = {
-			"timestamp": datetime.now(timezone.utc).isoformat(),
+			"timestamp": utc_now().isoformat(),
 			"error_type": type(error).__name__,
 			"message": str(error),
 			"severity": severity.value,
@@ -722,12 +721,12 @@ class ProductionMonitor:
 		if name not in self._metrics:
 			self._metrics[name] = []
 
-		self._metrics[name].append({"timestamp": datetime.now(timezone.utc).isoformat(), "value": value, "tags": tags or {}})
+		self._metrics[name].append({"timestamp": utc_now().isoformat(), "value": value, "tags": tags or {}})
 
 	def _create_alert(self, error_entry: Dict):
 		"""Create an alert for critical errors."""
 		alert = {
-			"timestamp": datetime.now(timezone.utc).isoformat(),
+			"timestamp": utc_now().isoformat(),
 			"type": "error",
 			"severity": error_entry["severity"],
 			"message": f"{error_entry['error_type']}: {error_entry['message']}",
@@ -750,7 +749,7 @@ class ProductionMonitor:
 
 	def clear_old_data(self, days: int = 7):
 		"""Clear old monitoring data."""
-		cutoff = datetime.now(timezone.utc).timestamp() - (days * 86400)
+		cutoff = utc_now().timestamp() - (days * 86400)
 
 		self._errors = [e for e in self._errors if datetime.fromisoformat(e["timestamp"]).timestamp() > cutoff]
 
@@ -887,7 +886,7 @@ class ComprehensiveMonitoringSystem:
 			active_requests = 0
 
 		return PerformanceMetrics(
-			timestamp=datetime.now(timezone.utc),
+			timestamp=utc_now(),
 			cpu_percent=cpu_percent,
 			memory_percent=memory.percent,
 			memory_used_mb=memory.used / (1024 * 1024),
@@ -954,7 +953,7 @@ class ComprehensiveMonitoringSystem:
 
 	def _create_alert(self, alert_id: str, level: MonitoringLevel, category: str, message: str, details: Dict[str, Any]) -> SystemAlert:
 		"""Create a system alert."""
-		return SystemAlert(id=alert_id, level=level, category=category, message=message, details=details, timestamp=datetime.now(timezone.utc))
+		return SystemAlert(id=alert_id, level=level, category=category, message=message, details=details, timestamp=utc_now())
 
 	async def _add_alert(self, alert: SystemAlert):
 		"""Add an alert if it doesn't already exist."""
@@ -1010,21 +1009,21 @@ class ComprehensiveMonitoringSystem:
 
 				if resolution_success:
 					alert.resolved = True
-					alert.resolution_time = datetime.now(timezone.utc)
+					alert.resolution_time = utc_now()
 					alert.auto_resolved = True
 					logger.info(f"Auto-resolved alert: {alert.id}")
 				else:
 					# Mark as attempted to avoid repeated attempts
-					self.resolution_attempts[alert.id] = datetime.now(timezone.utc)
+					self.resolution_attempts[alert.id] = utc_now()
 
 			except Exception as e:
 				logger.error(f"Auto-resolution failed for {alert.id}: {e}")
-				self.resolution_attempts[alert.id] = datetime.now(timezone.utc)
+				self.resolution_attempts[alert.id] = utc_now()
 
 	def _cleanup_old_alerts(self):
 		"""Clean up old resolved alerts and failed resolution attempts."""
 		# Remove resolved alerts older than 24 hours
-		cutoff_time = datetime.now(timezone.utc) - timedelta(hours=24)
+		cutoff_time = utc_now() - timedelta(hours=24)
 		self.alerts = [alert for alert in self.alerts if not alert.resolved or alert.resolution_time > cutoff_time]
 
 		# Clean up old resolution attempts
@@ -1222,7 +1221,7 @@ class UnifiedMonitoringSystem:
 		self.metrics_collector = self.comprehensive_monitoring.metrics_collector
 		self.alert_manager = self.comprehensive_monitoring.alert_manager
 		self.production_monitor = self.comprehensive_monitoring.production_monitor
-		self.start_time = datetime.now(timezone.utc)
+		self.start_time = utc_now()
 
 	def record_metric(self, name: str, value: float, labels: Dict[str, str] | None = None, metric_type: MetricType = MetricType.GAUGE):
 		"""Record a metric."""
@@ -1251,17 +1250,17 @@ class UnifiedMonitoringSystem:
 				"cpu_percent": psutil.cpu_percent(),
 				"memory_percent": psutil.virtual_memory().percent,
 				"disk_percent": psutil.disk_usage("/").percent,
-				"timestamp": datetime.now(timezone.utc).isoformat(),
+				"timestamp": utc_now().isoformat(),
 			}
 		except Exception as e:
-			return {"error": str(e), "timestamp": datetime.now(timezone.utc).isoformat()}
+			return {"error": str(e), "timestamp": utc_now().isoformat()}
 
 	def get_application_metrics(self) -> Dict[str, Any]:
 		"""Get application metrics."""
 		return {
-			"uptime_seconds": (datetime.now(timezone.utc) - self.start_time).total_seconds(),
+			"uptime_seconds": (utc_now() - self.start_time).total_seconds(),
 			"total_metrics": len(self.metrics_collector.metrics),
-			"timestamp": datetime.now(timezone.utc).isoformat(),
+			"timestamp": utc_now().isoformat(),
 		}
 
 	def get_business_metrics(self) -> Dict[str, Any]:
@@ -1269,7 +1268,7 @@ class UnifiedMonitoringSystem:
 		return {
 			"contracts_processed": self.metrics_collector.get_metric_summary("contracts_processed", 1).get("count", 0),
 			"analysis_requests": self.metrics_collector.get_metric_summary("analysis_requests", 1).get("count", 0),
-			"timestamp": datetime.now(timezone.utc).isoformat(),
+			"timestamp": utc_now().isoformat(),
 		}
 
 	def get_all_metrics_summary(self) -> Dict[str, Any]:

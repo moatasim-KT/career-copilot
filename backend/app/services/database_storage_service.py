@@ -173,9 +173,9 @@ class ChromaStorageService:
 				# Delete from ChromaDB
 				try:
 					collection = await self._get_collection()
-					await collection.delete(ids=[stored_filename])
+					await collection.delete(ids=[stored_filename])  # nosec B608 - ChromaDB deletion API, not SQL
 				except Exception as e:
-					logger.warning(f"Failed to delete from ChromaDB: {e}")
+					logger.warning(f"Failed to remove ChromaDB document: {e}")
 
 				logger.info(f"Deleted file {stored_filename}")
 				return True

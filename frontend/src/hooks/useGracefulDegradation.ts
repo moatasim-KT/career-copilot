@@ -11,6 +11,8 @@
 
 import { useState, useCallback, useEffect } from 'react';
 
+import { logger } from '@/lib/logger';
+
 interface GracefulDegradationOptions {
   /**
    * Whether the feature is critical (will show error) or non-critical (will hide)
@@ -77,7 +79,7 @@ export function useGracefulDegradation(
     (error: Error) => {
       // Log to console in development
       if (logErrors && process.env.NODE_ENV === 'development') {
-        console.error('[Graceful Degradation]', error);
+        logger.error('[Graceful Degradation]', error);
       }
 
       // Log to monitoring service
@@ -98,7 +100,7 @@ export function useGracefulDegradation(
           });
         } else {
           // Fallback to console if Sentry not loaded
-          console.error('[Error Monitoring]', {
+          logger.error('[Error Monitoring]', {
             error: error.message,
             stack: error.stack,
             critical,
@@ -126,7 +128,7 @@ export function useGracefulDegradation(
    */
   const retry = useCallback(() => {
     if (state.retryCount >= maxRetries) {
-      console.warn('[Graceful Degradation] Max retries reached');
+      logger.warn('[Graceful Degradation] Max retries reached');
       return;
     }
 
@@ -193,7 +195,7 @@ export function withGracefulDegradation<T extends (...args: any[]) => Promise<an
 
       // Log error
       if (logErrors) {
-        console.error('[Graceful Degradation]', error);
+        logger.error('[Graceful Degradation]', error);
       }
 
       // Call custom error handler

@@ -1,13 +1,13 @@
 'use client';
 
-import { motion, AnimatePresence } from 'framer-motion';
 import { ReactNode, forwardRef, HTMLAttributes } from 'react';
 
-import { cn } from '@/lib/utils';
 import {
   skeletonToContentVariants,
   contentFromSkeletonVariants,
 } from '@/lib/animations';
+import { m, AnimatePresence } from '@/lib/motion';
+import { cn } from '@/lib/utils';
 
 export interface LoadingTransitionProps extends HTMLAttributes<HTMLDivElement> {
   /**
@@ -87,7 +87,7 @@ export const LoadingTransition = forwardRef<HTMLDivElement, LoadingTransitionPro
       >
         <AnimatePresence mode="wait">
           {loading ? (
-            <motion.div
+            <m.div
               key="skeleton"
               variants={skeletonToContentVariants}
               initial="content"
@@ -96,9 +96,9 @@ export const LoadingTransition = forwardRef<HTMLDivElement, LoadingTransitionPro
               transition={{ duration }}
             >
               {skeleton}
-            </motion.div>
+            </m.div>
           ) : (
-            <motion.div
+            <m.div
               key="content"
               variants={contentFromSkeletonVariants}
               initial="hidden"
@@ -107,7 +107,7 @@ export const LoadingTransition = forwardRef<HTMLDivElement, LoadingTransitionPro
               transition={{ duration, delay }}
             >
               {children}
-            </motion.div>
+            </m.div>
           )}
         </AnimatePresence>
       </div>

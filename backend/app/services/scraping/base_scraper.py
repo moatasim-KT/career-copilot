@@ -7,14 +7,13 @@ import logging
 import random
 import time
 from abc import ABC, abstractmethod
-from typing import Dict, List, Optional, Any
+from typing import Any, Awaitable, Callable, Dict, List, Optional
 
 import httpx
 from bs4 import BeautifulSoup
 from fake_useragent import UserAgent
 
 from app.schemas.job import JobCreate
-
 
 logger = logging.getLogger(__name__)
 
@@ -46,12 +45,21 @@ class RateLimiter:
 class BaseScraper(ABC):
 	"""Base class for all job board scrapers"""
 
-	def __init__(self, rate_limiter: Optional[RateLimiter] = None):
+	def __init__(
+		self,
+		rate_limiter: Optional[RateLimiter] = None,
+		request_override: Optional[Callable[[str, Dict[str, Any]], Awaitable[Optional[httpx.Response]]]] = None,
+	):
 		self.rate_limiter = rate_limiter or RateLimiter()
 		self.user_agent = UserAgent()
 		self.session = None
 		self.base_url = ""
 		self.name = self.__class__.__name__
+		self._request_override = request_override
+
+	def set_request_override(self, override: Optional[Callable[[str, Dict[str, Any]], Awaitable[Optional[httpx.Response]]]]) -> None:
+		"""Override HTTP requests (used by testing harness)."""
+		self._request_override = override
 
 	async def __aenter__(self):
 		"""Async context manager entry"""
@@ -87,6 +95,9 @@ class BaseScraper(ABC):
 			if "headers" in kwargs:
 				headers.update(kwargs["headers"])
 			kwargs["headers"] = headers
+
+			if self._request_override:
+				return await self._request_override(url, kwargs)
 
 			logger.debug(f"Making request to: {url}")
 			response = await self.session.get(url, **kwargs)

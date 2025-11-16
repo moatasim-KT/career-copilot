@@ -3,11 +3,12 @@ Quota management service for handling API limits and fallback mechanisms
 """
 
 import logging
-from datetime import datetime, timedelta, timezone
-from typing import Dict, List, Optional, Any
 from dataclasses import dataclass, field
+from datetime import datetime, timedelta
 from enum import Enum
+from typing import Any, Dict, List, Optional
 
+from ..utils.datetime import utc_now
 
 logger = logging.getLogger(__name__)
 
@@ -38,7 +39,7 @@ class QuotaUsage:
 	"""Current quota usage tracking"""
 
 	api_name: str
-	date: datetime = field(default_factory=lambda: datetime.now(timezone.utc).date())
+	date: datetime = field(default_factory=lambda: utc_now().date())
 	daily_requests: int = 0
 	hourly_requests: int = 0
 	monthly_requests: int = 0
@@ -101,7 +102,7 @@ class QuotaManager:
 
 	def _reset_counters_if_needed(self, usage: QuotaUsage):
 		"""Reset usage counters based on time periods"""
-		now = datetime.now(timezone.utc)
+		now = utc_now()
 
 		# Daily reset
 		if usage.date != now.date():
@@ -127,11 +128,12 @@ class QuotaManager:
 
 		usage = self.get_quota_usage(api_name)
 		limits = self.quota_limits[api_name]
+		now = utc_now()
 
 		# Check if blocked
-		if usage.blocked_until and datetime.now(timezone.utc) < usage.blocked_until:
+		if usage.blocked_until and now < usage.blocked_until:
 			return QuotaStatus.BLOCKED
-		elif usage.blocked_until and datetime.now(timezone.utc) >= usage.blocked_until:
+		elif usage.blocked_until and now >= usage.blocked_until:
 			# Unblock
 			usage.blocked_until = None
 			usage.consecutive_failures = 0
@@ -166,7 +168,7 @@ class QuotaManager:
 		usage.daily_requests += 1
 		usage.hourly_requests += 1
 		usage.monthly_requests += 1
-		usage.last_request_time = datetime.now(timezone.utc)
+		usage.last_request_time = utc_now()
 
 		# Handle failures
 		if not success:
@@ -175,7 +177,7 @@ class QuotaManager:
 			# Block API after consecutive failures
 			if usage.consecutive_failures >= 3:
 				block_duration = min(usage.consecutive_failures * 30, 3600)  # Max 1 hour
-				usage.blocked_until = datetime.now(timezone.utc) + timedelta(seconds=block_duration)
+				usage.blocked_until = utc_now() + timedelta(seconds=block_duration)
 				logger.warning(f"Blocking {api_name} for {block_duration} seconds due to consecutive failures")
 		else:
 			usage.consecutive_failures = 0
@@ -191,7 +193,7 @@ class QuotaManager:
 		if not usage.last_request_time:
 			return 0.0
 
-		elapsed = (datetime.now(timezone.utc) - usage.last_request_time).total_seconds()
+		elapsed = (utc_now() - usage.last_request_time).total_seconds()
 		required_delay = limits.rate_limit_seconds
 
 		# Increase delay if approaching limits
@@ -264,13 +266,13 @@ class QuotaManager:
 			usage.monthly_requests = 0
 			usage.blocked_until = None
 			usage.consecutive_failures = 0
-			usage.last_reset = datetime.now(timezone.utc)
+			usage.last_reset = utc_now()
 			logger.info(f"Reset quota for {api_name}")
 
 	def block_api(self, api_name: str, duration_minutes: int = 60):
 		"""Manually block an API for a specified duration"""
 		usage = self.get_quota_usage(api_name)
-		usage.blocked_until = datetime.now(timezone.utc) + timedelta(minutes=duration_minutes)
+		usage.blocked_until = utc_now() + timedelta(minutes=duration_minutes)
 		logger.info(f"Manually blocked {api_name} for {duration_minutes} minutes")
 
 	def unblock_api(self, api_name: str):

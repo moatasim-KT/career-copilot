@@ -43,6 +43,7 @@ from app.schemas.job_recommendation_feedback import (
 from app.services.llm_service import LLMService, get_llm_service
 from app.services.recommendation_engine import RecommendationEngine
 from app.services.websocket_service import websocket_service
+from app.utils.datetime import utc_now
 from app.utils.redis_client import redis_client
 
 logger = get_logger(__name__)
@@ -219,7 +220,7 @@ class JobRecommendationService:
 				raise ValueError(f"User {user_id} not found")
 
 			# Get user's jobs from last 30 days
-			cutoff_date = datetime.utcnow() - timedelta(days=30)
+			cutoff_date = utc_now() - timedelta(days=30)
 			user_jobs = (
 				self.db.query(Job)
 				.filter(Job.user_id == user_id, Job.created_at >= cutoff_date)
@@ -258,7 +259,7 @@ class JobRecommendationService:
 						"match_score": match_score,
 						"match_level": self._get_match_level(match_score),
 						"user_id": user_id,
-						"timestamp": datetime.now().isoformat(),
+						"timestamp": utc_now().isoformat(),
 						"source_quality": self._get_source_quality_score(job.source),
 						"recommendation_reasons": self._get_recommendation_reasons(user, job, match_score),
 					}
@@ -302,7 +303,7 @@ class JobRecommendationService:
 						"match_score": match_score,
 						"match_level": self._get_match_level(match_score),
 						"user_id": user.id,
-						"timestamp": datetime.now().isoformat(),
+						"timestamp": utc_now().isoformat(),
 					}
 					matches.append(match_data)
 
@@ -428,7 +429,7 @@ class JobRecommendationService:
 			job_location=job.location,
 			# Additional context
 			recommendation_context={
-				"feedback_timestamp": datetime.utcnow().isoformat(),
+				"feedback_timestamp": utc_now().isoformat(),
 				"user_daily_goal": getattr(user, "daily_application_goal", None),
 				"job_source": job.source,
 				"job_created_at": job.created_at.isoformat() if job.created_at else None,

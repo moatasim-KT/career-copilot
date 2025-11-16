@@ -25,7 +25,7 @@ COPY backend /app/backend
 COPY config /app/config
 
 # Copy dependency files
-COPY pyproject.toml ./
+COPY backend/pyproject.toml ./pyproject.toml
 
 # Install Python dependencies globally with all extras
 RUN pip install --upgrade pip && \

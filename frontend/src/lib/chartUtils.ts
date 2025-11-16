@@ -1,3 +1,6 @@
+import { dataVizPalette } from '@/lib/designTokens';
+import { logger } from '@/lib/logger';
+
 /**
  * Chart Utilities
  * 
@@ -18,9 +21,9 @@ export function exportToCSV(
   try {
     // Create CSV header
     const header = columns.map(col => col.label).join(',');
-    
+
     // Create CSV rows
-    const rows = data.map(row => 
+    const rows = data.map(row =>
       columns.map(col => {
         const value = row[col.key];
         // Escape values that contain commas or quotes
@@ -28,12 +31,12 @@ export function exportToCSV(
           return `"${value.replace(/"/g, '""')}"`;
         }
         return value;
-      }).join(',')
+      }).join(','),
     );
-    
+
     // Combine header and rows
     const csvContent = [header, ...rows].join('\n');
-    
+
     // Create blob and download
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
@@ -45,7 +48,7 @@ export function exportToCSV(
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
   } catch (error) {
-    console.error('Error exporting to CSV:', error);
+    logger.error('Error exporting to CSV:', error);
     throw new Error('Failed to export CSV');
   }
 }
@@ -61,8 +64,10 @@ export async function exportToPNG(
   try {
     // This would require html2canvas library
     // For now, we'll throw an error with instructions
-    throw new Error('PNG export requires html2canvas library. Install with: npm install html2canvas');
-    
+    throw new Error(
+      `PNG export for element "${elementId}" requires html2canvas. Install with: npm install html2canvas to enable saving as ${filename}`,
+    );
+
     /* Uncomment when html2canvas is installed:
     const html2canvas = (await import('html2canvas')).default;
     const element = document.getElementById(elementId);
@@ -92,7 +97,7 @@ export async function exportToPNG(
     });
     */
   } catch (error) {
-    console.error('Error exporting to PNG:', error);
+    logger.error('Error exporting to PNG:', error);
     throw new Error('Failed to export PNG');
   }
 }
@@ -146,37 +151,9 @@ export function calculatePercentageChange(current: number, previous: number): nu
  * Generate color palette for charts
  */
 export function generateColorPalette(count: number, isDark: boolean = false): string[] {
-  const lightColors = [
-    '#3b82f6', // blue-500
-    '#8b5cf6', // purple-500
-    '#22c55e', // green-500
-    '#f59e0b', // amber-500
-    '#ef4444', // red-500
-    '#06b6d4', // cyan-500
-    '#ec4899', // pink-500
-    '#84cc16', // lime-500
-  ];
-  
-  const darkColors = [
-    '#60a5fa', // blue-400
-    '#a78bfa', // purple-400
-    '#4ade80', // green-400
-    '#fbbf24', // amber-400
-    '#f87171', // red-400
-    '#22d3ee', // cyan-400
-    '#f472b6', // pink-400
-    '#a3e635', // lime-400
-  ];
-  
-  const colors = isDark ? darkColors : lightColors;
-  
-  // Repeat colors if needed
-  const result: string[] = [];
-  for (let i = 0; i < count; i++) {
-    result.push(colors[i % colors.length]);
-  }
-  
-  return result;
+  const palette = isDark ? dataVizPalette.dark : dataVizPalette.light;
+
+  return Array.from({ length: count }, (_, index) => palette[index % palette.length]);
 }
 
 /**
@@ -187,13 +164,13 @@ export function debounce<T extends (...args: any[]) => any>(
   wait: number,
 ): (...args: Parameters<T>) => void {
   let timeout: NodeJS.Timeout | null = null;
-  
+
   return function executedFunction(...args: Parameters<T>) {
     const later = () => {
       timeout = null;
       func(...args);
     };
-    
+
     if (timeout) {
       clearTimeout(timeout);
     }
@@ -209,7 +186,7 @@ export function throttle<T extends (...args: any[]) => any>(
   limit: number,
 ): (...args: Parameters<T>) => void {
   let inThrottle: boolean = false;
-  
+
   return function executedFunction(...args: Parameters<T>) {
     if (!inThrottle) {
       func(...args);
@@ -229,14 +206,14 @@ export function calculateMovingAverage(
   windowSize: number,
 ): number[] {
   const result: number[] = [];
-  
+
   for (let i = 0; i < data.length; i++) {
     const start = Math.max(0, i - windowSize + 1);
     const window = data.slice(start, i + 1);
     const average = window.reduce((sum, val) => sum + val, 0) / window.length;
     result.push(average);
   }
-  
+
   return result;
 }
 
@@ -247,19 +224,19 @@ export function calculateLinearRegression(
   data: { x: number; y: number }[],
 ): { slope: number; intercept: number; predict: (x: number) => number } {
   const n = data.length;
-  
+
   if (n === 0) {
     return { slope: 0, intercept: 0, predict: () => 0 };
   }
-  
+
   const sumX = data.reduce((sum, point) => sum + point.x, 0);
   const sumY = data.reduce((sum, point) => sum + point.y, 0);
   const sumXY = data.reduce((sum, point) => sum + point.x * point.y, 0);
   const sumXX = data.reduce((sum, point) => sum + point.x * point.x, 0);
-  
+
   const slope = (n * sumXY - sumX * sumY) / (n * sumXX - sumX * sumX);
   const intercept = (sumY - slope * sumX) / n;
-  
+
   return {
     slope,
     intercept,
@@ -275,11 +252,11 @@ export function groupByTimePeriod(
   period: 'day' | 'week' | 'month' | 'year',
 ): { date: string; value: number }[] {
   const grouped = new Map<string, number>();
-  
+
   data.forEach((item) => {
     let key: string;
     const date = new Date(item.date);
-    
+
     switch (period) {
       case 'day': {
         key = date.toISOString().split('T')[0];
@@ -300,10 +277,10 @@ export function groupByTimePeriod(
         break;
       }
     }
-    
+
     grouped.set(key, (grouped.get(key) || 0) + item.value);
   });
-  
+
   return Array.from(grouped.entries())
     .map(([date, value]) => ({ date, value }))
     .sort((a, b) => a.date.localeCompare(b.date));
@@ -316,7 +293,7 @@ export function detectChartTheme(): 'light' | 'dark' {
   if (typeof window === 'undefined') {
     return 'light';
   }
-  
+
   return document.documentElement.classList.contains('dark') ? 'dark' : 'light';
 }
 
@@ -324,18 +301,18 @@ export function detectChartTheme(): 'light' | 'dark' {
  * Get responsive chart dimensions
  */
 export function getResponsiveChartDimensions(
-  containerWidth: number
+  containerWidth: number,
 ): { width: number; height: number } {
   // Mobile
   if (containerWidth < 640) {
     return { width: containerWidth, height: 250 };
   }
-  
+
   // Tablet
   if (containerWidth < 1024) {
     return { width: containerWidth, height: 300 };
   }
-  
+
   // Desktop
   return { width: containerWidth, height: 350 };
 }
@@ -347,11 +324,11 @@ export function formatAxisLabel(value: number, maxValue: number): string {
   if (maxValue >= 1000000) {
     return formatNumber(value);
   }
-  
+
   if (maxValue >= 1000) {
     return `${(value / 1000).toFixed(1)}K`;
   }
-  
+
   return value.toString();
 }
 
@@ -369,18 +346,18 @@ export function calculateChartStats(data: number[]): {
   if (data.length === 0) {
     return { min: 0, max: 0, mean: 0, median: 0, sum: 0, stdDev: 0 };
   }
-  
+
   const sorted = [...data].sort((a, b) => a - b);
   const sum = data.reduce((acc, val) => acc + val, 0);
   const mean = sum / data.length;
-  
+
   const median = data.length % 2 === 0
     ? (sorted[data.length / 2 - 1] + sorted[data.length / 2]) / 2
     : sorted[Math.floor(data.length / 2)];
-  
+
   const variance = data.reduce((acc, val) => acc + Math.pow(val - mean, 2), 0) / data.length;
   const stdDev = Math.sqrt(variance);
-  
+
   return {
     min: sorted[0],
     max: sorted[sorted.length - 1],
@@ -402,22 +379,22 @@ export function animateValue(
 ): void {
   const startTime = Date.now();
   const difference = end - start;
-  
+
   const step = () => {
     const elapsed = Date.now() - startTime;
     const progress = Math.min(elapsed / duration, 1);
-    
+
     // Easing function (ease-out)
     const eased = 1 - Math.pow(1 - progress, 3);
     const current = start + difference * eased;
-    
+
     callback(current);
-    
+
     if (progress < 1) {
       requestAnimationFrame(step);
     }
   };
-  
+
   requestAnimationFrame(step);
 }
 
@@ -428,7 +405,7 @@ export function isValidChartData(data: any[]): boolean {
   if (!Array.isArray(data) || data.length === 0) {
     return false;
   }
-  
+
   // Check if all items have required properties
   return data.every(item => item !== null && typeof item === 'object');
 }

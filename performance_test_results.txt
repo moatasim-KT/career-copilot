@@ -1,0 +1,69 @@
+WARNING:urllib3.connectionpool:Retrying (Retry(total=1, connect=None, read=None, redirect=None, status=None)) after connection broken by 'RemoteDisconnected('Remote end closed connection without response')': /docs
+WARNING:urllib3.connectionpool:Retrying (Retry(total=0, connect=None, read=None, redirect=None, status=None)) after connection broken by 'RemoteDisconnected('Remote end closed connection without response')': /docs
+WARNING:__main__:❌ Backend API not available at http://localhost:8000: HTTPConnectionPool(host='localhost', port=8000): Max retries exceeded with url: /docs (Caused by ProtocolError('Connection aborted.', RemoteDisconnected('Remote end closed connection without response')))
+INFO:__main__:📊 Will attempt database-only performance tests if database is available
+WARNING:__main__:❌ Database engine not initialized
+WARNING:__main__:Database tests will be skipped. Ensure DATABASE_URL is set in .env
+INFO:__main__:Starting comprehensive performance testing suite
+INFO:__main__:============================================================
+INFO:__main__:ENVIRONMENT CHECK
+INFO:__main__:============================================================
+INFO:__main__:Backend URL: http://localhost:8000
+INFO:__main__:Backend Available: ❌
+INFO:__main__:Database Available: ❌
+WARNING:__main__:
+WARNING:__main__:⚠️  To run API tests, start the backend server:
+WARNING:__main__:   cd backend && uvicorn app.main:app --reload
+WARNING:__main__:
+WARNING:__main__:
+WARNING:__main__:⚠️  To run database tests, ensure DATABASE_URL is configured:
+WARNING:__main__:   export DATABASE_URL='postgresql://user:pass@localhost/dbname'
+WARNING:__main__:
+INFO:__main__:============================================================
+INFO:__main__:1. Testing concurrent user load...
+INFO:__main__:Testing concurrent load: 50 users, 10 requests each
+ERROR:__main__:❌ Backend API not available - skipping concurrent load test
+INFO:__main__:============================================================
+INFO:__main__:2. Testing database query performance...
+INFO:__main__:Testing database query performance
+ERROR:__main__:❌ Database not available - skipping database performance test
+INFO:__main__:============================================================
+INFO:__main__:3. Analyzing database indexes...
+INFO:__main__:Analyzing database indexes
+WARNING:__main__:❌ Database not available - skipping index analysis
+INFO:__main__:============================================================
+INFO:__main__:4. Validating cost efficiency...
+INFO:__main__:Validating cost efficiency and free-tier compliance
+INFO:__main__:Cost Efficiency Analysis:
+INFO:__main__:  Monthly Function Invocations: 33,030
+INFO:__main__:  Monthly Compute Time: 6604.8 GB-seconds
+INFO:__main__:  Monthly Database Reads: 279,000
+INFO:__main__:  Monthly Database Writes: 15,000
+INFO:__main__:  Free Tier Compliant: False
+INFO:__main__:  Estimated Monthly Cost: $0.00
+INFO:__main__:  Cost per User: $0.0000
+INFO:__main__:============================================================
+INFO:__main__:5. Generating optimization recommendations...
+INFO:__main__:============================================================
+INFO:__main__:PERFORMANCE TEST SUMMARY
+INFO:__main__:============================================================
+INFO:__main__:Total Duration: 0.00s
+INFO:__main__:Tests Completed: 0
+INFO:__main__:Performance Score: 0.0/100
+INFO:__main__:Free Tier Compliant: False
+INFO:__main__:Estimated Monthly Cost: $0.00
+INFO:__main__:Recommendations: 4
+INFO:__main__:Performance test report saved to: /Users/moatasimfarooque/Downloads/Data_Science/GITHUB/career-copilot/performance_optimization_report_20251116_130746.json
+
+================================================================================
+PERFORMANCE OPTIMIZATION SUMMARY
+================================================================================
+Backend Available: ❌
+Database Available: ❌
+Performance Score: 0.0/100
+Free Tier Compliant: ❌
+Estimated Monthly Cost: $0.00
+Optimization Recommendations: 4
+Report saved to: /Users/moatasimfarooque/Downloads/Data_Science/GITHUB/career-copilot/performance_optimization_report_20251116_130746.json
+
+⚠️  Performance testing incomplete - some services unavailable

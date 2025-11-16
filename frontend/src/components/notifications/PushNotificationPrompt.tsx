@@ -7,8 +7,11 @@
 
 import { Bell, X, Check, Zap, Clock, TrendingUp } from 'lucide-react';
 import { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
 
+import Button2 from '@/components/ui/Button2';
+import Card2 from '@/components/ui/Card2';
+import { logger } from '@/lib/logger';
+import { m, AnimatePresence } from '@/lib/motion';
 import {
   isPushNotificationSupported,
   getNotificationPermission,
@@ -18,9 +21,6 @@ import {
   hasUserDismissedPermission,
   markPermissionDismissed,
 } from '@/lib/pushNotifications';
-import { logger } from '@/lib/logger';
-import Button2 from '@/components/ui/Button2';
-import Card2 from '@/components/ui/Card2';
 
 interface PushNotificationPromptProps {
   userId?: string;
@@ -114,7 +114,7 @@ export default function PushNotificationPrompt({
 
   return (
     <AnimatePresence>
-      <motion.div
+      <m.div
         initial={{ opacity: 0, y: 50 }}
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, y: 50 }}
@@ -221,7 +221,7 @@ export default function PushNotificationPrompt({
             You can change this anytime in settings
           </p>
         </Card2>
-      </motion.div>
+      </m.div>
     </AnimatePresence>
   );
 }

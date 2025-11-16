@@ -11,6 +11,7 @@
 
 import { WifiOff, X, RefreshCw } from 'lucide-react';
 import { useState } from 'react';
+
 import { useOfflineMode } from '@/hooks/useOfflineMode';
 
 export function OfflineBanner() {
@@ -37,7 +38,7 @@ export function OfflineBanner() {
             <div className="flex-1">
               <p className="text-sm font-medium">You are currently offline</p>
               <p className="text-xs opacity-90 mt-0.5">
-                Some features may be unavailable. We'll reconnect automatically when your connection is restored.
+                Some features may be unavailable. We&apos;ll reconnect automatically when your connection is restored.
               </p>
             </div>
           </div>

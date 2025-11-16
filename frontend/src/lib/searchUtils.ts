@@ -4,7 +4,9 @@
  * Functions to apply search queries to data and serialize/deserialize queries.
  */
 
-import type { SearchGroup, SearchRule, SearchOperator } from '@/types/search';
+import { logger } from '@/lib/logger';
+import type { SearchGroup, SearchRule } from '@/types/search';
+
 
 /**
  * Apply a search rule to a single item
@@ -31,45 +33,45 @@ function applyRule<T extends Record<string, any>>(item: T, rule: SearchRule): bo
     // Text operators
     case 'contains':
       return String(fieldValue).toLowerCase().includes(String(value).toLowerCase());
-    
+
     case 'equals':
       return String(fieldValue).toLowerCase() === String(value).toLowerCase();
-    
+
     case 'startsWith':
       return String(fieldValue).toLowerCase().startsWith(String(value).toLowerCase());
-    
+
     case 'endsWith':
       return String(fieldValue).toLowerCase().endsWith(String(value).toLowerCase());
 
     // Number operators
     case 'gt':
       return Number(fieldValue) > Number(value);
-    
+
     case 'gte':
       return Number(fieldValue) >= Number(value);
-    
+
     case 'lt':
       return Number(fieldValue) < Number(value);
-    
+
     case 'lte':
       return Number(fieldValue) <= Number(value);
-    
+
     case 'between':
       return Number(fieldValue) >= Number(value) && Number(fieldValue) <= Number(value2);
 
     // Date operators
     case 'before':
       return new Date(fieldValue) < new Date(value);
-    
+
     case 'after':
       return new Date(fieldValue) > new Date(value);
-    
+
     case 'inLastDays': {
       const daysAgo = new Date();
       daysAgo.setDate(daysAgo.getDate() - Number(value));
       return new Date(fieldValue) >= daysAgo;
     }
-    
+
     case 'inNextDays': {
       const daysFromNow = new Date();
       daysFromNow.setDate(daysFromNow.getDate() + Number(value));
@@ -79,7 +81,7 @@ function applyRule<T extends Record<string, any>>(item: T, rule: SearchRule): bo
     // Boolean operators
     case 'is':
       return Boolean(fieldValue) === Boolean(value);
-    
+
     case 'isNot':
       return Boolean(fieldValue) !== Boolean(value);
 
@@ -89,7 +91,7 @@ function applyRule<T extends Record<string, any>>(item: T, rule: SearchRule): bo
         return value.includes(fieldValue);
       }
       return String(fieldValue) === String(value);
-    
+
     case 'notIn':
       if (Array.isArray(value)) {
         return !value.includes(fieldValue);
@@ -97,7 +99,7 @@ function applyRule<T extends Record<string, any>>(item: T, rule: SearchRule): bo
       return String(fieldValue) !== String(value);
 
     default:
-      console.warn(`Unknown operator: ${operator}`);
+      logger.warn(`Unknown operator: ${operator}`);
       return true;
   }
 }
@@ -108,9 +110,9 @@ function applyRule<T extends Record<string, any>>(item: T, rule: SearchRule): bo
 function applyGroup<T extends Record<string, any>>(item: T, group: SearchGroup): boolean {
   const ruleResults = group.rules.map(rule => applyRule(item, rule));
   const groupResults = (group.groups || []).map(nestedGroup => applyGroup(item, nestedGroup));
-  
+
   const allResults = [...ruleResults, ...groupResults];
-  
+
   if (allResults.length === 0) {
     return true; // Empty group matches everything
   }
@@ -155,7 +157,7 @@ export function serializeQuery(query: SearchGroup): string {
     const json = JSON.stringify(query);
     return btoa(encodeURIComponent(json));
   } catch (error) {
-    console.error('Failed to serialize query:', error);
+    logger.error('Failed to serialize query:', error);
     return '';
   }
 }
@@ -168,7 +170,7 @@ export function deserializeQuery(serialized: string): SearchGroup | null {
     const json = decodeURIComponent(atob(serialized));
     return JSON.parse(json);
   } catch (error) {
-    console.error('Failed to deserialize query:', error);
+    logger.error('Failed to deserialize query:', error);
     return null;
   }
 }

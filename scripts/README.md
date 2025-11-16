@@ -1,11 +1,20 @@
 # Scripts Directory
 
-Organized collection of utility scripts for Career Copilot development, testing, deployment, and maintenance.
+> Organized collection of utility scripts for Career Copilot development, testing, deployment, and maintenance
+
+## Quick Links
+- [[../README|Main README]]
+- [[../docs/index|Documentation Hub]]
+- [[../docs/development/automated-documentation|Automated Documentation]]
+- [[../docs/DEVELOPER_GUIDE|Developer Guide]]
+- [[../LOCAL_SETUP|Local Setup Guide]]
+- [[../docs/development/testing-guide|Testing Guide]]
 
 ## 📁 Directory Structure
 
 ```
 scripts/
+├── Root-Level Utility Scripts (see below)
 ├── setup/              # Initial setup and installation scripts
 ├── user-management/    # User creation and management
 ├── database/           # Database operations and migrations
@@ -23,6 +32,80 @@ scripts/
 ├── cleanup/            # Temporary cleanup scripts
 └── deprecated/         # Old scripts kept for reference
 ```
+
+## 🔧 Root-Level Utility Scripts
+
+These scripts live directly in `scripts/` and provide core development utilities:
+
+### 📊 Analysis & Monitoring
+
+#### `analyze_api_endpoints.py`
+Analyzes all FastAPI endpoints to generate comprehensive endpoint documentation.
+
+**Usage**: `python scripts/analyze_api_endpoints.py`  
+**Output**: `reports/endpoint_map.json`  
+**Referenced in**: [[../docs/api/endpoints|API Endpoints]], [[../docs/index|Documentation Hub]]
+
+#### `analyze_database_schema.py`
+Analyzes SQLAlchemy models to generate database schema documentation and ERD diagrams.
+
+**Usage**: `python scripts/analyze_database_schema.py`  
+**Referenced in**: [[/docs/architecture/database-design|Database Design]]
+
+#### `monitor_docs_health.py`
+Monitors documentation health by checking wikilinks, broken references, and missing sections.
+
+**Usage**: `python scripts/monitor_docs_health.py`  
+**Referenced in**: [[/docs/development/automated-documentation|Automated Documentation]]
+
+### 🔗 Documentation Generation
+
+#### `generate_openapi_docs.py`
+Generates OpenAPI/Swagger specification from FastAPI app.
+
+**Usage**: `python scripts/generate_openapi_docs.py`  
+**Output**: `frontend/openapi.json`  
+**Referenced in**: [[/docs/api/overview|API Overview]]
+
+#### `update_architecture_diagrams.py`
+Auto-generates Mermaid architecture diagrams from codebase structure.
+
+**Usage**: `python scripts/update_architecture_diagrams.py`  
+**Referenced in**: [[/docs/architecture/system-overview|System Overview]]
+
+#### `check_wikilinks.py`
+Validates all Foam wikilinks across documentation.
+
+**Usage**: `python scripts/check_wikilinks.py`  
+**Referenced in**: [[/docs/development/automated-documentation|Automated Documentation]]
+
+### 🧪 Testing & Validation
+
+#### `test_all_apis.py`
+Comprehensive API endpoint testing with realistic payloads.
+
+**Usage**: `python scripts/test_all_apis.py` (requires backend running)  
+**Output**: `reports/endpoint_test_results.json`  
+**Referenced in**: [[/docs/development/testing-guide|Testing Guide]]
+
+#### `test_all_endpoints.sh`
+Shell script wrapper for endpoint testing with environment setup.
+
+**Usage**: `bash scripts/test_all_endpoints.sh`  
+**Referenced in**: [[/docs/development/testing-guide|Testing Guide]]
+
+#### `test_api_endpoints.sh`
+Lightweight smoke tests using cURL for quick health checks.
+
+**Usage**: `bash scripts/test_api_endpoints.sh`
+
+### 🔧 Code Generation
+
+#### `create_missing_routers.py`
+Scaffolds missing FastAPI routers and CRUD endpoints from SQLAlchemy models.
+
+**Usage**: `python scripts/create_missing_routers.py`  
+**Referenced in**: [[/docs/development/scaffolding|Scaffolding Guide]]
 
 ## 🚀 Setup Scripts
 

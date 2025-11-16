@@ -1,10 +1,10 @@
 import { Archive, Download, Trash2, RefreshCw } from 'lucide-react';
 
+import type { BulkAction } from '@/components/ui/BulkActionBar';
 import { apiClient, type Application } from '@/lib/api';
 import { exportToCSV } from '@/lib/export';
 import { logger } from '@/lib/logger';
 
-import type { BulkAction } from '@/components/ui/BulkActionBar';
 
 export interface ApplicationBulkActionsOptions {
   applications: Application[];
@@ -32,8 +32,8 @@ export function createApplicationBulkActions({
           
           const results = await Promise.allSettled(
             numericIds.map(appId =>
-              apiClient.updateApplication(appId, { status: 'interested' })
-            )
+              apiClient.updateApplication(appId, { status: 'interested' }),
+            ),
           );
 
           const successCount = results.filter(r => r.status === 'fulfilled').length;
@@ -68,8 +68,8 @@ export function createApplicationBulkActions({
           
           const results = await Promise.allSettled(
             numericIds.map(appId =>
-              apiClient.updateApplication(appId, { status: 'applied' })
-            )
+              apiClient.updateApplication(appId, { status: 'applied' }),
+            ),
           );
 
           const successCount = results.filter(r => r.status === 'fulfilled').length;
@@ -104,8 +104,8 @@ export function createApplicationBulkActions({
           
           const results = await Promise.allSettled(
             numericIds.map(appId =>
-              apiClient.updateApplication(appId, { status: 'interview' })
-            )
+              apiClient.updateApplication(appId, { status: 'interview' }),
+            ),
           );
 
           const successCount = results.filter(r => r.status === 'fulfilled').length;
@@ -140,8 +140,8 @@ export function createApplicationBulkActions({
           
           const results = await Promise.allSettled(
             numericIds.map(appId =>
-              apiClient.updateApplication(appId, { status: 'offer' })
-            )
+              apiClient.updateApplication(appId, { status: 'offer' }),
+            ),
           );
 
           const successCount = results.filter(r => r.status === 'fulfilled').length;
@@ -176,8 +176,8 @@ export function createApplicationBulkActions({
           
           const results = await Promise.allSettled(
             numericIds.map(appId =>
-              apiClient.updateApplication(appId, { status: 'rejected' })
-            )
+              apiClient.updateApplication(appId, { status: 'rejected' }),
+            ),
           );
 
           const successCount = results.filter(r => r.status === 'fulfilled').length;
@@ -212,8 +212,8 @@ export function createApplicationBulkActions({
           
           const results = await Promise.allSettled(
             numericIds.map(appId =>
-              apiClient.updateApplication(appId, { status: 'accepted' })
-            )
+              apiClient.updateApplication(appId, { status: 'accepted' }),
+            ),
           );
 
           const successCount = results.filter(r => r.status === 'fulfilled').length;
@@ -248,8 +248,8 @@ export function createApplicationBulkActions({
           
           const results = await Promise.allSettled(
             numericIds.map(appId =>
-              apiClient.updateApplication(appId, { archived: true } as any)
-            )
+              apiClient.updateApplication(appId, { archived: true } as any),
+            ),
           );
 
           const successCount = results.filter(r => r.status === 'fulfilled').length;
@@ -335,8 +335,8 @@ export function createApplicationBulkActions({
           
           const results = await Promise.allSettled(
             numericIds.map(appId =>
-              apiClient.deleteApplication(appId)
-            )
+              apiClient.deleteApplication(appId),
+            ),
           );
 
           const successCount = results.filter(r => r.status === 'fulfilled').length;

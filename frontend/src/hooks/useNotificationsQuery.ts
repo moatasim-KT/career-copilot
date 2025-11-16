@@ -7,8 +7,8 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
 import { apiClient } from '@/lib/api/api';
-import { queryKeys, getCacheConfig } from '@/lib/queryClient';
 import { logger } from '@/lib/logger';
+import { queryKeys, getCacheConfig } from '@/lib/queryClient';
 
 export interface NotificationFilters {
   skip?: number;
@@ -82,7 +82,7 @@ export function useMarkNotificationAsRead() {
         return old.map((notification: any) =>
           notification.id === notificationId
             ? { ...notification, read: true }
-            : notification
+            : notification,
         );
       });
       

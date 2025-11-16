@@ -16,7 +16,7 @@ const BulkOperationProgress = dynamic(
   {
     loading: () => <BulkOperationProgressSkeleton />,
     ssr: false,
-  }
+  },
 );
 
 // Simple skeleton for progress dialog loading state

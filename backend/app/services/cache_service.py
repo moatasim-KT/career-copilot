@@ -11,11 +11,12 @@ from typing import Any, Dict, List, Optional
 
 import redis
 import redis.asyncio as aioredis
+from redis.exceptions import ConnectionError
+from sqlalchemy.orm import Session
+
 from app.core.config import get_settings
 from app.core.logging import get_logger
 from app.models.analytics import Analytics
-from redis.exceptions import ConnectionError
-from sqlalchemy.orm import Session
 
 logger = get_logger(__name__)
 settings = get_settings()
@@ -90,13 +91,13 @@ class CacheService:
 		key_parts = [prefix]
 		for arg in args:
 			if isinstance(arg, (dict, list)):
-				key_parts.append(hashlib.md5(json.dumps(arg, sort_keys=True).encode()).hexdigest())
+				key_parts.append(hashlib.md5(json.dumps(arg, sort_keys=True).encode(), usedforsecurity=False).hexdigest())
 			else:
 				key_parts.append(str(arg))
 		if kwargs:
 			sorted_kwargs = sorted(kwargs.items())
 			kwargs_str = json.dumps(sorted_kwargs, sort_keys=True)
-			key_parts.append(hashlib.md5(kwargs_str.encode()).hexdigest())
+			key_parts.append(hashlib.md5(kwargs_str.encode(), usedforsecurity=False).hexdigest())
 		return ":".join(key_parts)
 
 	def set(self, key: str, value: Any, ttl: int = 3600) -> bool:
@@ -515,8 +516,8 @@ class RecommendationCacheService:
 				return cached
 
 		# Deferred import to avoid circular dependency
-		from app.services.job_recommendation_service import \
-		    get_job_recommendation_service
+		from app.services.job_recommendation_service import get_job_recommendation_service
+
 		recommendations = get_job_recommendation_service(db).generate_recommendations_for_user(db, user_id, limit=20, min_score=0.4, diversify=True)
 		self.save_recommendations_to_cache(db, user_id, recommendations)
 		return recommendations

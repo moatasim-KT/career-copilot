@@ -4,10 +4,20 @@ Welcome to Career Copilot! This guide will help you get the most out of your AI-
 
 ## Related Documents
 
-- [[../README.md]] - Project overview and setup
-- [[../TODO.md]] - Development progress
-- [[DEVELOPER_GUIDE.md]] - Developer documentation
-- [[FRONTEND_QUICK_START.md]] - Frontend setup
+**For Users**:
+- [[career-copilot/README|Project README]] - Project overview
+- [[DEMO_VIDEO_GUIDE]] - Demo walkthrough
+
+**For Developers**:
+- [[DEVELOPER_GUIDE]] - Developer documentation
+- [[LOCAL_SETUP]] - Local development setup
+- [[FRONTEND_QUICK_START]] - Quick frontend setup
+
+**Technical Reference**:
+- [[docs/index|Documentation Hub]] - Documentation hub
+- [[ARCHITECTURE]] - System architecture
+- [[API]] - API reference
+- [[COMMON_ISSUES]] - Common issues
 
 ## Table of Contents
 
@@ -166,6 +176,21 @@ Click on any job to view:
 - **Generate Cover Letter**: Create a personalized cover letter
 - **Share**: Share job with others
 
+### Smart Recommendations & Custom Lists
+
+1. Open the **Recommendations** tab from the sidebar or Dashboard widget.
+2. Filter by seniority, remote preference, salary band, or tech stack tags.
+3. The AI assigns a `Match Score` (0–100). Hover to see why it fits—skills overlap, location match, or salary alignment.
+4. Click **Add to List** to move a recommendation into a custom collection (e.g., “Dream Companies”, “High Priority”).
+5. Dismiss irrelevant roles; the model learns your preferences over time.
+
+### Market Pulse
+
+- Visit **Jobs → Market Pulse** to review EU tech hiring trends and region-specific salary medians.
+- Toggle between **Last 7 Days**, **30 Days**, or **Quarter** to understand trend velocity.
+- Use the filters at the top-right to compare locations (Berlin vs. Remote EU) or industries (Fintech, AI, Climate Tech).
+- Export the snapshot as CSV to share with mentors or include in personal reports.
+
 ## Application Tracking
 
 ### Creating an Application
@@ -185,13 +210,13 @@ Click on any job to view:
 ### Application Statuses
 
 Track your applications through these stages:
-- **Applied**: Application submitted
-- **Screening**: Under initial review
-- **Interviewing**: Interview scheduled or completed
+- **Interested**: Job saved and under initial review before submitting
+- **Applied**: Application submitted to the employer
+- **Interview**: Interview scheduled or completed
 - **Offer**: Job offer received
-- **Accepted**: Offer accepted
-- **Rejected**: Application rejected
-- **Withdrawn**: You withdrew the application
+- **Accepted**: Offer accepted and onboarding in progress
+- **Declined**: You declined an offer after considering it
+- **Rejected**: Employer rejected the application
 
 ### Updating Application Status
 
@@ -226,8 +251,41 @@ View your application history:
 3. See all status changes and notes
 4. Add timeline entries manually
 
+### Importing Historical Applications
+
+Bring past job search data into Career Copilot so analytics stay complete:
+
+1. Go to **Data Import** from the sidebar or the **Applications** page overflow menu.
+2. Upload a CSV or XLSX file that includes at least company, title, and status columns.
+3. Map columns to the template preview; optional fields (salary, source, links) can be matched as well.
+4. Enable **Auto-deduplicate** to prevent duplicates using our MinHash fingerprinting.
+5. Preview the parsed rows and click **Import**. Progress appears in the Bulk Operations tray and notifications feed.
+
+### Exporting Application Records
+
+Share summaries with mentors or keep personal archives:
+
+1. From **Applications**, **Analytics**, or **Settings → Data**, click **Export**.
+2. Choose CSV, XLSX, or PDF. Filters currently applied carry over to the export.
+3. Optionally password-protect PDF exports for external sharing.
+4. Track export jobs in the Bulk Operations tray; files remain available for download for 24 hours.
+
+### Reminders & Follow-ups
+
+- Use the **Follow-up Date** field on each application to schedule nudges; reminders surface via notifications and email digests.
+- Toggle **Auto reminders** in **Settings → Notifications** to receive smart suggestions (e.g., “follow up 7 days after interview”).
+- Add timeline notes after every interview or recruiter sync so AI recommendations can surface context-aware guidance.
+
 
 ## AI-Powered Tools
+
+### Content Generation Workspace
+
+Open **Content Generation** from the sidebar to access all AI writing helpers in one place. The workspace lets you:
+- Select a template (Cover Letter, Resume Tailoring, Outreach Email, Follow-up, Networking Ping).
+- Provide context such as target job, tone, and key wins to highlight.
+- Preview multiple drafts and pin your favorite before exporting to DOCX or copying to clipboard.
+- View previous generations in the right-hand history rail so you can reuse content later.
 
 ### AI Resume Generation
 
@@ -244,6 +302,10 @@ Create tailored resumes for specific jobs:
 5. Review and edit the generated resume
 6. Download as PDF or DOCX
 
+Tips:
+- Use the **Focus Areas** toggle to emphasize leadership, technical depth, or cross-functional collaboration.
+- Switch to another language (English, German, French, Spanish) from the toolbar if you are applying to multilingual roles.
+
 ### AI Cover Letter Generation
 
 Create personalized cover letters:
@@ -256,6 +318,16 @@ Create personalized cover letters:
    - Your enthusiasm for the role
 4. Review and customize
 5. Download or copy to clipboard
+
+You can add interview notes or recruiter preferences before generating so the AI can reference specific talking points.
+
+### AI Outreach Emails
+
+1. From **Content Generation**, choose **Outreach / Email**.
+2. Select the scenario (cold outreach, recruiter follow-up, thank you, negotiation) and desired tone.
+3. Include optional data such as hiring manager name, timeline, or specific company wins.
+4. Generate, edit inline with markdown, and sync to your clipboard.
+5. Save the email to the application timeline for future reference.
 
 ### Skills Gap Analysis
 
@@ -283,6 +355,14 @@ Prepare for interviews with AI assistance:
    - Suggested answers based on your experience
    - Company research summary
    - Questions to ask the interviewer
+
+### Interview Practice Simulator
+
+1. Navigate to **Interview Practice** from the sidebar or the Applications page quick links.
+2. Pick a template (Behavioral, System Design, Product Sense, Culture Add) or create your own question set.
+3. Start a timed session; each prompt includes guidance on what reviewers expect.
+4. Record audio or jot bullet responses, then let the AI provide feedback on clarity, structure, and confidence.
+5. Save sessions to the application timeline to track improvement over time.
 
 ## Analytics & Insights
 
@@ -337,6 +417,28 @@ Export your data for external analysis:
 4. Select data range
 5. Download file
 
+
+## Notifications & Collaboration
+
+### Notification Center
+
+- Open the bell icon in the top nav or navigate to **Notifications**.
+- Use tabs to switch between **All**, **Applications**, **Recommendations**, and **System** events.
+- Real-time updates stream through websockets; when offline, queued events sync the next time you connect.
+- Mark items as read individually or select **Mark All Read**.
+
+### Email & Push Alerts
+
+1. Head to **Settings → Notifications**.
+2. Enable browser push, mobile push (if using the companion PWA), or email digests.
+3. Configure quiet hours so alerts pause during focus time.
+4. Daily or weekly digest emails summarize job recommendations, approaching deadlines, and follow-up reminders.
+
+### Activity Feed & Sharing
+
+- The **Social Activity** view highlights shared resumes, referrals, and wins from your network.
+- Share a job or application update via **Share → Copy Link**; recipients can open a sanitized snapshot without signing in.
+- Collaborative comments stay attached to the application timeline so mentors can review progress.
 
 ## Settings & Customization
 
@@ -417,6 +519,14 @@ Export or delete your data:
    - **Delete Account**: Permanently delete your account
      - Requires email confirmation
      - 30-day grace period before permanent deletion
+
+### Data Sync & Offline Mode
+
+1. Install the PWA (Chrome/Edge: **More Tools → Install App**) or add the site to your dock from Safari.
+2. Toggle **Offline Mode** in **Settings → Data** to enable background sync and caching.
+3. When offline, the app shows an **Offline** banner; you can continue adding notes or drafting applications.
+4. Click **Sync Now** after reconnecting to push queued changes and refresh analytics.
+5. Conflicts are highlighted in the timeline so you can choose which version to keep.
 
 ## Tips & Best Practices
 

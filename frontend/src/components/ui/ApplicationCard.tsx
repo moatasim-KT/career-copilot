@@ -56,7 +56,7 @@ export interface ApplicationCardProps {
  */
 function getStatusColor(status: string): 'default' | 'success' | 'warning' | 'error' | 'info' {
   const statusLower = status.toLowerCase();
-  
+
   if (statusLower === 'accepted' || statusLower === 'offer') {
     return 'success';
   }
@@ -77,13 +77,13 @@ function getStatusColor(status: string): 'default' | 'success' | 'warning' | 'er
  */
 function formatDate(dateString: string | null): string {
   if (!dateString) return 'N/A';
-  
+
   try {
     const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', { 
-      month: 'short', 
-      day: 'numeric', 
-      year: 'numeric' 
+    return date.toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
     });
   } catch {
     return 'Invalid date';
@@ -95,7 +95,7 @@ function formatDate(dateString: string | null): string {
  */
 function getDaysSince(dateString: string | null): number {
   if (!dateString) return 0;
-  
+
   try {
     const date = new Date(dateString);
     const now = new Date();
@@ -131,11 +131,14 @@ export function ApplicationCard({
   className = '',
 }: ApplicationCardProps) {
   const daysSince = getDaysSince(application.applied_date || application.created_at);
-  
+  const jobDisplayTitle = application.job_title || `Job #${application.job_id}`;
+  const companyDisplayName = application.company_name || 'Company';
+  const selectionLabel = `Select application ${jobDisplayTitle}${companyDisplayName ? ` at ${companyDisplayName}` : ''}`;
+
   // Compact variant - minimal information
   if (variant === 'compact') {
     return (
-      <div 
+      <div
         className={`
           bg-white dark:bg-neutral-800 rounded-lg shadow-sm p-4 
           flex items-center justify-between
@@ -150,16 +153,17 @@ export function ApplicationCard({
             type="checkbox"
             className="mr-3 rounded border-neutral-300 dark:border-neutral-600 text-blue-600 focus:ring-blue-500"
             checked={isSelected}
+            aria-label={selectionLabel}
             onChange={onSelect}
             onClick={(e) => e.stopPropagation()}
           />
         )}
         <div className="flex-1">
           <h3 className="text-lg font-semibold text-neutral-900 dark:text-neutral-100">
-            {application.job_title || `Job #${application.job_id}`}
+            {jobDisplayTitle}
           </h3>
           <p className="text-sm text-neutral-600 dark:text-neutral-400">
-            {application.company_name || 'Company'}
+            {companyDisplayName}
           </p>
         </div>
         <div className="text-right">
@@ -177,7 +181,7 @@ export function ApplicationCard({
   // Detailed variant - full information
   if (variant === 'detailed') {
     return (
-      <div 
+      <div
         className={`
           bg-white dark:bg-neutral-800 rounded-lg shadow-md p-6
           border border-neutral-200 dark:border-neutral-700
@@ -193,16 +197,17 @@ export function ApplicationCard({
                 type="checkbox"
                 className="float-right ml-3 rounded border-neutral-300 dark:border-neutral-600 text-blue-600 focus:ring-blue-500"
                 checked={isSelected}
+                aria-label={selectionLabel}
                 onChange={onSelect}
                 onClick={(e) => e.stopPropagation()}
               />
             )}
             <h3 className="text-xl font-bold text-neutral-900 dark:text-neutral-100">
-              {application.job_title || `Job #${application.job_id}`}
+              {jobDisplayTitle}
             </h3>
             <p className="text-md text-neutral-700 dark:text-neutral-300 mt-1 flex items-center">
               <Building2 className="w-4 h-4 mr-2" />
-              {application.company_name || 'Company'}
+              {companyDisplayName}
             </p>
           </div>
         </div>
@@ -235,7 +240,7 @@ export function ApplicationCard({
           <Badge variant={getStatusColor(application.status)} className="text-sm">
             {application.status}
           </Badge>
-          <button 
+          <button
             className="px-4 py-2 bg-neutral-100 dark:bg-neutral-700 text-neutral-800 dark:text-neutral-200 rounded-lg hover:bg-neutral-200 dark:hover:bg-neutral-600 transition-colors text-sm font-medium"
           >
             View Details
@@ -247,7 +252,7 @@ export function ApplicationCard({
 
   // Default variant - balanced information
   return (
-    <div 
+    <div
       className={`
         bg-white dark:bg-neutral-800 rounded-lg shadow-sm p-6 relative
         border border-neutral-200 dark:border-neutral-700
@@ -261,18 +266,19 @@ export function ApplicationCard({
           type="checkbox"
           className="absolute top-4 right-4 rounded border-neutral-300 dark:border-neutral-600 text-blue-600 focus:ring-blue-500"
           checked={isSelected}
+          aria-label={selectionLabel}
           onChange={onSelect}
           onClick={(e) => e.stopPropagation()}
         />
       )}
-      
+
       <div className="pr-8">
         <h3 className="text-xl font-semibold text-neutral-900 dark:text-neutral-100">
-          {application.job_title || `Job #${application.job_id}`}
+          {jobDisplayTitle}
         </h3>
         <p className="text-md text-neutral-700 dark:text-neutral-300 mt-1 flex items-center">
           <Building2 className="w-4 h-4 mr-2" />
-          {application.company_name || 'Company'}
+          {companyDisplayName}
         </p>
       </div>
 
@@ -295,7 +301,7 @@ export function ApplicationCard({
         <Badge variant={getStatusColor(application.status)}>
           {application.status}
         </Badge>
-        <button 
+        <button
           className="px-4 py-2 bg-neutral-100 dark:bg-neutral-700 text-neutral-800 dark:text-neutral-200 rounded-lg hover:bg-neutral-200 dark:hover:bg-neutral-600 transition-colors text-sm"
         >
           View Details

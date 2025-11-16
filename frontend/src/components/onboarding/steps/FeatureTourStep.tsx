@@ -16,24 +16,24 @@
 
 'use client';
 
-import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
 import {
   LayoutDashboard,
   Briefcase,
   FileText,
   Bell,
   Command,
-  Search,
   BarChart3,
   ChevronLeft,
   ChevronRight,
   Sparkles,
 } from 'lucide-react';
+import React, { useState } from 'react';
 
 import Button2 from '@/components/ui/Button2';
-import { fadeInUp, slideVariants } from '@/lib/animations';
+import { slideVariants } from '@/lib/animations';
+import { m, AnimatePresence } from '@/lib/motion';
 import { cn } from '@/lib/utils';
+
 import type { StepProps } from '../OnboardingWizard';
 
 /**
@@ -142,7 +142,7 @@ const tourSteps: TourStep[] = [
 /**
  * FeatureTourStep Component
  */
-const FeatureTourStep: React.FC<StepProps> = ({ data, onChange }) => {
+const FeatureTourStep: React.FC<StepProps> = ({ data: _data, onChange: _onChange }) => {
   const [currentTourStep, setCurrentTourStep] = useState(0);
 
   const currentStep = tourSteps[currentTourStep];
@@ -185,7 +185,7 @@ const FeatureTourStep: React.FC<StepProps> = ({ data, onChange }) => {
           Discover Career Copilot
         </h3>
         <p className="text-neutral-600 dark:text-neutral-400 max-w-2xl mx-auto">
-          Let's take a quick tour of the key features that will help you land your dream job.
+          Let&apos;s take a quick tour of the key features that will help you land your dream job.
         </p>
       </div>
 
@@ -200,8 +200,8 @@ const FeatureTourStep: React.FC<StepProps> = ({ data, onChange }) => {
               index === currentTourStep
                 ? 'w-8 bg-primary-600'
                 : index < currentTourStep
-                ? 'w-2 bg-success-500'
-                : 'w-2 bg-neutral-300 dark:bg-neutral-700'
+                  ? 'w-2 bg-success-500'
+                  : 'w-2 bg-neutral-300 dark:bg-neutral-700',
             )}
             aria-label={`Go to ${step.title}`}
           />
@@ -210,7 +210,7 @@ const FeatureTourStep: React.FC<StepProps> = ({ data, onChange }) => {
 
       {/* Tour content */}
       <AnimatePresence mode="wait">
-        <motion.div
+        <m.div
           key={currentTourStep}
           initial="hidden"
           animate="visible"
@@ -223,13 +223,13 @@ const FeatureTourStep: React.FC<StepProps> = ({ data, onChange }) => {
             className={cn(
               'relative overflow-hidden rounded-2xl p-8 text-white',
               'bg-gradient-to-br',
-              currentStep.gradient
+              currentStep.gradient,
             )}
           >
             {/* Background pattern */}
             <div className="absolute inset-0 opacity-10">
               <div className="absolute inset-0" style={{
-                backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
+                backgroundImage: 'url("data:image/svg+xml,%3Csvg width=\'60\' height=\'60\' viewBox=\'0 0 60 60\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cg fill=\'none\' fill-rule=\'evenodd\'%3E%3Cg fill=\'%23ffffff\' fill-opacity=\'1\'%3E%3Cpath d=\'M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z\'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")',
               }} />
             </div>
 
@@ -245,7 +245,7 @@ const FeatureTourStep: React.FC<StepProps> = ({ data, onChange }) => {
               {/* Features list */}
               <div className="space-y-3">
                 {currentStep.features.map((feature, index) => (
-                  <motion.div
+                  <m.div
                     key={index}
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
@@ -268,7 +268,7 @@ const FeatureTourStep: React.FC<StepProps> = ({ data, onChange }) => {
                       </svg>
                     </div>
                     <span className="text-white/90">{feature}</span>
-                  </motion.div>
+                  </m.div>
                 ))}
               </div>
             </div>
@@ -276,7 +276,7 @@ const FeatureTourStep: React.FC<StepProps> = ({ data, onChange }) => {
 
           {/* Keyboard shortcut hint */}
           {currentStep.id === 'command-palette' && (
-            <motion.div
+            <m.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3 }}
@@ -303,9 +303,9 @@ const FeatureTourStep: React.FC<StepProps> = ({ data, onChange }) => {
                   </p>
                 </div>
               </div>
-            </motion.div>
+            </m.div>
           )}
-        </motion.div>
+        </m.div>
       </AnimatePresence>
 
       {/* Navigation */}
