@@ -98,6 +98,22 @@ Career Copilot is a comprehensive AI-powered platform that revolutionizes the jo
 - Customizable notification preferences per category
 - In-app notification center with history
 
+#### 📅 **Calendar Integration** ✨ NEW
+- **Two-way Sync**: Sync interviews with Google Calendar and Microsoft Outlook
+- **Event Management**: Create, view, edit, and delete interview events
+- **Multiple Views**: Month, week, and day calendar views
+- **Automatic Reminders**: 15 minutes, 1 hour, or 1 day before events
+- **Application Linking**: Connect events directly to job applications
+- [📖 Calendar Integration Guide](docs/features/CALENDAR_INTEGRATION_GUIDE.md)
+
+#### 🎛️ **Customizable Dashboard** ✨ NEW
+- **8 Interactive Widgets**: Status overview, recent jobs, statistics, calendar, recommendations, activity timeline, skills progress, goals tracker
+- **Drag-and-Drop**: Rearrange widgets to match your workflow
+- **Resizable Widgets**: Adjust sizes for your preferred layout
+- **Layout Persistence**: Your custom layout saves automatically
+- **Responsive Design**: Adapts to desktop, tablet, and mobile
+- [📖 Dashboard Customization Guide](docs/features/DASHBOARD_CUSTOMIZATION_GUIDE.md)
+
 #### 🎨 **Modern User Experience**
 - Beautiful dark mode with smooth transitions
 - Responsive design (mobile, tablet, desktop)

@@ -1,6 +1,6 @@
 # Career Copilot - Project Status
 
-**Last Updated**: November 16, 2025
+**Last Updated**: November 17, 2025
 
 **Quick Links**: [[career-copilot/README|Project README]] | [[LOCAL_SETUP]] | [[docs/index|Documentation Hub]] | [[career-copilot/CONTRIBUTING|Contributing Guidelines]]
 
@@ -29,6 +29,15 @@ Career Copilot is a production-ready AI-powered job application tracking and car
 ## Current Status: ✅ Production-Ready
 
 ### Phase Completion Summary
+
+**Phase 3.2: Calendar Integration & Dashboard Customization** ✅ Complete (November 17, 2025)
+- ✅ Calendar OAuth integration (Google + Outlook)
+- ✅ Event sync and management
+- ✅ Customizable dashboard with 8 widgets
+- ✅ Drag-and-drop widget rearrangement
+- ✅ 40 E2E tests (19 calendar + 21 dashboard)
+- ✅ Comprehensive user documentation
+- **Details**: [[docs/phases/PHASE_3.2_STATUS|Phase 3.2 Status]] | [[docs/phases/PHASE_3.2_SUMMARY|Phase 3.2 Summary]]
 
 **Phase 6: Notifications & Templates** ✅ Complete
 - 11/11 notification service tests passing
