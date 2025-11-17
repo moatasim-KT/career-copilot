@@ -1,6 +1,7 @@
 """Job model"""
 
-from sqlalchemy import JSON, Column, DateTime, ForeignKey, Integer, String, Text
+from sqlalchemy import ARRAY, JSON, BigInteger, Boolean, Column, DateTime, ForeignKey, Integer, String, Text
+from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import relationship
 
 from ..core.database import Base
@@ -37,6 +38,21 @@ class Job(Base):
 
 	# Deduplication fingerprint (MD5 hash of normalized title+company+location)
 	job_fingerprint = Column(String(32), nullable=True, index=True)
+
+	# Phase 3.3: New fields for expanded job boards
+	language_requirements = Column(ARRAY(Text), nullable=True)  # ["German (Fluent)", "English (Working)"]
+	experience_level = Column(String(50), nullable=True, index=True)  # Junior, Mid-Level, Senior, etc.
+	equity_range = Column(String(100), nullable=True)  # "0.1%-0.5%" or "1,000-5,000 shares"
+	funding_stage = Column(String(50), nullable=True, index=True)  # Seed, Series A, etc.
+	total_funding = Column(BigInteger, nullable=True)  # Total raised in USD cents
+	investors = Column(ARRAY(Text), nullable=True)  # ["Sequoia", "a16z"]
+	company_culture_tags = Column(ARRAY(Text), nullable=True)  # ["Remote-First", "Innovative"]
+	perks = Column(ARRAY(Text), nullable=True)  # ["Stock options", "Health insurance"]
+	work_permit_info = Column(Text, nullable=True)  # "EU work permit required"
+	workload_percentage = Column(Integer, nullable=True)  # Swiss: 80%, 100%
+	company_verified = Column(Boolean, default=False, nullable=False)  # Verified company account
+	company_videos = Column(JSONB, nullable=True)  # Video metadata from WttJ
+	job_language = Column(String(5), default="en", nullable=False, index=True)  # ISO 639-1: en, de, fr, it, es
 
 	user = relationship("User", back_populates="jobs")
 	applications = relationship("Application", back_populates="job", cascade="all, delete-orphan")
