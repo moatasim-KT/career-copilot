@@ -8,7 +8,7 @@
 'use client';
 
 import { Calendar } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -40,21 +40,35 @@ interface CreateEventDialogProps {
     applicationId?: number;
     trigger?: React.ReactNode;
     onEventCreated?: () => void;
+    open?: boolean;
+    onOpenChange?: (open: boolean) => void;
+    defaultValues?: {
+        title?: string;
+        description?: string;
+        location?: string;
+        applicationId?: number;
+    };
 }
 
 export default function CreateEventDialog({
     applicationId,
     trigger,
     onEventCreated,
+    open: controlledOpen,
+    onOpenChange,
+    defaultValues,
 }: CreateEventDialogProps) {
-    const [open, setOpen] = useState(false);
+    const [internalOpen, setInternalOpen] = useState(false);
+    const open = controlledOpen !== undefined ? controlledOpen : internalOpen;
+    const setOpen = onOpenChange || setInternalOpen;
+
     const [loading, setLoading] = useState(false);
     const { toast } = useToast();
 
-    const [formData, setFormData] = useState({
-        title: '',
-        description: '',
-        location: '',
+    const getInitialFormData = () => ({
+        title: defaultValues?.title || '',
+        description: defaultValues?.description || '',
+        location: defaultValues?.location || '',
         startDate: '',
         startTime: '',
         endDate: '',
@@ -65,6 +79,15 @@ export default function CreateEventDialog({
         reminder1hour: true,
         reminder1day: false,
     });
+
+    const [formData, setFormData] = useState(getInitialFormData());
+
+    // Reset form when dialog opens with new default values
+    useEffect(() => {
+        if (open && defaultValues) {
+            setFormData(getInitialFormData());
+        }
+    }, [open, defaultValues]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -85,17 +108,16 @@ export default function CreateEventDialog({
             const endDateTime = `${formData.endDate}T${formData.endTime}:00`;
 
             const response = await CalendarService.createEvent({
-                application_id: applicationId,
                 title: formData.title,
-                description: formData.description || undefined,
-                location: formData.location || undefined,
+                description: formData.description,
+                location: formData.location,
                 start_time: startDateTime,
                 end_time: endDateTime,
                 timezone: formData.timezone,
+                application_id: defaultValues?.applicationId || applicationId || null,
                 reminder_15min: formData.reminder15min,
                 reminder_1hour: formData.reminder1hour,
                 reminder_1day: formData.reminder1day,
-                provider: formData.provider,
             });
 
             if (response.data) {

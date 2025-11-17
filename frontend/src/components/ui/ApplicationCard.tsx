@@ -7,8 +7,10 @@
 
 'use client';
 
-import { Calendar, Clock, FileText, Building2 } from 'lucide-react';
-import React from 'react';
+import { Calendar, Clock, FileText, Building2, CalendarPlus } from 'lucide-react';
+import React, { useState } from 'react';
+
+import CreateEventDialog from '@/components/calendar/CreateEventDialog';
 
 import { Badge } from './Badge';
 
@@ -49,6 +51,8 @@ export interface ApplicationCardProps {
   onSelect?: () => void;
   /** Custom className */
   className?: string;
+  /** Callback when calendar event is added */
+  onEventAdded?: () => void;
 }
 
 /**
@@ -129,11 +133,29 @@ export function ApplicationCard({
   isSelected = false,
   onSelect,
   className = '',
+  onEventAdded,
 }: ApplicationCardProps) {
+  const [showEventDialog, setShowEventDialog] = useState(false);
   const daysSince = getDaysSince(application.applied_date || application.created_at);
   const jobDisplayTitle = application.job_title || `Job #${application.job_id}`;
   const companyDisplayName = application.company_name || 'Company';
   const selectionLabel = `Select application ${jobDisplayTitle}${companyDisplayName ? ` at ${companyDisplayName}` : ''}`;
+
+  const handleEventCreated = () => {
+    setShowEventDialog(false);
+    if (onEventAdded) {
+      onEventAdded();
+    }
+  };
+
+  // Pre-filled event data based on application
+  const defaultEventData = {
+    title: application.interview_date
+      ? `Interview: ${jobDisplayTitle} at ${companyDisplayName}`
+      : `Follow-up: ${jobDisplayTitle}`,
+    description: `${application.status} - ${companyDisplayName}\n\nJob: ${jobDisplayTitle}\nApplication ID: ${application.id}`,
+    applicationId: application.id,
+  };
 
   // Compact variant - minimal information
   if (variant === 'compact') {
@@ -240,12 +262,28 @@ export function ApplicationCard({
           <Badge variant={getStatusColor(application.status)} className="text-sm">
             {application.status}
           </Badge>
-          <button
-            className="px-4 py-2 bg-neutral-100 dark:bg-neutral-700 text-neutral-800 dark:text-neutral-200 rounded-lg hover:bg-neutral-200 dark:hover:bg-neutral-600 transition-colors text-sm font-medium"
-          >
-            View Details
-          </button>
+          <div className="flex gap-2">
+            <button
+              onClick={() => setShowEventDialog(true)}
+              className="px-3 py-2 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 rounded-lg hover:bg-blue-200 dark:hover:bg-blue-800 transition-colors text-sm font-medium flex items-center gap-2"
+            >
+              <CalendarPlus className="w-4 h-4" />
+              Add to Calendar
+            </button>
+            <button
+              className="px-4 py-2 bg-neutral-100 dark:bg-neutral-700 text-neutral-800 dark:text-neutral-200 rounded-lg hover:bg-neutral-200 dark:hover:bg-neutral-600 transition-colors text-sm font-medium"
+            >
+              View Details
+            </button>
+          </div>
         </div>
+
+        <CreateEventDialog
+          open={showEventDialog}
+          onOpenChange={setShowEventDialog}
+          onEventCreated={handleEventCreated}
+          defaultValues={defaultEventData}
+        />
       </div>
     );
   }
@@ -301,12 +339,29 @@ export function ApplicationCard({
         <Badge variant={getStatusColor(application.status)}>
           {application.status}
         </Badge>
-        <button
-          className="px-4 py-2 bg-neutral-100 dark:bg-neutral-700 text-neutral-800 dark:text-neutral-200 rounded-lg hover:bg-neutral-200 dark:hover:bg-neutral-600 transition-colors text-sm"
-        >
-          View Details
-        </button>
+        <div className="flex gap-2">
+          <button
+            onClick={() => setShowEventDialog(true)}
+            className="px-3 py-2 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 rounded-lg hover:bg-blue-200 dark:hover:bg-blue-800 transition-colors text-sm flex items-center gap-2"
+            title="Add interview or follow-up to calendar"
+          >
+            <CalendarPlus className="w-4 h-4" />
+            Calendar
+          </button>
+          <button
+            className="px-4 py-2 bg-neutral-100 dark:bg-neutral-700 text-neutral-800 dark:text-neutral-200 rounded-lg hover:bg-neutral-200 dark:hover:bg-neutral-600 transition-colors text-sm"
+          >
+            View Details
+          </button>
+        </div>
       </div>
+
+      <CreateEventDialog
+        open={showEventDialog}
+        onOpenChange={setShowEventDialog}
+        onEventCreated={handleEventCreated}
+        defaultValues={defaultEventData}
+      />
     </div>
   );
 }
