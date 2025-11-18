@@ -1,12 +1,10 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import { Inter } from 'next/font/google';
-import Script from 'next/script';
 import { Toaster } from 'sonner';
 
 import Layout from '@/components/layout/Layout';
 import PageTransition from '@/components/layout/PageTransition';
 import WebVitalsReporter from '@/components/WebVitalsReporter';
-import { getThemeInitScript } from '@/lib/theme/getThemeInitScript';
 
 import Providers from './providers';
 import './globals.css';
@@ -14,11 +12,22 @@ import './globals.css';
 const inter = Inter({
   variable: '--font-inter',
   subsets: ['latin'],
+  display: 'swap',
 });
 
 export const metadata: Metadata = {
   title: 'Career Copilot - AI-Powered Job Application Tracking',
   description: 'Track your job applications, get personalized recommendations, and analyze your job search progress with AI-powered insights.',
+};
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 5,
+  themeColor: [
+    { media: '(prefers-color-scheme: light)', color: '#ffffff' },
+    { media: '(prefers-color-scheme: dark)', color: '#0a0a0a' },
+  ],
 };
 
 export default function RootLayout({
@@ -27,34 +36,42 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
-      <head>
-        {/* Prevent flash of wrong theme */}
-        <Script
-          id="theme-init"
-          strategy="beforeInteractive"
+    <html lang="en" suppressHydrationWarning className="h-full">
+      <body
+        className={`${inter.variable} font-sans antialiased bg-white dark:bg-neutral-950 text-neutral-900 dark:text-neutral-100 min-h-full`}
+        suppressHydrationWarning
+      >
+        {/* Prevent flash of wrong theme - moved to body to avoid hydration issues */}
+        <script
           dangerouslySetInnerHTML={{
-            __html: getThemeInitScript(),
+            __html: `
+              (function() {
+                try {
+                  const theme = localStorage.getItem('theme') || 'system';
+                  const isDark = theme === 'dark' || (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+                  if (isDark) {
+                    document.documentElement.classList.add('dark');
+                  }
+                  document.documentElement.style.colorScheme = isDark ? 'dark' : 'light';
+                } catch (e) {}
+              })();
+            `,
           }}
         />
-      </head>
-      <body
-        className={`${inter.variable} font-sans antialiased bg-neutral-50 dark:bg-neutral-900 min-h-screen`}
-      >
         <Providers>
-          {/* Web Vitals tracking */}
           <WebVitalsReporter />
-
-          {/* 
-            PageTransition wraps the app with AnimatePresence to provide smooth
-            transitions between routes. It automatically detects route changes
-            via usePathname and animates page content with fade and slide effects.
-          */}
           <PageTransition>
             <Layout>{children}</Layout>
           </PageTransition>
         </Providers>
-        <Toaster position="top-right" richColors closeButton />
+        <Toaster
+          position="top-right"
+          richColors
+          closeButton
+          toastOptions={{
+            className: 'bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700',
+          }}
+        />
       </body>
     </html>
   );

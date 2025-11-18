@@ -118,7 +118,7 @@ export default function AnalyticsPage() {
   if (loading) {
     return (
       <div className="space-y-6">
-        <h1 className="text-3xl font-bold text-neutral-900">Analytics Dashboard</h1>
+        <h1 className="text-2xl md:text-4xl font-bold text-neutral-900">Analytics Dashboard</h1>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {[...Array(8)].map((_, i) => (
             <Card key={i} className="p-6">
@@ -136,7 +136,7 @@ export default function AnalyticsPage() {
   if (error) {
     return (
       <div className="space-y-6">
-        <h1 className="text-3xl font-bold text-neutral-900">Analytics Dashboard</h1>
+        <h1 className="text-2xl md:text-4xl font-bold text-neutral-900">Analytics Dashboard</h1>
         <Card className="p-6">
           <div className="text-center">
             <div className="text-red-500 mb-2">⚠️</div>
@@ -155,7 +155,7 @@ export default function AnalyticsPage() {
   if (!analytics) {
     return (
       <div className="space-y-6">
-        <h1 className="text-3xl font-bold text-neutral-900">Analytics Dashboard</h1>
+        <h1 className="text-2xl md:text-4xl font-bold text-neutral-900">Analytics Dashboard</h1>
         <Card className="p-6">
           <p className="text-neutral-600">No analytics data available</p>
         </Card>
@@ -190,7 +190,7 @@ export default function AnalyticsPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold text-neutral-900">Analytics Dashboard</h1>
+        <h1 className="text-2xl md:text-4xl font-bold text-neutral-900">Analytics Dashboard</h1>
         <div className="flex items-center space-x-3">
           {lastUpdated && (
             <span className="text-sm text-neutral-500">
@@ -315,8 +315,8 @@ export default function AnalyticsPage() {
                 key={days}
                 onClick={() => setTimeframe(days)}
                 className={`px-3 py-1 rounded text-sm ${timeframe === days
-                    ? 'bg-blue-500 text-white'
-                    : 'bg-neutral-200 text-neutral-700 hover:bg-neutral-300'
+                  ? 'bg-blue-500 text-white'
+                  : 'bg-neutral-200 text-neutral-700 hover:bg-neutral-300'
                   }`}
               >
                 {days}d

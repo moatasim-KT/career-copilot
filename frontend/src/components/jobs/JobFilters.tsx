@@ -4,9 +4,8 @@
  */
 
 import { Filter, X } from 'lucide-react';
-import { useState } from 'react';
 
-import { Badge } from '@/components/ui/badge';
+import { Badge } from '@/components/ui/Badge';
 
 export interface JobFilters {
     experienceLevel?: string[];

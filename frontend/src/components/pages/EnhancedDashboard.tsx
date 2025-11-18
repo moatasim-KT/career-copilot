@@ -1,3 +1,70 @@
+/**
+ * Enhanced Dashboard Component
+ * 
+ * Main dashboard page with customizable widget layout and real-time updates.
+ * 
+ * **Features**:
+ * - Drag-and-drop widget rearrangement via react-grid-layout
+ * - Real-time WebSocket updates for analytics and application status
+ * - Multiple layout presets (default, compact)
+ * - Connection status indicator
+ * - Auto-refresh on data updates
+ * - Loading states and error handling
+ * 
+ * **Widgets**:
+ * 1. Metrics Overview - Application statistics (total, success rate, response time)
+ * 2. Activity Timeline - Recent application activity with icons
+ * 3. Quick Actions Panel - Common actions (New Application, Search Jobs, etc.)
+ * 4. Progress Tracker - Goals and milestones
+ * 
+ * **Layout System**:
+ * Uses react-grid-layout with responsive breakpoints:
+ * - Desktop (lg): 3 columns
+ * - Tablet (md): 2 columns
+ * - Mobile (sm): 1 column
+ * 
+ * Grid coordinates: `{ i: 'id', x: col, y: row, w: width, h: height }`
+ * 
+ * **WebSocket Integration**:
+ * Connects to backend at `ws://localhost:8002/ws` for:
+ * - Analytics updates (`analytics` property)
+ * - Application status changes
+ * - Real-time notifications
+ * 
+ * **State Management**:
+ * - `analytics`: AnalyticsSummary from backend
+ * - `layout`: Current widget layout configuration
+ * - `connectionStatus`: WebSocket connection state (open/connecting/closed)
+ * - `lastUpdated`: Timestamp of last data refresh
+ * 
+ * **Usage**:
+ * ```tsx
+ * import EnhancedDashboard from '@/components/pages/EnhancedDashboard';
+ * 
+ * export default function DashboardPage() {
+ *   return <EnhancedDashboard />;
+ * }
+ * ```
+ * 
+ * **Design Tokens**:
+ * Uses design system from [[frontend/src/app/globals.css|globals.css]]:
+ * - Colors: neutral-*, green-*, yellow-*, red-* for status
+ * - Typography: text-3xl, font-bold for headers
+ * - Spacing: space-y-6, space-x-3
+ * 
+ * **Related Components**:
+ * - [[frontend/src/components/ui/MetricCard.tsx|MetricCard]] - Displays individual metrics
+ * - [[frontend/src/components/ui/ActivityTimeline.tsx|ActivityTimeline]] - Shows recent activity
+ * - [[frontend/src/components/ui/QuickActionsPanel.tsx|QuickActionsPanel]] - Action buttons
+ * - [[frontend/src/components/ui/Widget.tsx|Widget]] - Generic widget wrapper
+ * 
+ * **API Integration**:
+ * - `apiClient.getAnalyticsSummary()` - Fetches dashboard analytics
+ * - WebSocket updates trigger state refresh
+ * 
+ * @see [[docs/features/DASHBOARD_CUSTOMIZATION_GUIDE|Dashboard Customization Guide]]
+ * @see [[docs/DEVELOPER_GUIDE|Developer Guide]] - Component patterns
+ */
 'use client';
 
 import {
@@ -115,67 +182,64 @@ export default function EnhancedDashboard() {
     const ResponsiveReactGridLayout = WidthProvider(Responsive);
 
     return (
-        <div className="space-y-6">
+        <div className="space-y-8">
             {/* Header */}
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
-                    <h1 className="text-3xl font-bold text-neutral-900">Dashboard</h1>
-                    <p className="text-neutral-600 mt-1">Track your job search progress</p>
+                    <h1 className="text-2xl md:text-3xl font-bold text-neutral-900 dark:text-neutral-100 tracking-tight">Dashboard</h1>
+                    <p className="text-neutral-500 dark:text-neutral-400 mt-1">Track your job search progress and insights</p>
                 </div>
 
-                <div className="flex items-center space-x-3">
+                <div className="flex items-center gap-3 bg-white dark:bg-neutral-900 p-2 rounded-xl border border-neutral-200 dark:border-neutral-800 shadow-sm">
                     {/* Connection Status */}
-                    <div className="flex items-center space-x-2">
+                    <div className="flex items-center px-3 py-1.5 rounded-lg bg-neutral-50 dark:bg-neutral-800">
                         {connectionStatus === 'open' ? (
-                            <div className="flex items-center space-x-1 text-green-600">
-                                <Wifi className="h-4 w-4" />
-                                <span className="text-sm font-medium">Live</span>
+                            <div className="flex items-center gap-2 text-green-600 dark:text-green-400">
+                                <div className="relative flex h-2.5 w-2.5">
+                                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                                    <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-green-500"></span>
+                                </div>
+                                <span className="text-xs font-medium">Live</span>
                             </div>
                         ) : connectionStatus === 'connecting' ? (
-                            <div className="flex items-center space-x-1 text-yellow-600">
-                                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-yellow-600"></div>
-                                <span className="text-sm font-medium">Connecting...</span>
+                            <div className="flex items-center gap-2 text-yellow-600 dark:text-yellow-400">
+                                <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-current"></div>
+                                <span className="text-xs font-medium">Connecting</span>
                             </div>
                         ) : (
-                            <div className="flex items-center space-x-1 text-red-600">
-                                <WifiOff className="h-4 w-4" />
-                                <span className="text-sm font-medium">Offline</span>
+                            <div className="flex items-center gap-2 text-red-600 dark:text-red-400">
+                                <WifiOff className="h-3 w-3" />
+                                <span className="text-xs font-medium">Offline</span>
                             </div>
                         )}
                     </div>
 
-                    {lastUpdated && (
-                        <span className="text-sm text-neutral-500">
-                            Updated: {lastUpdated.toLocaleTimeString()}
-                        </span>
-                    )}
+                    <div className="h-6 w-px bg-neutral-200 dark:bg-neutral-700 mx-1"></div>
 
                     <select
                         value={currentPreset}
                         onChange={(e) => setCurrentPreset(e.target.value)}
-                        className="px-3 py-2 border border-neutral-300 rounded-lg shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                        className="text-sm border-none bg-transparent focus:ring-0 text-neutral-600 dark:text-neutral-300 font-medium cursor-pointer hover:text-neutral-900 dark:hover:text-neutral-100 transition-colors"
                     >
-                        <option value="default">Default Layout</option>
-                        <option value="compact">Compact Layout</option>
+                        <option value="default">Default View</option>
+                        <option value="compact">Compact View</option>
                     </select>
 
                     <button
                         onClick={loadDashboardData}
                         disabled={isLoading}
-                        className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
+                        className="p-2 text-neutral-500 hover:text-primary-600 dark:text-neutral-400 dark:hover:text-primary-400 transition-colors rounded-lg hover:bg-neutral-100 dark:hover:bg-neutral-800"
+                        title="Refresh Data"
                     >
                         <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
-                        <span>Refresh</span>
                     </button>
                 </div>
             </div>
 
             {error && (
-                <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-                    <div className="flex">
-                        <AlertCircle className="h-5 w-5 text-red-400" />
-                        <p className="ml-3 text-sm text-red-800">{error}</p>
-                    </div>
+                <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-4 flex items-center gap-3">
+                    <AlertCircle className="h-5 w-5 text-red-600 dark:text-red-400 flex-shrink-0" />
+                    <p className="text-sm text-red-800 dark:text-red-200">{error}</p>
                 </div>
             )}
 

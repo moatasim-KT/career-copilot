@@ -4,6 +4,7 @@ Free API with excellent startup job coverage and equity data.
 """
 
 import asyncio
+import json
 import logging
 from datetime import datetime
 from typing import Any, Dict, List, Optional
@@ -17,17 +18,6 @@ from app.services.language_processor import get_language_processor
 from .base_scraper import BaseScraper
 
 logger = logging.getLogger(__name__)
-
-import asyncio
-from datetime import datetime
-from typing import Any, Dict, List, Optional
-
-import httpx
-
-from app.core.config import get_settings
-from app.services.language_processor import get_language_processor
-
-from .base_scraper import BaseScraper, JobData
 
 
 class AngelListScraper(BaseScraper):
@@ -61,7 +51,7 @@ class AngelListScraper(BaseScraper):
 
 		self.client = httpx.AsyncClient(headers=headers, timeout=30.0)
 
-	async def search_jobs(self, query: str = "software engineer", location: str = "", filters: Optional[Dict] = None) -> List[JobData]:
+	async def search_jobs(self, query: str = "software engineer", location: str = "", filters: Optional[Dict] = None) -> List[JobCreate]:
 		"""
 		Search for jobs using GraphQL API.
 
@@ -71,7 +61,7 @@ class AngelListScraper(BaseScraper):
 		    filters: Additional filters (remote, experience, etc.)
 
 		Returns:
-		    List of JobData objects
+		    List of JobCreate objects
 		"""
 		await self.rate_limiter.wait_if_needed()
 
@@ -133,8 +123,8 @@ class AngelListScraper(BaseScraper):
 			self.logger.error(f"Error searching AngelList jobs: {e}")
 			return []
 
-	def _parse_graphql_response(self, data: Dict) -> List[JobData]:
-		"""Parse GraphQL response into JobData objects."""
+	def _parse_graphql_response(self, data: Dict) -> List[JobCreate]:
+		"""Parse GraphQL response into JobCreate objects."""
 		jobs = []
 
 		try:
@@ -151,7 +141,7 @@ class AngelListScraper(BaseScraper):
 
 		return jobs
 
-	def _parse_job_node(self, node: Dict) -> Optional[JobData]:
+	def _parse_job_node(self, node: Dict) -> Optional[JobCreate]:
 		"""Parse single job node from GraphQL response."""
 		try:
 			company = node.get("company", {})
@@ -181,34 +171,40 @@ class AngelListScraper(BaseScraper):
 			# Map funding stage
 			funding_stage = self.language_processor.map_funding_stage(company.get("stage", ""))
 
-			# Build JobData
-			job_data = JobData(
+			# Extract salary range and convert to min/max
+			salary_min = node.get("salaryMin")
+			salary_max = node.get("salaryMax")
+			currency = node.get("currency", "USD")
+
+			# Build JobCreate with correct field mapping
+			job_data = JobCreate(
 				title=node.get("title", ""),
 				company=company.get("name", ""),
 				location=node.get("locationName", "Remote"),
 				description=description,
-				description_html=node.get("descriptionHtml"),
-				url=node.get("applicationUrl", f"https://wellfound.com/jobs/{node['id']}"),
-				salary_range=salary_range,
-				employment_type=self._map_job_type(node.get("jobType", "")),
-				posted_date=self._parse_date(node.get("postedAt")),
-				remote_ok=node.get("remote", False),
+				application_url=node.get("applicationUrl", f"https://wellfound.com/jobs/{node['id']}"),
+				salary_min=salary_min,
+				salary_max=salary_max,
+				currency=currency,
+				job_type=self._map_job_type(node.get("jobType", "")),
+				remote_option="yes" if node.get("remote", False) else "no",
 				source="AngelList",
-				# Phase 3.3 new fields
-				experience_level=experience_level,
-				equity_range=equity_range,
 				tech_stack=tech_stack,
-				funding_stage=funding_stage,
-				total_funding=company.get("totalRaised"),  # Already in cents
-				job_language=job_language,
-				company_size=company.get("size"),
-				# Store raw data for reference
-				raw_data={
-					"job_id": node.get("id"),
-					"company_slug": company.get("slug"),
-					"company_logo": company.get("logoUrl"),
-					"markets": company.get("markets", []),
-				},
+				notes=json.dumps(
+					{
+						"experience_level": experience_level,
+						"equity_range": equity_range,
+						"funding_stage": funding_stage,
+						"total_funding": company.get("totalRaised"),
+						"company_size": company.get("size"),
+						"job_language": job_language,
+						"job_id": node.get("id"),
+						"company_slug": company.get("slug"),
+						"company_logo": company.get("logoUrl"),
+						"markets": company.get("markets", []),
+						"posted_date": self._parse_date(node.get("postedAt")).isoformat() if self._parse_date(node.get("postedAt")) else None,
+					}
+				),
 			)
 
 			return job_data
@@ -238,15 +234,15 @@ class AngelListScraper(BaseScraper):
 		except:
 			return None
 
-	async def get_job_details(self, job_id: str) -> Optional[JobData]:
+	async def get_job_details(self, job_id: str) -> Optional[JobCreate]:
 		"""
 		Get detailed job information by ID.
 
 		Args:
-		    job_id: AngelList job ID
+		    job_id: The AngelList job ID
 
 		Returns:
-		    JobData object or None
+		    JobCreate object or None
 		"""
 		await self.rate_limiter.wait_if_needed()
 

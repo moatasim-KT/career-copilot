@@ -48,7 +48,7 @@ export const BREAKPOINTS = {
  * Detects if the device supports touch
  */
 const hasTouch = (): boolean => {
-    if (typeof window === 'undefined') return false;
+    if (typeof window === 'undefined' || typeof navigator === 'undefined') return false;
 
     return (
         'ontouchstart' in window ||

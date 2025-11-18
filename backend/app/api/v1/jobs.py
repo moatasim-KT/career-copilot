@@ -460,10 +460,10 @@ async def update_job(job_id: int, job_data: JobUpdate, current_user: User = Depe
 
 	# If status is being changed to 'applied', set the application date
 	if status_changed_to_applied and job.date_applied is None:
-		job.date_applied = datetime.now(timezone.utc)
+		job.date_applied = datetime.utcnow()
 
 	# Ensure updated_at is set (SQLAlchemy should handle this with onupdate, but being explicit)
-	job.updated_at = datetime.now(timezone.utc)
+	job.updated_at = datetime.utcnow()
 
 	await db.commit()
 	await db.refresh(job)

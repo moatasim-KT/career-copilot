@@ -2,8 +2,9 @@
 
 import { CheckCircle, Monitor, Palette, Smartphone, Tablet } from 'lucide-react';
 
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
+
 import Button2 from '../ui/Button2';
-import Card, { CardContent, CardHeader, CardTitle } from '../ui/Card';
 import Container from '../ui/Container';
 import Grid, { GridItem } from '../ui/Grid';
 

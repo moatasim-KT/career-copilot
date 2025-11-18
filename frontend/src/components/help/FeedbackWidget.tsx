@@ -136,8 +136,8 @@ export function FeedbackWidget({
       category,
       comment: comment.trim(),
       screenshot: screenshot || undefined,
-      url: window.location.href,
-      userAgent: navigator.userAgent,
+      url: typeof window !== 'undefined' ? window.location.href : 'SSR',
+      userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : 'SSR',
       timestamp: new Date().toISOString(),
     };
 

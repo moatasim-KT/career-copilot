@@ -132,7 +132,7 @@ export default function AdvancedFeaturesPage() {
     <div className="space-y-6">
       {/* Page Header */}
       <div className="text-center">
-        <h1 className="text-3xl font-bold text-gray-900 mb-4">Advanced Features</h1>
+        <h1 className="text-2xl md:text-4xl font-bold text-gray-900 mb-4">Advanced Features</h1>
         <p className="text-lg text-gray-600 max-w-2xl mx-auto">
           Supercharge your job search with AI-powered tools designed to help you stand out from the competition.
         </p>
@@ -180,7 +180,7 @@ export default function AdvancedFeaturesPage() {
       {/* Feature Benefits */}
       <Card2 className="p-8 bg-gradient-to-r from-blue-50 to-purple-50">
         <div className="text-center mb-8">
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">Why Use Advanced Features?</h2>
+          <h2 className="text-xl md:text-3xl font-bold text-gray-900 mb-4">Why Use Advanced Features?</h2>
           <p className="text-gray-600 max-w-3xl mx-auto">
             Our AI-powered tools are designed to give you a competitive edge in today&apos;s job market.
           </p>

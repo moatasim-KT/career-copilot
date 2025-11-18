@@ -9,7 +9,7 @@
 
 import { LayoutDashboard, Save, RotateCcw } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
-import { Responsive, WidgetDict, Layout as RGLLayout } from 'react-grid-layout';
+import { Responsive, Layout as RGLLayout } from 'react-grid-layout';
 import 'react-grid-layout/css/styles.css';
 import 'react-resizable/css/styles.css';
 
@@ -22,13 +22,13 @@ import RecommendationsWidget from '@/components/dashboard/widgets/Recommendation
 import SkillsProgressWidget from '@/components/dashboard/widgets/SkillsProgressWidget';
 import StatusOverviewWidget from '@/components/dashboard/widgets/StatusOverviewWidget';
 import UpcomingCalendarWidget from '@/components/dashboard/widgets/UpcomingCalendarWidget';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/Button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
+import { useToast } from '@/components/ui/use-toast';
 import { DashboardService } from '@/lib/api/client';
 import type { CustomDashboardLayout, CustomizableWidgetType } from '@/types/dashboard';
 import { WIDGET_METADATA } from '@/types/dashboard';
 
-import { useToast } from '@/components/ui/use-toast';
 
 const ResponsiveGridLayout = Responsive;
 
@@ -73,7 +73,7 @@ export default function CustomizableDashboardPage() {
         loadLayout();
     }, [loadLayout]);
 
-    const handleLayoutChange = (newLayout: RGLLayout[], _layouts: WidgetDict) => {
+    const handleLayoutChange = (newLayout: RGLLayout[]) => {
         if (!layout) return;
 
         // Update the layout with new positions

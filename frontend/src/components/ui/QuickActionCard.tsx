@@ -35,30 +35,40 @@ export default function QuickActionCard({
     title,
     description,
     icon: Icon,
-    iconColor = 'text-blue-600',
+    iconColor = 'text-primary-600',
     onClick,
     disabled = false,
 }: QuickActionCardProps) {
+    // Extract color name to create background class dynamically if needed, 
+    // but for now let's use a neutral background for better consistency
+
     return (
         <button
             onClick={onClick}
             disabled={disabled}
             className={cn(
-                'w-full text-left bg-white p-4 rounded-lg border transition-all duration-200',
-                !disabled && 'hover:shadow-md hover:border-blue-300 cursor-pointer',
+                'w-full text-left group relative overflow-hidden',
+                'bg-white dark:bg-neutral-800/50',
+                'p-4 rounded-xl border border-neutral-200 dark:border-neutral-800',
+                'transition-all duration-200 ease-in-out',
+                !disabled && 'hover:border-primary-500/50 hover:shadow-md hover:-translate-y-0.5',
                 disabled && 'opacity-50 cursor-not-allowed',
             )}
         >
-            <div className="flex items-start space-x-3">
+            <div className="flex items-center gap-4">
                 <div className={cn(
-                    'h-10 w-10 rounded-lg flex items-center justify-center flex-shrink-0',
-                    iconColor.replace('text-', 'bg-').replace('-600', '-100'),
+                    'h-10 w-10 rounded-lg flex items-center justify-center flex-shrink-0 transition-colors',
+                    'bg-neutral-100 dark:bg-neutral-800 group-hover:bg-primary-50 dark:group-hover:bg-primary-900/20',
                 )}>
-                    <Icon className={cn('h-5 w-5', iconColor)} />
+                    <Icon className={cn('h-5 w-5 transition-colors', iconColor)} />
                 </div>
                 <div className="flex-1 min-w-0">
-                    <h3 className="text-sm font-semibold text-gray-900 mb-0.5">{title}</h3>
-                    <p className="text-xs text-gray-600 line-clamp-2">{description}</p>
+                    <h3 className="text-sm font-semibold text-neutral-900 dark:text-neutral-100 mb-0.5 group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors">
+                        {title}
+                    </h3>
+                    <p className="text-xs text-neutral-500 dark:text-neutral-400 line-clamp-2">
+                        {description}
+                    </p>
                 </div>
             </div>
         </button>

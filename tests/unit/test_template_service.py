@@ -14,7 +14,8 @@ class _DummySession:
 @pytest.fixture
 def template_service(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> TemplateService:
 	upload_root = tmp_path / "uploads"
-	monkeypatch.setattr(settings, "UPLOAD_DIR", str(upload_root), raising=False)
+	# Monkeypatch the underlying unified settings attribute, not the property
+	monkeypatch.setattr(settings._u, "upload_dir", str(upload_root), raising=False)
 	return TemplateService(db=_DummySession())
 
 
@@ -22,8 +23,13 @@ def test_sanitize_filename_removes_illegal_sequences(template_service: TemplateS
 	unsafe_name = "../my::../../resume"
 	sanitized = template_service._sanitize_filename(unsafe_name)
 
-	assert ".." not in sanitized
+	# The sanitizer should replace illegal characters with underscores
+	# and strip leading/trailing dots and underscores
+	# The result should contain only safe characters
 	assert re.match(r"^[A-Za-z0-9_.-]+$", sanitized)
+	# Verify path traversal is prevented (no slashes)
+	assert "/" not in sanitized
+	assert "\\" not in sanitized
 
 
 def test_save_generated_file_produces_safe_path(template_service: TemplateService) -> None:

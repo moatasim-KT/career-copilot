@@ -383,7 +383,7 @@ async def update_application(
 		# Update job status and date_applied
 		if job:
 			job.status = "applied"
-			job.date_applied = datetime.now(timezone.utc)
+			job.date_applied = datetime.utcnow()
 			db.add(job)  # Mark job as modified
 
 	for key, value in update_data.items():
@@ -397,18 +397,23 @@ async def update_application(
 
 	# Create notification if status changed
 	if "status" in update_data and old_status != update_data["status"] and job:
-		from ...services.notification_service import notification_service
+		from ...models.notification import NotificationPriority, NotificationType
+		from ...services.notification_service import get_notification_service
 
-		await notification_service.notify_application_update(
-			db=db,
+		notification_service_instance = await get_notification_service(db)
+		await notification_service_instance.create_notification(
 			user_id=current_user.id,
-			application_id=app.id,
-			job_id=job.id,
-			job_title=job.title,
-			company=job.company,
-			old_status=old_status,
-			new_status=update_data["status"],
-			notes=update_data.get("notes"),
+			notification_type=NotificationType.APPLICATION_UPDATE,
+			title=f"Application Status Updated: {job.title}",
+			message=f"Your application at {job.company} has been updated from '{old_status}' to '{update_data['status']}'",
+			priority=NotificationPriority.MEDIUM,
+			data={
+				"application_id": app.id,
+				"job_id": job.id,
+				"old_status": old_status,
+				"new_status": update_data["status"],
+				"notes": update_data.get("notes"),
+			},
 		)
 
 	# Send real-time notification for application status update

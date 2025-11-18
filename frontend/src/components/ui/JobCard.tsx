@@ -1,6 +1,7 @@
 
 import { Briefcase, MapPin, DollarSign, TrendingUp, Code, Award, Globe, CheckCircle } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
+
+import { Badge } from '@/components/ui/Badge';
 import type { Job } from '@/types/job';
 
 interface JobCardProps {
@@ -67,7 +68,7 @@ export default function JobCard({ job, variant = 'default', isSelected = false, 
           <div className="flex items-center gap-2">
             <h3 className="text-xl font-semibold text-gray-900">{job.title}</h3>
             {job.company_verified && (
-              <CheckCircle className="w-5 h-5 text-blue-500" title="Verified Company" />
+              <CheckCircle className="w-5 h-5 text-blue-500" aria-label="Verified Company" />
             )}
           </div>
           <p className="text-md text-gray-700 mt-1">{companyName}</p>

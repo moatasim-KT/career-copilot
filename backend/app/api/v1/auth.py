@@ -94,6 +94,14 @@ class LogoutResponse(BaseModel):
 @router.post("/auth/register", response_model=TokenResponse)
 async def register_user(payload: RegisterRequest, db: SessionType = Depends(get_db)):
 	"""Register a brand-new user and return an access token."""
+	settings = get_settings()
+
+	# Block registration in single-user mode
+	if settings.single_user_mode:
+		raise HTTPException(
+			status_code=status.HTTP_403_FORBIDDEN, detail="Registration is disabled in single-user mode. Use the default credentials to login."
+		)
+
 	result = await _db_execute(db, select(User).where((User.email == payload.email) | (User.username == payload.username)))
 	existing_user = result.scalar_one_or_none()
 	if existing_user:

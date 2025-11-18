@@ -7,14 +7,9 @@ Tests cover:
 - WebSocket delivery
 - Job alerts
 
-⚠️ CURRENTLY SKIPPED: These tests hang due to WebSocket manager + pytest-asyncio interaction.
-See backend/tests/TESTING_NOTES.md for detailed explanation and debugging history.
-
-Root cause: WebSocket manager causes hangs even during pytest collection phase.
-Service works correctly outside pytest (verified with asyncio.run()).
-Phase 6 tests (11/11 passing) provide good coverage via different test infrastructure.
-
-TODO: Re-enable once WebSocket testing pattern is established.
+✅ FIXED: WebSocket manager hang resolved via test_mode parameter.
+The WebSocket manager now skips actual WebSocket operations in tests,
+preventing pytest-asyncio event loop conflicts.
 """
 
 from datetime import datetime, time, timedelta
@@ -26,10 +21,6 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import NullPool
-
-# Skip all tests in this file due to WebSocket manager pytest-asyncio hang
-# See TESTING_NOTES.md for details
-pytestmark = pytest.mark.skip(reason="WebSocket manager causes pytest-asyncio hang. See tests/TESTING_NOTES.md")
 
 from app.core.database import Base
 from app.models.notification import (
@@ -79,15 +70,68 @@ async def notif_db():
 	await engine.dispose()
 
 
+@pytest_asyncio.fixture
+async def notification_service(notif_db: AsyncSession, mock_websocket_manager):
+	"""Create UnifiedNotificationService with mock WebSocket manager."""
+	service = UnifiedNotificationService(notif_db)
+	# Inject mock WebSocket manager to avoid test hangs
+	service.websocket_manager = mock_websocket_manager
+	return service
+
+
+@pytest_asyncio.fixture
+async def test_user_notif(notif_db: AsyncSession):
+	"""Get or create test user for notification tests."""
+	result = await notif_db.execute(select(User).where(User.id == 1))
+	user = result.scalars().first()
+	if user:
+		return user
+
+	# Create if not exists
+	user = User(
+		id=1,
+		username="testuser",
+		email="test@example.com",
+		hashed_password="hashed123",
+	)
+	notif_db.add(user)
+	await notif_db.commit()
+	await notif_db.refresh(user)
+	return user
+
+
+@pytest_asyncio.fixture
+async def notification_prefs(notif_db: AsyncSession, test_user_notif: User):
+	"""Create notification preferences for test user."""
+	# Check if preferences already exist
+	result = await notif_db.execute(select(NotificationPreferences).where(NotificationPreferences.user_id == test_user_notif.id))
+	prefs = result.scalars().first()
+	if prefs:
+		return prefs
+
+	# Create default preferences
+	prefs = NotificationPreferences(
+		user_id=test_user_notif.id,
+		morning_briefing_enabled=True,
+		evening_update_enabled=True,
+		morning_briefing_time="08:00",
+		evening_update_time="18:00",
+	)
+	notif_db.add(prefs)
+	await notif_db.commit()
+	await notif_db.refresh(prefs)
+	return prefs
+
+
 class TestNotificationCRUD:
 	"""Test CRUD operations for notifications."""
 
 	@pytest.mark.asyncio
-	async def test_create_notification_basic(self, notif_db: AsyncSession, notification_service_db: AsyncSession):
+	async def test_create_notification_basic(self, notif_db: AsyncSession, notification_service: UnifiedNotificationService, test_user_notif: User):
 		"""Test creating a basic notification."""
 		notification = await notification_service.create_notification(
 			user_id=test_user_notif.id,
-			notification_type=NotificationType.INFO,
+			notification_type=NotificationType.SYSTEM_ANNOUNCEMENT,
 			title="Test Notification",
 			message="This is a test message",
 			priority=NotificationPriority.MEDIUM,
@@ -101,19 +145,21 @@ class TestNotificationCRUD:
 		assert notification.priority == NotificationPriority.MEDIUM
 
 		# Verify saved to database
-		result = await async_db.execute(select(Notification).where(Notification.id == notification.id))
+		result = await notif_db.execute(select(Notification).where(Notification.id == notification.id))
 		saved_notification = result.scalar_one_or_none()
 		assert saved_notification is not None
 		assert saved_notification.title == "Test Notification"
 
 	@pytest.mark.asyncio
-	async def test_create_notification_with_data(self, notif_db: AsyncSession, notification_service_db: AsyncSession):
+	async def test_create_notification_with_data(
+		self, notif_db: AsyncSession, notification_service: UnifiedNotificationService, test_user_notif: User
+	):
 		"""Test creating notification with additional data."""
 		data = {"job_id": 123, "company": "Acme Corp", "match_score": 0.95}
 
 		notification = await notification_service.create_notification(
 			user_id=test_user_notif.id,
-			notification_type=NotificationType.JOB_MATCH,
+			notification_type=NotificationType.NEW_JOB_MATCH,
 			title="New Job Match",
 			message="Found a great job for you!",
 			data=data,
@@ -124,13 +170,15 @@ class TestNotificationCRUD:
 		assert notification.action_url == "/jobs/123"
 
 	@pytest.mark.asyncio
-	async def test_create_notification_with_expiry(self, notif_db: AsyncSession):
+	async def test_create_notification_with_expiry(
+		self, notif_db: AsyncSession, notification_service: UnifiedNotificationService, test_user_notif: User
+	):
 		"""Test creating notification with expiration date."""
 		expires_at = utc_now() + timedelta(days=7)
 
 		notification = await notification_service.create_notification(
 			user_id=test_user_notif.id,
-			notification_type=NotificationType.INFO,
+			notification_type=NotificationType.SYSTEM_ANNOUNCEMENT,
 			title="Expiring Notification",
 			message="This notification expires in 7 days",
 			expires_at=expires_at,
@@ -141,13 +189,13 @@ class TestNotificationCRUD:
 		assert abs((notification.expires_at - expires_at).total_seconds()) < 2
 
 	@pytest.mark.asyncio
-	async def test_get_user_notifications(self, notif_db: AsyncSession, notification_service_db: AsyncSession):
+	async def test_get_user_notifications(self, notif_db: AsyncSession, notification_service: UnifiedNotificationService, test_user_notif: User):
 		"""Test retrieving user notifications."""
 		# Create multiple notifications
 		for i in range(3):
 			await notification_service.create_notification(
 				user_id=test_user_notif.id,
-				notification_type=NotificationType.INFO,
+				notification_type=NotificationType.SYSTEM_ANNOUNCEMENT,
 				title=f"Notification {i}",
 				message=f"Message {i}",
 			)
@@ -160,13 +208,15 @@ class TestNotificationCRUD:
 		assert any("Notification" in title for title in titles)
 
 	@pytest.mark.asyncio
-	async def test_get_user_notifications_pagination(self, notif_db: AsyncSession, notification_service_db: AsyncSession):
+	async def test_get_user_notifications_pagination(
+		self, notif_db: AsyncSession, notification_service: UnifiedNotificationService, test_user_notif: User
+	):
 		"""Test pagination for user notifications."""
 		# Create 5 notifications
 		for i in range(5):
 			await notification_service.create_notification(
 				user_id=test_user_notif.id,
-				notification_type=NotificationType.INFO,
+				notification_type=NotificationType.SYSTEM_ANNOUNCEMENT,
 				title=f"Paginated {i}",
 				message=f"Message {i}",
 			)
@@ -185,11 +235,11 @@ class TestNotificationCRUD:
 		assert page1_ids.isdisjoint(page2_ids)
 
 	@pytest.mark.asyncio
-	async def test_mark_notification_as_read(self, notif_db: AsyncSession, notification_service_db: AsyncSession):
+	async def test_mark_notification_as_read(self, notif_db: AsyncSession, notification_service: UnifiedNotificationService, test_user_notif: User):
 		"""Test marking notification as read."""
 		notification = await notification_service.create_notification(
 			user_id=test_user_notif.id,
-			notification_type=NotificationType.INFO,
+			notification_type=NotificationType.SYSTEM_ANNOUNCEMENT,
 			title="Unread Notification",
 			message="Mark me as read",
 		)
@@ -200,20 +250,22 @@ class TestNotificationCRUD:
 		assert result is True
 
 		# Verify updated in database
-		db_result = await async_db.execute(select(Notification).where(Notification.id == notification.id))
+		db_result = await notif_db.execute(select(Notification).where(Notification.id == notification.id))
 		updated = db_result.scalar_one()
 		assert updated.is_read is True
 		assert updated.read_at is not None
 
 	@pytest.mark.asyncio
-	async def test_get_unread_notifications_only(self, notif_db: AsyncSession):
+	async def test_get_unread_notifications_only(
+		self, notif_db: AsyncSession, notification_service: UnifiedNotificationService, test_user_notif: User
+	):
 		"""Test filtering for unread notifications only."""
 		# Create 3 notifications
 		notifications = []
 		for i in range(3):
 			n = await notification_service.create_notification(
 				user_id=test_user_notif.id,
-				notification_type=NotificationType.INFO,
+				notification_type=NotificationType.SYSTEM_ANNOUNCEMENT,
 				title=f"Notification {i}",
 				message=f"Message {i}",
 			)
@@ -230,26 +282,28 @@ class TestNotificationCRUD:
 		assert notifications[1].id in unread_ids or notifications[2].id in unread_ids
 
 	@pytest.mark.asyncio
-	async def test_filter_notifications_by_type(self, notif_db: AsyncSession):
+	async def test_filter_notifications_by_type(
+		self, notif_db: AsyncSession, notification_service: UnifiedNotificationService, test_user_notif: User
+	):
 		"""Test filtering notifications by type."""
 		# Create notifications of different types
 		await notification_service.create_notification(
 			user_id=test_user_notif.id,
-			notification_type=NotificationType.JOB_MATCH,
+			notification_type=NotificationType.NEW_JOB_MATCH,
 			title="Job Match 1",
 			message="Match",
 		)
 		await notification_service.create_notification(
 			user_id=test_user_notif.id,
-			notification_type=NotificationType.INFO,
+			notification_type=NotificationType.SYSTEM_ANNOUNCEMENT,
 			title="Info 1",
 			message="Info",
 		)
 
-		job_matches = await notification_service.get_user_notifications(user_id=test_user_notif.id, notification_type=NotificationType.JOB_MATCH)
+		job_matches = await notification_service.get_user_notifications(user_id=test_user_notif.id, notification_type=NotificationType.NEW_JOB_MATCH)
 
 		assert len(job_matches) >= 1
-		assert all(n.type == NotificationType.JOB_MATCH for n in job_matches)
+		assert all(n.type == NotificationType.NEW_JOB_MATCH for n in job_matches)
 
 
 class TestScheduledNotifications:
@@ -258,10 +312,10 @@ class TestScheduledNotifications:
 	@pytest.mark.asyncio
 	async def test_send_morning_briefing(
 		self,
+		notif_db: AsyncSession,
 		notification_service: UnifiedNotificationService,
 		test_user_notif: User,
 		notification_prefs: NotificationPreferences,
-		notification_service_db: AsyncSession,
 	):
 		"""Test sending morning briefing."""
 		# Mock the email service to avoid actual email sending
@@ -278,10 +332,10 @@ class TestScheduledNotifications:
 	@pytest.mark.asyncio
 	async def test_send_evening_update(
 		self,
+		notif_db: AsyncSession,
 		notification_service: UnifiedNotificationService,
 		test_user_notif: User,
 		notification_prefs: NotificationPreferences,
-		notification_service_db: AsyncSession,
 	):
 		"""Test sending evening update."""
 		with patch.object(notification_service, "_get_email_service", new_callable=AsyncMock) as mock_email:
@@ -296,16 +350,16 @@ class TestScheduledNotifications:
 	@pytest.mark.asyncio
 	async def test_skip_briefing_when_disabled(
 		self,
+		notif_db: AsyncSession,
 		notification_service: UnifiedNotificationService,
 		test_user_notif: User,
 		notification_prefs: NotificationPreferences,
-		notification_service_db: AsyncSession,
 	):
 		"""Test briefing is skipped when disabled in preferences."""
 		# Disable morning briefing
-		notification_prefs_async.morning_briefing_enabled = False
-		async_db.add(notification_prefs_async)
-		await async_db.commit()
+		notification_prefs.morning_briefing_enabled = False
+		notif_db.add(notification_prefs)
+		await notif_db.commit()
 
 		# Should return False when disabled
 		result = await notification_service.send_morning_briefing(test_user_notif.id)
@@ -318,9 +372,9 @@ class TestJobAlerts:
 	@pytest.mark.asyncio
 	async def test_send_job_alert(
 		self,
+		notif_db: AsyncSession,
 		notification_service: UnifiedNotificationService,
 		test_user_notif: User,
-		notification_service_db: AsyncSession,
 	):
 		"""Test sending a job alert."""
 		job_data = {
@@ -343,7 +397,7 @@ class TestJobAlerts:
 
 			# Verify notification was created
 			notifications = await notification_service.get_user_notifications(
-				user_id=test_user_notif.id, notification_type=NotificationType.JOB_MATCH
+				user_id=test_user_notif.id, notification_type=NotificationType.NEW_JOB_MATCH
 			)
 			assert len(notifications) >= 1
 
@@ -381,15 +435,15 @@ class TestNotificationIntegration:
 	@pytest.mark.asyncio
 	async def test_create_and_retrieve_workflow(
 		self,
+		notif_db: AsyncSession,
 		notification_service: UnifiedNotificationService,
 		test_user_notif: User,
-		notification_service_db: AsyncSession,
 	):
 		"""Test complete workflow: create, retrieve, mark as read."""
 		# Create notification
 		notification = await notification_service.create_notification(
 			user_id=test_user_notif.id,
-			notification_type=NotificationType.INFO,
+			notification_type=NotificationType.SYSTEM_ANNOUNCEMENT,
 			title="Integration Test",
 			message="Testing full workflow",
 			priority=NotificationPriority.HIGH,
@@ -417,8 +471,8 @@ class TestNotificationIntegration:
 	):
 		"""Test handling multiple notification types."""
 		types_and_titles = [
-			(NotificationType.INFO, "Info Notification"),
-			(NotificationType.JOB_MATCH, "Job Match Notification"),
+			(NotificationType.SYSTEM_ANNOUNCEMENT, "Info Notification"),
+			(NotificationType.NEW_JOB_MATCH, "Job Match Notification"),
 			(NotificationType.ALERT, "Alert Notification"),
 			(NotificationType.REMINDER, "Reminder Notification"),
 		]
@@ -441,5 +495,5 @@ class TestNotificationIntegration:
 		assert all(created_id in retrieved_ids for created_id in created_ids)
 
 		# Test type filtering
-		job_matches = await notification_service.get_user_notifications(user_id=test_user_notif.id, notification_type=NotificationType.JOB_MATCH)
+		job_matches = await notification_service.get_user_notifications(user_id=test_user_notif.id, notification_type=NotificationType.NEW_JOB_MATCH)
 		assert any(n.title == "Job Match Notification" for n in job_matches)

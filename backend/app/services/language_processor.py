@@ -4,7 +4,7 @@ Handles language detection, normalization, and translation support.
 """
 
 import re
-from typing import Dict, List, Optional
+from typing import ClassVar, Dict, List, Optional
 
 from langdetect import LangDetectException, detect
 
@@ -13,10 +13,10 @@ class LanguageProcessor:
 	"""Process and normalize multilingual job content."""
 
 	# Supported languages
-	SUPPORTED_LANGUAGES = {"en", "de", "fr", "it", "es"}
+	SUPPORTED_LANGUAGES: ClassVar[set[str]] = {"en", "de", "fr", "it", "es"}
 
 	# Language level normalization
-	LEVEL_MAPPING = {
+	LEVEL_MAPPING: ClassVar[Dict[str, str]] = {
 		# English
 		"native": "Native",
 		"fluent": "Fluent",
@@ -108,7 +108,7 @@ class LanguageProcessor:
 		}
 		return name_map.get(name.lower(), name.title())
 
-	def normalize_company_name(self, name: str, source: str = None) -> str:
+	def normalize_company_name(self, name: str, source: Optional[str] = None) -> str:
 		"""
 		Normalize company names by removing legal suffixes.
 

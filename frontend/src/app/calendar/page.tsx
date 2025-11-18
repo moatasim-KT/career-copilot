@@ -14,12 +14,12 @@ import { Calendar, dateFnsLocalizer, View } from 'react-big-calendar';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
 
 import CreateEventDialog from '@/components/calendar/CreateEventDialog';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/Button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
+import { useToast } from '@/components/ui/use-toast';
 import { CalendarService } from '@/lib/api/client';
 import type { CalendarEvent } from '@/types/calendar';
 
-import { useToast } from '@/components/ui/use-toast';
 
 const locales = {
     'en-US': require('date-fns/locale/en-US'),
@@ -28,7 +28,7 @@ const locales = {
 const localizer = dateFnsLocalizer({
     format,
     parse: (str: string) => new Date(str),
-    startOfWeek: () => new Date(),
+    startOfWeek: () => 0,
     getDay: (date: Date) => date.getDay(),
     locales,
 });
@@ -41,7 +41,7 @@ interface CalendarEventWithDates extends Omit<CalendarEvent, 'start_time' | 'end
 
 export default function CalendarPage() {
     const [events, setEvents] = useState<CalendarEventWithDates[]>([]);
-    const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null);
+    const [selectedEvent, setSelectedEvent] = useState<CalendarEventWithDates | null>(null);
     const [view, setView] = useState<View>('month');
     const [date, setDate] = useState(new Date());
     const [loading, setLoading] = useState(true);
@@ -191,11 +191,11 @@ export default function CalendarPage() {
                                             <Clock className="h-4 w-4 mt-0.5 text-muted-foreground" />
                                             <div className="text-sm">
                                                 <p className="font-medium">
-                                                    {format(new Date(selectedEvent.start_time), 'PPP')}
+                                                    {format(selectedEvent.start, 'PPP')}
                                                 </p>
                                                 <p className="text-muted-foreground">
-                                                    {format(new Date(selectedEvent.start_time), 'p')} -{' '}
-                                                    {format(new Date(selectedEvent.end_time), 'p')}
+                                                    {format(selectedEvent.start, 'p')} -{' '}
+                                                    {format(selectedEvent.end, 'p')}
                                                 </p>
                                             </div>
                                         </div>

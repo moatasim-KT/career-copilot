@@ -53,24 +53,15 @@ function NavigationLink({ href, label, icon: Icon, isActive, onClick, className 
       onMouseLeave={prefetchHandlers.onMouseLeave}
       onTouchStart={prefetchHandlers.onTouchStart}
       className={cn(
-        'flex items-center space-x-2 px-3 py-2 rounded-md text-sm font-medium accent-transition relative',
+        'relative flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium transition-all duration-200',
         isActive
-          ? 'bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300'
-          : 'text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-neutral-100 hover:bg-neutral-100 dark:hover:bg-neutral-800',
+          ? 'bg-primary-600 text-white shadow-sm'
+          : 'text-neutral-700 dark:text-neutral-300 hover:text-neutral-900 dark:hover:text-white hover:bg-neutral-100 dark:hover:bg-neutral-800',
         className,
       )}
     >
-      <div className="relative">
-        <Icon className="h-4 w-4" />
-      </div>
+      <Icon className="h-4 w-4" />
       <span>{label}</span>
-      {/* Accent border for active item */}
-      {isActive && (
-        <span 
-          className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary-600 dark:bg-primary-400 rounded-full"
-          aria-hidden="true"
-        />
-      )}
     </Link>
   );
 }
@@ -89,22 +80,15 @@ function MobileNavigationLink({ href, label, icon: Icon, isActive, onClick }: Na
       onMouseLeave={prefetchHandlers.onMouseLeave}
       onTouchStart={prefetchHandlers.onTouchStart}
       className={cn(
-        'flex items-center space-x-3 w-full px-3 py-3 rounded-md text-base font-medium accent-transition relative',
+        'relative flex items-center gap-3 w-full px-4 py-3 rounded-lg text-base font-medium transition-all duration-200',
         isActive
-          ? 'bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300'
-          : 'text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-neutral-100 hover:bg-neutral-100 dark:hover:bg-neutral-800',
+          ? 'bg-primary-600 text-white shadow-sm'
+          : 'text-neutral-700 dark:text-neutral-300 hover:text-neutral-900 dark:hover:text-white hover:bg-neutral-100 dark:hover:bg-neutral-800',
       )}
       style={{ minWidth: 44 }}
     >
       <Icon className="h-5 w-5 flex-shrink-0" />
       <span>{label}</span>
-      {/* Accent border for active item on mobile */}
-      {isActive && (
-        <span 
-          className="absolute left-0 top-0 bottom-0 w-1 bg-primary-600 dark:bg-primary-400 rounded-r-full"
-          aria-hidden="true"
-        />
-      )}
     </Link>
   );
 }
@@ -125,13 +109,31 @@ export default function Navigation() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  // Close mobile menu on route change
+  useEffect(() => {
+    setIsMobileMenuOpen(false);
+  }, [pathname]);
+
+  // Lock body scroll when mobile menu is open
+  useEffect(() => {
+    if (isMobileMenuOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [isMobileMenuOpen]);
+
   return (
-    <nav className={`shadow-sm border-b border-neutral-200 dark:border-neutral-800 sticky top-0 z-50 transition-all duration-200 ${
-      isScrolled 
-        ? 'glass' 
-        : 'bg-white dark:bg-neutral-900'
-    }`}>
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+    <nav className={cn(
+      'sticky top-0 z-50 border-b transition-all duration-200',
+      isScrolled
+        ? 'glass border-neutral-200/80 dark:border-neutral-800/80 shadow-sm'
+        : 'bg-white/95 dark:bg-neutral-950/95 border-neutral-200 dark:border-neutral-800 backdrop-blur-sm'
+    )}>
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
           <div className="flex items-center space-x-2 flex-shrink-0">
@@ -145,7 +147,7 @@ export default function Navigation() {
           </div>
 
           {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center space-x-1">
+          <div className="hidden md:flex items-center gap-2">
             {navigationItems.map((item) => {
               const isActive = pathname === item.href;
               const showBadge = item.href === '/jobs' && newJobsCount > 0;
@@ -171,7 +173,7 @@ export default function Navigation() {
             })}
 
             {/* Connection Status, Notification Center and Theme Toggle */}
-            <div className="ml-2 pl-2 border-l border-neutral-200 dark:border-neutral-700 flex items-center gap-2">
+            <div className="ml-4 pl-4 border-l border-neutral-300 dark:border-neutral-700 flex items-center gap-2">
               <ConnectionStatusCompact />
               <LazyNotificationCenter />
               <ThemeToggle />
@@ -226,7 +228,7 @@ export default function Navigation() {
                 {navigationItems.map((item) => {
                   const isActive = pathname === item.href;
                   const showBadge = item.href === '/jobs' && newJobsCount > 0;
-                  
+
                   return (
                     <div key={item.href} className="relative">
                       <MobileNavigationLink

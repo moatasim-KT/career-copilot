@@ -29,7 +29,7 @@ class Logger {
    */
   log(message: string, ...args: any[]): void {
     if (this.shouldLog('log')) {
-      logger.info(`[LOG] ${message}`, ...args);
+      console.log(`[LOG] ${message}`, ...args);
     }
   }
 
@@ -38,7 +38,7 @@ class Logger {
    */
   info(message: string, ...args: any[]): void {
     if (this.shouldLog('info')) {
-      logger.info(`[INFO] ${message}`, ...args);
+      console.log(`[INFO] ${message}`, ...args);
     }
   }
 
@@ -47,7 +47,7 @@ class Logger {
    */
   warn(message: string, ...args: any[]): void {
     if (this.shouldLog('warn')) {
-      logger.warn(`[WARN] ${message}`, ...args);
+      console.warn(`[WARN] ${message}`, ...args);
     }
   }
 
@@ -56,7 +56,7 @@ class Logger {
    */
   error(message: string, error?: Error | unknown, ...args: any[]): void {
     if (this.shouldLog('error')) {
-      logger.error(`[ERROR] ${message}`, error, ...args);
+      console.error(`[ERROR] ${message}`, error, ...args);
     }
 
     // Send to monitoring in production
@@ -70,7 +70,7 @@ class Logger {
    */
   debug(message: string, ...args: any[]): void {
     if (this.isDevelopment && this.shouldLog('debug')) {
-      logger.debug(`[DEBUG] ${message}`, ...args);
+      console.debug(`[DEBUG] ${message}`, ...args);
     }
   }
 

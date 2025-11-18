@@ -1,6 +1,82 @@
 """
 Unified LLM Service for handling multiple AI providers with intelligent model selection,
 fallback, error handling, and performance monitoring.
+
+**Multi-Provider Architecture**:
+Supports 3 LLM providers with intelligent routing:
+- OpenAI GPT-4 (primary, highest quality)
+- Anthropic Claude (fallback, balanced performance)
+- Groq (fast inference, cost-effective)
+
+**Configuration**:
+Provider priorities and capabilities defined in [[config/llm_config.json|LLM Config]].
+API keys configured via [[backend/app/core/config.py|Settings]]:
+- OPENAI_API_KEY
+- ANTHROPIC_API_KEY
+- GROQ_API_KEY
+
+**Key Features**:
+- Automatic model selection based on task complexity
+- Intelligent fallback between providers
+- Token optimization and cost tracking
+- Response caching (Redis-backed)
+- Streaming support for real-time responses
+- Rate limiting and quota management
+- Performance metrics collection
+
+**Usage Example**:
+
+.. code-block:: python
+
+    from app.services.llm_service import LLMService
+    from app.core.task_complexity import TaskComplexity
+
+    # Initialize service
+    llm = LLMService()
+
+    # Simple completion (auto-selects best model)
+    response = await llm.generate_completion(
+        prompt="Analyze this job posting...",
+        task_category="analysis",
+        max_tokens=2000
+    )
+
+    # Structured output with specific complexity
+    job_match = await llm.generate_structured_output(
+        prompt="Match candidate skills to job requirements",
+        output_schema=JobMatchSchema,
+        complexity=TaskComplexity.MEDIUM
+    )
+
+    # Streaming response
+    async for chunk in llm.stream_completion(
+        prompt="Generate a cover letter...",
+        task_category="generation"
+    ):
+        print(chunk.content, end="", flush=True)
+
+    # Get cost report
+    costs = llm.get_cost_report(time_period="last_24h")
+    print(f"Total cost: ${costs['total_cost']:.4f}")
+
+**Provider Selection Logic**:
+1. Analyzes task complexity (LOW/MEDIUM/HIGH/CRITICAL)
+2. Checks provider availability and quota
+3. Selects optimal model based on cost/performance tradeoff
+4. Falls back to secondary providers if primary fails
+
+**Performance Tracking**:
+- Token usage per provider
+- Response times
+- Cache hit rates
+- Error rates
+- Cost per operation
+
+**Related Documentation**:
+- [[config/llm_config.json|LLM Configuration]]
+- [[docs/DEVELOPER_GUIDE|Developer Guide]] - Service Layer patterns
+- [[backend/app/core/cost_tracker.py|Cost Tracker]]
+- [[backend/app/core/token_optimizer.py|Token Optimizer]]
 """
 
 import asyncio

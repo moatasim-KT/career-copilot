@@ -53,6 +53,8 @@ htmlcov/
 *.sqlite3
 celerybeat-schedule.db
 test_profile.db
+test.db
+test_*.db
 *.db-journal
 *.db-wal
 *.db-shm
@@ -96,6 +98,11 @@ Thumbs.db
 # Archive (reports, backups, temp files)
 .archive/
 
+# Git artifacts (merge conflicts, patches)
+*.rej
+*.orig
+*.patch
+
 # Documentation builds
 docs/_build/
 site/
@@ -109,13 +116,29 @@ site/
 # Reports and generated files
 reports/test-reports/*.json
 reports/validation/*.json
+reports/performance/*.json
+reports/database/*.json
+reports/security/*.json
 *.report
 *_report_*.json
 *_validation_*.json
+performance_test*.log
+performance_test*.txt
+*performance_report*.json
+*database_report*.json
 
-# Node modules (if any)
+# Node modules and frontend artifacts
 node_modules/
 .pnpm-store/
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# IMPORTANT: Root should NOT have node_modules or package.json
+# All Node.js dependencies belong in frontend/
+/node_modules/
+/package.json
+/package-lock.json
 
 # Build artifacts
 .next/
@@ -123,6 +146,9 @@ build/
 dist/
 out/
 .turbo/
+
+# IMPORTANT: .next should only be in frontend/, not root
+/.next/
 
 # Test results
 test-results/

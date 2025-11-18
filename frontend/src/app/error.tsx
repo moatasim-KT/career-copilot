@@ -49,14 +49,16 @@ export default function Error({ error, reset }: ErrorProps) {
       error: error.message,
       digest: error.digest,
       stack: error.stack,
-      userAgent: navigator.userAgent,
-      url: window.location.href,
+      userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : 'SSR',
+      url: typeof window !== 'undefined' ? window.location.href : 'SSR',
       timestamp: new Date().toISOString(),
     };
 
     // Copy to clipboard
-    navigator.clipboard.writeText(JSON.stringify(issueData, null, 2));
-    alert('Error details copied to clipboard. Please share with support.');
+    if (typeof navigator !== 'undefined' && navigator.clipboard) {
+      navigator.clipboard.writeText(JSON.stringify(issueData, null, 2));
+      alert('Error details copied to clipboard. Please share with support.');
+    }
   };
 
   return (

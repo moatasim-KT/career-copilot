@@ -9,13 +9,13 @@
 
 import { Loader2 } from 'lucide-react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useEffect, useState } from 'react';
-
-import { CalendarService } from '@/lib/api/client';
+import { useEffect, useState, Suspense } from 'react';
 
 import { useToast } from '@/components/ui/use-toast';
+import { CalendarService } from '@/lib/api/client';
 
-export default function CalendarCallbackPage() {
+
+function CalendarCallbackContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const { toast } = useToast();
@@ -134,5 +134,20 @@ export default function CalendarCallbackPage() {
                 )}
             </div>
         </div>
+    );
+}
+
+export default function CalendarCallbackPage() {
+    return (
+        <Suspense fallback={
+            <div className="min-h-screen flex items-center justify-center bg-background">
+                <div className="text-center space-y-4">
+                    <Loader2 className="h-8 w-8 animate-spin mx-auto text-primary" />
+                    <p className="text-muted-foreground">Loading...</p>
+                </div>
+            </div>
+        }>
+            <CalendarCallbackContent />
+        </Suspense>
     );
 }

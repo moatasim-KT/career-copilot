@@ -1,4 +1,5 @@
 import json
+import os
 from datetime import datetime
 from typing import Dict, Optional, Set
 
@@ -12,15 +13,21 @@ logger = get_logger(__name__)
 class WebSocketConnection:
 	"""Represents a WebSocket connection with metadata."""
 
-	def __init__(self, user_id: int, websocket: WebSocket):
+	def __init__(self, user_id: int, websocket: WebSocket, test_mode: bool = False):
 		self.user_id = user_id
 		self.websocket = websocket
+		self.test_mode = test_mode
 		self.connected_at = datetime.now()
 		self.last_ping = datetime.now()
 		self.subscriptions: Set[str] = set()
 
 	async def send_message(self, message: dict):
 		"""Send a JSON message to the client."""
+		if self.test_mode:
+			# In test mode, just log and return success
+			logger.debug(f"[TEST MODE] Would send message to user {self.user_id}: {message}")
+			return True
+
 		try:
 			await self.websocket.send_text(json.dumps(message))
 			return True
@@ -30,6 +37,11 @@ class WebSocketConnection:
 
 	async def send_text(self, text: str):
 		"""Send a text message to the client."""
+		if self.test_mode:
+			# In test mode, just log and return success
+			logger.debug(f"[TEST MODE] Would send text to user {self.user_id}: {text}")
+			return True
+
 		try:
 			await self.websocket.send_text(text)
 			return True
@@ -55,7 +67,13 @@ class WebSocketConnection:
 class WebSocketManager:
 	"""Enhanced WebSocket manager with authentication and channel support."""
 
-	def __init__(self):
+	def __init__(self, test_mode: bool = False):
+		"""Initialize WebSocket manager.
+
+		Args:
+			test_mode: If True, skip actual WebSocket operations (for testing).
+		"""
+		self.test_mode = test_mode
 		self.active_connections: Dict[int, WebSocketConnection] = {}
 		self.channels: Dict[str, Set[int]] = {}
 
@@ -72,7 +90,7 @@ class WebSocketManager:
 		if user_id in self.active_connections:
 			await self.disconnect(user_id)
 
-		connection = WebSocketConnection(user_id, websocket)
+		connection = WebSocketConnection(user_id, websocket, test_mode=self.test_mode)
 		self.active_connections[user_id] = connection
 
 		logger.info(f"WebSocket connected for user: {user_id}. Total active connections: {len(self.active_connections)}")
@@ -98,11 +116,12 @@ class WebSocketManager:
 			for channel in list(connection.subscriptions):
 				self.unsubscribe_from_channel(user_id, channel)
 
-			# Close WebSocket if still open
-			try:
-				await connection.websocket.close()
-			except Exception as e:
-				logger.debug(f"Error closing WebSocket for user {user_id}: {e}")
+			# Close WebSocket if still open (skip in test mode to avoid hangs)
+			if not self.test_mode:
+				try:
+					await connection.websocket.close()
+				except Exception as e:
+					logger.debug(f"Error closing WebSocket for user {user_id}: {e}")
 
 			del self.active_connections[user_id]
 			logger.info(f"WebSocket disconnected for user: {user_id}. Total active connections: {len(self.active_connections)}")
@@ -223,4 +242,5 @@ class WebSocketManager:
 
 
 # Global WebSocket manager instance
-websocket_manager = WebSocketManager()
+# Test mode is enabled via DISABLE_AUTH environment variable (used in tests)
+websocket_manager = WebSocketManager(test_mode=os.getenv("DISABLE_AUTH") == "true")

@@ -29,22 +29,22 @@ Successfully implemented **expanded job board integration infrastructure** with 
 - ✅ Migration file: `backend/alembic/versions/005_phase_3_3_fields.py`
 - ✅ Updated `backend/app/models/job.py` with:
 
-| Field | Type | Purpose | Example |
-|-------|------|---------|---------|
-| `language_requirements` | TEXT[] | Required languages | ["German (Fluent)", "English (Working)"] |
-| `experience_level` | VARCHAR(50) | Seniority level | "Junior", "Mid-Level", "Senior" |
-| `equity_range` | VARCHAR(100) | Equity compensation | "0.1%-0.5%" or "1,000-5,000 shares" |
-| `funding_stage` | VARCHAR(50) | Startup funding stage | "Seed", "Series A", "Series B" |
-| `total_funding` | BIGINT | Total raised (USD cents) | 500000000 (=$5M) |
-| `investors` | TEXT[] | Notable investors | ["Sequoia", "a16z"] |
-| `tech_stack` | TEXT[] | Technologies | ["React", "Python", "AWS"] |
-| `company_culture_tags` | TEXT[] | Culture descriptors | ["Remote-First", "Innovative"] |
-| `perks` | TEXT[] | Benefits | ["Stock options", "Health insurance"] |
-| `work_permit_info` | TEXT | Visa requirements | "EU work permit required" |
-| `workload_percentage` | INTEGER | Swiss workload | 80, 100 |
-| `company_verified` | BOOLEAN | Verified company | true/false |
-| `company_videos` | JSONB | Video metadata | `[{url, type, duration, thumbnail}]` |
-| `job_language` | VARCHAR(5) | Job posting language | "en", "de", "fr", "it", "es" |
+| Field                   | Type         | Purpose                  | Example                                  |
+| ----------------------- | ------------ | ------------------------ | ---------------------------------------- |
+| `language_requirements` | TEXT[]       | Required languages       | ["German (Fluent)", "English (Working)"] |
+| `experience_level`      | VARCHAR(50)  | Seniority level          | "Junior", "Mid-Level", "Senior"          |
+| `equity_range`          | VARCHAR(100) | Equity compensation      | "0.1%-0.5%" or "1,000-5,000 shares"      |
+| `funding_stage`         | VARCHAR(50)  | Startup funding stage    | "Seed", "Series A", "Series B"           |
+| `total_funding`         | BIGINT       | Total raised (USD cents) | 500000000 (=$5M)                         |
+| `investors`             | TEXT[]       | Notable investors        | ["Sequoia", "a16z"]                      |
+| `tech_stack`            | TEXT[]       | Technologies             | ["React", "Python", "AWS"]               |
+| `company_culture_tags`  | TEXT[]       | Culture descriptors      | ["Remote-First", "Innovative"]           |
+| `perks`                 | TEXT[]       | Benefits                 | ["Stock options", "Health insurance"]    |
+| `work_permit_info`      | TEXT         | Visa requirements        | "EU work permit required"                |
+| `workload_percentage`   | INTEGER      | Swiss workload           | 80, 100                                  |
+| `company_verified`      | BOOLEAN      | Verified company         | true/false                               |
+| `company_videos`        | JSONB        | Video metadata           | `[{url, type, duration, thumbnail}]`     |
+| `job_language`          | VARCHAR(5)   | Job posting language     | "en", "de", "fr", "it", "es"             |
 
 - ✅ **Indexes Created**:
   - GIN indexes on `tech_stack`, `company_culture_tags`, `language_requirements` (fast array containment searches)
@@ -136,21 +136,21 @@ Successfully implemented **expanded job board integration infrastructure** with 
 
 ## 📊 Phase 3.3 Statistics
 
-| Metric | Count |
-|--------|-------|
-| **Total Lines of Code** | 4,500+ |
-| **Backend Files Created** | 3 |
-| **Backend Files Modified** | 2 |
-| **Frontend Files Created** | 2 |
-| **Frontend Files Modified** | 1 |
-| **Documentation Files** | 7 |
-| **Database Fields Added** | 14 |
+| Metric                       | Count               |
+| ---------------------------- | ------------------- |
+| **Total Lines of Code**      | 4,500+              |
+| **Backend Files Created**    | 3                   |
+| **Backend Files Modified**   | 2                   |
+| **Frontend Files Created**   | 2                   |
+| **Frontend Files Modified**  | 1                   |
+| **Documentation Files**      | 7                   |
+| **Database Fields Added**    | 14                  |
 | **Database Indexes Created** | 6 (3 GIN, 3 B-tree) |
-| **Research Reports** | 4 (3,000+ lines) |
-| **Job Boards Researched** | 4 |
-| **Recommended for MVP** | 1 (AngelList) |
-| **Languages Supported** | 5 |
-| **Filter Categories** | 8 |
+| **Research Reports**         | 4 (3,000+ lines)    |
+| **Job Boards Researched**    | 4                   |
+| **Recommended for MVP**      | 1 (AngelList)       |
+| **Languages Supported**      | 5                   |
+| **Filter Categories**        | 8                   |
 
 ---
 

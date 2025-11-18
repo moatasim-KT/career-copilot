@@ -19,8 +19,8 @@ import {
 import { useState, useMemo } from 'react';
 
 import { Badge } from '@/components/ui/Badge';
-import Button2 from '@/components/ui/Button2';
-import Card2 from '@/components/ui/Card2';
+import Button from '@/components/ui/Button';
+import Card from '@/components/ui/Card';
 import { Checkbox } from '@/components/ui/Checkbox';
 import Input2 from '@/components/ui/Input2';
 import { m, AnimatePresence } from '@/lib/motion';
@@ -314,7 +314,7 @@ export default function NotificationsPage() {
       </div>
 
       {/* Search and Filters */}
-      <Card2 className="mb-6 p-4">
+      <Card className="mb-6 p-4">
         <div className="flex flex-col sm:flex-row gap-4">
           {/* Search */}
           <div className="flex-1">
@@ -334,7 +334,7 @@ export default function NotificationsPage() {
           </div>
 
           {/* Filter Toggle */}
-          <Button2
+          <Button
             variant="outline"
             onClick={() => setShowFilters(!showFilters)}
             className="relative"
@@ -350,7 +350,7 @@ export default function NotificationsPage() {
               'w-4 h-4 ml-2 transition-transform',
               showFilters && 'rotate-180',
             )} />
-          </Button2>
+          </Button>
         </div>
 
         {/* Filter Panel */}
@@ -370,27 +370,27 @@ export default function NotificationsPage() {
                       Status
                     </label>
                     <div className="flex flex-wrap gap-2">
-                      <Button2
+                      <Button
                         size="sm"
                         variant={filter.read === undefined ? 'primary' : 'outline'}
                         onClick={() => handleReadFilter(undefined)}
                       >
                         All
-                      </Button2>
-                      <Button2
+                      </Button>
+                      <Button
                         size="sm"
                         variant={filter.read === false ? 'primary' : 'outline'}
                         onClick={() => handleReadFilter(false)}
                       >
                         Unread
-                      </Button2>
-                      <Button2
+                      </Button>
+                      <Button
                         size="sm"
                         variant={filter.read === true ? 'primary' : 'outline'}
                         onClick={() => handleReadFilter(true)}
                       >
                         Read
-                      </Button2>
+                      </Button>
                     </div>
                   </div>
 
@@ -401,14 +401,14 @@ export default function NotificationsPage() {
                     </label>
                     <div className="flex flex-wrap gap-2">
                       {(Object.keys(categoryLabels) as NotificationCategory[]).map(category => (
-                        <Button2
+                        <Button
                           key={category}
                           size="sm"
                           variant={filter.categories?.includes(category) ? 'primary' : 'outline'}
                           onClick={() => handleCategoryFilter(category)}
                         >
                           {getCategoryLabel(category)}
-                        </Button2>
+                        </Button>
                       ))}
                     </div>
                   </div>
@@ -416,21 +416,21 @@ export default function NotificationsPage() {
 
                 {activeFilterCount > 0 && (
                   <div className="mt-4 flex justify-end">
-                    <Button2
+                    <Button
                       size="sm"
                       variant="ghost"
                       onClick={clearFilters}
                     >
                       <X className="w-4 h-4 mr-2" />
                       Clear filters
-                    </Button2>
+                    </Button>
                   </div>
                 )}
               </div>
             </m.div>
           )}
         </AnimatePresence>
-      </Card2>
+      </Card>
 
       {/* Bulk Actions */}
       <AnimatePresence>
@@ -441,38 +441,38 @@ export default function NotificationsPage() {
             exit={{ opacity: 0, y: -10 }}
             className="mb-4"
           >
-            <Card2 className="p-4 bg-primary-50 dark:bg-primary-900/20 border-primary-200 dark:border-primary-800">
+            <Card className="p-4 bg-primary-50 dark:bg-primary-900/20 border-primary-200 dark:border-primary-800">
               <div className="flex items-center justify-between">
                 <span className="text-sm font-medium text-neutral-900 dark:text-neutral-100">
                   {selectedCount} notification{selectedCount !== 1 ? 's' : ''} selected
                 </span>
                 <div className="flex items-center gap-2">
-                  <Button2
+                  <Button
                     size="sm"
                     variant="outline"
                     onClick={handleBulkMarkAsRead}
                   >
                     <Check className="w-4 h-4 mr-2" />
                     Mark as read
-                  </Button2>
-                  <Button2
+                  </Button>
+                  <Button
                     size="sm"
                     variant="destructive"
                     onClick={handleBulkDelete}
                   >
                     <Trash2 className="w-4 h-4 mr-2" />
                     Delete
-                  </Button2>
-                  <Button2
+                  </Button>
+                  <Button
                     size="sm"
                     variant="ghost"
                     onClick={() => setSelectedIds(new Set())}
                   >
                     Cancel
-                  </Button2>
+                  </Button>
                 </div>
               </div>
-            </Card2>
+            </Card>
           </m.div>
         )}
       </AnimatePresence>
@@ -480,14 +480,14 @@ export default function NotificationsPage() {
       {/* Quick Actions */}
       {unreadCount > 0 && selectedCount === 0 && (
         <div className="mb-4 flex justify-end">
-          <Button2
+          <Button
             size="sm"
             variant="outline"
             onClick={handleMarkAllAsRead}
           >
             <CheckCheck className="w-4 h-4 mr-2" />
             Mark all as read
-          </Button2>
+          </Button>
         </div>
       )}
 
@@ -524,7 +524,7 @@ export default function NotificationsPage() {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
             >
-              <Card2 className="p-12 text-center">
+              <Card className="p-12 text-center">
                 <Bell className="w-16 h-16 mx-auto mb-4 text-neutral-300 dark:text-neutral-600" />
                 <h3 className="text-lg font-semibold text-neutral-900 dark:text-neutral-100 mb-2">
                   No notifications found
@@ -535,11 +535,11 @@ export default function NotificationsPage() {
                     : 'You\'re all caught up!'}
                 </p>
                 {activeFilterCount > 0 && (
-                  <Button2 variant="outline" onClick={clearFilters}>
+                  <Button variant="outline" onClick={clearFilters}>
                     Clear filters
-                  </Button2>
+                  </Button>
                 )}
-              </Card2>
+              </Card>
             </m.div>
           )}
         </AnimatePresence>
@@ -548,25 +548,25 @@ export default function NotificationsPage() {
       {/* Pagination */}
       {totalPages > 1 && (
         <div className="flex items-center justify-center gap-2">
-          <Button2
+          <Button
             variant="outline"
             size="sm"
             onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
             disabled={currentPage === 1}
           >
             Previous
-          </Button2>
+          </Button>
           <span className="text-sm text-neutral-600 dark:text-neutral-400">
             Page {currentPage} of {totalPages}
           </span>
-          <Button2
+          <Button
             variant="outline"
             size="sm"
             onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
             disabled={currentPage === totalPages}
           >
             Next
-          </Button2>
+          </Button>
         </div>
       )}
     </div>

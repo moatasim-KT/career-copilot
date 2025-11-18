@@ -207,8 +207,8 @@ export default function ContentGeneration({
                     <div
                       key={type}
                       className={`p-4 border rounded-lg cursor-pointer transition-colors ${contentType === type
-                          ? 'border-blue-500 bg-blue-50'
-                          : 'border-neutral-200 hover:border-neutral-300'
+                        ? 'border-blue-500 bg-blue-50'
+                        : 'border-neutral-200 hover:border-neutral-300'
                         }`}
                       onClick={() => setContentType(type)}
                     >

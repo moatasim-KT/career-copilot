@@ -4,13 +4,16 @@
 >
 > An intelligent job search assistant specializing in EU opportunities with visa sponsorship support for AI/Data Science professionals
 
-**Quick Links**: [[LOCAL_SETUP]] | [[PROJECT_STATUS]] | [[docs/index|Documentation Hub]] | [[career-copilot/CONTRIBUTING|Contributing Guidelines]]
+**💰 100% FREE to run!** No credit card required - see [[FREE_TIER_SETUP|Free Tier Setup Guide]]
+
+**Quick Links**: [[LOCAL_SETUP|Local Setup]] | [[FREE_TIER_SETUP|🆓 Free Tier Guide]] | [[PROJECT_STATUS|Project Status]] | [[docs/index|Documentation Hub]] | [[CONTRIBUTING|Contributing Guidelines]]
 
 **Documentation**:
-- [[USER_GUIDE]] - User guide and tutorials
-- [[DEVELOPER_GUIDE]] - Developer documentation
-- [[ARCHITECTURE]] - System architecture
-- [[API]] - API reference
+- [[FREE_TIER_SETUP|🆓 Free Tier Setup]] - **Zero-cost deployment guide** (5 minutes!)
+- [[docs/USER_GUIDE|User Guide]] - User guide and tutorials
+- [[docs/DEVELOPER_GUIDE|Developer Guide]] - Developer documentation
+- [[docs/architecture/ARCHITECTURE|Architecture]] - System architecture
+- [[docs/api/API|API Reference]] - API reference
 - [[backend/README|Backend Guide]] - Backend guide
 - [[frontend/README|Frontend Guide]] - Frontend guide
 
@@ -114,6 +117,13 @@ Career Copilot is a comprehensive AI-powered platform that revolutionizes the jo
 - **Responsive Design**: Adapts to desktop, tablet, and mobile
 - [📖 Dashboard Customization Guide](docs/features/DASHBOARD_CUSTOMIZATION_GUIDE.md)
 
+#### 🔐 **Authentication & Security** ✨ NEW
+- **Single-User Mode**: Perfect for personal deployment (default)
+- **Default Credentials**: `user@career-copilot.local` / `changeme123`
+- **Secure JWT Tokens**: Industry-standard authentication
+- **Multi-User Support**: Optional for team deployments
+- **Password Security**: Bcrypt hashing with configurable rounds
+
 #### 🎨 **Modern User Experience**
 - Beautiful dark mode with smooth transitions
 - Responsive design (mobile, tablet, desktop)
@@ -127,33 +137,49 @@ Career Copilot is a comprehensive AI-powered platform that revolutionizes the jo
 - EU work permit guidance
 - Salary comparison across EU countries
 
-### 🚀 Quick Start (5 Minutes)
+### 🚀 Quick Start
 
-#### Option 1: Docker (Recommended)
+**For free deployment** (recommended): See [[FREE_TIER_SETUP|🆓 Free Tier Setup Guide]] - 5 minutes, $0/month
+
+**For full setup**: See [[LOCAL_SETUP|Local Setup Guide]] - Complete guide with all features
+
+#### Option 1: Free Tier (Zero Cost) ⭐
 
 ```bash
-# 1. Clone the repository
+# 1. Clone repository
 git clone https://github.com/moatasim-KT/career-copilot.git
 cd career-copilot
 
-# 2. Copy environment files
-cp .env.example .env
-cp backend/.env.example backend/.env
-cp frontend/.env.example frontend/.env.local
+# 2. Copy free tier configuration
+cp .env.free-tier-example .env
 
-# 3. Add your API keys to .env files
-# Required: OPENAI_API_KEY or ANTHROPIC_API_KEY
+# 3. Get FREE Groq API key (no credit card)
+# Visit: https://console.groq.com/keys
+# Edit .env and add your key to GROQ_API_KEY
 
-## 🚀 Quick Start
+# 4. Generate security keys and add to .env
+openssl rand -hex 32  # Add to SECRET_KEY
+python -c "import secrets; print(secrets.token_urlsafe(32))"  # Add to JWT_SECRET_KEY
 
-**See [LOCAL_SETUP.md](LOCAL_SETUP.md) for complete setup guide with troubleshooting.**
+# 5. Start services
+docker-compose up -d
+docker-compose exec backend alembic upgrade head
+
+# 6. Access the application
+# Frontend: http://localhost:3000
+# API Docs: http://localhost:8002/docs
+```
+
+**💰 Monthly Cost: $0.00** - Full features with free services!
+
+#### Option 2: Full Setup (With Paid Services)
 
 ```bash
 # 1-3: Clone, configure .env files
 git clone https://github.com/moatasim-KT/career-copilot.git
 cd career-copilot
-cp backend/.env.example backend/.env
-cp frontend/.env.example frontend/.env
+cp .env.example .env
+# Edit .env with your API keys (OpenAI, etc.)
 
 # 4. Start all services with Docker
 docker-compose up -d
@@ -163,11 +189,56 @@ docker-compose exec backend alembic upgrade head
 
 # 6. Access the application
 # Frontend: http://localhost:3000
-# Backend API: http://localhost:8000
-# API Docs: http://localhost:8000/docs
+# API Docs: http://localhost:8002/docs
 ```
 
-For detailed setup, architecture, and troubleshooting: [LOCAL_SETUP.md](LOCAL_SETUP.md)
+For detailed setup, architecture, and troubleshooting: [[LOCAL_SETUP|Local Setup Guide]]
+
+---
+
+### 💰 Cost Breakdown
+
+#### Free Tier (Recommended for Personal Use)
+
+| Component         | Service             | Cost            | Notes               |
+| ----------------- | ------------------- | --------------- | ------------------- |
+| **Database**      | PostgreSQL (Docker) | $0.00           | Runs locally        |
+| **Cache**         | Redis (Docker)      | $0.00           | Runs locally        |
+| **AI Provider**   | Groq                | $0.00           | 14,400 requests/day |
+| **Job Scraping**  | Web Scraping        | $0.00           | 12+ job boards      |
+| **Job APIs**      | Adzuna + 4 others   | $0.00           | All have free tiers |
+| **Notifications** | Console/Gmail/Slack | $0.00           | Optional            |
+| **Total**         |                     | **$0.00/month** | ✨                   |
+
+**What you get for free:**
+- ✅ All core features
+- ✅ 14,400 AI requests/day (Groq - more than enough for personal use)
+- ✅ Unlimited job tracking
+- ✅ Automatic job scraping (12+ boards via web scraping)
+- ✅ **BONUS**: 5 FREE job board APIs:
+  - Adzuna (1,000 calls/month - 22 countries)
+  - RapidAPI JSearch (1,000 requests/month - aggregates Google Jobs)
+  - The Muse (500/hour - curated jobs)
+  - Remotive (unlimited - remote jobs)
+  - RemoteOK (unlimited - 100k+ remote jobs)
+- ✅ AI resume generation & cover letters
+- ✅ Job recommendations & skill analysis
+- ✅ **Total**: 50,000+ job postings/month for FREE!
+
+#### Optional Paid Services (For Enhanced Features)
+
+| Component       | Service          | Cost            | When You Need It      |
+| --------------- | ---------------- | --------------- | --------------------- |
+| **AI Provider** | OpenAI GPT-4     | $5-15/1M tokens | Advanced reasoning    |
+| **AI Provider** | Anthropic Claude | $3-15/1M tokens | Complex writing       |
+| **Email**       | SendGrid         | Free-$15/mo     | >100 emails/day       |
+| **Monitoring**  | Sentry           | Free-$26/mo     | Production deployment |
+| **Job APIs**    | Various          | Free tiers      | API rate limits       |
+
+**Typical monthly cost for single user with free tier: $0.00**
+**Typical monthly cost with paid AI: $5-20** (if you generate 100+ resumes/month)
+
+---
 
 ### 📋 Prerequisites
 
@@ -186,14 +257,14 @@ For detailed setup, architecture, and troubleshooting: [LOCAL_SETUP.md](LOCAL_SE
 - **API Reference**: http://localhost:8000/docs (OpenAPI, when backend running)
 - **Documentation Hub**: [[docs/index|Documentation Hub]] - Central documentation index
 
-- **[[DEPLOYMENT|Deployment Guide]]** - Production deployment instructions
+- **[[docs/deployment/DEPLOYMENT|Deployment Guide]]** - Production deployment instructions
   - Docker Compose deployment
   - Kubernetes deployment
   - Cloud platforms (AWS, GCP, Render, etc.)
 
 ### 🔧 Troubleshooting
 
-- **[[COMMON_ISSUES|Common Issues]]** - Solutions to common problems
+- **[[docs/troubleshooting/COMMON_ISSUES|Common Issues]]** - Solutions to common problems
   - Installation issues
   - API troubleshooting
   - Performance optimization
@@ -379,7 +450,7 @@ See [Deployment Guide](docs/deployment/DEPLOYMENT.md) for detailed instructions.
 
 ### Local Development Setup
 
-See [Quick Start](#-quick-start-5-minutes) above for initial setup.
+See [Quick Start](#-quick-start) above for initial setup.
 
 ### Development Workflow
 
@@ -516,7 +587,7 @@ See [Security Best Practices](docs/deployment/DEPLOYMENT.md#security) for more d
 
 **Main branch is now unified and up to date.**
 
-See [TODO.md](TODO.md) for the current phase-by-phase roadmap derived from the latest planning docs (the historical "320+ task" file is no longer available).
+See [[TODO]] for the current phase-by-phase roadmap.
 
 **Other Features In Development**:
 - 🔄 Multi-user authentication system
@@ -525,43 +596,24 @@ See [TODO.md](TODO.md) for the current phase-by-phase roadmap derived from the l
 - 🔄 Mobile application
 - 🔄 Interview preparation tools
 
-## 🤖 AI Agent & Contributor Coordination
+## 🤝 Contributing
 
-Parallel development now relies on the shared planning artifacts that live in the repo (no hidden `.agents/` directory required):
-
-- **Current priorities**: `TODO.md` captures the active roadmap broken into phases with clear owners.
-- **Historical context**: `PLAN.md`, `PROJECT_STATUS.md`, and `RESEARCH.md` summarize the consolidation effort and open follow-ups.
-- **Branching**: Continue using feature branches (e.g., `features/*`, `chore/*`) and reference the relevant TODO task in your PR description.
-
-**Coordination tips for AI agents & humans**
-
-1. Review `TODO.md` before starting work to avoid duplicate efforts.
-2. Record decisions or partial progress back into `TODO.md` / `PROJECT_STATUS.md` (or the associated issue) so the next agent has context.
-3. Keep changes scoped per task and link to the relevant section in PR summaries.
-4. Run `make quality-check` (or the targeted lint/test command) before handing off work to catch regressions early.
-
-This lightweight workflow replaces the deprecated `.agents/*` scripts and keeps coordination transparent inside the repository itself.
-- 📊 Real-time progress tracking with JSON state
-
-## �🤝 Contributing
-
-We welcome contributions! Please see our [Contributing Guide](frontend/CONTRIBUTING.md) for details.
+We welcome contributions! Please see our [[CONTRIBUTING|Contributing Guide]] for details.
 
 ### Development Workflow
 
-**For Human Contributors**:
 1. Fork the repository
 2. Create a feature branch (`git checkout -b feature/amazing-feature`)
 3. Commit your changes (`git commit -m 'Add amazing feature'`)
 4. Push to the branch (`git push origin feature/amazing-feature`)
 5. Open a Pull Request
+6. Run `make quality-check` before submitting to catch issues early
 
-**For AI Agent Contributors**:
-1. Read [.agents/START_HERE.md](.agents/START_HERE.md)
-2. Check task assignments in [.agents/task-assignments.json](.agents/task-assignments.json)
-3. Follow your agent-specific instructions (`.agents/gemini/` or `.agents/copilot/`)
-4. Use designated branch (`agent/gemini/*` or `agent/copilot/*`)
-5. Run sync checks before committing (`.agents/shared/sync-check.sh`)
+**Coordination Guidelines**:
+- Review [[TODO]] before starting work to avoid duplicate efforts
+- Record decisions or progress in [[TODO]] / [[PROJECT_STATUS]] or the associated issue
+- Keep changes scoped per task and link to the relevant section in PR summaries
+- Follow branching strategy: `feature/*`, `fix/*`, `docs/*`, `chore/*`
 
 ### Code Style
 
@@ -573,14 +625,14 @@ We welcome contributions! Please see our [Contributing Guide](frontend/CONTRIBUT
 
 ## 🔗 Project Links
 
-- [TODO.md](TODO.md) - Current development tasks and progress
-- [PLAN.md](PLAN.md) - Implementation plan and roadmap
-- [RESEARCH.md](RESEARCH.md) - Research findings and analysis
-- [CHANGELOG.md](CHANGELOG.md) - Version history and changes
-- [CONTRIBUTING.md](CONTRIBUTING.md) - Contribution guidelines
-- [Developer Guide](docs/DEVELOPER_GUIDE.md) - Comprehensive development documentation
-- [User Guide](docs/USER_GUIDE.md) - User documentation and tutorials
-- [Frontend Quick Start](docs/FRONTEND_QUICK_START.md) - Frontend development setup
+- [[TODO]] - Current development tasks and progress
+- [[PLAN]] - Implementation plan and roadmap
+- [[RESEARCH]] - Research findings and analysis
+- [[CHANGELOG]] - Version history and changes
+- [[CONTRIBUTING]] - Contribution guidelines
+- [[docs/DEVELOPER_GUIDE|Developer Guide]] - Comprehensive development documentation
+- [[docs/USER_GUIDE|User Guide]] - User documentation and tutorials
+- [[docs/FRONTEND_QUICK_START|Frontend Quick Start]] - Frontend development setup
 
 ## �📄 License
 

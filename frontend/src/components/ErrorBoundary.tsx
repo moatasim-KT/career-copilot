@@ -116,8 +116,8 @@ export class ErrorBoundary extends Component<Props, State> {
 			error: error?.message,
 			stack: error?.stack,
 			componentStack: errorInfo?.componentStack,
-			userAgent: navigator.userAgent,
-			url: window.location.href,
+			userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : 'SSR',
+			url: typeof window !== 'undefined' ? window.location.href : 'SSR',
 			timestamp: new Date().toISOString(),
 		};
 
@@ -125,8 +125,10 @@ export class ErrorBoundary extends Component<Props, State> {
 		logger.info('Report issue:', issueData);
 
 		// For now, copy to clipboard
-		navigator.clipboard.writeText(JSON.stringify(issueData, null, 2));
-		alert('Error details copied to clipboard. Please share with support.');
+		if (typeof navigator !== 'undefined' && navigator.clipboard) {
+			navigator.clipboard.writeText(JSON.stringify(issueData, null, 2));
+			alert('Error details copied to clipboard. Please share with support.');
+		}
 	};
 
 	handleGoHome = () => {
@@ -205,7 +207,7 @@ export class ErrorBoundary extends Component<Props, State> {
 						{this.getErrorIcon()}
 
 						{/* Error Title */}
-						<h2 className="mt-4 text-2xl font-semibold text-center text-gray-900 dark:text-white">
+						<h2 className="mt-4 text-xl md:text-3xl font-semibold text-center text-gray-900 dark:text-white">
 							Oops! Something went wrong
 						</h2>
 

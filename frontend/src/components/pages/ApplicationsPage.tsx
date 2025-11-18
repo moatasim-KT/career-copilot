@@ -492,7 +492,7 @@ export default function ApplicationsPage() {
       >
         <div>
           <m.h1
-            className="text-3xl font-bold text-neutral-900"
+            className="text-2xl md:text-4xl font-bold text-neutral-900"
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.1 }}

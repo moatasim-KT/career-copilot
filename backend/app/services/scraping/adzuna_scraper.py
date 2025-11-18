@@ -171,6 +171,8 @@ class AdzunaScraper(BaseScraper):
 				"url": job_data.get("redirect_url"),
 				# Pass salary as a string for compatibility; extract later if needed
 				"salary": salary_string,
+				"salary_min": salary_min,  # Include numeric salary values
+				"salary_max": salary_max,
 				"job_type": job_data.get("contract_type", "").replace("_", "-"),
 				"remote": "remote" in job_data.get("category", {}).get("label", "").lower() or "remote" in job_data.get("description", "").lower(),
 				"tech_stack": [],  # Adzuna doesn't provide tech stack directly, can be extracted from description later
@@ -200,6 +202,8 @@ class AdzunaScraper(BaseScraper):
 				tech_stack=parsed_data.get("tech_stack", []),
 				requirements=parsed_data.get("requirements", ""),
 				responsibilities=parsed_data.get("responsibilities", ""),
+				salary_min=parsed_data.get("salary_min"),  # Include salary values
+				salary_max=parsed_data.get("salary_max"),
 				source="scraped",
 				currency=parsed_data.get("currency", None),
 			)

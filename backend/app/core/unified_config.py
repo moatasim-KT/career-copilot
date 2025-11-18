@@ -60,6 +60,12 @@ class UnifiedSettings(BaseSettings):
 	password_min_length: int = 8
 	session_timeout_minutes: int = 30
 
+	# Single-user mode (for personal deployment)
+	single_user_mode: bool = True
+	default_user_email: str = "user@career-copilot.local"
+	default_user_password: str = "changeme123"
+	default_user_username: str = "copilot_user"
+
 	# ==================== AI/LLM Service API Keys ====================
 	openai_api_key: Optional[str] = None
 	anthropic_api_key: Optional[str] = None

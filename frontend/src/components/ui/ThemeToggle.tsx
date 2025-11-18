@@ -6,6 +6,7 @@
 
 'use client';
 
+import { useState, useEffect } from 'react';
 import { Sun, Moon } from 'lucide-react';
 
 import { useDarkMode } from '@/hooks/useDarkMode';
@@ -18,18 +19,24 @@ interface ThemeToggleProps {
   showTooltip?: boolean;
 }
 
-export function ThemeToggle({ 
-  className = '', 
+export function ThemeToggle({
+  className = '',
   showLabel = false,
-  showTooltip = true, 
+  showTooltip = true,
 }: ThemeToggleProps) {
   const { isDark, toggle } = useDarkMode();
-  
+  const [mounted, setMounted] = useState(false);
+
+  // Prevent hydration mismatch by waiting for client-side mount
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   // Keyboard shortcut: Cmd/Ctrl + D
   useKeyboardShortcut('d', toggle, { meta: true, ctrl: true });
-  
-  const tooltipText = `Toggle theme (${navigator.platform.includes('Mac') ? '⌘' : 'Ctrl'}+D)`;
-  
+
+  const tooltipText = `Toggle theme (${typeof navigator !== 'undefined' && navigator.platform.includes('Mac') ? '⌘' : 'Ctrl'}+D)`;
+
   return (
     <button
       onClick={toggle}
@@ -48,33 +55,38 @@ export function ThemeToggle({
       type="button"
     >
       <div className="relative w-5 h-5">
-        <AnimatePresence mode="wait" initial={false}>
-          {isDark ? (
-            <m.div
-              key="moon"
-              initial={{ scale: 0, rotate: -180, opacity: 0 }}
-              animate={{ scale: 1, rotate: 0, opacity: 1 }}
-              exit={{ scale: 0, rotate: 180, opacity: 0 }}
-              transition={{ duration: 0.2, ease: 'easeOut' }}
-              className="absolute inset-0 flex items-center justify-center"
-            >
-              <Moon className="w-5 h-5" />
-            </m.div>
-          ) : (
-            <m.div
-              key="sun"
-              initial={{ scale: 0, rotate: 180, opacity: 0 }}
-              animate={{ scale: 1, rotate: 0, opacity: 1 }}
-              exit={{ scale: 0, rotate: -180, opacity: 0 }}
-              transition={{ duration: 0.2, ease: 'easeOut' }}
-              className="absolute inset-0 flex items-center justify-center"
-            >
-              <Sun className="w-5 h-5" />
-            </m.div>
-          )}
-        </AnimatePresence>
+        {!mounted ? (
+          // Render a neutral icon during SSR to prevent hydration mismatch
+          <Sun className="w-5 h-5" />
+        ) : (
+          <AnimatePresence mode="wait" initial={false}>
+            {isDark ? (
+              <m.div
+                key="moon"
+                initial={{ scale: 0, rotate: -180, opacity: 0 }}
+                animate={{ scale: 1, rotate: 0, opacity: 1 }}
+                exit={{ scale: 0, rotate: 180, opacity: 0 }}
+                transition={{ duration: 0.2, ease: 'easeOut' }}
+                className="absolute inset-0 flex items-center justify-center"
+              >
+                <Moon className="w-5 h-5" />
+              </m.div>
+            ) : (
+              <m.div
+                key="sun"
+                initial={{ scale: 0, rotate: 180, opacity: 0 }}
+                animate={{ scale: 1, rotate: 0, opacity: 1 }}
+                exit={{ scale: 0, rotate: -180, opacity: 0 }}
+                transition={{ duration: 0.2, ease: 'easeOut' }}
+                className="absolute inset-0 flex items-center justify-center"
+              >
+                <Sun className="w-5 h-5" />
+              </m.div>
+            )}
+          </AnimatePresence>
+        )}
       </div>
-      
+
       {showLabel && (
         <span className="ml-2 text-sm font-medium">
           {isDark ? 'Dark' : 'Light'}
@@ -93,13 +105,13 @@ interface ThemeToggleDropdownProps {
 
 export function ThemeToggleDropdown({ className = '' }: ThemeToggleDropdownProps) {
   const { theme, setLight, setDark, setSystem } = useDarkMode();
-  
+
   const options = [
     { value: 'light' as const, label: 'Light', icon: Sun },
     { value: 'dark' as const, label: 'Dark', icon: Moon },
     { value: 'system' as const, label: 'System', icon: Sun },
   ];
-  
+
   return (
     <div className={`flex flex-col gap-2 ${className}`}>
       <label className="text-sm font-medium text-neutral-700 dark:text-neutral-300">
@@ -109,7 +121,7 @@ export function ThemeToggleDropdown({ className = '' }: ThemeToggleDropdownProps
         {options.map((option) => {
           const Icon = option.icon;
           const isActive = theme === option.value;
-          
+
           return (
             <button
               key={option.value}

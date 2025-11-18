@@ -316,18 +316,23 @@
     0% {
       background-position: 0% 50%;
     }
+
     50% {
       background-position: 100% 50%;
     }
+
     100% {
       background-position: 0% 50%;
     }
   }
 
   @keyframes pulse-glow {
-    0%, 100% {
+
+    0%,
+    100% {
       opacity: 1;
     }
+
     50% {
       opacity: 0.5;
     }
@@ -392,7 +397,7 @@
   /* ============================================
      ACCENT COLOR HIGHLIGHTS
      ============================================ */
-  
+
   /* Accent borders for active navigation items */
   .accent-border-primary {
     border-left-color: rgb(var(--color-primary-600));
@@ -473,10 +478,13 @@
 
   /* Pulse animation for status dots */
   @keyframes pulse-dot {
-    0%, 100% {
+
+    0%,
+    100% {
       transform: scale(1);
       opacity: 1;
     }
+
     50% {
       transform: scale(1.1);
       opacity: 0.8;
@@ -572,6 +580,41 @@
   /* Smooth transition for accent borders */
   .accent-transition {
     transition: border-color 200ms cubic-bezier(0.4, 0, 0.2, 1),
-                border-width 200ms cubic-bezier(0.4, 0, 0.2, 1);
+      border-width 200ms cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  /* Touch device optimizations */
+  @media (hover: none) and (pointer: coarse) {
+
+    /* Remove hover effects on touch devices */
+    button:hover,
+    a:hover,
+    [role="button"]:hover {
+      background-color: inherit;
+      color: inherit;
+    }
+
+    /* Add active/pressed states for touch */
+    button:active,
+    a:active,
+    [role="button"]:active {
+      opacity: 0.7;
+      transform: scale(0.98);
+    }
+
+    /* Ensure minimum touch target size */
+    button,
+    a,
+    [role="button"],
+    input[type="checkbox"],
+    input[type="radio"] {
+      min-width: 44px;
+      min-height: 44px;
+    }
+
+    /* Better tap highlight */
+    * {
+      -webkit-tap-highlight-color: rgba(59, 130, 246, 0.2);
+    }
   }
 }

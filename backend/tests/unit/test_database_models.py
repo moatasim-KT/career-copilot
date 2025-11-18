@@ -1,49 +1,56 @@
+import uuid
+
 import pytest
 from sqlalchemy.orm import Session
 
-from app.models.user import User
-from app.models.job import Job
-from app.models.application import Application
 from app.core.database import Base
+from app.models.application import Application
+from app.models.job import Job
+from app.models.user import User
 
 
 def test_create_user(db: Session):
-	user = User(username="testuser", email="test@example.com", hashed_password="hashedpassword")
+	unique_id = str(uuid.uuid4())[:8]
+	user = User(username=f"testuser_{unique_id}", email=f"test_{unique_id}@example.com", hashed_password="hashedpassword")
 	db.add(user)
 	db.commit()
 	db.refresh(user)
 	assert user.id is not None
-	assert user.username == "testuser"
+	assert user.username == f"testuser_{unique_id}"
 
 
 def test_get_user(db: Session):
-	user = User(username="testuser", email="test@example.com", hashed_password="hashedpassword")
+	unique_id = str(uuid.uuid4())[:8]
+	user = User(username=f"testuser_{unique_id}", email=f"test_{unique_id}@example.com", hashed_password="hashedpassword")
 	db.add(user)
 	db.commit()
 	db.refresh(user)
 
-	retrieved_user = db.query(User).filter(User.email == "test@example.com").first()
+	retrieved_user = db.query(User).filter(User.email == f"test_{unique_id}@example.com").first()
 	assert retrieved_user is not None
-	assert retrieved_user.username == "testuser"
+	assert retrieved_user.username == f"testuser_{unique_id}"
 
 
 def test_update_user(db: Session):
-	user = User(username="testuser", email="test@example.com", hashed_password="hashedpassword")
+	unique_id = str(uuid.uuid4())[:8]
+	user = User(username=f"testuser_{unique_id}", email=f"test_{unique_id}@example.com", hashed_password="hashedpassword")
 	db.add(user)
 	db.commit()
 	db.refresh(user)
 
-	user.email = "new_email@example.com"
+	new_email = f"new_email_{unique_id}@example.com"
+	user.email = new_email
 	db.add(user)
 	db.commit()
 	db.refresh(user)
 
 	updated_user = db.query(User).filter(User.id == user.id).first()
-	assert updated_user.email == "new_email@example.com"
+	assert updated_user.email == new_email
 
 
 def test_delete_user(db: Session):
-	user = User(username="testuser", email="test@example.com", hashed_password="hashedpassword")
+	unique_id = str(uuid.uuid4())[:8]
+	user = User(username=f"testuser_{unique_id}", email=f"test_{unique_id}@example.com", hashed_password="hashedpassword")
 	db.add(user)
 	db.commit()
 	db.refresh(user)
@@ -56,7 +63,8 @@ def test_delete_user(db: Session):
 
 
 def test_create_job(db: Session):
-	user = User(username="testuser", email="test@example.com", hashed_password="hashedpassword")
+	unique_id = str(uuid.uuid4())[:8]
+	user = User(username=f"testuser_{unique_id}", email=f"test_{unique_id}@example.com", hashed_password="hashedpassword")
 	db.add(user)
 	db.commit()
 	db.refresh(user)
@@ -70,7 +78,8 @@ def test_create_job(db: Session):
 
 
 def test_get_job(db: Session):
-	user = User(username="testuser", email="test@example.com", hashed_password="hashedpassword")
+	unique_id = str(uuid.uuid4())[:8]
+	user = User(username=f"testuser_{unique_id}", email=f"test_{unique_id}@example.com", hashed_password="hashedpassword")
 	db.add(user)
 	db.commit()
 	db.refresh(user)
@@ -86,7 +95,8 @@ def test_get_job(db: Session):
 
 
 def test_update_job(db: Session):
-	user = User(username="testuser", email="test@example.com", hashed_password="hashedpassword")
+	unique_id = str(uuid.uuid4())[:8]
+	user = User(username=f"testuser_{unique_id}", email=f"test_{unique_id}@example.com", hashed_password="hashedpassword")
 	db.add(user)
 	db.commit()
 	db.refresh(user)
@@ -106,7 +116,8 @@ def test_update_job(db: Session):
 
 
 def test_delete_job_cascades_applications(db: Session):
-	user = User(username="testuser", email="test@example.com", hashed_password="hashedpassword")
+	unique_id = str(uuid.uuid4())[:8]
+	user = User(username=f"testuser_{unique_id}", email=f"test_{unique_id}@example.com", hashed_password="hashedpassword")
 	db.add(user)
 	db.commit()
 	db.refresh(user)
@@ -136,7 +147,8 @@ def test_delete_job_cascades_applications(db: Session):
 
 
 def test_create_application(db: Session):
-	user = User(username="testuser", email="test@example.com", hashed_password="hashedpassword")
+	unique_id = str(uuid.uuid4())[:8]
+	user = User(username=f"testuser_{unique_id}", email=f"test_{unique_id}@example.com", hashed_password="hashedpassword")
 	db.add(user)
 	db.commit()
 	db.refresh(user)
@@ -155,7 +167,8 @@ def test_create_application(db: Session):
 
 
 def test_get_application(db: Session):
-	user = User(username="testuser", email="test@example.com", hashed_password="hashedpassword")
+	unique_id = str(uuid.uuid4())[:8]
+	user = User(username=f"testuser_{unique_id}", email=f"test_{unique_id}@example.com", hashed_password="hashedpassword")
 	db.add(user)
 	db.commit()
 	db.refresh(user)
@@ -176,7 +189,8 @@ def test_get_application(db: Session):
 
 
 def test_update_application(db: Session):
-	user = User(username="testuser", email="test@example.com", hashed_password="hashedpassword")
+	unique_id = str(uuid.uuid4())[:8]
+	user = User(username=f"testuser_{unique_id}", email=f"test_{unique_id}@example.com", hashed_password="hashedpassword")
 	db.add(user)
 	db.commit()
 	db.refresh(user)
@@ -201,7 +215,8 @@ def test_update_application(db: Session):
 
 
 def test_delete_application(db: Session):
-	user = User(username="testuser", email="test@example.com", hashed_password="hashedpassword")
+	unique_id = str(uuid.uuid4())[:8]
+	user = User(username=f"testuser_{unique_id}", email=f"test_{unique_id}@example.com", hashed_password="hashedpassword")
 	db.add(user)
 	db.commit()
 	db.refresh(user)

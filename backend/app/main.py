@@ -57,6 +57,13 @@ async def lifespan(app: FastAPI):
 			if db_manager.async_engine is not None:
 				try:
 					await db_manager.init_database()
+
+					# Initialize default user for single-user mode
+					from app.core.init_db import initialize_database
+
+					async with db_manager.async_session() as session:
+						await initialize_database(session)
+
 				except Exception:
 					logger.exception("Failed to perform async database init during lifespan; will fall back to sync init if possible")
 			# Update legacy compatibility globals now that engines may be ready
@@ -261,7 +268,7 @@ def create_app() -> FastAPI:
 			field_errors={"validation_errors": exc.errors()},
 			suggestions=["Please check the request format and required fields", "Ensure all data types match the expected format"],
 		)
-		return JSONResponse(status_code=400, content=payload.dict())
+		return JSONResponse(status_code=400, content=payload.model_dump())
 
 	@app.exception_handler(HTTPException)
 	async def http_exception_handler(request: Request, exc: HTTPException):
@@ -273,7 +280,7 @@ def create_app() -> FastAPI:
 			error_code=f"HTTP_{exc.status_code}",
 			detail=exc.detail,
 		)
-		return JSONResponse(status_code=exc.status_code, content=payload.dict())
+		return JSONResponse(status_code=exc.status_code, content=payload.model_dump())
 
 	@app.exception_handler(Exception)
 	async def general_exception_handler(request: Request, exc: Exception):
@@ -286,7 +293,7 @@ def create_app() -> FastAPI:
 			error_code="INTERNAL_SERVER_ERROR",
 			detail="An internal server error occurred. Please try again later.",
 		)
-		return JSONResponse(status_code=500, content=payload.dict())
+		return JSONResponse(status_code=500, content=payload.model_dump())
 
 	# Root endpoint
 	@app.get("/")
@@ -303,7 +310,17 @@ def create_app() -> FastAPI:
 	@app.websocket("/ws")
 	async def websocket_endpoint(websocket: WebSocket, db: Session = Depends(get_db)):
 		await websocket.accept()
-		await websocket_service.handle_websocket_connection(websocket, None)
+
+		# Authenticate connection (handles both JWT tokens and guest access in dev mode)
+		token = websocket.query_params.get("token")
+		user_id = await websocket_service.authenticate_websocket(websocket, token, db)
+
+		if user_id:
+			logger.info(f"WebSocket connection accepted for user: {user_id}")
+			await websocket_service.handle_websocket_connection(websocket, user_id)
+		else:
+			logger.warning("WebSocket authentication failed")
+			await websocket.close(code=status.WS_1008_POLICY_VIOLATION)
 
 	# Include routers - Comprehensive registration of ALL API endpoints
 	from .api.v1 import (

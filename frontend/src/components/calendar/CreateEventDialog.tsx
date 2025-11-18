@@ -10,20 +10,8 @@
 import { Calendar } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
-import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Input } from '@/components/ui/input';
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from '@/components/ui/select';
-import { Textarea } from '@/components/ui/textarea';
-import { CalendarService } from '@/lib/api/client';
-import type { CalendarProvider } from '@/types/calendar';
-
+import { Button } from '@/components/ui/Button';
+import { Checkbox } from '@/components/ui/Checkbox';
 import {
     Dialog,
     DialogContent,
@@ -33,8 +21,19 @@ import {
     DialogTitle,
     DialogTrigger,
 } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/Input';
 import { Label } from '@/components/ui/label';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/Select';
+import { Textarea } from '@/components/ui/Textarea';
 import { useToast } from '@/components/ui/use-toast';
+import { CalendarService } from '@/lib/api/client';
+import type { CalendarProvider } from '@/types/calendar';
 
 interface CreateEventDialogProps {
     applicationId?: number;
@@ -114,10 +113,11 @@ export default function CreateEventDialog({
                 start_time: startDateTime,
                 end_time: endDateTime,
                 timezone: formData.timezone,
-                application_id: defaultValues?.applicationId || applicationId || null,
+                application_id: defaultValues?.applicationId || applicationId || undefined,
                 reminder_15min: formData.reminder15min,
                 reminder_1hour: formData.reminder1hour,
                 reminder_1day: formData.reminder1day,
+                provider: formData.provider,
             });
 
             if (response.data) {
@@ -180,7 +180,7 @@ export default function CreateEventDialog({
                                 id="title"
                                 placeholder="Interview with Company Name"
                                 value={formData.title}
-                                onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, title: e.target.value })}
                                 required
                             />
                         </div>
@@ -192,7 +192,7 @@ export default function CreateEventDialog({
                                 id="description"
                                 placeholder="Interview details, preparation notes..."
                                 value={formData.description}
-                                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                                onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setFormData({ ...formData, description: e.target.value })}
                                 rows={3}
                             />
                         </div>
@@ -204,7 +204,7 @@ export default function CreateEventDialog({
                                 id="location"
                                 placeholder="Office address or video call link"
                                 value={formData.location}
-                                onChange={(e) => setFormData({ ...formData, location: e.target.value })}
+                                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, location: e.target.value })}
                             />
                         </div>
 
@@ -216,7 +216,7 @@ export default function CreateEventDialog({
                                     id="start-date"
                                     type="date"
                                     value={formData.startDate}
-                                    onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
+                                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, startDate: e.target.value })}
                                     required
                                 />
                             </div>
@@ -226,7 +226,7 @@ export default function CreateEventDialog({
                                     id="start-time"
                                     type="time"
                                     value={formData.startTime}
-                                    onChange={(e) => setFormData({ ...formData, startTime: e.target.value })}
+                                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, startTime: e.target.value })}
                                     required
                                 />
                             </div>
@@ -240,7 +240,7 @@ export default function CreateEventDialog({
                                     id="end-date"
                                     type="date"
                                     value={formData.endDate}
-                                    onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
+                                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, endDate: e.target.value })}
                                     required
                                 />
                             </div>
@@ -250,7 +250,7 @@ export default function CreateEventDialog({
                                     id="end-time"
                                     type="time"
                                     value={formData.endTime}
-                                    onChange={(e) => setFormData({ ...formData, endTime: e.target.value })}
+                                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, endTime: e.target.value })}
                                     required
                                 />
                             </div>
@@ -261,18 +261,14 @@ export default function CreateEventDialog({
                             <Label htmlFor="provider">Calendar Provider *</Label>
                             <Select
                                 value={formData.provider}
-                                onValueChange={(value: CalendarProvider) =>
-                                    setFormData({ ...formData, provider: value })
+                                onChange={(e: React.ChangeEvent<HTMLSelectElement>) =>
+                                    setFormData({ ...formData, provider: e.target.value as CalendarProvider })
                                 }
-                            >
-                                <SelectTrigger id="provider">
-                                    <SelectValue placeholder="Select calendar" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="google">Google Calendar</SelectItem>
-                                    <SelectItem value="outlook">Microsoft Outlook</SelectItem>
-                                </SelectContent>
-                            </Select>
+                                options={[
+                                    { value: 'google', label: 'Google Calendar' },
+                                    { value: 'outlook', label: 'Microsoft Outlook' },
+                                ]}
+                            />
                         </div>
 
                         {/* Reminders */}

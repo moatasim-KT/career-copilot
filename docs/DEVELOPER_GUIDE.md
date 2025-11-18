@@ -5,38 +5,38 @@ This guide provides technical documentation for developers working on Career Cop
 ## Related Documents
 
 **Getting Started**:
-- [[career-copilot/README|Project README]] - Project overview
+- [[README|Project README]] - Project overview
 - [[LOCAL_SETUP]] - Local development setup
 - [[PROJECT_STATUS]] - Architecture and current status
-- [[career-copilot/CONTRIBUTING|Contributing Guidelines]] - Contribution guidelines
+- [[CONTRIBUTING|Contributing Guidelines]] - Contribution guidelines
 
 **Architecture & Design**:
 - [[docs/index|Documentation Hub]] - Documentation hub
-- [[ARCHITECTURE]] - System architecture
-- [[database-schema]] - Database schema
-- [[job-services-architecture]] - Job services architecture
-- [[security-architecture]] - Security architecture
-- [[API]] - API reference
+- [[docs/architecture/ARCHITECTURE|Architecture]] - System architecture
+- [[docs/architecture/database-schema|Database Schema]] - Database schema
+- [[docs/architecture/job-services-architecture|Job Services]] - Job services architecture
+- [[docs/architecture/security-architecture|Security]] - Security architecture
+- [[docs/api/API|API Reference]] - API reference
 
 **Development**:
 - [[backend/README|Backend README]] - Backend development guide
 - [[frontend/README|Frontend README]] - Frontend development guide
-- [[DEVELOPMENT]] - Development workflow
-- [[testing-strategies]] - Testing strategies
-- [[code-patterns]] - Code patterns
+- [[docs/development/DEVELOPMENT|Development Workflow]] - Development workflow
+- [[docs/development/testing-strategies|Testing Strategies]] - Testing strategies
+- [[docs/development/code-patterns|Code Patterns]] - Code patterns
 
 **Setup & Configuration**:
-- [[INSTALLATION]] - Installation guide
-- [[CONFIGURATION]] - Configuration guide
-- [[FRONTEND_QUICK_START]] - Frontend quick start
+- [[docs/setup/INSTALLATION|Installation Guide]] - Installation guide
+- [[docs/setup/CONFIGURATION|Configuration]] - Configuration guide
+- [[docs/FRONTEND_QUICK_START|Frontend Quick Start]] - Frontend quick start
 
 **Troubleshooting**:
-- [[COMMON_ISSUES]] - Common issues
-- [[RUNBOOK]] - Runbook
+- [[docs/troubleshooting/COMMON_ISSUES|Common Issues]] - Common issues
+- [[docs/troubleshooting/RUNBOOK|Runbook]] - Runbook
 
 **User Documentation**:
-- [[USER_GUIDE]] - User guide
-- [[DEMO_VIDEO_GUIDE]] - Demo guide
+- [[docs/USER_GUIDE|User Guide]] - User guide
+- [[docs/DEMO_VIDEO_GUIDE|Demo Guide]] - Demo guide
 
 ## Table of Contents
 

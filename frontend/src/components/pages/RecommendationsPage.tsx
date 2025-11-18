@@ -86,7 +86,7 @@ export default function RecommendationsPage() {
     return (
       <Container>
         <div className="space-y-6">
-          <h1 className="text-3xl font-bold text-neutral-900">Job Recommendations & Skill Analysis</h1>
+          <h1 className="text-2xl md:text-4xl font-bold text-neutral-900">Job Recommendations & Skill Analysis</h1>
           <Card2>
             <CardContent>
               <div className="flex items-center justify-center py-8">
@@ -104,7 +104,7 @@ export default function RecommendationsPage() {
     return (
       <Container>
         <div className="space-y-6">
-          <h1 className="text-3xl font-bold text-neutral-900">Job Recommendations & Skill Analysis</h1>
+          <h1 className="text-2xl md:text-4xl font-bold text-neutral-900">Job Recommendations & Skill Analysis</h1>
           <Card2>
             <CardContent>
               <div className="text-center py-8">
@@ -121,7 +121,7 @@ export default function RecommendationsPage() {
   return (
     <Container>
       <div className="space-y-6">
-        <h1 className="text-3xl font-bold text-neutral-900">Job Recommendations & Skill Analysis</h1>
+        <h1 className="text-2xl md:text-4xl font-bold text-neutral-900">Job Recommendations & Skill Analysis</h1>
 
         {/* Tab Navigation */}
         <div className="border-b border-neutral-200">
@@ -129,8 +129,8 @@ export default function RecommendationsPage() {
             <button
               onClick={() => setActiveTab('recommendations')}
               className={`py-2 px-1 border-b-2 font-medium text-sm ${activeTab === 'recommendations'
-                  ? 'border-blue-500 text-blue-600'
-                  : 'border-transparent text-neutral-500 hover:text-neutral-700 hover:border-neutral-300'
+                ? 'border-blue-500 text-blue-600'
+                : 'border-transparent text-neutral-500 hover:text-neutral-700 hover:border-neutral-300'
                 }`}
             >
               Job Recommendations ({recommendations.length})
@@ -138,8 +138,8 @@ export default function RecommendationsPage() {
             <button
               onClick={() => setActiveTab('skill-gap')}
               className={`py-2 px-1 border-b-2 font-medium text-sm ${activeTab === 'skill-gap'
-                  ? 'border-blue-500 text-blue-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                ? 'border-blue-500 text-blue-600'
+                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                 }`}
             >
               Skill Gap Analysis
@@ -351,8 +351,8 @@ export default function RecommendationsPage() {
                         <span
                           key={index}
                           className={`px-3 py-1 text-sm rounded-full ${skillGapAnalysis.user_skills.includes(skill)
-                              ? 'bg-green-100 text-green-800'
-                              : 'bg-neutral-100 text-neutral-800'
+                            ? 'bg-green-100 text-green-800'
+                            : 'bg-neutral-100 text-neutral-800'
                             }`}
                         >
                           {skillGapAnalysis.user_skills.includes(skill) ? '✓ ' : ''}{skill}

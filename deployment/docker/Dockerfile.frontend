@@ -1,28 +1,28 @@
 # Multi-stage Dockerfile for Career Copilot Frontend (Next.js)
 
 # Dependencies stage
-FROM node:18-alpine AS deps
+FROM node:20-alpine AS deps
 
 RUN apk add --no-cache libc6-compat
 
 WORKDIR /app
 
-# Copy package files
-COPY frontend/package.json frontend/package-lock.json* ./
+# Copy package files (context is frontend/ directory)
+COPY package.json package-lock.json* ./
 
 # Install dependencies
 RUN npm ci
 
 # Builder stage
-FROM node:18-alpine AS builder
+FROM node:20-alpine AS builder
 
 WORKDIR /app
 
 # Copy dependencies from deps stage
 COPY --from=deps /app/node_modules ./node_modules
 
-# Copy frontend source
-COPY frontend/ ./
+# Copy frontend source (context is frontend/ directory)
+COPY . ./
 
 # Set environment variables for build
 ENV NEXT_TELEMETRY_DISABLED=1
@@ -32,7 +32,7 @@ ENV NODE_ENV=production
 RUN npm run build
 
 # Production stage
-FROM node:18-alpine AS runner
+FROM node:20-alpine AS runner
 
 WORKDIR /app
 

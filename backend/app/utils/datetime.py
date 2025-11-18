@@ -6,8 +6,12 @@ from datetime import date, datetime, timezone
 
 
 def utc_now() -> datetime:
-	"""Return the current UTC time as a timezone-aware datetime."""
-	return datetime.now(timezone.utc)
+	"""Return the current UTC time as a timezone-naive datetime.
+
+	Returns naive datetime to match PostgreSQL TIMESTAMP WITHOUT TIME ZONE columns.
+	All timestamps are implicitly UTC.
+	"""
+	return datetime.utcnow()
 
 
 def utc_today() -> date:

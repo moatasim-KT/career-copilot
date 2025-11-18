@@ -8,6 +8,7 @@ import { CommandPaletteProvider } from '@/components/providers/CommandPalettePro
 import { AuthProvider } from '@/contexts/AuthContext';
 import { NotificationProvider } from '@/contexts/NotificationContext';
 import { createQueryClient } from '@/lib/queryClient';
+import { initKeyboardShortcuts, cleanupKeyboardShortcuts } from '@/lib/keyboardShortcuts';
 
 // Accessibility audit (axe-core/react)
 if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
@@ -18,6 +19,15 @@ if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
 
 export default function Providers({ children }: { children: ReactNode }) {
   const [queryClient] = useState(() => createQueryClient());
+
+  useEffect(() => {
+    // Initialize keyboard shortcuts system
+    initKeyboardShortcuts();
+
+    return () => {
+      cleanupKeyboardShortcuts();
+    };
+  }, []);
 
   useEffect(() => {
     if (process.env.NODE_ENV === 'development' && typeof window !== 'undefined') {

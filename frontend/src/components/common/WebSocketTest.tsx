@@ -8,11 +8,11 @@
 import { Send, Trash2, Wifi, WifiOff } from 'lucide-react';
 import { useState } from 'react';
 
+import Card from '@/components/ui/Card';
 import { useWebSocket } from '@/hooks/useWebSocket';
 import { logger } from '@/lib/logger';
 
 import Button2 from '../ui/Button2';
-import Card from '../ui/Card';
 
 interface TestMessage {
   id: string;

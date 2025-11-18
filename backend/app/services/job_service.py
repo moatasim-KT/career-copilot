@@ -5,6 +5,61 @@ This service consolidates job_service.py, job_scraping_service.py, job_recommend
 job_ingestion_service.py, and job_deduplication_service.py into a single comprehensive
 job management system that handles CRUD operations, job processing, scraping coordination,
 recommendations, deduplication, and user notifications.
+
+**Architecture**: Service Layer Pattern (see [[docs/DEVELOPER_GUIDE|Developer Guide]])
+
+**Key Components**:
+- Job CRUD operations with search and filtering
+- Multi-source job scraping (9+ job boards including LinkedIn, Indeed, StepStone)
+- AI-powered job recommendations via [[backend/app/services/llm_service.py|LLM Service]]
+- Advanced deduplication using MinHash + Jaccard similarity
+- User notification system for new jobs
+
+**Usage Example**:
+
+.. code-block:: python
+
+    from app.services.job_service import JobManagementSystem
+    from app.core.database import get_db
+
+    # Initialize service
+    db = next(get_db())
+    job_system = JobManagementSystem(db)
+
+    # Scrape jobs for a user
+    result = job_system.ingest_jobs_for_user(
+        user_id=1,
+        max_jobs=50
+    )
+    print(f"Saved {result['jobs_saved']} jobs, filtered {result['duplicates_filtered']} duplicates")
+
+    # Get job recommendations
+    recommendations = await job_system.get_job_recommendations(
+        user_id=1,
+        limit=10
+    )
+
+    # Search jobs with filters
+    jobs = job_system.search_jobs(
+        query="Python developer",
+        location="Berlin",
+        remote=True
+    )
+
+**Background Jobs**:
+Scheduled via [[backend/app/core/celery_app.py|Celery]] to run daily at 4 AM UTC.
+See [[backend/app/tasks/job_ingestion_tasks.py|Job Ingestion Tasks]] for Celery task definitions.
+
+**Configuration**:
+- Scraper settings: See [[backend/app/core/config.py|Config]] (SCRAPING_* variables)
+- Deduplication threshold: 0.85 Jaccard similarity
+- Max concurrent scrapers: Configurable via SCRAPING_MAX_CONCURRENT
+
+**Related Documentation**:
+- [[docs/architecture/job-services-architecture|Job Services Architecture]]
+- [[backend/app/services/job_deduplication_service.py|Deduplication Service]]
+- [[backend/app/services/scraping/|Scraper Implementations]]
+- [[docs/DEVELOPER_GUIDE|Developer Guide]] - Service Layer patterns
 """
 
 import asyncio
@@ -47,6 +102,38 @@ class JobManagementSystem:
 	- JobRecommendationService: Personalized job recommendations and matching
 	- JobIngestionService: User-specific job ingestion coordination
 	- JobDeduplicationService: Advanced deduplication with fuzzy matching
+
+	**Scraping Sources** (9 job boards):
+	- LinkedIn (via Selenium - requires auth)
+	- Indeed (BeautifulSoup)
+	- StepStone (EU focus)
+	- Glassdoor
+	- Arbeitnow (EU tech jobs)
+	- BerlinStartupJobs (Germany)
+	- RelocateMe (relocation support)
+	- Adzuna (API-based)
+	- RemoteOK (remote jobs)
+
+	**Deduplication Algorithm**:
+	Uses MinHash + Jaccard similarity (threshold: 0.85) on job fingerprints:
+	- Title normalization (lowercase, special chars removed)
+	- Company name normalization
+	- Location normalization
+	- Description content hashing
+
+	**Attributes**:
+		db (Session): SQLAlchemy database session
+		notification (EmailService): Email notification service
+		deduplication_service (JobDeduplicationService): Deduplication logic
+		notification_service (NotificationService): Unified notification service
+		skill_matcher (SkillMatchingService): AI-powered skill matching
+		quota_manager (QuotaManager): API rate limiting
+		scraper_manager (ScraperManager): Coordinates all scrapers
+
+	**See Also**:
+		- [[docs/architecture/job-services-architecture|Job Services Architecture]]
+		- [[backend/app/services/scraping/|Scraper Directory]]
+		- [[docs/DEVELOPER_GUIDE|Developer Guide]]
 	"""
 
 	def __init__(self, db: Session):

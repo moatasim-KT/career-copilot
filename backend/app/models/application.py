@@ -22,9 +22,12 @@ class Application(Base):
 	offer_date = Column(Date)
 	notes = Column(Text)
 	interview_feedback = Column(JSON, nullable=True)
+	documents = Column(JSON, default=list, nullable=True)  # List of document associations
 	follow_up_date = Column(Date)
 	created_at = Column(DateTime, default=utc_now, index=True)
 	updated_at = Column(DateTime, default=utc_now, onupdate=utc_now)
 
+	# Relationships
 	user = relationship("User", back_populates="applications")
 	job = relationship("Job", back_populates="applications")
+	calendar_events = relationship("CalendarEvent", back_populates="application", cascade="all, delete-orphan")

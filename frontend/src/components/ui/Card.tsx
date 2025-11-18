@@ -18,7 +18,7 @@ const paddingClasses = {
   lg: 'p-8',
 };
 
-const Card = memo(({
+const CardComponent = memo(({
   children,
   className,
   padding = 'md',
@@ -40,7 +40,11 @@ const Card = memo(({
   );
 });
 
-export default Card;
+CardComponent.displayName = 'Card';
+
+export default CardComponent;
+
+export const Card = CardComponent;
 
 export function CardHeader({
   children,
@@ -67,6 +71,20 @@ export function CardTitle({
     <h3 className={cn('text-lg font-semibold text-gray-900', className)}>
       {children}
     </h3>
+  );
+}
+
+export function CardDescription({
+  children,
+  className,
+}: {
+  children: ReactNode;
+  className?: string;
+}) {
+  return (
+    <div className={cn('text-sm text-muted-foreground', className)}>
+      {children}
+    </div>
   );
 }
 

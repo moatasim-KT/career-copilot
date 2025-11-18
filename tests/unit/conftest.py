@@ -7,7 +7,8 @@ from unittest.mock import AsyncMock, Mock
 
 import pytest
 
-from backend.app.services.analytics_reporting_service import AnalyticsReportingService
+# TODO: Re-enable when analytics_reporting_service is implemented
+# from backend.app.services.analytics_reporting_service import AnalyticsReportingService
 
 
 @pytest.fixture

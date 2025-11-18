@@ -62,13 +62,17 @@ function ShareDialog({
 }) {
     const [copied, setCopied] = useState(false);
 
-    const shareUrl = `${window.location.origin}/achievements/${achievement.id}`;
+    const shareUrl = typeof window !== 'undefined'
+        ? `${window.location.origin}/achievements/${achievement.id}`
+        : '/achievements/';
     const shareText = `🎉 ${achievement.title}\n\n${achievement.description}`;
 
     const handleCopyLink = () => {
-        navigator.clipboard.writeText(shareUrl);
-        setCopied(true);
-        setTimeout(() => setCopied(false), 2000);
+        if (typeof navigator !== 'undefined' && navigator.clipboard) {
+            navigator.clipboard.writeText(shareUrl);
+            setCopied(true);
+            setTimeout(() => setCopied(false), 2000);
+        }
     };
 
     const handleLinkedInShare = () => {

@@ -10,13 +10,13 @@
 import { Calendar, CheckCircle2, Loader2, XCircle } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/Badge';
+import { Button } from '@/components/ui/Button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card';
+import { useToast } from '@/components/ui/use-toast';
 import { CalendarService } from '@/lib/api/client';
 import type { CalendarCredential, CalendarProvider } from '@/types/calendar';
 
-import { useToast } from '@/components/ui/use-toast';
 
 export default function CalendarSettingsPage() {
     const [credentials, setCredentials] = useState<CalendarCredential[]>([]);

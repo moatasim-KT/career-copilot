@@ -77,6 +77,25 @@ class KeyboardShortcutsManager {
      * Check if event matches shortcut
      */
     private matchesShortcut(event: KeyboardEvent, shortcut: KeyboardShortcut): boolean {
+        const isMac = typeof navigator !== 'undefined' && navigator.platform.toUpperCase().indexOf('MAC') >= 0;
+
+        // Handle platform-specific modifiers
+        // If meta is true, it means Cmd on Mac and Ctrl on Windows/Linux if not specified otherwise
+        // But here we want explicit control.
+        // Let's adopt the strategy: if 'meta' is requested, it means Cmd on Mac.
+        // If 'ctrl' is requested, it means Ctrl.
+
+        // However, for cross-platform "Cmd/Ctrl+Key", usually we want:
+        // Mac: Meta+Key
+        // Windows: Ctrl+Key
+
+        // Let's check if the shortcut definition implies "Primary Modifier" (Cmd/Ctrl)
+        // For now, we'll stick to strict matching but allow a "mod" property in future if needed.
+        // Or we can interpret 'ctrl' as 'Cmd' on Mac if we want to be smart, but that might be confusing.
+
+        // Better approach: The caller should specify what they want.
+        // But for the hook adapter, we need to handle the "ctrlOrMeta" logic.
+
         return (
             event.key.toLowerCase() === shortcut.key.toLowerCase() &&
             !!event.ctrlKey === !!shortcut.ctrl &&

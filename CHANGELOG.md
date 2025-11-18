@@ -7,18 +7,70 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Related Documents
 
-- [[./README.md]] - Project overview
-- [[TODO.md]] - Current development tasks
-- [[PLAN.md]] - Implementation plan
-- [[docs/DEVELOPER_GUIDE.md|Developer Guide]] - Development documentation
+- [[README]] - Project overview
+- [[TODO]] - Current development tasks
+- [[PLAN]] - Implementation plan
+- [[docs/DEVELOPER_GUIDE|Developer Guide]] - Development documentation
 
 ## [Unreleased]
 
 ### Added
-- Documentation system with comprehensive guides
-- Storybook component documentation
-- Contributing guidelines
-- Developer guide with architecture overview
+- **Phase 2: Comprehensive Test Suite** (November 17, 2025)
+  - Created 84 comprehensive unit tests (890 lines) for core services:
+    - Authentication Service: 24 tests (password hashing, JWT tokens, single-user mode)
+    - Calendar Integration: 21 tests (Google/Outlook OAuth, event CRUD, sync)
+    - Dashboard Service: 27 tests (8 widgets, drag-and-drop, responsiveness)
+    - Recommendation Engine: 15 tests (scoring algorithm, job matching)
+  - All tests passing at 100% (84/84), 0 failures
+  - See: [[docs/phases/PHASE_2_COMPLETION_SUMMARY|Phase 2 Summary]]
+
+- **Production-Ready Service Implementations** (1,570 lines)
+  - **GoogleCalendarService** (400 lines): OAuth2 flow, Calendar API v3, auto token refresh
+  - **MicrosoftCalendarService** (420 lines): MSAL integration, Graph API v1.0, OData queries
+  - **DashboardLayoutService** (350 lines): 8 widgets, responsive breakpoints, react-grid-layout
+  - **RecommendationEngine**: Backward compatibility wrapper for test suite
+  - See: [[backend/app/services/calendar/]] and [[backend/app/services/dashboard_layout_service.py]]
+
+- **Testing Infrastructure**
+  - PostgreSQL test database (production parity)
+  - Coverage reporting: `htmlcov/phase2/index.html`
+  - Comprehensive test fixtures for calendar, dashboard, recommendation services
+  - See: [[backend/tests/TESTING_GUIDE|Testing Guide]]
+
+- **Comprehensive Service Directory Index** - Complete catalog of 100+ backend services with descriptions and wikilinks
+  - Organized by 12 functional categories (Core Business, AI, Scraping, Analytics, etc.)
+  - Service statistics and development guidelines
+  - Quick reference for all service implementations
+  - See: [[backend/app/services/README|Services Directory]]
+
+### Changed
+- **Documentation System Overhaul** - FOAM-style wikilink integration throughout codebase
+  - Fixed 40+ broken wikilinks across core documentation (README, DEVELOPER_GUIDE, PROJECT_STATUS)
+  - Standardized all wikilinks to `[[path/to/file|Display Name]]` format
+  - Added 30+ new cross-references between related documents
+  - Removed duplicate/obsolete content (`.agents/` references, duplicate Quick Start sections)
+  
+- **Backend Service Documentation** - Enhanced docstrings for core services
+  - **JobManagementSystem**: Added architecture overview, usage examples, background job details
+  - **LLMService**: Multi-provider documentation with selection logic and cost tracking
+  - **JobDeduplicationService**: Algorithm explanation with performance metrics
+  - All services now include wikilinks to related documentation
+  
+- **Frontend Component Documentation** - TSDoc comments for major components
+  - **API Client**: Comprehensive module docs with 4 usage examples, error handling patterns
+  - **EnhancedDashboard**: Feature list, widget descriptions, WebSocket integration details
+  - Added inline function documentation with TypeScript generics
+  
+- **Navigation Improvements** - Bidirectional wikilinks enable easy documentation traversal
+  - README ↔ DEVELOPER_GUIDE ↔ service files ↔ architecture docs
+  - docs/index.md serves as central navigation hub
+  - All 104+ markdown files use consistent FOAM format
+
+### Fixed
+- **Recommendation Engine Compatibility**: Added backward compatibility layer for test suite while preserving async production API
+- **Calendar Service Import Issues**: Fixed `CalendarCredentials` → `CalendarCredential` naming mismatch
+- **Test Fixture Conflicts**: Renamed `engine` fixture to `recommendation_engine` to avoid SQLAlchemy shadowing
+- **Mock Data Completeness**: Added `created_at` field to all job fixtures for scoring algorithm
 
 ## [1.0.0] - 2024-11-11
 

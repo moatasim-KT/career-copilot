@@ -26,36 +26,37 @@ def override_get_db(db: Session):
 		db.close()
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture(scope="function")
 def client_fixture(db):
-    app = create_app()
-    app.dependency_overrides[get_db] = lambda: db
-    with TestClient(app) as client:
-        yield client
+	app = create_app()
+	app.dependency_overrides[get_db] = lambda: override_get_db(db)
+	with TestClient(app) as client:
+		yield client
 
-@pytest.fixture(scope="module")
+
+@pytest.fixture(scope="function")
 def access_token(client_fixture):
-    response = client_fixture.post(
-        "/api/v1/auth/register",
-        json={
-            "username": "testuser_resume",
-            "email": "resume@example.com",
-            "password": "testpassword123",
-        },
-    )
-    if response.status_code == 200:
-        return response.json()["access_token"]
-    elif response.status_code == 400:
-        response = client_fixture.post(
-            "/api/v1/auth/login",
-            json={
-                "username": "testuser_resume",
-                "password": "testpassword123",
-            },
-        )
-        return response.json()["access_token"]
-    else:
-        raise Exception(f"Failed to create or login test user: {response.text}")
+	response = client_fixture.post(
+		"/api/v1/auth/register",
+		json={
+			"username": "testuser_resume",
+			"email": "resume@example.com",
+			"password": "testpassword123",
+		},
+	)
+	if response.status_code == 200:
+		return response.json()["access_token"]
+	elif response.status_code == 400:
+		response = client_fixture.post(
+			"/api/v1/auth/login",
+			json={
+				"username": "testuser_resume",
+				"password": "testpassword123",
+			},
+		)
+		return response.json()["access_token"]
+	else:
+		raise Exception(f"Failed to create or login test user: {response.text}")
 
 
 class DummyResumeParserService:

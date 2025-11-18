@@ -1,8 +1,87 @@
 /**
  * Unified API Client
  * 
- * Central API client for all backend communication.
- * Handles authentication, error handling, and request/response formatting.
+ * Central API client for all backend communication with the FastAPI backend.
+ * Handles authentication, error handling, retry logic, and request/response formatting.
+ * 
+ * **Features**:
+ * - Type-safe API calls with TypeScript generics
+ * - Automatic authentication header injection
+ * - Exponential backoff retry for transient failures
+ * - Comprehensive error handling (401, 403, 404, 5xx)
+ * - Query parameter serialization
+ * - JSON request/response handling
+ * 
+ * **Authentication**:
+ * Auth is disabled by default (`requiresAuth: false`). When enabled:
+ * - Reads JWT token from `localStorage.getItem('auth_token')`
+ * - Automatically adds `Authorization: Bearer <token>` header
+ * - Redirects to login on 401 errors
+ * 
+ * **Usage Examples**:
+ * 
+ * ```typescript
+ * import { fetchApi } from '@/lib/api/client';
+ * 
+ * // GET request with query parameters
+ * const response = await fetchApi<Job[]>('/jobs/matches', {
+ *   params: { limit: 10, remote: true },
+ *   requiresAuth: false
+ * });
+ * 
+ * if (response.error) {
+ *   console.error('API Error:', response.error);
+ *   return;
+ * }
+ * const jobs = response.data;
+ * 
+ * // POST request with body
+ * const createResponse = await fetchApi<Application>('/applications', {
+ *   method: 'POST',
+ *   body: JSON.stringify({
+ *     job_id: 123,
+ *     status: 'applied'
+ *   }),
+ *   requiresAuth: false
+ * });
+ * 
+ * // PUT request
+ * const updateResponse = await fetchApi<Application>('/applications/1', {
+ *   method: 'PUT',
+ *   body: JSON.stringify({ status: 'interviewing' })
+ * });
+ * 
+ * // DELETE request
+ * const deleteResponse = await fetchApi<void>('/applications/1', {
+ *   method: 'DELETE'
+ * });
+ * ```
+ * 
+ * **Error Handling**:
+ * Returns `ApiResponse<T>` with either `data` or `error`:
+ * ```typescript
+ * interface ApiResponse<T> {
+ *   data?: T;      // Success response data
+ *   error?: string; // Error message if request failed
+ *   status: number; // HTTP status code
+ * }
+ * ```
+ * 
+ * **Retry Logic**:
+ * - Automatic retry with exponential backoff for 5xx errors
+ * - Max 3 attempts with delays: 1s, 2s, 4s
+ * - No retry for 4xx client errors
+ * 
+ * **Configuration**:
+ * - Base URL: `process.env.NEXT_PUBLIC_API_URL` (default: http://localhost:8002)
+ * - API Version: `/api/v1`
+ * - Auth token key: `auth_token` in localStorage
+ * 
+ * **Related Documentation**:
+ * - [[backend/app/api/v1/|Backend API Routes]]
+ * - [[docs/api/API|API Documentation]]
+ * - [[frontend/src/lib/errorHandling.ts|Error Handling]]
+ * - [[docs/DEVELOPER_GUIDE|Developer Guide]] - API Integration section
  * 
  * @module lib/api/client
  */
@@ -19,19 +98,43 @@ export type { Job as JobResponse, Application as ApplicationResponse } from './a
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8002';
 const API_VERSION = '/api/v1';
 
+/**
+ * Extended fetch options for API requests
+ * @interface RequestOptions
+ * @extends {RequestInit}
+ */
 interface RequestOptions extends RequestInit {
+    /** Query parameters to append to URL (e.g., { limit: 10, page: 1 }) */
     params?: Record<string, string | number | boolean>;
+    /** Whether to include Authorization header (default: false) */
     requiresAuth?: boolean;
 }
 
+/**
+ * API response wrapper
+ * @interface ApiResponse
+ * @template T - The expected response data type
+ */
 interface ApiResponse<T = any> {
+    /** Response data if successful */
     data?: T;
+    /** Error message if request failed */
     error?: string;
+    /** HTTP status code */
     status: number;
 }
 
 /**
- * Get authentication token from storage
+ * Get authentication token from browser localStorage
+ * 
+ * @returns JWT token string or null if not found/not in browser
+ * @example
+ * ```typescript
+ * const token = getAuthToken();
+ * if (token) {
+ *   headers['Authorization'] = `Bearer ${token}`;
+ * }
+ * ```
  */
 function getAuthToken(): string | null {
     if (typeof window === 'undefined') return null;
@@ -39,7 +142,22 @@ function getAuthToken(): string | null {
 }
 
 /**
- * Build URL with query parameters
+ * Build full API URL with query parameters
+ * 
+ * Constructs URL by combining:
+ * - Base URL (from NEXT_PUBLIC_API_URL env var)
+ * - API version prefix (/api/v1)
+ * - Endpoint path
+ * - Query parameters (if provided)
+ * 
+ * @param endpoint - API endpoint path (e.g., '/jobs/matches')
+ * @param params - Optional query parameters
+ * @returns Full URL string with query params
+ * @example
+ * ```typescript
+ * buildUrl('/jobs', { limit: 10, remote: true })
+ * // Returns: 'http://localhost:8002/api/v1/jobs?limit=10&remote=true'
+ * ```
  */
 function buildUrl(endpoint: string, params?: Record<string, any>): string {
     const url = new URL(`${API_BASE_URL}${API_VERSION}${endpoint}`);
@@ -56,7 +174,33 @@ function buildUrl(endpoint: string, params?: Record<string, any>): string {
 }
 
 /**
- * Base fetch wrapper with error handling and retry logic
+ * Main API request function with retry logic and error handling
+ * 
+ * Performs HTTP request to backend API with:
+ * - Automatic JSON serialization
+ * - Authentication header injection (if requiresAuth=true)
+ * - Query parameter encoding
+ * - Exponential backoff retry for 5xx errors
+ * - Comprehensive error handling and logging
+ * 
+ * @template T - Expected response data type
+ * @param endpoint - API endpoint path (e.g., '/jobs/matches')
+ * @param options - Request options including method, body, params, auth
+ * @returns Promise resolving to ApiResponse<T> with data or error
+ * 
+ * @example
+ * ```typescript
+ * // GET request
+ * const { data, error } = await fetchApi<Job[]>('/jobs', {
+ *   params: { limit: 10 }
+ * });
+ * 
+ * // POST request
+ * const { data, error } = await fetchApi<Application>('/applications', {
+ *   method: 'POST',
+ *   body: JSON.stringify({ job_id: 123 })
+ * });
+ * ```
  */
 async function fetchApi<T = any>(
     endpoint: string,

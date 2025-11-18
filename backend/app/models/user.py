@@ -49,5 +49,12 @@ class User(Base):
 	generated_documents = relationship("GeneratedDocument", back_populates="user", cascade="all, delete-orphan")
 	settings = relationship("UserSettings", back_populates="user", uselist=False, cascade="all, delete-orphan")
 
+	# Calendar relationships
+	calendar_credentials = relationship("CalendarCredential", back_populates="user", cascade="all, delete-orphan")
+	calendar_events = relationship("CalendarEvent", back_populates="user", cascade="all, delete-orphan")
+
+	# Dashboard relationship
+	dashboard_layout = relationship("DashboardLayout", back_populates="user", uselist=False, cascade="all, delete-orphan")
+
 	def __repr__(self):
 		return f"<User(id={self.id}, username={self.username}, email={self.email})>"

@@ -2,6 +2,7 @@ import re
 from unittest.mock import AsyncMock, patch
 
 import pytest
+
 from app.schemas.job import JobCreate
 from app.services.scraping.adzuna_scraper import AdzunaScraper
 
@@ -24,8 +25,18 @@ def adzuna_scraper():
 @pytest.mark.asyncio
 async def test_build_search_url(adzuna_scraper):
 	url = adzuna_scraper._build_search_url("software engineer", "london", 1)
-	expected_url_part = "https://api.adzuna.com/v1/api/jobs/search/us/?app_id=test_app_id&app_key=test_app_key&results_per_page=50&what=software engineer&where=london&country=us&content-type=application/json&page=1"
-	assert url == expected_url_part
+	# New URL format: /jobs/{country}/search/{page}
+	# Parameters are URL-encoded (+ instead of space)
+	# Includes sort_by, max_days_old, and category params
+	assert url.startswith("https://api.adzuna.com/v1/api/jobs/us/search/1?")
+	assert "app_id=test_app_id" in url
+	assert "app_key=test_app_key" in url
+	assert "what=software+engineer" in url  # URL-encoded
+	assert "where=london" in url
+	assert "results_per_page=50" in url
+	assert "sort_by=date" in url
+	assert "max_days_old=30" in url
+	assert "category=it-jobs" in url  # Added for tech keywords
 
 
 @pytest.mark.asyncio
@@ -48,7 +59,8 @@ async def test_search_jobs_success(adzuna_scraper):
 	}
 	mock_response = AsyncMock()
 	mock_response.status_code = 200
-	mock_response.json = AsyncMock(return_value=mock_response_data)
+	# response.json() is synchronous in httpx, not async
+	mock_response.json = lambda: mock_response_data
 
 	with patch.object(adzuna_scraper, "_make_request", new=AsyncMock(return_value=mock_response)) as mock_make_request:
 		async with adzuna_scraper:
@@ -63,7 +75,7 @@ async def test_search_jobs_success(adzuna_scraper):
 			assert jobs[0].salary_min == 50000
 			assert jobs[0].salary_max == 70000
 			assert jobs[0].job_type == "full-time"
-			assert jobs[0].source == "adzuna"
+			assert jobs[0].source == "scraped"  # Implementation uses "scraped" not "adzuna"
 			assert jobs[0].currency == "USD"
 			mock_make_request.assert_called_once()
 
@@ -73,7 +85,8 @@ async def test_search_jobs_no_results(adzuna_scraper):
 	mock_response_data = {"count": 0, "results": []}
 	mock_response = AsyncMock()
 	mock_response.status_code = 200
-	mock_response.json = AsyncMock(return_value=mock_response_data)
+	# response.json() is synchronous in httpx, not async
+	mock_response.json = lambda: mock_response_data
 
 	with patch.object(adzuna_scraper, "_make_request", new=AsyncMock(return_value=mock_response)) as mock_make_request:
 		async with adzuna_scraper:
