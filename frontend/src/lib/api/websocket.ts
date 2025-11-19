@@ -59,11 +59,15 @@ class WebSocketService {
   private messageQueue: Record<string, unknown>[] = [];
 
   constructor() {
-    this.baseUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8002';
-    // Convert HTTP URL to WebSocket URL
-    this.baseUrl = this.baseUrl
+    // Use explicit WebSocket URL if provided, otherwise derive from API URL
+    const wsUrl = process.env.NEXT_PUBLIC_WS_URL;
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000';
+
+    this.baseUrl = apiUrl;
+    this.wsUrl = wsUrl || apiUrl
       .replace('http://', 'ws://')
       .replace('https://', 'wss://');
+    this.connect();
   }
 
   /**

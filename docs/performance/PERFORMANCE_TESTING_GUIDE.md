@@ -1,4 +1,29 @@
+
 # Performance Testing Guide
+
+---
+## 🧭 Quick Navigation
+
+- [[PLAN]] – Project Plan
+- [[TESTING_AND_UI_REFACTORING_OVERVIEW]] – Testing & UI Refactoring Overview
+- [[COMPONENT_LIBRARY_INVENTORY.md]] – Component Inventory
+- [[DESIGN_SYSTEM.md]] – Design System Guide
+- [[ERROR_HANDLING_GUIDE.md]] – Error Handling Guide
+- [[E2E_TESTING_MIGRATION.md]] – E2E Migration Guide
+- [[docs/DEVELOPER_GUIDE]] – Developer Guide
+- [[TODO.md]] – Todo List
+- [[FRONTEND_QUICK_START.md]] – Frontend Quick Start
+- [[USER_GUIDE.md]] – User Guide
+- [[ENVIRONMENT_CONFIGURATION.md]] – Environment Configuration
+---
+- [[ERROR_HANDLING_GUIDE.md]] – Error Handling Guide
+- [[E2E_TESTING_MIGRATION.md]] – E2E Migration Guide
+- [[DEVELOPER_GUIDE]] – Developer Guide
+- [[TODO.md]] – Todo List
+- [[FRONTEND_QUICK_START.md]] – Frontend Quick Start
+- [[USER_GUIDE.md]] – User Guide
+- [[ENVIRONMENT_CONFIGURATION.md]] – Environment Configuration
+---
 
 This guide explains how to run and interpret performance tests for the Career Copilot platform.
 
@@ -325,12 +350,12 @@ jobs:
 
 ### Load Testing Scenarios
 
-| Scenario | Users | Requests | Description |
-|----------|-------|----------|-------------|
-| Light Load | 10 | 5 | Development testing |
-| Normal Load | 50 | 10 | Typical usage |
-| Heavy Load | 100 | 20 | Peak hours |
-| Stress Test | 200 | 30 | Capacity planning |
+| Scenario    | Users | Requests | Description         |
+| ----------- | ----- | -------- | ------------------- |
+| Light Load  | 10    | 5        | Development testing |
+| Normal Load | 50    | 10       | Typical usage       |
+| Heavy Load  | 100   | 20       | Peak hours          |
+| Stress Test | 200   | 30       | Capacity planning   |
 
 ## Interpreting the Report
 

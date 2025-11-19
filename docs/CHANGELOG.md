@@ -1,5 +1,21 @@
 # Changelog
 
+---
+## 🧭 Quick Navigation
+
+- [[PLAN]] – Project Plan
+- [[TESTING_AND_UI_REFACTORING_OVERVIEW]] – Testing & UI Refactoring Overview
+- [[COMPONENT_LIBRARY_INVENTORY.md]] – Component Inventory
+- [[DESIGN_SYSTEM.md]] – Design System Guide
+- [[ERROR_HANDLING_GUIDE.md]] – Error Handling Guide
+- [[E2E_TESTING_MIGRATION.md]] – E2E Migration Guide
+- [[docs/DEVELOPER_GUIDE]] – Developer Guide
+- [[TODO.md]] – Todo List
+- [[FRONTEND_QUICK_START.md]] – Frontend Quick Start
+- [[USER_GUIDE.md]] – User Guide
+- [[ENVIRONMENT_CONFIGURATION.md]] – Environment Configuration
+---
+
 All notable changes to Career Copilot will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
@@ -10,7 +26,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [[README]] - Project overview
 - [[TODO]] - Current development tasks
 - [[PLAN]] - Implementation plan
-- [[docs/DEVELOPER_GUIDE|Developer Guide]] - Development documentation
+- [[DEVELOPER_GUIDE|Developer Guide]] - Development documentation
 
 ## [Unreleased]
 
@@ -22,7 +38,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     - Dashboard Service: 27 tests (8 widgets, drag-and-drop, responsiveness)
     - Recommendation Engine: 15 tests (scoring algorithm, job matching)
   - All tests passing at 100% (84/84), 0 failures
-  - See: [[docs/phases/PHASE_2_COMPLETION_SUMMARY|Phase 2 Summary]]
+  - See: [[ARCHITECTURE|Architecture Overview]] and [[DEVELOPER_GUIDE|Developer Guide]] for historical context
 
 - **Production-Ready Service Implementations** (1,570 lines)
   - **GoogleCalendarService** (400 lines): OAuth2 flow, Calendar API v3, auto token refresh

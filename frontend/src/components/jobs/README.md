@@ -1,5 +1,21 @@
 # Jobs Components
 
+---
+## 🧭 Quick Navigation
+
+- [[PLAN]] – Project Plan
+- [[TESTING_AND_UI_REFACTORING_OVERVIEW]] – Testing & UI Refactoring Overview
+- [[COMPONENT_LIBRARY_INVENTORY.md]] – Component Inventory
+- [[DESIGN_SYSTEM.md]] – Design System Guide
+- [[ERROR_HANDLING_GUIDE.md]] – Error Handling Guide
+- [[E2E_TESTING_MIGRATION.md]] – E2E Testing Migration Guide
+- [[docs/DEVELOPER_GUIDE]] – Developer Guide
+- [[TODO.md]] – Todo List
+- [[FRONTEND_QUICK_START.md]] – Frontend Quick Start
+- [[USER_GUIDE.md]] – User Guide
+- [[ENVIRONMENT_CONFIGURATION.md]] – Environment Configuration
+---
+
 High-performance components for displaying and managing job listings.
 
 ## Components
@@ -54,16 +70,16 @@ function JobsPage() {
 
 #### Props
 
-| Prop | Type | Default | Description |
-|------|------|---------|-------------|
-| `jobs` | `Job[]` | required | Array of jobs to display |
-| `onJobClick` | `(jobId: number \| string) => void` | required | Callback when a job is clicked |
-| `selectedJobIds` | `(number \| string)[]` | required | Array of selected job IDs |
-| `onSelectJob` | `(jobId: number \| string) => void` | required | Callback when a job is selected/deselected |
-| `estimatedSize` | `number` | `200` | Estimated height of each job card in pixels |
-| `overscan` | `number` | `5` | Number of items to render outside the visible area |
-| `className` | `string` | `''` | Custom className for the container |
-| `emptyMessage` | `string` | `'No jobs found...'` | Custom empty state message |
+| Prop             | Type                                | Default              | Description                                        |
+| ---------------- | ----------------------------------- | -------------------- | -------------------------------------------------- |
+| `jobs`           | `Job[]`                             | required             | Array of jobs to display                           |
+| `onJobClick`     | `(jobId: number \| string) => void` | required             | Callback when a job is clicked                     |
+| `selectedJobIds` | `(number \| string)[]`              | required             | Array of selected job IDs                          |
+| `onSelectJob`    | `(jobId: number \| string) => void` | required             | Callback when a job is selected/deselected         |
+| `estimatedSize`  | `number`                            | `200`                | Estimated height of each job card in pixels        |
+| `overscan`       | `number`                            | `5`                  | Number of items to render outside the visible area |
+| `className`      | `string`                            | `''`                 | Custom className for the container                 |
+| `emptyMessage`   | `string`                            | `'No jobs found...'` | Custom empty state message                         |
 
 #### Job Interface
 
@@ -112,8 +128,8 @@ function JobsPage() {
 
 #### Additional Props
 
-| Prop | Type | Default | Description |
-|------|------|---------|-------------|
+| Prop      | Type                                                     | Default                   | Description                      |
+| --------- | -------------------------------------------------------- | ------------------------- | -------------------------------- |
 | `columns` | `{ sm?: number; md?: number; lg?: number; xl?: number }` | `{ sm: 1, md: 2, lg: 3 }` | Number of columns per breakpoint |
 
 ## Performance

@@ -18,11 +18,11 @@ describe('useRoutePrefetch', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     jest.useFakeTimers();
-    
+
     mockRouter = {
       prefetch: jest.fn(),
     };
-    
+
     (useRouter as jest.Mock).mockReturnValue(mockRouter);
   });
 
@@ -100,7 +100,7 @@ describe('useRoutePrefetch', () => {
     });
 
     it('should respect custom delay', () => {
-      const { result } = renderHook(() => 
+      const { result } = renderHook(() =>
         useRoutePrefetch('/dashboard', { delay: 100 })
       );
 
@@ -122,7 +122,7 @@ describe('useRoutePrefetch', () => {
     });
 
     it('should not prefetch when disabled', () => {
-      const { result } = renderHook(() => 
+      const { result } = renderHook(() =>
         useRoutePrefetch('/dashboard', { enabled: false })
       );
 
@@ -135,7 +135,7 @@ describe('useRoutePrefetch', () => {
     });
 
     it('should handle prefetch errors gracefully', () => {
-      const consoleDebugSpy = jest.spyOn(console, 'debug').mockImplementation();
+      const loggerDebugSpy = jest.spyOn(require('@/lib/logger').logger, 'debug').mockImplementation();
       mockRouter.prefetch.mockImplementation(() => {
         throw new Error('Prefetch failed');
       });
@@ -148,13 +148,12 @@ describe('useRoutePrefetch', () => {
       });
 
       // Should log error but not throw
-      expect(consoleDebugSpy).toHaveBeenCalledWith(
+      expect(loggerDebugSpy).toHaveBeenCalledWith(
         'Route prefetch failed:',
         '/dashboard',
         expect.any(Error)
       );
-
-      consoleDebugSpy.mockRestore();
+      loggerDebugSpy.mockRestore();
     });
   });
 
@@ -185,7 +184,7 @@ describe('useRoutePrefetch', () => {
     });
 
     it('should handle errors for individual routes', () => {
-      const consoleDebugSpy = jest.spyOn(console, 'debug').mockImplementation();
+      const loggerDebugSpy = jest.spyOn(require('@/lib/logger').logger, 'debug').mockImplementation();
       mockRouter.prefetch.mockImplementation((route: string) => {
         if (route === '/jobs') {
           throw new Error('Prefetch failed');
@@ -201,13 +200,12 @@ describe('useRoutePrefetch', () => {
 
       // Should still prefetch other routes
       expect(mockRouter.prefetch).toHaveBeenCalledTimes(3);
-      expect(consoleDebugSpy).toHaveBeenCalledWith(
+      expect(loggerDebugSpy).toHaveBeenCalledWith(
         'Route prefetch failed:',
         '/jobs',
         expect.any(Error)
       );
-
-      consoleDebugSpy.mockRestore();
+      loggerDebugSpy.mockRestore();
     });
   });
 });

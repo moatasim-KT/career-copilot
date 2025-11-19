@@ -1,5 +1,21 @@
 # VirtualApplicationList Component
 
+---
+## 🧭 Quick Navigation
+
+- [[PLAN]] – Project Plan
+- [[TESTING_AND_UI_REFACTORING_OVERVIEW]] – Testing & UI Refactoring Overview
+- [[COMPONENT_LIBRARY_INVENTORY.md]] – Component Inventory
+- [[DESIGN_SYSTEM.md]] – Design System Guide
+- [[ERROR_HANDLING_GUIDE.md]] – Error Handling Guide
+- [[E2E_TESTING_MIGRATION.md]] – E2E Testing Migration Guide
+- [[docs/DEVELOPER_GUIDE]] – Developer Guide
+- [[TODO.md]] – Todo List
+- [[FRONTEND_QUICK_START.md]] – Frontend Quick Start
+- [[USER_GUIDE.md]] – User Guide
+- [[ENVIRONMENT_CONFIGURATION.md]] – Environment Configuration
+---
+
 A high-performance virtualized list component for displaying large numbers of job applications efficiently.
 
 ## Overview
@@ -104,24 +120,24 @@ function ApplicationsGridPage() {
 
 ### VirtualApplicationList Props
 
-| Prop | Type | Default | Description |
-|------|------|---------|-------------|
-| `applications` | `Application[]` | Required | Array of application objects to display |
-| `onApplicationClick` | `(id: number) => void` | Required | Callback when an application is clicked |
-| `selectedApplicationIds` | `number[]` | Required | Array of selected application IDs |
-| `onSelectApplication` | `(id: number) => void` | Required | Callback when selection changes |
-| `estimatedSize` | `number` | `220` | Estimated height of each card in pixels |
-| `overscan` | `number` | `5` | Number of items to render outside viewport |
-| `className` | `string` | `''` | Custom CSS classes |
-| `emptyMessage` | `string` | Default message | Custom empty state message |
-| `variant` | `'default' \| 'compact' \| 'detailed'` | `'default'` | Card display variant |
+| Prop                     | Type                                   | Default         | Description                                |
+| ------------------------ | -------------------------------------- | --------------- | ------------------------------------------ |
+| `applications`           | `Application[]`                        | Required        | Array of application objects to display    |
+| `onApplicationClick`     | `(id: number) => void`                 | Required        | Callback when an application is clicked    |
+| `selectedApplicationIds` | `number[]`                             | Required        | Array of selected application IDs          |
+| `onSelectApplication`    | `(id: number) => void`                 | Required        | Callback when selection changes            |
+| `estimatedSize`          | `number`                               | `220`           | Estimated height of each card in pixels    |
+| `overscan`               | `number`                               | `5`             | Number of items to render outside viewport |
+| `className`              | `string`                               | `''`            | Custom CSS classes                         |
+| `emptyMessage`           | `string`                               | Default message | Custom empty state message                 |
+| `variant`                | `'default' \| 'compact' \| 'detailed'` | `'default'`     | Card display variant                       |
 
 ### VirtualApplicationListGrid Props
 
 Extends `VirtualApplicationList` props with:
 
-| Prop | Type | Default | Description |
-|------|------|---------|-------------|
+| Prop      | Type                                                     | Default                   | Description                      |
+| --------- | -------------------------------------------------------- | ------------------------- | -------------------------------- |
 | `columns` | `{ sm?: number; md?: number; lg?: number; xl?: number }` | `{ sm: 1, md: 2, lg: 3 }` | Number of columns per breakpoint |
 
 ## Application Data Structure

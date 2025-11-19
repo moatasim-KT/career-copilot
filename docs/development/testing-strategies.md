@@ -1,15 +1,31 @@
 # Testing Strategies
 
+---
+## 🧭 Quick Navigation
+
+- [[PLAN]] – Project Plan
+- [[TESTING_AND_UI_REFACTORING_OVERVIEW]] – Testing & UI Refactoring Overview
+- [[COMPONENT_LIBRARY_INVENTORY.md]] – Component Inventory
+- [[DESIGN_SYSTEM.md]] – Design System Guide
+- [[ERROR_HANDLING_GUIDE.md]] – Error Handling Guide
+- [[E2E_TESTING_MIGRATION.md]] – E2E Testing Migration Guide
+- [[docs/DEVELOPER_GUIDE]] – Developer Guide
+- [[TODO.md]] – Todo List
+- [[FRONTEND_QUICK_START.md]] – Frontend Quick Start
+- [[USER_GUIDE.md]] – User Guide
+- [[ENVIRONMENT_CONFIGURATION.md]] – Environment Configuration
+---
+
 Career Copilot relies on multiple layers of automated testing to keep the FastAPI + Next.js stack stable. Use this guide as the canonical reference for which suites to run, how to write new tests, and how we keep accessibility checks in CI.
 
 ## 🔺 Testing Pyramid
 
-| Layer | Scope | Primary Tools | Typical Commands |
-| --- | --- | --- | --- |
-| Unit | Pure logic (services, hooks, components) | `pytest`, `jest` | `pytest backend/tests/unit`, `npm run test` |
-| Integration | Service boundaries (DB, Celery, API routes) | `pytest` with fixtures, Playwright mocks | `pytest backend/tests/integration`, `npm run test -- <path>` |
-| End-to-End | User flows (browser + API) | Playwright | `npm run test:e2e` |
-| Non-Functional | Accessibility, performance, security | `jest-axe`, Lighthouse, `make quality-check` | `npm run test:a11y`, `npm run lighthouse`, `make quality-check` |
+| Layer          | Scope                                       | Primary Tools                                | Typical Commands                                                |
+| -------------- | ------------------------------------------- | -------------------------------------------- | --------------------------------------------------------------- |
+| Unit           | Pure logic (services, hooks, components)    | `pytest`, `jest`                             | `pytest backend/tests/unit`, `npm run test`                     |
+| Integration    | Service boundaries (DB, Celery, API routes) | `pytest` with fixtures, Playwright mocks     | `pytest backend/tests/integration`, `npm run test -- <path>`    |
+| End-to-End     | User flows (browser + API)                  | Playwright                                   | `npm run test:e2e`                                              |
+| Non-Functional | Accessibility, performance, security        | `jest-axe`, Lighthouse, `make quality-check` | `npm run test:a11y`, `npm run lighthouse`, `make quality-check` |
 
 ## 🚀 Quick Commands
 

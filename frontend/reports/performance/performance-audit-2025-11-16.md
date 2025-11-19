@@ -1,5 +1,21 @@
 # Performance Audit Report
 
+---
+## 🧭 Quick Navigation
+
+- [[PLAN]] – Project Plan
+- [[TESTING_AND_UI_REFACTORING_OVERVIEW]] – Testing & UI Refactoring Overview
+- [[COMPONENT_LIBRARY_INVENTORY.md]] – Component Inventory
+- [[DESIGN_SYSTEM.md]] – Design System Guide
+- [[ERROR_HANDLING_GUIDE.md]] – Error Handling Guide
+- [[E2E_TESTING_MIGRATION.md]] – E2E Testing Migration Guide
+- [[docs/DEVELOPER_GUIDE]] – Developer Guide
+- [[TODO.md]] – Todo List
+- [[FRONTEND_QUICK_START.md]] – Frontend Quick Start
+- [[USER_GUIDE.md]] – User Guide
+- [[ENVIRONMENT_CONFIGURATION.md]] – Environment Configuration
+---
+
 **Date:** 11/16/2025, 11:49:39 AM
 
 **Environment:** development
@@ -14,18 +30,18 @@
 
 **Total Size:** 4688.95 KB
 
-| File | Size (KB) | Status |
-|------|-----------|--------|
-| 54becc2b1042c86d.js | 597.95 | ⚠️ Large |
-| 48bdd8cd9886d65b.js | 505.14 | ⚠️ Large |
-| a88b19cfc6e3b7e5.js | 457.38 | ⚠️ Large |
-| fede1bbbda7dc551.js | 430.47 | ⚠️ Large |
-| 548821ed054b9702.js | 260.92 | ⚠️ Large |
-| bd5bee00880844e7.js | 193.90 | ✅ OK |
-| cfdec0b007fc20cf.js | 154.58 | ✅ OK |
-| ef989a55e6bc53f4.js | 121.61 | ✅ OK |
-| 3dcf457b0f128db3.js | 111.68 | ✅ OK |
-| 784cee6f6aa9ceb0.js | 111.68 | ✅ OK |
+| File                | Size (KB) | Status  |
+| ------------------- | --------- | ------- |
+| 54becc2b1042c86d.js | 597.95    | ⚠️ Large |
+| 48bdd8cd9886d65b.js | 505.14    | ⚠️ Large |
+| a88b19cfc6e3b7e5.js | 457.38    | ⚠️ Large |
+| fede1bbbda7dc551.js | 430.47    | ⚠️ Large |
+| 548821ed054b9702.js | 260.92    | ⚠️ Large |
+| bd5bee00880844e7.js | 193.90    | ✅ OK    |
+| cfdec0b007fc20cf.js | 154.58    | ✅ OK    |
+| ef989a55e6bc53f4.js | 121.61    | ✅ OK    |
+| 3dcf457b0f128db3.js | 111.68    | ✅ OK    |
+| 784cee6f6aa9ceb0.js | 111.68    | ✅ OK    |
 
 ⚠️ **Warning:** Total bundle size exceeds 250KB target
 
@@ -35,13 +51,13 @@ Lighthouse audits completed. Results saved to `.lighthouseci/` directory.
 
 ## Core Web Vitals Targets
 
-| Metric | Target | Status |
-|--------|--------|--------|
-| First Contentful Paint (FCP) | < 1.5s | See Lighthouse results |
-| Largest Contentful Paint (LCP) | < 2.5s | See Lighthouse results |
-| Cumulative Layout Shift (CLS) | < 0.1 | See Lighthouse results |
-| First Input Delay (FID) | < 100ms | See Lighthouse results |
-| Total Blocking Time (TBT) | < 200ms | See Lighthouse results |
+| Metric                         | Target  | Status                 |
+| ------------------------------ | ------- | ---------------------- |
+| First Contentful Paint (FCP)   | < 1.5s  | See Lighthouse results |
+| Largest Contentful Paint (LCP) | < 2.5s  | See Lighthouse results |
+| Cumulative Layout Shift (CLS)  | < 0.1   | See Lighthouse results |
+| First Input Delay (FID)        | < 100ms | See Lighthouse results |
+| Total Blocking Time (TBT)      | < 200ms | See Lighthouse results |
 
 ## Network Throttling Test
 

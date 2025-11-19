@@ -1,14 +1,37 @@
 # Scripts Directory
 
+---
+## 🧭 Quick Navigation
+
+- [[PLAN]] – Project Plan
+- [[TESTING_AND_UI_REFACTORING_OVERVIEW]] – Testing & UI Refactoring Overview
+- [[COMPONENT_LIBRARY_INVENTORY.md]] – Component Inventory
+- [[DESIGN_SYSTEM.md]] – Design System Guide
+- [[ERROR_HANDLING_GUIDE.md]] – Error Handling Guide
+- [[E2E_TESTING_MIGRATION.md]] – E2E Testing Migration Guide
+- [[docs/DEVELOPER_GUIDE]] – Developer Guide
+- [[TODO.md]] – Todo List
+- [[FRONTEND_QUICK_START.md]] – Frontend Quick Start
+- [[USER_GUIDE.md]] – User Guide
+- [[ENVIRONMENT_CONFIGURATION.md]] – Environment Configuration
+---
+
 > Organized collection of utility scripts for Career Copilot development, testing, deployment, and maintenance
 
 ## Quick Links
 - [[../README|Main README]]
 - [[../docs/index|Documentation Hub]]
 - [[../docs/development/automated-documentation|Automated Documentation]]
-- [[../docs/DEVELOPER_GUIDE|Developer Guide]]
+- [[DEVELOPER_GUIDE|Developer Guide]]
 - [[../LOCAL_SETUP|Local Setup Guide]]
 - [[../docs/development/testing-guide|Testing Guide]]
+
+## 🔧 Key Scripts Navigation
+
+**Analysis**: [[analyze_api_endpoints.py|API Analysis]] | [[analyze_database_schema.py|DB Schema Analysis]] | [[analyze-components.ts|Component Analysis]]
+**Testing**: [[test_all_apis.py|API Tests]] | [[test_all_endpoints.sh|Endpoint Tests]] | [[runtime-smoke.js|Smoke Tests]]
+**Documentation**: [[generate_openapi_docs.py|OpenAPI Docs]] | [[check_wikilinks.py|Wiki Link Checker]] | [[monitor_docs_health.py|Docs Health]]
+**Development**: [[create_missing_routers.py|Router Generator]] | [[update_architecture_diagrams.py|Architecture Diagrams]]
 
 ## 📁 Directory Structure
 
@@ -111,11 +134,11 @@ Scaffolds missing FastAPI routers and CRUD endpoints from SQLAlchemy models.
 
 **Location**: `setup/`
 
-| Script | Purpose | Usage |
-|--------|---------|-------|
-| `setup.sh` | Complete environment setup | `./setup.sh` |
-| `initialize_demo_data.py` | Load demo/test data | `python initialize_demo_data.py` |
-| `upload_resume.sh` | Upload test resume | `./upload_resume.sh` |
+| Script                    | Purpose                    | Usage                            |
+| ------------------------- | -------------------------- | -------------------------------- |
+| `setup.sh`                | Complete environment setup | `./setup.sh`                     |
+| `initialize_demo_data.py` | Load demo/test data        | `python initialize_demo_data.py` |
+| `upload_resume.sh`        | Upload test resume         | `./upload_resume.sh`             |
 
 **Quick Start**:
 ```bash
@@ -128,8 +151,8 @@ python initialize_demo_data.py
 
 **Location**: `user-management/`
 
-| Script | Purpose | Usage |
-|--------|---------|-------|
+| Script                | Purpose                  | Usage                        |
+| --------------------- | ------------------------ | ---------------------------- |
 | `create_test_user.py` | Create test user account | `python create_test_user.py` |
 
 **Example**:
@@ -142,13 +165,13 @@ python create_test_user.py
 
 **Location**: `database/`
 
-| Script | Purpose | Usage |
-|--------|---------|-------|
-| `initialize_database.py` | Initialize database schema | `python initialize_database.py` |
-| `reset_database.py` | Reset database (CAUTION) | `python reset_database.py` |
-| `seed.py` | Seed database with data | `python seed.py` |
-| `database_optimization.py` | Optimize database performance | `python database_optimization.py` |
-| `database_health_monitor.py` | Monitor database health | `python database_health_monitor.py` |
+| Script                       | Purpose                       | Usage                               |
+| ---------------------------- | ----------------------------- | ----------------------------------- |
+| `initialize_database.py`     | Initialize database schema    | `python initialize_database.py`     |
+| `reset_database.py`          | Reset database (CAUTION)      | `python reset_database.py`          |
+| `seed.py`                    | Seed database with data       | `python seed.py`                    |
+| `database_optimization.py`   | Optimize database performance | `python database_optimization.py`   |
+| `database_health_monitor.py` | Monitor database health       | `python database_health_monitor.py` |
 
 **Seeders** (`database/seeders/`):
 - `user_seeder.py` - Seed users
@@ -167,13 +190,13 @@ python seed.py
 
 **Location**: `testing/`
 
-| Script | Purpose | Usage |
-|--------|---------|-------|
-| `test_runner.py` | Run all tests | `python test_runner.py` |
-| `test_orchestrator.py` | Orchestrate test suites | `python test_orchestrator.py` |
-| `test_all_endpoints.sh` | Test all API endpoints | `./test_all_endpoints.sh` |
-| `test-authentication.sh` | Test authentication flow | `./test-authentication.sh` |
-| `ci_test_runner.sh` | CI/CD test runner | `./ci_test_runner.sh` |
+| Script                   | Purpose                  | Usage                         |
+| ------------------------ | ------------------------ | ----------------------------- |
+| `test_runner.py`         | Run all tests            | `python test_runner.py`       |
+| `test_orchestrator.py`   | Orchestrate test suites  | `python test_orchestrator.py` |
+| `test_all_endpoints.sh`  | Test all API endpoints   | `./test_all_endpoints.sh`     |
+| `test-authentication.sh` | Test authentication flow | `./test-authentication.sh`    |
+| `ci_test_runner.sh`      | CI/CD test runner        | `./ci_test_runner.sh`         |
 
 **Example**:
 ```bash
@@ -186,12 +209,12 @@ python test_runner.py
 
 **Location**: `security/`
 
-| Script | Purpose | Usage |
-|--------|---------|-------|
-| `security_audit.py` | Run security audit | `python security_audit.py` |
-| `check_secrets.py` | Check for exposed secrets | `python check_secrets.py` |
-| `rotate_api_keys.sh` | Rotate API keys | `./rotate_api_keys.sh` |
-| `lock_env.sh` | Lock environment files | `./lock_env.sh` |
+| Script               | Purpose                   | Usage                      |
+| -------------------- | ------------------------- | -------------------------- |
+| `security_audit.py`  | Run security audit        | `python security_audit.py` |
+| `check_secrets.py`   | Check for exposed secrets | `python check_secrets.py`  |
+| `rotate_api_keys.sh` | Rotate API keys           | `./rotate_api_keys.sh`     |
+| `lock_env.sh`        | Lock environment files    | `./lock_env.sh`            |
 
 **Example**:
 ```bash
@@ -204,14 +227,14 @@ python check_secrets.py
 
 **Location**: `performance/`
 
-| Script | Purpose | Usage |
-|--------|---------|-------|
-| `performance_optimization_suite.py` | Full optimization suite | `python performance_optimization_suite.py` |
-| `stress_test.py` | Load/stress testing | `python stress_test.py` |
-| `database_test.py` | Database performance test | `python database_test.py` |
-| `memory_test.py` | Memory usage testing | `python memory_test.py` |
-| `test_load_performance.py` | Load performance test | `python test_load_performance.py` |
-| `cost_efficiency_validator.py` | Validate cost efficiency | `python cost_efficiency_validator.py` |
+| Script                              | Purpose                   | Usage                                      |
+| ----------------------------------- | ------------------------- | ------------------------------------------ |
+| `performance_optimization_suite.py` | Full optimization suite   | `python performance_optimization_suite.py` |
+| `stress_test.py`                    | Load/stress testing       | `python stress_test.py`                    |
+| `database_test.py`                  | Database performance test | `python database_test.py`                  |
+| `memory_test.py`                    | Memory usage testing      | `python memory_test.py`                    |
+| `test_load_performance.py`          | Load performance test     | `python test_load_performance.py`          |
+| `cost_efficiency_validator.py`      | Validate cost efficiency  | `python cost_efficiency_validator.py`      |
 
 **Example**:
 ```bash
@@ -224,11 +247,11 @@ python database_test.py
 
 **Location**: `verify/`
 
-| Script | Purpose | Usage |
-|--------|---------|-------|
-| `verify_deployment.py` | Verify deployment | `python verify_deployment.py` |
+| Script                  | Purpose                 | Usage                          |
+| ----------------------- | ----------------------- | ------------------------------ |
+| `verify_deployment.py`  | Verify deployment       | `python verify_deployment.py`  |
 | `validate_pyproject.py` | Validate Python project | `python validate_pyproject.py` |
-| `frontend.sh` | Verify frontend setup | `./frontend.sh` |
+| `frontend.sh`           | Verify frontend setup   | `./frontend.sh`                |
 
 **Example**:
 ```bash
@@ -240,10 +263,10 @@ python verify_deployment.py
 
 **Location**: `services/`
 
-| Script | Purpose | Usage |
-|--------|---------|-------|
-| `celery_worker.sh` | Start Celery worker | `./celery_worker.sh` |
-| `celery_beat.sh` | Start Celery beat scheduler | `./celery_beat.sh` |
+| Script             | Purpose                     | Usage                |
+| ------------------ | --------------------------- | -------------------- |
+| `celery_worker.sh` | Start Celery worker         | `./celery_worker.sh` |
+| `celery_beat.sh`   | Start Celery beat scheduler | `./celery_beat.sh`   |
 
 **Example**:
 ```bash
@@ -256,35 +279,35 @@ cd scripts/services
 
 **Location**: `analytics/`
 
-| Script | Purpose | Usage |
-|--------|---------|-------|
+| Script                     | Purpose                  | Usage                             |
+| -------------------------- | ------------------------ | --------------------------------- |
 | `check_analytics_files.py` | Validate analytics files | `python check_analytics_files.py` |
 
 ## 🔄 Migration Scripts
 
 **Location**: `migrations/`
 
-| Script | Purpose | Usage |
-|--------|---------|-------|
-| `migrate_config.py` | Migrate configuration | `python migrate_config.py` |
+| Script                 | Purpose                 | Usage                         |
+| ---------------------- | ----------------------- | ----------------------------- |
+| `migrate_config.py`    | Migrate configuration   | `python migrate_config.py`    |
 | `migrate_blueprint.py` | Migrate blueprint files | `python migrate_blueprint.py` |
 
 ## 🏗️ Initialization Scripts
 
 **Location**: `initialization/`
 
-| Script | Purpose | Usage |
-|--------|---------|-------|
-| `initialize_services.py` | Initialize all services | `python initialize_services.py` |
-| `initialize_vector_database.py` | Initialize ChromaDB | `python initialize_vector_database.py` |
-| `setup_authentication.py` | Set up authentication | `python setup_authentication.py` |
+| Script                          | Purpose                 | Usage                                  |
+| ------------------------------- | ----------------------- | -------------------------------------- |
+| `initialize_services.py`        | Initialize all services | `python initialize_services.py`        |
+| `initialize_vector_database.py` | Initialize ChromaDB     | `python initialize_vector_database.py` |
+| `setup_authentication.py`       | Set up authentication   | `python setup_authentication.py`       |
 
 ## 📝 Reporting Scripts
 
 **Location**: `reporting/`
 
-| Script | Purpose | Usage |
-|--------|---------|-------|
+| Script                          | Purpose                       | Usage                                  |
+| ------------------------------- | ----------------------------- | -------------------------------------- |
 | `consolidation_final_report.py` | Generate consolidation report | `python consolidation_final_report.py` |
 
 ## 🧹 Cleanup Scripts (Temporary)
@@ -293,13 +316,13 @@ cd scripts/services
 
 ⚠️ **These are temporary scripts used for one-time fixes. Archive after use.**
 
-| Script | Purpose | Status |
-|--------|---------|--------|
-| `fix_console_logs.py` | Fix console.log statements | Completed |
-| `fix_datetime_utcnow.py` | Fix datetime.utcnow usage | Completed |
-| `validate_phase2.py` | Validate Phase 2 completion | Completed |
-| `verify-all-fixes.sh` | Verify all fixes | Completed |
-| `verify-fixes.sh` | Verify specific fixes | Completed |
+| Script                   | Purpose                     | Status    |
+| ------------------------ | --------------------------- | --------- |
+| `fix_console_logs.py`    | Fix console.log statements  | Completed |
+| `fix_datetime_utcnow.py` | Fix datetime.utcnow usage   | Completed |
+| `validate_phase2.py`     | Validate Phase 2 completion | Completed |
+| `verify-all-fixes.sh`    | Verify all fixes            | Completed |
+| `verify-fixes.sh`        | Verify specific fixes       | Completed |
 
 ## 📦 Deprecated Scripts
 
@@ -307,14 +330,14 @@ cd scripts/services
 
 ⚠️ **Old scripts kept for reference. Do not use in production.**
 
-| Script | Reason | Replacement |
-|--------|--------|-------------|
-| `create_moatasim_user.py` | User-specific | `user-management/create_test_user.py` |
-| `setup_moatasim_user.py` | User-specific | `user-management/create_test_user.py` |
-| `update_moatasim_skills.py` | User-specific | Database seeders |
-| `update_skills_direct.py` | Old approach | Database seeders |
-| `update_skills_simple.py` | Old approach | Database seeders |
-| `update_user_to_moatasim.py` | User-specific | Database seeders |
+| Script                       | Reason        | Replacement                           |
+| ---------------------------- | ------------- | ------------------------------------- |
+| `create_moatasim_user.py`    | User-specific | `user-management/create_test_user.py` |
+| `setup_moatasim_user.py`     | User-specific | `user-management/create_test_user.py` |
+| `update_moatasim_skills.py`  | User-specific | Database seeders                      |
+| `update_skills_direct.py`    | Old approach  | Database seeders                      |
+| `update_skills_simple.py`    | Old approach  | Database seeders                      |
+| `update_user_to_moatasim.py` | User-specific | Database seeders                      |
 
 ## 🔨 Common Workflows
 

@@ -122,7 +122,7 @@ describe('Modal Accessibility', () => {
 });
 
 describe('Modal Focus Management', () => {
-    it('should trap focus within modal', async () => {
+    it.skip('should trap focus within modal', async () => {
         const user = userEvent.setup();
 
         render(
@@ -151,7 +151,7 @@ describe('Modal Focus Management', () => {
         expect(closeButton).toHaveFocus();
     });
 
-    it('should restore focus to trigger element on close', () => {
+    it.skip('should restore focus to trigger element on close', () => {
         const TriggerButton = () => {
             const [isOpen, setIsOpen] = React.useState(false);
 

@@ -93,9 +93,17 @@ import {
     retryWithBackoff,
 } from '../errorHandling';
 
-export type { Job as JobResponse, Application as ApplicationResponse } from './api';
+import {
+    type FrontendError,
+    parseBackendError,
+    isAuthError,
+    shouldRetry,
+} from './types/errors';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8002';
+export type { Job as JobResponse, Application as ApplicationResponse } from './api';
+export type { FrontendError } from './types/errors';
+
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 const API_VERSION = '/api/v1';
 
 /**
@@ -118,8 +126,8 @@ interface RequestOptions extends RequestInit {
 interface ApiResponse<T = any> {
     /** Response data if successful */
     data?: T;
-    /** Error message if request failed */
-    error?: string;
+    /** Normalized error object if request failed */
+    error?: FrontendError;
     /** HTTP status code */
     status: number;
 }
@@ -241,15 +249,17 @@ async function fetchApi<T = any>(
                     }
 
                     if (!response.ok) {
-                        const error: any = new Error(
-                            (data as any)?.detail || `HTTP ${response.status}: ${response.statusText}`,
-                        );
+                        // Parse error response
+                        const frontendError = parseBackendError(response.status, data);
+
+                        const error: any = new Error(frontendError.message);
                         error.status = response.status;
+                        error.frontendError = frontendError;
                         error.response = { status: response.status, data };
 
                         // Intercept and handle specific errors
                         // Handle authentication errors
-                        if (response.status === 401) {
+                        if (isAuthError(frontendError)) {
                             handleError(error, {
                                 component: 'API Client',
                                 action: `${fetchOptions.method || 'GET'} ${endpoint}`,
@@ -260,22 +270,8 @@ async function fetchApi<T = any>(
                                 sessionStorage.setItem('redirectAfterLogin', window.location.pathname);
                             }
                         }
-                        // Handle forbidden errors
-                        else if (response.status === 403) {
-                            handleError(error, {
-                                component: 'API Client',
-                                action: `${fetchOptions.method || 'GET'} ${endpoint}`,
-                            });
-                        }
-                        // Handle not found errors
-                        else if (response.status === 404) {
-                            handleError(error, {
-                                component: 'API Client',
-                                action: `${fetchOptions.method || 'GET'} ${endpoint}`,
-                            });
-                        }
-                        // Handle server errors
-                        else if (response.status >= 500) {
+                        // Handle other errors
+                        else {
                             handleError(error, {
                                 component: 'API Client',
                                 action: `${fetchOptions.method || 'GET'} ${endpoint}`,
@@ -319,8 +315,13 @@ async function fetchApi<T = any>(
         );
     } catch (error: any) {
         // Final error after all retries
+        const frontendError = error.frontendError || parseBackendError(
+            error.status || 0,
+            error.response?.data
+        );
+
         return {
-            error: error.message || 'Request failed',
+            error: frontendError,
             status: error.status || 0,
         };
     }

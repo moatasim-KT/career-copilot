@@ -1,5 +1,21 @@
 # Dashboard Customization Guide
 
+---
+## 🧭 Quick Navigation
+
+- [[PLAN]] – Project Plan
+- [[TESTING_AND_UI_REFACTORING_OVERVIEW]] – Testing & UI Refactoring Overview
+- [[COMPONENT_LIBRARY_INVENTORY.md]] – Component Inventory
+- [[DESIGN_SYSTEM.md]] – Design System Guide
+- [[ERROR_HANDLING_GUIDE.md]] – Error Handling Guide
+- [[E2E_TESTING_MIGRATION.md]] – E2E Testing Migration Guide
+- [[docs/DEVELOPER_GUIDE]] – Developer Guide
+- [[TODO.md]] – Todo List
+- [[FRONTEND_QUICK_START.md]] – Frontend Quick Start
+- [[USER_GUIDE.md]] – User Guide
+- [[ENVIRONMENT_CONFIGURATION.md]] – Environment Configuration
+---
+
 ## Overview
 
 Career Copilot's customizable dashboard allows you to create a personalized workspace with widgets tailored to your job search needs. Drag, resize, and arrange widgets to build the perfect dashboard for tracking your applications, goals, and progress.
@@ -253,16 +269,16 @@ If you primarily use mobile:
 
 ## Keyboard Shortcuts
 
-| Action | Shortcut |
-|--------|----------|
-| Save Layout | `Ctrl/Cmd + S` |
-| Reset Layout | `Ctrl/Cmd + R` |
-| Focus Next Widget | `Tab` |
-| Focus Previous Widget | `Shift + Tab` |
-| Enter Drag Mode | `Space` (on focused widget) |
-| Move Widget | `Arrow Keys` (in drag mode) |
-| Drop Widget | `Space` (in drag mode) |
-| Cancel Drag | `Esc` (in drag mode) |
+| Action                | Shortcut                    |
+| --------------------- | --------------------------- |
+| Save Layout           | `Ctrl/Cmd + S`              |
+| Reset Layout          | `Ctrl/Cmd + R`              |
+| Focus Next Widget     | `Tab`                       |
+| Focus Previous Widget | `Shift + Tab`               |
+| Enter Drag Mode       | `Space` (on focused widget) |
+| Move Widget           | `Arrow Keys` (in drag mode) |
+| Drop Widget           | `Space` (in drag mode)      |
+| Cancel Drag           | `Esc` (in drag mode)        |
 
 ## Troubleshooting
 

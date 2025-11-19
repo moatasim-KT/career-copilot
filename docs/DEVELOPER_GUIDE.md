@@ -1,4 +1,21 @@
+
 # Career Copilot Developer Guide
+
+---
+## 🧭 Quick Navigation
+
+- [[PLAN]] – Project Plan
+- [[TESTING_AND_UI_REFACTORING_OVERVIEW]] – Testing & UI Refactoring Overview
+- [[COMPONENT_LIBRARY_INVENTORY.md]] – Component Inventory
+- [[DESIGN_SYSTEM.md]] – Design System Guide
+- [[ERROR_HANDLING_GUIDE.md]] – Error Handling Guide
+- [[E2E_TESTING_MIGRATION.md]] – E2E Migration Guide
+- [[DEVELOPER_GUIDE]] – Developer Guide
+- [[TODO.md]] – Todo List
+- [[FRONTEND_QUICK_START.md]] – Frontend Quick Start
+- [[USER_GUIDE.md]] – User Guide
+- [[ENVIRONMENT_CONFIGURATION.md]] – Environment Configuration
+---
 
 This guide provides technical documentation for developers working on Career Copilot.
 
@@ -24,6 +41,22 @@ This guide provides technical documentation for developers working on Career Cop
 - [[docs/development/DEVELOPMENT|Development Workflow]] - Development workflow
 - [[docs/development/testing-strategies|Testing Strategies]] - Testing strategies
 - [[docs/development/code-patterns|Code Patterns]] - Code patterns
+
+**🔧 Key Scripts & Tools**:
+- [[scripts/README|Scripts Directory]] - All utility scripts
+- [[backend/app/main.py|Backend Main]] - FastAPI application entry point
+- [[frontend/src/app/layout.tsx|Frontend Layout]] - Next.js app layout
+- [[scripts/analyze_api_endpoints.py|API Analyzer]] - Analyze API endpoints
+- [[scripts/test_all_apis.py|API Tester]] - Test all APIs
+- [[scripts/check_wikilinks.py|Wiki Link Checker]] - Check documentation links
+
+**🏗️ Core Services**:
+- [[backend/app/services/README|Services Directory]] - All backend services
+- [[backend/app/services/job_service.py|Job Service]] - Main job management
+- [[backend/app/services/llm_service.py|LLM Service]] - AI/LLM integration
+- [[backend/app/services/user_service.py|User Service]] - User management
+- [[backend/app/services/dashboard_service.py|Dashboard Service]] - Dashboard functionality
+- [[backend/app/services/websocket_service.py|WebSocket Service]] - Real-time updates
 
 **Setup & Configuration**:
 - [[docs/setup/INSTALLATION|Installation Guide]] - Installation guide

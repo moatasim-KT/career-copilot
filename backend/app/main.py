@@ -351,6 +351,7 @@ def create_app() -> FastAPI:
 		market,
 		notifications,
 		personalization,
+		profile,
 		progress_admin,
 		recommendations,
 		resources,
@@ -374,6 +375,7 @@ def create_app() -> FastAPI:
 
 	# Authentication & User Management
 	app.include_router(auth.router)
+	app.include_router(profile.router, prefix="/api/v1/profile", tags=["profile"])
 
 	# Include personalization and social routers FIRST (before jobs router)
 	# This prevents /jobs/available from conflicting with /jobs/{job_id}
@@ -397,7 +399,7 @@ def create_app() -> FastAPI:
 	# Use unified analytics router which consolidates legacy and v1 analytics endpoints
 	from .api.v1 import analytics as analytics_module
 
-	app.include_router(analytics_module.router, prefix="/api/v1", tags=["analytics"])
+	app.include_router(analytics_module.router, prefix="/api/v1/analytics", tags=["analytics"])
 	app.include_router(dashboard.router)
 	app.include_router(market.router, prefix="/api/v1", tags=["Market Intelligence"])
 

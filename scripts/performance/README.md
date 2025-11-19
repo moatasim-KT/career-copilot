@@ -1,5 +1,21 @@
 # Performance Scripts
 
+---
+## 🧭 Quick Navigation
+
+- [[PLAN]] – Project Plan
+- [[TESTING_AND_UI_REFACTORING_OVERVIEW]] – Testing & UI Refactoring Overview
+- [[COMPONENT_LIBRARY_INVENTORY.md]] – Component Inventory
+- [[DESIGN_SYSTEM.md]] – Design System Guide
+- [[ERROR_HANDLING_GUIDE.md]] – Error Handling Guide
+- [[E2E_TESTING_MIGRATION.md]] – E2E Testing Migration Guide
+- [[docs/DEVELOPER_GUIDE]] – Developer Guide
+- [[TODO.md]] – Todo List
+- [[FRONTEND_QUICK_START.md]] – Frontend Quick Start
+- [[USER_GUIDE.md]] – User Guide
+- [[ENVIRONMENT_CONFIGURATION.md]] – Environment Configuration
+---
+
 Comprehensive performance testing and optimization tools for Career Copilot.
 
 ## Quick Start
@@ -119,13 +135,13 @@ Score is calculated from:
 
 ### Key Metrics
 
-| Metric | Good | Needs Improvement |
-|--------|------|-------------------|
-| Success Rate | >95% | <95% |
-| Avg Response Time | <2s | >2s |
-| 95th Percentile | <5s | >5s |
-| Error Rate | <5% | >5% |
-| Throughput | >10 req/s | <10 req/s |
+| Metric            | Good      | Needs Improvement |
+| ----------------- | --------- | ----------------- |
+| Success Rate      | >95%      | <95%              |
+| Avg Response Time | <2s       | >2s               |
+| 95th Percentile   | <5s       | >5s               |
+| Error Rate        | <5%       | >5%               |
+| Throughput        | >10 req/s | <10 req/s         |
 
 ### Report Structure
 

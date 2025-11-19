@@ -1,5 +1,21 @@
 # Prompt Engineering Best Practices
 
+---
+## 🧭 Quick Navigation
+
+- [[PLAN]] – Project Plan
+- [[TESTING_AND_UI_REFACTORING_OVERVIEW]] – Testing & UI Refactoring Overview
+- [[COMPONENT_LIBRARY_INVENTORY.md]] – Component Inventory
+- [[DESIGN_SYSTEM.md]] – Design System Guide
+- [[ERROR_HANDLING_GUIDE.md]] – Error Handling Guide
+- [[E2E_TESTING_MIGRATION.md]] – E2E Testing Migration Guide
+- [[docs/DEVELOPER_GUIDE]] – Developer Guide
+- [[TODO.md]] – Todo List
+- [[FRONTEND_QUICK_START.md]] – Frontend Quick Start
+- [[USER_GUIDE.md]] – User Guide
+- [[ENVIRONMENT_CONFIGURATION.md]] – Environment Configuration
+---
+
 **Status**: Production Guide  
 **Last Updated**: 2025-06-10  
 **Related**: [[LLM Service Architecture]], [[Token Optimization]], [[AI Components Review]]
@@ -45,12 +61,12 @@ budgets = {
 ### 3. **Provider-Specific Optimization**
 Different LLM providers require tailored approaches:
 
-| Provider | Strengths | Optimal Tasks | Cost/Token |
-|----------|-----------|---------------|------------|
-| **GPT-4** | Complex reasoning, accuracy | Contract analysis, risk assessment | $0.00003 |
-| **GPT-3.5 Turbo** | Speed, cost-efficiency | Communication, simple tasks | $0.000002 |
-| **Groq Mixtral** | Ultra-fast inference | Real-time communication | $0.0000002 |
-| **Groq Llama2** | Balanced performance | General tasks, simple analysis | $0.0000007 |
+| Provider          | Strengths                   | Optimal Tasks                      | Cost/Token |
+| ----------------- | --------------------------- | ---------------------------------- | ---------- |
+| **GPT-4**         | Complex reasoning, accuracy | Contract analysis, risk assessment | $0.00003   |
+| **GPT-3.5 Turbo** | Speed, cost-efficiency      | Communication, simple tasks        | $0.000002  |
+| **Groq Mixtral**  | Ultra-fast inference        | Real-time communication            | $0.0000002 |
+| **Groq Llama2**   | Balanced performance        | General tasks, simple analysis     | $0.0000007 |
 
 ## Token Optimization Strategies
 

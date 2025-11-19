@@ -1,5 +1,21 @@
 # Dark Mode Testing Suite
 
+---
+## 🧭 Quick Navigation
+
+- [[PLAN]] – Project Plan
+- [[TESTING_AND_UI_REFACTORING_OVERVIEW]] – Testing & UI Refactoring Overview
+- [[COMPONENT_LIBRARY_INVENTORY.md]] – Component Inventory
+- [[DESIGN_SYSTEM.md]] – Design System Guide
+- [[ERROR_HANDLING_GUIDE.md]] – Error Handling Guide
+- [[E2E_TESTING_MIGRATION.md]] – E2E Testing Migration Guide
+- [[docs/DEVELOPER_GUIDE]] – Developer Guide
+- [[TODO.md]] – Todo List
+- [[FRONTEND_QUICK_START.md]] – Frontend Quick Start
+- [[USER_GUIDE.md]] – User Guide
+- [[ENVIRONMENT_CONFIGURATION.md]] – Environment Configuration
+---
+
 This directory contains comprehensive dark mode testing for the Career Copilot application.
 
 ## Test Files
@@ -115,16 +131,16 @@ npx tsx scripts/verify-dark-mode-contrast.ts
 
 ### Color Contrast Results
 
-| Element | Contrast Ratio | Status |
-|---------|---------------|--------|
-| Body text | 17.06:1 | ✨ AAA |
-| Card text | 13.98:1 | ✨ AAA |
-| Input text | 13.98:1 | ✨ AAA |
-| Button text | 5.17:1 | ✅ AA |
-| Link text | 7.02:1 | ✨ AAA |
-| Success text | 10.25:1 | ✨ AAA |
-| Warning text | 7.89:1 | ✨ AAA |
-| Error text | 6.45:1 | ✨ AAA |
+| Element      | Contrast Ratio | Status |
+| ------------ | -------------- | ------ |
+| Body text    | 17.06:1        | ✨ AAA  |
+| Card text    | 13.98:1        | ✨ AAA  |
+| Input text   | 13.98:1        | ✨ AAA  |
+| Button text  | 5.17:1         | ✅ AA   |
+| Link text    | 7.02:1         | ✨ AAA  |
+| Success text | 10.25:1        | ✨ AAA  |
+| Warning text | 7.89:1         | ✨ AAA  |
+| Error text   | 6.45:1         | ✨ AAA  |
 
 ### Pages Tested
 

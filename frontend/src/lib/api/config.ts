@@ -145,8 +145,8 @@ export function addRecoveryEventHandlers(
 import { APIClient } from './api';
 import { createApiClientWithCacheFallback } from './config';
 
-const { recoveryManager } = createApiClientWithCacheFallback('http://localhost:8002');
-const apiClient = new APIClient('http://localhost:8002', recoveryManager);
+const { recoveryManager } = createApiClientWithCacheFallback(process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000');
+const apiClient = new APIClient(process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000', recoveryManager);
 
 // Now all requests will automatically use cache fallback on errors
 const jobs = await apiClient.getJobs();
@@ -157,7 +157,7 @@ import { APIClient } from './api';
 import { createApiClientWithTokenRefresh } from './config';
 
 const { recoveryManager } = createApiClientWithTokenRefresh(
-  'http://localhost:8002',
+  process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000',
   async () => {
     // Your token refresh logic
     const response = await fetch('/api/refresh-token', {
@@ -173,7 +173,7 @@ const { recoveryManager } = createApiClientWithTokenRefresh(
   }
 );
 
-const apiClient = new APIClient('http://localhost:8002', recoveryManager);
+const apiClient = new APIClient(process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000', recoveryManager);
 apiClient.setToken(localStorage.getItem('token') || '');
 
 // Requests will automatically refresh token on 401 errors
@@ -184,7 +184,7 @@ import { APIClient } from './api';
 import { createResilientApiClient } from './config';
 
 const { recoveryManager } = createResilientApiClient(
-  'http://localhost:8002',
+  process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000',
   async () => {
     // Token refresh logic
     const response = await fetch('/api/refresh-token');
@@ -196,7 +196,7 @@ const { recoveryManager } = createResilientApiClient(
   }
 );
 
-const apiClient = new APIClient('http://localhost:8002', recoveryManager);
+const apiClient = new APIClient(process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000', recoveryManager);
 
 // This client will:
 // 1. Attempt token refresh on 401 errors

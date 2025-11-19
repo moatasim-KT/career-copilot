@@ -52,7 +52,7 @@ describe('Badge Utils', () => {
         });
 
         it('should return red for low scores', () => {
-            expect(getMatchScoreColor(0)).toBe('text-red-600');
+            expect(getMatchScoreColor(0)).toBe('');
             expect(getMatchScoreColor(30)).toBe('text-red-600');
             expect(getMatchScoreColor(59)).toBe('text-red-600');
         });

@@ -1,5 +1,21 @@
 # Career Copilot - Frontend
 
+---
+## 🧭 Quick Navigation
+
+- [[PLAN]] – Project Plan
+- [[TESTING_AND_UI_REFACTORING_OVERVIEW]] – Testing & UI Refactoring Overview
+- [[COMPONENT_LIBRARY_INVENTORY.md]] – Component Inventory
+- [[DESIGN_SYSTEM.md]] – Design System Guide
+- [[ERROR_HANDLING_GUIDE.md]] – Error Handling Guide
+- [[E2E_TESTING_MIGRATION.md]] – E2E Testing Migration Guide
+- [[docs/DEVELOPER_GUIDE]] – Developer Guide
+- [[TODO.md]] – Todo List
+- [[FRONTEND_QUICK_START.md]] – Frontend Quick Start
+- [[USER_GUIDE.md]] – User Guide
+- [[ENVIRONMENT_CONFIGURATION.md]] – Environment Configuration
+---
+
 Next.js 15 frontend with App Router, TypeScript, Tailwind CSS, and unified API client for AI-powered career management.
 
 ## Quick Links
@@ -118,35 +134,33 @@ const jobs = response.data;
 
 
 
-Template: [[.env.example]] → Copy to `.env.local`### Installation
+Template: [[.env.example]] → Copy to `.env.local`
 
+### Installation
 
+```bash
+## Navigate to frontend
+cd frontend/
 
-```bash```bash
+## Install dependencies
+npm install
+# or
+pnpm install
+```
 
-# Backend API# Navigate to frontend
+### Environment Setup
 
-NEXT_PUBLIC_API_URL=http://localhost:8000/api/v1cd frontend/
-
-
-
-# Sentry (production monitoring)# Install dependencies
-
-NEXT_PUBLIC_SENTRY_DSN=...npm install
-
-SENTRY_AUTH_TOKEN=...# or
-
-SENTRY_ORG=...pnpm install
-
-SENTRY_PROJECT=...
-
-```# Set up environment
-
+```bash
+## Set up environment
 cp .env.example .env.local
-
 ```
 
 See [[.env.example]] for complete list and [[../LOCAL_SETUP.md#frontend-setup]].
+
+### Config Files
+
+- **Next.js**: [[next.config.js]]
+- **TypeScript**: [[tsconfig.json]]
 
 ### Config Files
 
@@ -336,19 +350,19 @@ npm run dev
 
 ### API Client Pattern
 
-# Build for production
+## Build for production
 
 Always use unified API client:npm run build
 
 
 
-```typescript# Start production server
+```typescript## Start production server
 
 // ✅ CORRECTnpm start
 
 import { fetchApi } from '@/lib/api/client';
 
-const response = await fetchApi<T>('/endpoint');# Type check
+const response = await fetchApi<T>('/endpoint');## Type check
 
 npm run type-check
 
@@ -392,13 +406,13 @@ export function ExamplePage() {```
 
 ```
 
-# Run unit tests
+## Run unit tests
 
 ## Project Structurenpm run test:unit
 
 
 
-```# Run tests in watch mode
+```## Run tests in watch mode
 
 frontend/npm run test:watch
 
@@ -454,13 +468,13 @@ frontend/npm run test:watch
 
 ``````bash
 
-# Type check
+## Type check
 
 ## Stylingnpm run type-check
 
 
 
-**Tailwind CSS**: Utility-first CSS framework# Lint
+**Tailwind CSS**: Utility-first CSS framework## Lint
 
 npm run lint
 
@@ -486,17 +500,17 @@ npm run lint && npm run type-check && npm run format:check
 
 ## Troubleshooting```bash
 
-# Start Storybook
+## Start Storybook
 
 See [[../LOCAL_SETUP.md#troubleshooting]] for detailed troubleshooting.npm run storybook
 
 
 
-**Quick checks**:# Build Storybook
+**Quick checks**:## Build Storybook
 
 ```bashnpm run build-storybook
 
-# Clear cache```
+## Clear cache```
 
 rm -rf .next node_modules package-lock.json
 
@@ -504,17 +518,19 @@ npm install## 🔐 Environment Variables
 
 
 
-# Check API connectionSee `.env.example` and `.env.local.example` for all available environment variables.
+## Check API connection
+
+See `.env.example` and `.env.local.example` for all available environment variables.
 
 curl http://localhost:8000/health
 
 ### Required Variables
 
-# View logs
+## View logs
 
 docker-compose logs -f frontend```bash
 
-```# API Configuration
+```## API Configuration
 
 NEXT_PUBLIC_API_URL=http://localhost:8000
 
@@ -534,13 +550,13 @@ NEXT_PUBLIC_API_URL=http://localhost:8000
 
 
 ```bash
-# Analytics
+## Analytics
 NEXT_PUBLIC_GA_ID=G-XXXXXXXXXX
 
-# Sentry
+## Sentry
 NEXT_PUBLIC_SENTRY_DSN=https://xxx@sentry.io/xxx
 
-# Feature Flags
+## Feature Flags
 NEXT_PUBLIC_ENABLE_ANALYTICS=true
 NEXT_PUBLIC_ENABLE_AI_FEATURES=true
 ```
@@ -761,7 +777,7 @@ import styles from './Component.module.css'
 ### 1. Create Component
 
 ```bash
-# Create new component
+## Create new component
 mkdir -p src/components/features/MyFeature
 touch src/components/features/MyFeature/MyFeature.tsx
 touch src/components/features/MyFeature/MyFeature.test.tsx
@@ -830,7 +846,7 @@ describe('MyFeature', () => {
 ### Enable Debug Mode
 
 ```bash
-# Set in .env.local
+## Set in .env.local
 NODE_ENV=development
 NEXT_PUBLIC_DEBUG=true
 ```
@@ -871,24 +887,24 @@ console.log('Component State:', state)
 
 ## 📦 Project Scripts
 
-| Script | Description | Usage |
-|--------|-------------|-------|
-| `dev` | Start development server | `npm run dev` |
-| `build` | Build for production | `npm run build` |
-| `start` | Start production server | `npm start` |
-| `lint` | Lint code | `npm run lint` |
-| `lint:fix` | Fix linting issues | `npm run lint:fix` |
-| `format` | Format code with Prettier | `npm run format` |
-| `format:check` | Check formatting | `npm run format:check` |
-| `type-check` | TypeScript type checking | `npm run type-check` |
-| `test` | Run all tests | `npm test` |
-| `test:unit` | Run unit tests | `npm run test:unit` |
-| `test:watch` | Run tests in watch mode | `npm run test:watch` |
-| `test:e2e` | Run E2E tests | `npm run test:e2e` |
-| `test:coverage` | Generate coverage report | `npm run test:coverage` |
-| `storybook` | Start Storybook | `npm run storybook` |
-| `build-storybook` | Build Storybook | `npm run build-storybook` |
-| `analyze` | Analyze bundle size | `npm run analyze` |
+| Script            | Description               | Usage                     |
+| ----------------- | ------------------------- | ------------------------- |
+| `dev`             | Start development server  | `npm run dev`             |
+| `build`           | Build for production      | `npm run build`           |
+| `start`           | Start production server   | `npm start`               |
+| `lint`            | Lint code                 | `npm run lint`            |
+| `lint:fix`        | Fix linting issues        | `npm run lint:fix`        |
+| `format`          | Format code with Prettier | `npm run format`          |
+| `format:check`    | Check formatting          | `npm run format:check`    |
+| `type-check`      | TypeScript type checking  | `npm run type-check`      |
+| `test`            | Run all tests             | `npm test`                |
+| `test:unit`       | Run unit tests            | `npm run test:unit`       |
+| `test:watch`      | Run tests in watch mode   | `npm run test:watch`      |
+| `test:e2e`        | Run E2E tests             | `npm run test:e2e`        |
+| `test:coverage`   | Generate coverage report  | `npm run test:coverage`   |
+| `storybook`       | Start Storybook           | `npm run storybook`       |
+| `build-storybook` | Build Storybook           | `npm run build-storybook` |
+| `analyze`         | Analyze bundle size       | `npm run analyze`         |
 
 ## 📞 Support
 

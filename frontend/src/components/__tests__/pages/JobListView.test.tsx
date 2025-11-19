@@ -4,13 +4,23 @@ import React from 'react';
 import '@testing-library/jest-dom';
 import { JobListView } from '@/components/pages/JobListView';
 
-// Mock framer-motion to avoid animation issues in tests
-jest.mock('framer-motion', () => ({
-  motion: {
-    div: ({ children, ...props }: any) => <div {...props}>{children}</div>,
-  },
-  AnimatePresence: ({ children }: any) => <>{children}</>,
-}));
+// Mock framer-motion (including the `m` export) to avoid animation issues in tests
+jest.mock('framer-motion', () => {
+  const Mock: React.FC<React.PropsWithChildren<any>> = ({ children, ...props }) => (
+    <div {...props}>{children}</div>
+  );
+
+  return {
+    motion: {
+      div: Mock,
+    },
+    m: {
+      div: Mock,
+    },
+    AnimatePresence: ({ children }: any) => <>{children}</>,
+  };
+});
+
 
 const mockJobs = [
   {
@@ -108,9 +118,10 @@ describe('JobListView', () => {
       />
     );
 
-    // Verify that the first job is marked as selected
-    const jobCards = screen.getAllByTestId('job-card');
-    expect(jobCards).toHaveLength(2);
+    // Verify that the first job is marked as selected via checkbox state
+    const checkboxes = screen.getAllByRole('checkbox');
+    expect(checkboxes).toHaveLength(2);
+    expect(checkboxes[0]).toBeChecked();
   });
 
   it('applies animation variants to container and items', () => {
@@ -127,8 +138,8 @@ describe('JobListView', () => {
     const gridContainer = container.querySelector('.grid');
     expect(gridContainer).toBeInTheDocument();
 
-    // Verify individual job items are rendered
-    const jobCards = screen.getAllByTestId('job-card');
-    expect(jobCards.length).toBe(mockJobs.length);
+    // Verify individual job items are rendered by their titles
+    expect(screen.getByText('Software Engineer')).toBeInTheDocument();
+    expect(screen.getByText('Backend Engineer')).toBeInTheDocument();
   });
 });

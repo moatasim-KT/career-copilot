@@ -186,40 +186,41 @@ export default function EnhancedDashboard() {
             {/* Header */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
-                    <h1 className="text-2xl md:text-3xl font-bold text-neutral-900 dark:text-neutral-100 tracking-tight">Dashboard</h1>
-                    <p className="text-neutral-500 dark:text-neutral-400 mt-1">Track your job search progress and insights</p>
+                    <h1 className="text-4xl font-bold leading-tight text-neutral-900 dark:text-neutral-50 tracking-tight">Dashboard</h1>
+                    <p className="mt-2 text-base leading-normal text-neutral-600 dark:text-neutral-400">Track your job search progress and insights</p>
                 </div>
 
-                <div className="flex items-center gap-3 bg-white dark:bg-neutral-900 p-2 rounded-xl border border-neutral-200 dark:border-neutral-800 shadow-sm">
+                <div className="flex items-center gap-3 bg-background dark:bg-background p-2 rounded-xl border border-border dark:border-border shadow-sm">
                     {/* Connection Status */}
-                    <div className="flex items-center px-3 py-1.5 rounded-lg bg-neutral-50 dark:bg-neutral-800">
+                    <div className="flex items-center px-3 py-1.5 rounded-lg bg-muted dark:bg-muted">
                         {connectionStatus === 'open' ? (
-                            <div className="flex items-center gap-2 text-green-600 dark:text-green-400">
+                            <div className="flex items-center gap-2 text-success-600 dark:text-success-400">
                                 <div className="relative flex h-2.5 w-2.5">
-                                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-                                    <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-green-500"></span>
+                                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-success-400 opacity-75"></span>
+                                    <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-success-500"></span>
                                 </div>
                                 <span className="text-xs font-medium">Live</span>
                             </div>
                         ) : connectionStatus === 'connecting' ? (
-                            <div className="flex items-center gap-2 text-yellow-600 dark:text-yellow-400">
+                            <div className="flex items-center gap-2 text-warning-600 dark:text-warning-400">
                                 <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-current"></div>
                                 <span className="text-xs font-medium">Connecting</span>
                             </div>
                         ) : (
-                            <div className="flex items-center gap-2 text-red-600 dark:text-red-400">
+                            <div className="flex items-center gap-2 text-error-600 dark:text-error-400">
                                 <WifiOff className="h-3 w-3" />
                                 <span className="text-xs font-medium">Offline</span>
                             </div>
                         )}
                     </div>
 
-                    <div className="h-6 w-px bg-neutral-200 dark:bg-neutral-700 mx-1"></div>
+                    <div className="h-6 w-px bg-border dark:bg-border mx-1"></div>
 
                     <select
                         value={currentPreset}
                         onChange={(e) => setCurrentPreset(e.target.value)}
-                        className="text-sm border-none bg-transparent focus:ring-0 text-neutral-600 dark:text-neutral-300 font-medium cursor-pointer hover:text-neutral-900 dark:hover:text-neutral-100 transition-colors"
+                        className="text-sm border-none bg-transparent focus:ring-0 text-neutral-600 dark:text-neutral-300 font-medium cursor-pointer hover:text-neutral-900 dark:hover:text-neutral-50 transition-colors"
+                        aria-label="Dashboard view preset"
                     >
                         <option value="default">Default View</option>
                         <option value="compact">Compact View</option>
@@ -228,8 +229,9 @@ export default function EnhancedDashboard() {
                     <button
                         onClick={loadDashboardData}
                         disabled={isLoading}
-                        className="p-2 text-neutral-500 hover:text-primary-600 dark:text-neutral-400 dark:hover:text-primary-400 transition-colors rounded-lg hover:bg-neutral-100 dark:hover:bg-neutral-800"
+                        className="p-2 text-neutral-500 hover:text-primary-600 dark:text-neutral-400 dark:hover:text-primary-400 transition-colors rounded-lg hover:bg-muted dark:hover:bg-muted"
                         title="Refresh Data"
+                        aria-label="Refresh dashboard data"
                     >
                         <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
                     </button>
@@ -237,9 +239,21 @@ export default function EnhancedDashboard() {
             </div>
 
             {error && (
-                <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-4 flex items-center gap-3">
-                    <AlertCircle className="h-5 w-5 text-red-600 dark:text-red-400 flex-shrink-0" />
-                    <p className="text-sm text-red-800 dark:text-red-200">{error}</p>
+                <div className="bg-error-50 dark:bg-error-900/20 border border-error-200 dark:border-error-800 rounded-xl p-4 flex items-center gap-3" role="alert">
+                    <AlertCircle className="h-5 w-5 text-error-600 dark:text-error-400 flex-shrink-0" />
+                    <p className="text-sm text-error-800 dark:text-error-200">{error}</p>
+                </div>
+            )}
+
+            {/* Empty state if no analytics data */}
+            {!isLoading && !analytics && !error && (
+                <div className="py-12">
+                    <EmptyState
+                        icon="📊"
+                        title="No dashboard data yet"
+                        description="Start by adding jobs and applications to see your progress."
+                        action={<button className="bg-primary-500 text-white px-4 py-2 rounded-md" onClick={() => router.push('/jobs')}>Browse Jobs</button>}
+                    />
                 </div>
             )}
 
@@ -322,16 +336,16 @@ export default function EnhancedDashboard() {
                         <Widget title="Application Status">
                             <div className="space-y-3">
                                 {[
-                                    { label: 'Applied', count: analytics.total_applications, color: 'bg-blue-500' },
-                                    { label: 'Interviews', count: analytics.interviews_scheduled, color: 'bg-purple-500' },
-                                    { label: 'Offers', count: analytics.offers_received, color: 'bg-green-500' },
+                                    { label: 'Applied', count: analytics.total_applications, color: 'bg-primary-500', aria: 'applied-progress' },
+                                    { label: 'Interviews', count: analytics.interviews_scheduled, color: 'bg-purple-500', aria: 'interviews-progress' },
+                                    { label: 'Offers', count: analytics.offers_received, color: 'bg-success-500', aria: 'offers-progress' },
                                 ].map((item) => (
                                     <div key={item.label}>
                                         <div className="flex items-center justify-between text-sm mb-1">
-                                            <span className="text-neutral-600">{item.label}</span>
+                                            <span className="text-neutral-600" id={`${item.aria}-label`}>{item.label}</span>
                                             <span className="font-semibold text-neutral-900">{item.count}</span>
                                         </div>
-                                        <div className="w-full bg-neutral-200 rounded-full h-2">
+                                        <div className="w-full bg-neutral-200 rounded-full h-2" role="progressbar" aria-labelledby={`${item.aria}-label`} aria-valuenow={item.count} aria-valuemax={analytics.total_applications} aria-valuemin={0}>
                                             <div
                                                 className={`${item.color} h-2 rounded-full transition-all duration-300`}
                                                 style={{

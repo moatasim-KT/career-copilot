@@ -20,7 +20,9 @@ describe('useAsync', () => {
 
         result.current.execute(asyncFn);
 
-        expect(result.current.loading).toBe(true);
+        await waitFor(() => {
+            expect(result.current.loading).toBe(true);
+        });
 
         await waitFor(() => {
             expect(result.current.loading).toBe(false);
@@ -87,10 +89,14 @@ describe('useAsync', () => {
             expect(result.current.data).toBe('test data');
         });
 
-        result.current.reset();
+        await waitFor(() => {
+            result.current.reset();
+        });
 
-        expect(result.current.loading).toBe(false);
-        expect(result.current.error).toBe(null);
-        expect(result.current.data).toBe(null);
+        await waitFor(() => {
+            expect(result.current.loading).toBe(false);
+            expect(result.current.error).toBe(null);
+            expect(result.current.data).toBe(null);
+        });
     });
 });

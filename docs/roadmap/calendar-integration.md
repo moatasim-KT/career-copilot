@@ -1,5 +1,21 @@
 # Calendar Integration Roadmap
 
+---
+## 🧭 Quick Navigation
+
+- [[PLAN]] – Project Plan
+- [[TESTING_AND_UI_REFACTORING_OVERVIEW]] – Testing & UI Refactoring Overview
+- [[COMPONENT_LIBRARY_INVENTORY.md]] – Component Inventory
+- [[DESIGN_SYSTEM.md]] – Design System Guide
+- [[ERROR_HANDLING_GUIDE.md]] – Error Handling Guide
+- [[E2E_TESTING_MIGRATION.md]] – E2E Testing Migration Guide
+- [[docs/DEVELOPER_GUIDE]] – Developer Guide
+- [[TODO.md]] – Todo List
+- [[FRONTEND_QUICK_START.md]] – Frontend Quick Start
+- [[USER_GUIDE.md]] – User Guide
+- [[ENVIRONMENT_CONFIGURATION.md]] – Environment Configuration
+---
+
 Tracking interviews and follow-ups inside Career Copilot is powerful, but users still rely on Google or Outlook calendars to manage their day. This roadmap captures the minimum viable plan for syncing Career Copilot events with external calendars while keeping the architecture maintainable.
 
 ## Goals
@@ -18,12 +34,12 @@ Tracking interviews and follow-ups inside Career Copilot is powerful, but users 
 
 ## High-Level Architecture
 
-| Layer | Responsibilities |
-| --- | --- |
-| Frontend | Collect OAuth consent, display connection status, allow users to choose which events sync, show sync errors. |
-| Backend API | Handle OAuth callbacks, store refresh tokens (encrypted), expose CRUD endpoints for calendar preferences, enqueue sync jobs. |
-| Background Workers (Celery) | Create/update/delete calendar events via provider SDKs, retry failed jobs, emit notifications. |
-| Database | Persist provider credentials, per-event sync metadata (provider event IDs, sync timestamps, status). |
+| Layer                       | Responsibilities                                                                                                             |
+| --------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| Frontend                    | Collect OAuth consent, display connection status, allow users to choose which events sync, show sync errors.                 |
+| Backend API                 | Handle OAuth callbacks, store refresh tokens (encrypted), expose CRUD endpoints for calendar preferences, enqueue sync jobs. |
+| Background Workers (Celery) | Create/update/delete calendar events via provider SDKs, retry failed jobs, emit notifications.                               |
+| Database                    | Persist provider credentials, per-event sync metadata (provider event IDs, sync timestamps, status).                         |
 
 ## Backend Tasks
 

@@ -299,7 +299,7 @@ export class APIClient {
   private tokenRefreshStrategy: TokenRefreshRecovery | null = null;
 
   constructor(
-    baseUrl: string = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8002',
+    baseUrl: string = process.env.NEXT_PUBLIC_API_URL || process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000',
     // recoveryManager?: RecoveryManager // Removed as we'll create it internally
   ) {
     this.baseUrl = baseUrl.replace(/\/$/, '');

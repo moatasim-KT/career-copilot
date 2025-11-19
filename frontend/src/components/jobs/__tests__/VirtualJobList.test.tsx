@@ -15,13 +15,22 @@ import React from 'react';
 
 import { VirtualJobList, VirtualJobListGrid } from '../VirtualJobList';
 
-// Mock framer-motion to avoid animation issues in tests
-jest.mock('framer-motion', () => ({
-  motion: {
-    div: ({ children, ...props }: any) => <div {...props}>{children}</div>,
-  },
-  AnimatePresence: ({ children }: any) => <>{children}</>,
-}));
+// Mock framer-motion (including the `m` export) to avoid animation issues in tests
+jest.mock('framer-motion', () => {
+  const Mock: React.FC<React.PropsWithChildren<any>> = ({ children, ...props }) => (
+    <div {...props}>{children}</div>
+  );
+
+  return {
+    motion: {
+      div: Mock,
+    },
+    m: {
+      div: Mock,
+    },
+    AnimatePresence: ({ children }: any) => <>{children}</>,
+  };
+});
 
 // Mock the JobCard component
 jest.mock('@/components/ui/JobCard', () => ({
@@ -173,7 +182,7 @@ describe('VirtualJobList', () => {
     it('should use custom estimatedSize', () => {
       const jobs = generateMockJobs(10);
       const customSize = 300;
-      
+
       render(
         <VirtualJobList
           jobs={jobs}
@@ -191,7 +200,7 @@ describe('VirtualJobList', () => {
 
     it('should handle large datasets', () => {
       const jobs = generateMockJobs(100);
-      
+
       const { container } = render(
         <VirtualJobList
           jobs={jobs}
@@ -394,7 +403,7 @@ describe('VirtualJobListGrid', () => {
 
   it('should render in grid layout', () => {
     const jobs = generateMockJobs(9);
-    
+
     render(
       <VirtualJobListGrid
         jobs={jobs}
@@ -441,7 +450,7 @@ describe('VirtualJobListGrid', () => {
 
   it('should show scroll indicator for large grids', () => {
     const jobs = generateMockJobs(30);
-    
+
     render(
       <VirtualJobListGrid
         jobs={jobs}

@@ -1,17 +1,47 @@
+
 # 🚀 Career Copilot
 
-> **AI-Powered Career Management Platform for EU Tech Jobs**
+---
+## 🧭 Quick Navigation
+
+- [[PLAN]] – Project Plan
+- [[TESTING_AND_UI_REFACTORING_OVERVIEW]] – Testing & UI Refactoring Overview
+- [[COMPONENT_LIBRARY_INVENTORY.md]] – Component Inventory
+- [[DESIGN_SYSTEM.md]] – Design System Guide
+- [[ERROR_HANDLING_GUIDE.md]] – Error Handling Guide
+- [[E2E_TESTING_MIGRATION.md]] – E2E Testing Migration Guide
+- [[docs/DEVELOPER_GUIDE]] – Developer Guide
+- [[TODO.md]] – Todo List
+- [[FRONTEND_QUICK_START.md]] – Frontend Quick Start
+- [[USER_GUIDE.md]] – User Guide
+- [[ENVIRONMENT_CONFIGURATION.md]] – Environment Configuration
+---
+
+## 🚀 Key Entry Points
+
+**Backend**: [[backend/app/main.py|FastAPI Main App]]
+**Frontend**: [[frontend/src/app/layout.tsx|Next.js Layout]] | [[frontend/src/app/page.tsx|Home Page]]
+**Scripts**: [[scripts/README.md|Scripts Directory]]
+
+## ⚙️ Key Configuration Files
+
+**Backend**: [[backend/pyproject.toml|Backend Config]] | [[config/llm_config.json|LLM Config]] | [[config/application.yaml|App Config]]
+**Frontend**: [[frontend/package.json|Frontend Config]] | [[frontend/tsconfig.json|TypeScript Config]] | [[frontend/tailwind.config.ts|Tailwind Config]]
+**Project**: [[config/feature_flags.json|Feature Flags]] | [[docker-compose.yml|Docker Compose]]
+
+## 📚 Core Documentation
 >
 > An intelligent job search assistant specializing in EU opportunities with visa sponsorship support for AI/Data Science professionals
 
 **💰 100% FREE to run!** No credit card required - see [[FREE_TIER_SETUP|Free Tier Setup Guide]]
 
-**Quick Links**: [[LOCAL_SETUP|Local Setup]] | [[FREE_TIER_SETUP|🆓 Free Tier Guide]] | [[PROJECT_STATUS|Project Status]] | [[docs/index|Documentation Hub]] | [[CONTRIBUTING|Contributing Guidelines]]
+
+**Quick Links**: [[LOCAL_SETUP.md]] | [[FREE_TIER_SETUP.md]] | [[PROJECT_STATUS.md]] | [[docs/index.md]] | [[CONTRIBUTING.md]]
 
 **Documentation**:
 - [[FREE_TIER_SETUP|🆓 Free Tier Setup]] - **Zero-cost deployment guide** (5 minutes!)
 - [[docs/USER_GUIDE|User Guide]] - User guide and tutorials
-- [[docs/DEVELOPER_GUIDE|Developer Guide]] - Developer documentation
+- [[DEVELOPER_GUIDE|Developer Guide]] - Developer documentation
 - [[docs/architecture/ARCHITECTURE|Architecture]] - System architecture
 - [[docs/api/API|API Reference]] - API reference
 - [[backend/README|Backend Guide]] - Backend guide
@@ -630,7 +660,7 @@ We welcome contributions! Please see our [[CONTRIBUTING|Contributing Guide]] for
 - [[RESEARCH]] - Research findings and analysis
 - [[CHANGELOG]] - Version history and changes
 - [[CONTRIBUTING]] - Contribution guidelines
-- [[docs/DEVELOPER_GUIDE|Developer Guide]] - Comprehensive development documentation
+- [[DEVELOPER_GUIDE|Developer Guide]] - Comprehensive development documentation
 - [[docs/USER_GUIDE|User Guide]] - User documentation and tutorials
 - [[docs/FRONTEND_QUICK_START|Frontend Quick Start]] - Frontend development setup
 

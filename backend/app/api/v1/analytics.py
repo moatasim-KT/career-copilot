@@ -53,7 +53,7 @@ router = APIRouter(tags=["analytics"])
 # ===== BASIC ANALYTICS ENDPOINTS =====
 
 
-@router.get("/api/v1/analytics/summary", response_model=AnalyticsSummaryResponse)
+@router.get("/summary", response_model=AnalyticsSummaryResponse)
 async def get_analytics_summary(current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
 	"""Get a summary of job application analytics for the current user."""
 	# Check cache first
@@ -109,7 +109,7 @@ async def get_analytics_summary(current_user: User = Depends(get_current_user), 
 		raise HTTPException(status_code=500, detail="Failed to retrieve analytics summary")
 
 
-@router.get("/analytics/timeline")
+@router.get("/timeline")
 async def get_analytics_timeline(current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
 	"""Get analytics timeline data."""
 	try:
@@ -130,7 +130,7 @@ async def get_analytics_timeline(current_user: User = Depends(get_current_user),
 		raise HTTPException(status_code=500, detail="Failed to retrieve analytics timeline")
 
 
-@router.get("/analytics/status")
+@router.get("/status")
 async def get_analytics_status(current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
 	"""Get current analytics processing status."""
 	return {"status": "active", "last_updated": datetime.now(timezone.utc), "cache_size": len(_analytics_cache), "user_id": current_user.id}
@@ -139,7 +139,7 @@ async def get_analytics_status(current_user: User = Depends(get_current_user), d
 # ===== ADVANCED ANALYTICS ENDPOINTS =====
 
 
-@router.get("/api/v1/analytics/interview-trends", response_model=InterviewTrendsResponse)
+@router.get("/interview-trends", response_model=InterviewTrendsResponse)
 async def get_interview_trends(
 	days: int = Query(default=90, ge=30, le=365, description="Analysis period in days"),
 	current_user: User = Depends(get_current_user),
@@ -164,7 +164,7 @@ async def get_interview_trends(
 		raise HTTPException(status_code=500, detail="Failed to retrieve interview trends")
 
 
-@router.get("/api/v1/analytics/comprehensive-dashboard")
+@router.get("/comprehensive-dashboard")
 async def get_comprehensive_dashboard(current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
 	"""Get comprehensive analytics dashboard data."""
 	try:
@@ -182,7 +182,7 @@ async def get_comprehensive_dashboard(current_user: User = Depends(get_current_u
 		raise HTTPException(status_code=500, detail="Failed to retrieve comprehensive dashboard")
 
 
-@router.get("/api/v1/analytics/comprehensive-summary", response_model=ComprehensiveAnalyticsSummary)
+@router.get("/comprehensive-summary", response_model=ComprehensiveAnalyticsSummary)
 async def get_comprehensive_summary(current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
 	"""Get comprehensive analytics summary with all key metrics."""
 	try:
@@ -196,7 +196,7 @@ async def get_comprehensive_summary(current_user: User = Depends(get_current_use
 		raise HTTPException(status_code=500, detail="Failed to retrieve comprehensive summary")
 
 
-@router.get("/api/v1/analytics/trends", response_model=TrendAnalysisResponse)
+@router.get("/trends", response_model=TrendAnalysisResponse)
 async def get_analytics_trends(
 	period: str = Query(default="90d", description="Analysis period"),
 	current_user: User = Depends(get_current_user),
@@ -214,7 +214,7 @@ async def get_analytics_trends(
 		raise HTTPException(status_code=500, detail="Failed to retrieve analytics trends")
 
 
-@router.get("/api/v1/analytics/skill-gap-analysis", response_model=SkillGapAnalysisResponse)
+@router.get("/skill-gap-analysis", response_model=SkillGapAnalysisResponse)
 async def get_skill_gap_analysis(current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
 	"""Get skill gap analysis for the current user."""
 	try:
@@ -231,7 +231,7 @@ async def get_skill_gap_analysis(current_user: User = Depends(get_current_user),
 # ===== CACHE MANAGEMENT =====
 
 
-@router.delete("/api/v1/analytics/cache")
+@router.delete("/cache")
 async def clear_analytics_cache(current_user: User = Depends(get_current_user)):
 	"""Clear analytics cache for the current user."""
 	try:
@@ -247,7 +247,7 @@ async def clear_analytics_cache(current_user: User = Depends(get_current_user)):
 		raise HTTPException(status_code=500, detail="Failed to clear analytics cache")
 
 
-@router.get("/api/v1/analytics/cache/stats")
+@router.get("/cache/stats")
 async def get_cache_stats(current_user: User = Depends(get_current_user)):
 	"""Get analytics cache statistics."""
 	user_cache_entries = [key for key in _analytics_cache.keys() if f"_{current_user.id}" in key]
@@ -262,7 +262,7 @@ async def get_cache_stats(current_user: User = Depends(get_current_user)):
 # ===== DASHBOARD ENDPOINTS =====
 
 
-@router.get("/api/v1/analytics/dashboard")
+@router.get("/dashboard")
 async def get_analytics_dashboard(current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
 	"""Get analytics dashboard data."""
 	try:
@@ -277,7 +277,7 @@ async def get_analytics_dashboard(current_user: User = Depends(get_current_user)
 		raise HTTPException(status_code=500, detail="Failed to retrieve analytics dashboard")
 
 
-@router.get("/api/v1/analytics/performance-metrics")
+@router.get("/performance-metrics")
 async def get_performance_metrics(current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
 	"""Get performance metrics for analytics."""
 	try:
@@ -294,7 +294,7 @@ async def get_performance_metrics(current_user: User = Depends(get_current_user)
 # ===== RISK ANALYSIS ENDPOINTS =====
 
 
-@router.get("/api/v1/analytics/risk-trends")
+@router.get("/risk-trends")
 async def get_risk_trends_v1(
 	request: Request,
 	time_period: str = Query(default="30d", description="Time period for analysis"),
@@ -349,7 +349,7 @@ async def get_risk_trends(
 # ===== SUCCESS ANALYSIS ENDPOINTS =====
 
 
-@router.get("/api/v1/analytics/success-metrics")
+@router.get("/success-metrics")
 async def get_success_metrics(current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
 	"""Get success metrics analysis."""
 	try:
@@ -363,7 +363,7 @@ async def get_success_metrics(current_user: User = Depends(get_current_user), db
 		raise HTTPException(status_code=500, detail="Failed to retrieve success metrics")
 
 
-@router.get("/api/v1/analytics/application-velocity")
+@router.get("/application-velocity")
 async def get_application_velocity(current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
 	"""Get application velocity metrics."""
 	try:
@@ -380,7 +380,7 @@ async def get_application_velocity(current_user: User = Depends(get_current_user
 # ===== ADVANCED USER ANALYTICS ENDPOINTS =====
 
 
-@router.get("/api/v1/analytics/success-rates")
+@router.get("/success-rates")
 async def get_detailed_success_rates(
 	days: int = Query(default=90, ge=30, le=365, description="Analysis period in days"),
 	current_user: User = Depends(get_current_user),

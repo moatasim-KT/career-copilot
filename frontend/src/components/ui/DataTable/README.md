@@ -1,5 +1,21 @@
 # VirtualDataTable Component
 
+---
+## 🧭 Quick Navigation
+
+- [[PLAN]] – Project Plan
+- [[TESTING_AND_UI_REFACTORING_OVERVIEW]] – Testing & UI Refactoring Overview
+- [[COMPONENT_LIBRARY_INVENTORY.md]] – Component Inventory
+- [[DESIGN_SYSTEM.md]] – Design System Guide
+- [[ERROR_HANDLING_GUIDE.md]] – Error Handling Guide
+- [[E2E_TESTING_MIGRATION.md]] – E2E Testing Migration Guide
+- [[docs/DEVELOPER_GUIDE]] – Developer Guide
+- [[TODO.md]] – Todo List
+- [[FRONTEND_QUICK_START.md]] – Frontend Quick Start
+- [[USER_GUIDE.md]] – User Guide
+- [[ENVIRONMENT_CONFIGURATION.md]] – Environment Configuration
+---
+
 A high-performance, virtualized data table component built on top of TanStack Table v8 and TanStack Virtual. Efficiently renders large datasets (1000+ rows) by only rendering visible rows in the viewport.
 
 ## Features
@@ -64,16 +80,16 @@ function MyComponent() {
 
 ## Props
 
-| Prop | Type | Default | Description |
-|------|------|---------|-------------|
-| `columns` | `ColumnDef<TData, TValue>[]` | Required | Column definitions |
-| `data` | `TData[]` | Required | Array of data items |
-| `isLoading` | `boolean` | `false` | Show loading state |
-| `renderSubComponent` | `(row: TData) => ReactNode` | `undefined` | Render function for expandable rows |
-| `estimatedRowHeight` | `number` | `53` | Estimated height of each row in pixels |
-| `overscan` | `number` | `5` | Number of rows to render outside viewport |
-| `enableVirtualization` | `boolean` | `auto` | Force enable/disable virtualization (auto: enabled for 100+ rows) |
-| `enablePerformanceMonitoring` | `boolean` | `false` | Show real-time performance metrics |
+| Prop                          | Type                         | Default     | Description                                                       |
+| ----------------------------- | ---------------------------- | ----------- | ----------------------------------------------------------------- |
+| `columns`                     | `ColumnDef<TData, TValue>[]` | Required    | Column definitions                                                |
+| `data`                        | `TData[]`                    | Required    | Array of data items                                               |
+| `isLoading`                   | `boolean`                    | `false`     | Show loading state                                                |
+| `renderSubComponent`          | `(row: TData) => ReactNode`  | `undefined` | Render function for expandable rows                               |
+| `estimatedRowHeight`          | `number`                     | `53`        | Estimated height of each row in pixels                            |
+| `overscan`                    | `number`                     | `5`         | Number of rows to render outside viewport                         |
+| `enableVirtualization`        | `boolean`                    | `auto`      | Force enable/disable virtualization (auto: enabled for 100+ rows) |
+| `enablePerformanceMonitoring` | `boolean`                    | `false`     | Show real-time performance metrics                                |
 
 ## Advanced Usage
 
@@ -151,14 +167,14 @@ Enable virtualization even for small datasets:
 Tested on a modern desktop (Intel i7, 16GB RAM, Chrome):
 
 | Dataset Size | Virtualized | Avg FPS | Min FPS | Render Time | Memory |
-|--------------|-------------|---------|---------|-------------|--------|
-| 100 rows | No | 60 | 58 | 12ms | 15MB |
-| 100 rows | Yes | 60 | 60 | 8ms | 12MB |
-| 500 rows | No | 45 | 32 | 45ms | 35MB |
-| 500 rows | Yes | 60 | 58 | 10ms | 18MB |
-| 1000 rows | Yes | 60 | 57 | 12ms | 22MB |
-| 2000 rows | Yes | 60 | 56 | 14ms | 28MB |
-| 5000 rows | Yes | 59 | 54 | 18ms | 42MB |
+| ------------ | ----------- | ------- | ------- | ----------- | ------ |
+| 100 rows     | No          | 60      | 58      | 12ms        | 15MB   |
+| 100 rows     | Yes         | 60      | 60      | 8ms         | 12MB   |
+| 500 rows     | No          | 45      | 32      | 45ms        | 35MB   |
+| 500 rows     | Yes         | 60      | 58      | 10ms        | 18MB   |
+| 1000 rows    | Yes         | 60      | 57      | 12ms        | 22MB   |
+| 2000 rows    | Yes         | 60      | 56      | 14ms        | 28MB   |
+| 5000 rows    | Yes         | 59      | 54      | 18ms        | 42MB   |
 
 ### Performance Tips
 
@@ -221,14 +237,14 @@ The component includes comprehensive tests for:
 
 ## Comparison with Standard DataTable
 
-| Feature | DataTable | VirtualDataTable |
-|---------|-----------|------------------|
-| Max Recommended Rows | 100 | 10,000+ |
-| Scroll Performance | Good | Excellent |
-| Memory Usage | Higher | Lower |
-| Initial Render | Slower | Faster |
-| Complexity | Lower | Higher |
-| Use Case | Small datasets | Large datasets |
+| Feature              | DataTable      | VirtualDataTable |
+| -------------------- | -------------- | ---------------- |
+| Max Recommended Rows | 100            | 10,000+          |
+| Scroll Performance   | Good           | Excellent        |
+| Memory Usage         | Higher         | Lower            |
+| Initial Render       | Slower         | Faster           |
+| Complexity           | Lower          | Higher           |
+| Use Case             | Small datasets | Large datasets   |
 
 ## When to Use
 

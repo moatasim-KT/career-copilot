@@ -1,0 +1,73 @@
+# Todo List
+
+---
+## 🧭 Quick Navigation
+
+- [[PLAN]] – Project Plan
+- [[TESTING_AND_UI_REFACTORING_OVERVIEW]] – Testing & UI Refactoring Overview
+- [[COMPONENT_LIBRARY_INVENTORY.md]] – Component Inventory
+- [[DESIGN_SYSTEM.md]] – Design System Guide
+- [[ERROR_HANDLING_GUIDE.md]] – Error Handling Guide
+- [[E2E_TESTING_MIGRATION.md]] – E2E Migration Guide
+- [[DEVELOPER_GUIDE]] – Developer Guide
+- [[TODO.md]] – Todo List
+- [[FRONTEND_QUICK_START.md]] – Frontend Quick Start
+- [[USER_GUIDE.md]] – User Guide
+- [[ENVIRONMENT_CONFIGURATION.md]] – Environment Configuration
+---
+- [ ] **Phase 1: UI/UX Redesign and Component System Implementation** [frontend]
+  - [ ] **Task 1.1: Design System Adoption (Shadcn/UI)** [frontend]
+    - [ ] 1.1.1: Integrate Shadcn/UI into the existing Next.js project. [frontend]
+    - [ ] 1.1.2: Configure Tailwind CSS to work seamlessly with Shadcn/UI, including any necessary theme customizations. [frontend]
+    - [ ] 1.1.3: Create a central `design-tokens.ts` file to define and export all colors, typography scales, spacing units, and other visual properties. Ensure these tokens are used consistently across all components. [frontend]
+  - [ ] **Task 1.2: Core Component Replacement/Creation** [frontend]
+    - [ ] 1.2.1: Identify all existing custom UI components (e.g., buttons, cards, inputs, dialogs, dropdowns) and replace them with their Shadcn/UI equivalents or custom components built using Shadcn/UI primitives. [frontend]
+    - [ ] 1.2.2: Develop custom `Widget` and `MetricCard` components that are visually consistent with the new design system, replacing the existing ones. [frontend]
+    - [ ] 1.2.3: Redesign the `ActivityTimeline` and `QuickActionsPanel` components to align with the new visual guidelines, utilizing Shadcn/UI where appropriate. [frontend]
+  - [ ] **Task 1.3: Layout and Responsiveness Enhancement** [frontend]
+    - [ ] 1.3.1: Replace the default `react-grid-layout` CSS with custom styles to match the new design system. [frontend]
+    - [ ] 1.3.2: Review and refine the responsive breakpoints and layout behavior to ensure optimal viewing across all device sizes. [frontend]
+    - [ ] 1.3.3: Ensure accessibility (A11y) standards are met for all new and updated components. [frontend]
+
+- [ ] **Phase 2: Connectivity and Data Management Refinement** [frontend]
+  - [ ] **Task 2.1: Environment Variable Management for API Endpoints** [frontend]
+    - [ ] 2.1.1: Define environment variables for the WebSocket URL and any other API base URLs (`.env.local`, `.env.production`). [frontend]
+    - [ ] 2.1.2: Update `useWebSocket` hook and `apiClient` to dynamically use these environment variables. [frontend]
+  - [ ] **Task 2.2: Robust Error Handling Implementation** [frontend]
+    - [ ] 2.2.1: Implement a centralized error handling mechanism (e.g., using React Query's `onError` callbacks or a global error boundary for UI errors). [frontend]
+    - [ ] 2.2.2: Introduce more specific user-facing error messages instead of generic ones. [frontend]
+    - [ ] 2.2.3: Implement retry logic for API calls where appropriate (e.g., using React Query's built-in retry functionality). [frontend]
+  - [ ] **Task 2.3: Enhanced Loading States** [frontend]
+    - [ ] 2.3.1: Replace simple loading spinners with skeleton loaders for a smoother user experience, especially in data-intensive areas like the dashboard widgets. [frontend]
+    - [ ] 2.3.2: Implement granular loading states (e.g., per-widget loading indicators) to provide clearer feedback to the user. [frontend]
+  - [ ] **Task 2.4: Refactor Data Fetching Logic** [frontend]
+    - [ ] 2.4.1: Review and refactor all data fetching calls to ensure consistency and avoid race conditions between REST API and WebSocket updates. [frontend]
+    - [ ] 2.4.2: Clearly define the source of truth for different data segments to prevent conflicts. [frontend]
+
+- [ ] **Phase 3: Codebase Refactoring and Best Practices Adoption** [frontend]
+  - [ ] **Task 3.1: Eliminate `any` Type Usage** [frontend]
+    - [ ] 3.1.1: Systematically replace all instances of `any` with specific TypeScript types or interfaces. [frontend]
+    - [ ] 3.1.2: Define new types as necessary, especially for API responses and component props. [frontend]
+  - [ ] **Task 3.2: Decompose Large Components** [frontend]
+    - [ ] 3.2.1: Refactor the `EnhancedDashboard` component into smaller, more focused, and reusable sub-components (e.g., `DashboardHeader`, `ConnectionStatusIndicator`, `DashboardLayout`). [frontend]
+    - [ ] 3.2.2: Ensure clear separation of concerns for each new component. [frontend]
+  - [ ] **Task 3.3: Adhere to Next.js and React Best Practices** [frontend]
+    - [ ] 3.3.1: Remove the unconventional `AppRouter` component and utilize Next.js's file-system based routing for all page-level navigation. [frontend]
+    - [ ] 3.3.2: Optimize component re-renders using `React.memo`, `useCallback`, and `useMemo` where appropriate. [frontend]
+    - [ ] 3.3.3: Ensure proper use of server and client components in Next.js App Router context. [frontend]
+
+- [ ] **Deliverables & Testing**
+  - [ ] Updated `frontend/package.json` with Shadcn/UI dependencies. [frontend]
+  - [ ] New `design-tokens.ts` file. [frontend]
+  - [ ] Refactored UI components adhering to the new design system. [frontend]
+  - [ ] Updated `useWebSocket` hook and `apiClient` using environment variables. [frontend]
+  - [ ] Enhanced error handling and loading state implementations. [frontend]
+  - [ ] Modularized `EnhancedDashboard` component. [frontend]
+  - [ ] Removed `AppRouter` and simplified routing. [frontend]
+  - [ ] Comprehensive unit and integration tests for critical components and data flows. [test]
+  - [ ] **Testing Strategy**
+    - [ ] Unit Tests: Develop unit tests for all new and refactored components and hooks. [test]
+    - [ ] Integration Tests: Create integration tests to verify the end-to-end data flow and UI interactions, especially for dashboard widgets and API calls. [test]
+    - [ ] Accessibility Tests: Use tools like `jest-axe` to ensure all UI components meet accessibility standards. [test]
+    - [ ] Visual Regression Tests: Implement visual regression tests (e.g., with Storybook and Chromatic) to prevent unintended UI changes. [test]
+    - [ ] Manual Testing: Conduct thorough manual testing across various browsers and devices to ensure a consistent and high-quality user experience. [test]

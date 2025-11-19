@@ -1,5 +1,21 @@
 # API Reference
 
+---
+## 🧭 Quick Navigation
+
+- [[PLAN]] – Project Plan
+- [[TESTING_AND_UI_REFACTORING_OVERVIEW]] – Testing & UI Refactoring Overview
+- [[COMPONENT_LIBRARY_INVENTORY.md]] – Component Inventory
+- [[DESIGN_SYSTEM.md]] – Design System Guide
+- [[ERROR_HANDLING_GUIDE.md]] – Error Handling Guide
+- [[E2E_TESTING_MIGRATION.md]] – E2E Testing Migration Guide
+- [[docs/DEVELOPER_GUIDE]] – Developer Guide
+- [[TODO.md]] – Todo List
+- [[FRONTEND_QUICK_START.md]] – Frontend Quick Start
+- [[USER_GUIDE.md]] – User Guide
+- [[ENVIRONMENT_CONFIGURATION.md]] – Environment Configuration
+---
+
 Career Copilot exposes a FastAPI-based `/api/v1` surface backed by PostgreSQL, Redis, Celery workers, and multi-provider LLM integrations. This document summarizes the major route groups, conventions, and supporting tooling.
 
 ## Generating the OpenAPI Spec
@@ -14,44 +30,44 @@ Import `frontend/openapi.json` into Postman, Stoplight, or Spectral for contract
 
 ## Authentication & Users (`backend/app/api/v1/auth.py`)
 
-| Method | Path | Description |
-|--------|------|-------------|
-| `POST` | `/api/v1/auth/register` | Create a credentialed user account and return a JWT access token. |
-| `POST` | `/api/v1/auth/login` | Exchange username/email + password for a short-lived JWT. |
-| `POST` | `/api/v1/auth/logout` | Stateless acknowledgement used by the frontend to clear local tokens. |
-| `GET`  | `/api/v1/auth/me` | Fetch the authenticated user resolved by `get_current_user`. |
-| `GET`  | `/api/v1/auth/oauth/google/login` | Redirect to Google OAuth consent. |
-| `GET`  | `/api/v1/auth/oauth/google/callback` | Handle OAuth callback, mint tokens, and link accounts. |
+| Method | Path                                 | Description                                                           |
+| ------ | ------------------------------------ | --------------------------------------------------------------------- |
+| `POST` | `/api/v1/auth/register`              | Create a credentialed user account and return a JWT access token.     |
+| `POST` | `/api/v1/auth/login`                 | Exchange username/email + password for a short-lived JWT.             |
+| `POST` | `/api/v1/auth/logout`                | Stateless acknowledgement used by the frontend to clear local tokens. |
+| `GET`  | `/api/v1/auth/me`                    | Fetch the authenticated user resolved by `get_current_user`.          |
+| `GET`  | `/api/v1/auth/oauth/google/login`    | Redirect to Google OAuth consent.                                     |
+| `GET`  | `/api/v1/auth/oauth/google/callback` | Handle OAuth callback, mint tokens, and link accounts.                |
 
 Tokens are validated by `decode_access_token`; admin-only routes depend on `get_admin_user` which enforces `User.is_admin` unless `DISABLE_AUTH=true` for dev environments.
 
 ## Jobs & Market Data (`backend/app/api/v1/jobs.py`, `market.py`, `linkedin_jobs.py`)
 
-| Method | Path | Highlights |
-|--------|------|------------|
-| `GET`  | `/api/v1/jobs` | Paginated list of tracked jobs (newest first) scoped to the authenticated user. |
-| `POST` | `/api/v1/jobs` | Create/import a job with metadata (title, company, salary, remote option, tech stack, etc.). |
-| `GET`  | `/api/v1/jobs/{job_id}` | Fetch a single job with full description + derived previews. |
-| `PATCH`| `/api/v1/jobs/{job_id}` | Update any mutable fields (status, salary bands, notes, application URL). |
-| `DELETE`| `/api/v1/jobs/{job_id}` | Permanently remove a job. |
-| `GET`  | `/api/v1/jobs/search` | Advanced filters (location, salary, tech stack, remote only) with cache-backed responses. |
-| `GET`  | `/api/v1/jobs/recommendations` | Quick recommendation algorithm that blends saved jobs with skill overlap scoring. |
-| `GET`  | `/api/v1/jobs/insights` | Aggregated stats for dashboards (counts by status, salary histograms, etc.). |
+| Method   | Path                           | Highlights                                                                                   |
+| -------- | ------------------------------ | -------------------------------------------------------------------------------------------- |
+| `GET`    | `/api/v1/jobs`                 | Paginated list of tracked jobs (newest first) scoped to the authenticated user.              |
+| `POST`   | `/api/v1/jobs`                 | Create/import a job with metadata (title, company, salary, remote option, tech stack, etc.). |
+| `GET`    | `/api/v1/jobs/{job_id}`        | Fetch a single job with full description + derived previews.                                 |
+| `PATCH`  | `/api/v1/jobs/{job_id}`        | Update any mutable fields (status, salary bands, notes, application URL).                    |
+| `DELETE` | `/api/v1/jobs/{job_id}`        | Permanently remove a job.                                                                    |
+| `GET`    | `/api/v1/jobs/search`          | Advanced filters (location, salary, tech stack, remote only) with cache-backed responses.    |
+| `GET`    | `/api/v1/jobs/recommendations` | Quick recommendation algorithm that blends saved jobs with skill overlap scoring.            |
+| `GET`    | `/api/v1/jobs/insights`        | Aggregated stats for dashboards (counts by status, salary histograms, etc.).                 |
 
 Supplementary routers (`market`, `linkedin_jobs`) surface curated market snapshots and third-party job feeds for ingestion pipelines.
 
 ## Applications & Pipelines (`backend/app/api/v1/applications.py`, `bulk_operations.py`, `import_data.py`, `export.py`)
 
-| Method | Path | Description |
-|--------|------|-------------|
-| `GET`  | `/api/v1/applications` | List applications with status filters, sort options, pagination, and Kanban metadata. |
-| `POST` | `/api/v1/applications` | Create a new application attached to an existing job or ad-hoc entry. |
-| `PATCH`| `/api/v1/applications/{application_id}` | Update status, interviews, feedback, or attachments. |
-| `DELETE`| `/api/v1/applications/{application_id}` | Delete an application (soft-delete if enabled). |
-| `POST` | `/api/v1/applications/{application_id}/status` | Shortcut endpoint for status transitions (used by bulk actions + timeline UI). |
-| `POST` | `/api/v1/bulk_operations/applications/status` | Batch update statuses for multiple IDs. |
-| `POST` | `/api/v1/import/applications` | CSV/JSON ingestion with validation + deduplication. |
-| `GET`  | `/api/v1/export/applications.{csv|xlsx|pdf}` | Export filtered applications for reporting. |
+| Method   | Path                                           | Description                                                                           |
+| -------- | ---------------------------------------------- | ------------------------------------------------------------------------------------- |
+| `GET`    | `/api/v1/applications`                         | List applications with status filters, sort options, pagination, and Kanban metadata. |
+| `POST`   | `/api/v1/applications`                         | Create a new application attached to an existing job or ad-hoc entry.                 |
+| `PATCH`  | `/api/v1/applications/{application_id}`        | Update status, interviews, feedback, or attachments.                                  |
+| `DELETE` | `/api/v1/applications/{application_id}`        | Delete an application (soft-delete if enabled).                                       |
+| `POST`   | `/api/v1/applications/{application_id}/status` | Shortcut endpoint for status transitions (used by bulk actions + timeline UI).        |
+| `POST`   | `/api/v1/bulk_operations/applications/status`  | Batch update statuses for multiple IDs.                                               |
+| `POST`   | `/api/v1/import/applications`                  | CSV/JSON ingestion with validation + deduplication.                                   |
+| `GET`    | `/api/v1/export/applications.{csv              | xlsx                                                                                  | pdf}` | Export filtered applications for reporting. |
 
 ## Recommendations, AI Content & Resume Tools (`backend/app/api/v1/recommendations.py`, `enhanced_recommendations.py`, `resume.py`)
 
@@ -66,14 +82,14 @@ All AI-facing routes invoke `LLMService`, which picks a provider based on `task_
 
 ## Notifications & Collaboration (`backend/app/api/v1/notifications.py`, `websocket_notifications.py`, `social.py`)
 
-| Method | Path | Description |
-|--------|------|-------------|
-| `GET`  | `/api/v1/notifications` | Fetch paginated notification feed with read/unread state. |
-| `POST` | `/api/v1/notifications/mark-read` | Batch mark IDs as read. |
-| `GET`  | `/api/v1/notifications/settings` | Retrieve push/email preferences. |
-| `PATCH`| `/api/v1/notifications/settings` | Update categories, quiet hours, and channels. |
-| `GET`  | `/api/v1/notifications/socket-token` | Mint a short-lived token for the websocket notification channel (`/api/v1/ws/notifications`). |
-| `GET`  | `/api/v1/social/activity` | Activity feeds, shared resumes/jobs, leaderboard stats. |
+| Method  | Path                                 | Description                                                                                   |
+| ------- | ------------------------------------ | --------------------------------------------------------------------------------------------- |
+| `GET`   | `/api/v1/notifications`              | Fetch paginated notification feed with read/unread state.                                     |
+| `POST`  | `/api/v1/notifications/mark-read`    | Batch mark IDs as read.                                                                       |
+| `GET`   | `/api/v1/notifications/settings`     | Retrieve push/email preferences.                                                              |
+| `PATCH` | `/api/v1/notifications/settings`     | Update categories, quiet hours, and channels.                                                 |
+| `GET`   | `/api/v1/notifications/socket-token` | Mint a short-lived token for the websocket notification channel (`/api/v1/ws/notifications`). |
+| `GET`   | `/api/v1/social/activity`            | Activity feeds, shared resumes/jobs, leaderboard stats.                                       |
 
 ## System Health & Operations (`backend/app/api/v1/health.py`, `job_ingestion.py`, `feedback.py`, `help_articles.py`)
 

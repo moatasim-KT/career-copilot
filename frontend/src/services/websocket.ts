@@ -22,7 +22,7 @@ class WebSocketClient {
     private token: string | null = null;
 
     constructor() {
-        this.baseUrl = process.env.NEXT_PUBLIC_WS_BASE_URL || 'ws://localhost:8000';
+        this.baseUrl = process.env.NEXT_PUBLIC_WS_URL || process.env.NEXT_PUBLIC_WS_BASE_URL || 'ws://localhost:8000';
     }
 
     /**

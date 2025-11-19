@@ -1,5 +1,21 @@
 # Career Copilot - Backend
 
+---
+## 🧭 Quick Navigation
+
+- [[PLAN]] – Project Plan
+- [[TESTING_AND_UI_REFACTORING_OVERVIEW]] – Testing & UI Refactoring Overview
+- [[COMPONENT_LIBRARY_INVENTORY.md]] – Component Inventory
+- [[DESIGN_SYSTEM.md]] – Design System Guide
+- [[ERROR_HANDLING_GUIDE.md]] – Error Handling Guide
+- [[E2E_TESTING_MIGRATION.md]] – E2E Testing Migration Guide
+- [[docs/DEVELOPER_GUIDE]] – Developer Guide
+- [[TODO.md]] – Todo List
+- [[FRONTEND_QUICK_START.md]] – Frontend Quick Start
+- [[USER_GUIDE.md]] – User Guide
+- [[ENVIRONMENT_CONFIGURATION.md]] – Environment Configuration
+---
+
 FastAPI-based backend with AI-powered job management, multi-provider LLM integration, and real-time notifications.
 
 ## Quick Links
@@ -190,7 +206,7 @@ docker-compose up -d backend celery celery-beatcd backend/
 
 ```
 
-# Create virtual environment
+## Create virtual environment
 
 See [[../LOCAL_SETUP.md]] for complete setup guide.python3.11 -m venv .venv
 
@@ -198,7 +214,7 @@ source .venv/bin/activate  # On Windows: .venv\Scripts\activate
 
 ### Testing
 
-# Install dependencies
+## Install dependencies
 
 **Documentation**: [[tests/TESTING_NOTES.md]]pip install -e .
 
@@ -250,7 +266,7 @@ uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers 4
 
 ## Key Patterns
 
-# With Celery worker
+## With Celery worker
 
 ### Service Layer Patterncelery -A app.celery worker --loglevel=info
 
@@ -261,34 +277,40 @@ uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers 4
 ## 📂 Directory Purpose Guide
 
 ```python
-
-# ✅ Service handles logic - app/services/job_service.py### Application Code (`app/`)
+## ✅ Service handles logic - app/services/job_service.py
 
 class JobService:
+    def __init__(self, db: Session):
+        self.db = db
 
-    def __init__(self, db: Session):| Directory | Purpose | Examples |
+    def get_matching_jobs(self, user_id: int) -> List[Job]:
+        # Complex logic here
+        pass
+```
 
-        self.db = db|-----------|---------|----------|
+### Application Code (`app/`)
 
-    | `api/` | API routes and endpoints | REST endpoints, GraphQL resolvers |
+| Directory       | Purpose                   | Examples                                 |
+| --------------- | ------------------------- | ---------------------------------------- |
+| `api/`          | API routes and endpoints  | REST endpoints, GraphQL resolvers        |
+| `config/`       | Application configuration | Settings, constants, env loading         |
+| `core/`         | Core business logic       | Domain models, business rules            |
+| `middleware/`   | FastAPI middleware        | Auth, CORS, logging, error handling      |
+| `models/`       | SQLAlchemy ORM models     | Database tables, relationships           |
+| `schemas/`      | Pydantic schemas          | Request/response validation              |
+| `services/`     | Business logic services   | Job scraping, AI analysis, notifications |
+| `repositories/` | Data access layer         | CRUD operations, queries                 |
+| `security/`     | Auth & authorization      | JWT, OAuth, permissions                  |
+| `tasks/`        | Celery background tasks   | Async jobs, scheduled tasks              |
 
-    def get_matching_jobs(self, user_id: int) -> List[Job]:| `config/` | Application configuration | Settings, constants, env loading |
+```python
+## ✅ Route is thin wrapper - app/api/v1/jobs.py
 
-        # Complex logic here| `core/` | Core business logic | Domain models, business rules |
-
-        pass| `middleware/` | FastAPI middleware | Auth, CORS, logging, error handling |
-
-| `models/` | SQLAlchemy ORM models | Database tables, relationships |
-
-# ✅ Route is thin wrapper - app/api/v1/jobs.py| `schemas/` | Pydantic schemas | Request/response validation |
-
-@router.get("/jobs/matches")| `services/` | Business logic services | Job scraping, AI analysis, notifications |
-
-def get_jobs(db: Session = Depends(get_db)):| `repositories/` | Data access layer | CRUD operations, queries |
-
-    service = JobService(db)| `security/` | Auth & authorization | JWT, OAuth, permissions |
-
-    return service.get_matching_jobs(user_id)| `tasks/` | Celery background tasks | Async jobs, scheduled tasks |
+@router.get("/jobs/matches")
+def get_jobs(db: Session = Depends(get_db)):
+    service = JobService(db)
+    return service.get_matching_jobs(user_id)
+```
 
 ```| `workers/` | Background workers | Long-running processes |
 
@@ -370,87 +392,111 @@ See [[../LOCAL_SETUP.md#troubleshooting]] for detailed troubleshooting.
 
 ```bash```bash
 
-# Test database connection# Initialize database
+## Test database connection
 
-docker-compose exec backend python -c "from app.core.database import engine; print(engine)"python bin/init_db.py
-
-
-
-# View logs# Create migration
-
-docker-compose logs -f backendalembic revision --autogenerate -m "description"
-
+```bash
+docker-compose exec backend python -c "from app.core.database import engine; print(engine)"
 ```
 
-# Run migrations
+## Initialize database
 
-## Additional Resourcesalembic upgrade head
+```bash
+python bin/init_db.py
+```
 
+## View logs
 
+```bash
+docker-compose logs -f backend
+```
 
-- **Project Status**: [[../PROJECT_STATUS.md]]# Rollback migration
+## Create migration
 
-- **Setup Guide**: [[../LOCAL_SETUP.md]]alembic downgrade -1
+```bash
+alembic revision --autogenerate -m "description"
+```
 
-- **Coding Standards**: [[../.github/copilot-instructions.md]]
+## Run migrations
 
-- **API Documentation**: http://localhost:8000/docs# Seed data
+```bash
+alembic upgrade head
+```
 
+## Rollback migration
+
+```bash
+alembic downgrade -1
+```
+
+## Seed data
+
+```bash
 python bin/seed_data.py
+```
 
-# Verify indexes
+## Verify indexes
+
+```bash
 python scripts/database/verify_indexes.py
+```
 
-# Backfill data
+## Backfill data
+
+```bash
 python scripts/database/backfill_job_fingerprints.py
 ```
 
-### Testing
+## Additional Resources
+
+- **Project Status**: [[../PROJECT_STATUS.md]]
+- **Setup Guide**: [[../LOCAL_SETUP.md]]
+- **Coding Standards**: [[../.github/copilot-instructions.md]]
+- **API Documentation**: http://localhost:8000/docs
 
 ```bash
-# Run all tests
+## Run all tests
 pytest
 
-# Run specific test file
+## Run specific test file
 pytest tests/test_auth.py
 
-# Run with coverage
+## Run with coverage
 pytest --cov=app --cov-report=html
 
-# Run E2E tests
+## Run E2E tests
 python scripts/testing/test_deduplication_e2e.py
 python scripts/testing/test_email_notification.py
 
-# Debug authentication
+## Debug authentication
 python scripts/testing/debug_auth.py
 ```
 
-### Monitoring & Maintenance
+## Monitoring & Maintenance
 
 ```bash
-# System health check
+## System health check
 python scripts/monitoring/verify_system_health.py
 
-# Monitor deduplication
+## Monitor deduplication
 python scripts/monitoring/monitor_deduplication.py
 
-# Validate configurations
+## Validate configurations
 python scripts/maintenance/validate_configs.py
 ```
 
 ### Celery Tasks
 
 ```bash
-# Start Celery worker
+## Start Celery worker
 celery -A app.celery worker --loglevel=info
 
-# Start Celery beat (scheduler)
+## Start Celery beat (scheduler)
 celery -A app.celery beat --loglevel=info
 
-# Monitor tasks
+## Monitor tasks
 celery -A app.celery events
 
-# Purge queue
+## Purge queue
 celery -A app.celery purge
 ```
 
@@ -461,32 +507,32 @@ See `.env.example` for all available environment variables.
 ### Required Variables
 
 ```bash
-# Database
+## Database
 DATABASE_URL=postgresql://user:pass@localhost:5432/career_copilot
 
-# Redis
+## Redis
 REDIS_URL=redis://localhost:6379/0
 
-# Security
+## Security
 SECRET_KEY=your-secret-key-here
 JWT_SECRET_KEY=your-jwt-secret-here
 
-# AI Providers
+## AI Providers
 OPENAI_API_KEY=your-openai-key
 ```
 
 ### Optional Variables
 
 ```bash
-# Email (SendGrid)
+## Email (SendGrid)
 SENDGRID_API_KEY=your-sendgrid-key
 FROM_EMAIL=noreply@careercopilot.com
 
-# Storage
+## Storage
 UPLOAD_DIR=./data/uploads
 MAX_UPLOAD_SIZE=10485760  # 10MB
 
-# Monitoring
+## Monitoring
 SENTRY_DSN=your-sentry-dsn
 LOG_LEVEL=INFO
 ```
@@ -533,7 +579,7 @@ LOG_LEVEL=INFO
 Located in `app/*/tests/` alongside the code they test.
 
 ```python
-# Example: app/services/tests/test_job_service.py
+## Example: app/services/tests/test_job_service.py
 def test_job_search():
     # Test job search logic
     pass
@@ -544,7 +590,7 @@ def test_job_search():
 Located in `tests/` for testing component interactions.
 
 ```python
-# Example: tests/test_auth.py
+## Example: tests/test_auth.py
 def test_user_login_flow():
     # Test complete login flow
     pass
@@ -563,30 +609,30 @@ python scripts/testing/test_deduplication_e2e.py
 ### Linting & Formatting
 
 ```bash
-# Format code with Ruff
+## Format code with Ruff
 ruff format .
 
-# Lint code
+## Lint code
 ruff check .
 
-# Fix auto-fixable issues
+## Fix auto-fixable issues
 ruff check --fix .
 ```
 
 ### Type Checking
 
 ```bash
-# Run mypy
+## Run mypy
 mypy app/
 ```
 
 ### Security Scanning
 
 ```bash
-# Run Bandit
+## Run Bandit
 bandit -r app/
 
-# Run safety check
+## Run safety check
 safety check
 ```
 
@@ -595,7 +641,7 @@ safety check
 ### 1. Create Model (`app/models/`)
 
 ```python
-# app/models/job.py
+## app/models/job.py
 from sqlalchemy import Column, Integer, String
 from app.core.database import Base
 
@@ -608,7 +654,7 @@ class Job(Base):
 ### 2. Create Schema (`app/schemas/`)
 
 ```python
-# app/schemas/job.py
+## app/schemas/job.py
 from pydantic import BaseModel
 
 class JobCreate(BaseModel):
@@ -622,7 +668,7 @@ class JobResponse(BaseModel):
 ### 3. Create Repository (`app/repositories/`)
 
 ```python
-# app/repositories/job_repository.py
+## app/repositories/job_repository.py
 from app.models.job import Job
 
 class JobRepository:
@@ -634,7 +680,7 @@ class JobRepository:
 ### 4. Create Service (`app/services/`)
 
 ```python
-# app/services/job_service.py
+## app/services/job_service.py
 class JobService:
     def __init__(self, repo: JobRepository):
         self.repo = repo
@@ -647,7 +693,7 @@ class JobService:
 ### 5. Create API Route (`app/api/`)
 
 ```python
-# app/api/v1/jobs.py
+## app/api/v1/jobs.py
 from fastapi import APIRouter, Depends
 
 router = APIRouter()
@@ -660,12 +706,12 @@ def create_job(data: JobCreate, service: JobService = Depends()):
 ### 6. Add Tests
 
 ```python
-# app/services/tests/test_job_service.py
+## app/services/tests/test_job_service.py
 def test_create_job():
     # Unit test
     pass
 
-# tests/test_jobs.py
+## tests/test_jobs.py
 def test_job_api():
     # Integration test
     pass
@@ -676,7 +722,7 @@ def test_job_api():
 ### Enable Debug Mode
 
 ```bash
-# Set in .env
+## Set in .env
 DEBUG=true
 LOG_LEVEL=DEBUG
 ```
@@ -701,10 +747,10 @@ with engine.connect() as conn:
 ### Monitor Celery Tasks
 
 ```bash
-# Flower (Celery monitoring)
+## Flower (Celery monitoring)
 celery -A app.celery flower
 
-# Access at http://localhost:5555
+## Access at http://localhost:5555
 ```
 
 ## 📚 Documentation

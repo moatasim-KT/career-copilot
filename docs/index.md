@@ -1,5 +1,21 @@
 # Career Copilot Documentation
 
+---
+## 🧭 Quick Navigation
+
+- [[PLAN]] – Project Plan
+- [[TESTING_AND_UI_REFACTORING_OVERVIEW]] – Testing & UI Refactoring Overview
+- [[COMPONENT_LIBRARY_INVENTORY.md]] – Component Inventory
+- [[DESIGN_SYSTEM.md]] – Design System Guide
+- [[ERROR_HANDLING_GUIDE.md]] – Error Handling Guide
+- [[E2E_TESTING_MIGRATION.md]] – E2E Migration Guide
+- [[docs/DEVELOPER_GUIDE]] – Developer Guide
+- [[TODO.md]] – Todo List
+- [[FRONTEND_QUICK_START.md]] – Frontend Quick Start
+- [[USER_GUIDE.md]] – User Guide
+- [[ENVIRONMENT_CONFIGURATION.md]] – Environment Configuration
+---
+
 **Central documentation hub with direct codebase integration.**
 
 ## 🚀 Getting Started
@@ -12,9 +28,15 @@ New to Career Copilot? Start here:
 
 ## 📖 Core Documentation
 
+### 🔧 Scripts & Tools
+**Entry Points**: [[backend/app/main.py|Backend Main]] | [[frontend/src/app/layout.tsx|Frontend Layout]]
+**Analysis**: [[scripts/analyze_api_endpoints.py|API Analyzer]] | [[scripts/analyze_database_schema.py|Schema Analyzer]]
+**Testing**: [[scripts/test_all_apis.py|API Tests]] | [[scripts/test_all_endpoints.sh|Endpoint Tests]]
+**Documentation**: [[scripts/check_wikilinks.py|Wiki Checker]] | [[scripts/generate_openapi_docs.py|OpenAPI Generator]]
+
 ### Setup & Development
 - **[[LOCAL_SETUP]]** - Docker setup, configuration, common tasks, troubleshooting
-- **[[DEVELOPER_GUIDE]]** - Development workflows and best practices
+- **[[docs/DEVELOPER_GUIDE]]** - Development workflows and best practices
 - **[[career-copilot/CONTRIBUTING|Contributing Guidelines]]** - Contribution guidelines and code standards
 - **[[FRONTEND_QUICK_START]]** - Frontend-specific setup and patterns
 
@@ -479,7 +501,7 @@ docker-compose logs -f backend              # View logs
 2. **Test Issues**: See [[../backend/tests/TESTING_NOTES.md]]
 3. **Code Patterns**: See [[../.github/copilot-instructions.md]]
 4. **Project Status**: See [[../PROJECT_STATUS.md]]
-5. **Development**: See [[development/DEVELOPMENT.md]] and [[DEVELOPER_GUIDE.md]]
+5. **Development**: See [[development/DEVELOPMENT.md]] and [[docs/DEVELOPER_GUIDE]]
 
 ---
 
