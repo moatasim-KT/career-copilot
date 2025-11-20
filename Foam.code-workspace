@@ -6,7 +6,7 @@
     ],
     "settings": {
         "foam.openDailyNotes": false,
-        "foam.files.ignore": [
+        "foam.files.exclude": [
             // VS Code & Git
             "**/.vscode/**",
             "**/.git/**",
