@@ -4,7 +4,11 @@ FastAPI application entry point
 """
 
 import traceback
+import warnings
 from datetime import datetime
+
+# Suppress multiprocessing resource tracker warnings during development reload
+warnings.filterwarnings("ignore", message="resource_tracker: There appear to be.*leaked.*", category=UserWarning)
 
 from fastapi import Depends, FastAPI, HTTPException, Request, WebSocket, status
 from fastapi.exceptions import RequestValidationError
@@ -61,7 +65,7 @@ async def lifespan(app: FastAPI):
 					# Initialize default user for single-user mode
 					from app.core.init_db import initialize_database
 
-					async with db_manager.async_session() as session:
+					async with db_manager.get_session() as session:
 						await initialize_database(session)
 
 				except Exception:

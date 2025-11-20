@@ -154,7 +154,7 @@ export class WebSocketClient {
    * Send a message to the server
    */
   send(event: string, data: any): void {
-    const message = JSON.stringify({ event, data, timestamp: new Date().toISOString() });
+    const message = JSON.stringify({ type: event, event, data, timestamp: new Date().toISOString() });
 
     if (this.ws?.readyState === WebSocket.OPEN) {
       this.ws.send(message);

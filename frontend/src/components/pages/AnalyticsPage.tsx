@@ -19,7 +19,7 @@ import {
   LazyComposedChart,
   LazyChartComponents,
 }
- from '@/components/lazy';
+  from '@/components/lazy';
 import { useWebSocket } from '@/hooks/useWebSocket';
 import { apiClient, AnalyticsSummary } from '@/lib/api';
 import { logger } from '@/lib/logger';
@@ -82,7 +82,8 @@ export default function AnalyticsPage() {
     setLoading(false);
   }, []);
 
-  useWebSocket('ws://localhost:8080/api/ws', () => { }, () => { }, handleUpdate);
+  const wsUrl = process.env.NEXT_PUBLIC_WS_URL || 'ws://localhost:8000/ws';
+  useWebSocket(wsUrl, () => { }, () => { }, handleUpdate);
 
   const loadAnalyticsData = useCallback(async () => {
     setLoading(true);

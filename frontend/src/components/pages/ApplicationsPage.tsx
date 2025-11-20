@@ -138,8 +138,9 @@ export default function ApplicationsPage() {
     }
   }, []);
 
+  const wsUrl = process.env.NEXT_PUBLIC_WS_URL || 'ws://localhost:8000/ws';
   useWebSocket(
-    'ws://localhost:8080/api/ws',
+    wsUrl,
     // onDashboardUpdate (not needed here)
     () => { },
     // onApplicationStatusUpdate
@@ -872,7 +873,7 @@ export default function ApplicationsPage() {
                           checked={selectedApplicationIds.includes(application.id)}
                           onChange={() => handleSelectApplication(application.id)}
                         />
-                        <div className="flex-1">
+                        <div className="shrink-0">
                           <div className="flex items-center space-x-3 mb-2">
                             <h3 className="text-lg font-semibold text-neutral-900">
                               {application.job?.title || 'Unknown Position'}

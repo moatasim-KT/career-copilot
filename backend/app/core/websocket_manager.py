@@ -74,7 +74,7 @@ class WebSocketManager:
 			test_mode: If True, skip actual WebSocket operations (for testing).
 		"""
 		self.test_mode = test_mode
-		self.active_connections: Dict[int, WebSocketConnection] = {}
+		self.active_connections: Dict[int, list[WebSocketConnection]] = {}
 		self.channels: Dict[str, Set[int]] = {}
 
 	async def connect(self, user_id: int, websocket: WebSocket) -> WebSocketConnection:
@@ -85,15 +85,14 @@ class WebSocketManager:
 		accepted the socket raises a runtime error. This helper simply records the
 		connection and sends the welcome payload.
 		"""
-
-		# Disconnect existing connection if any
-		if user_id in self.active_connections:
-			await self.disconnect(user_id)
-
 		connection = WebSocketConnection(user_id, websocket, test_mode=self.test_mode)
-		self.active_connections[user_id] = connection
 
-		logger.info(f"WebSocket connected for user: {user_id}. Total active connections: {len(self.active_connections)}")
+		if user_id not in self.active_connections:
+			self.active_connections[user_id] = []
+
+		self.active_connections[user_id].append(connection)
+
+		logger.info(f"WebSocket connected for user: {user_id}. Active sessions: {len(self.active_connections[user_id])}")
 
 		# Send welcome message
 		await connection.send_message(
@@ -107,90 +106,109 @@ class WebSocketManager:
 
 		return connection
 
-	async def disconnect(self, user_id: int):
-		"""Disconnect a user's WebSocket."""
+	async def disconnect(self, user_id: int, connection: Optional[WebSocketConnection] = None):
+		"""Disconnect a user's WebSocket.
+
+		Args:
+			user_id: The user ID.
+			connection: Specific connection to disconnect. If None, disconnects all for user.
+		"""
 		if user_id in self.active_connections:
-			connection = self.active_connections[user_id]
+			connections_to_remove = [connection] if connection else self.active_connections[user_id][:]
 
-			# Remove from all channels
-			for channel in list(connection.subscriptions):
-				self.unsubscribe_from_channel(user_id, channel)
+			for conn in connections_to_remove:
+				if conn in self.active_connections[user_id]:
+					# Remove from all channels
+					for channel in list(conn.subscriptions):
+						# We only unsubscribe from the channel map if this is the last connection
+						# for this user that is subscribed to this channel.
+						# However, simpler logic is: just remove this connection's subscription.
+						# The channel map tracks user_ids. If user has 0 connections left, remove user_id.
+						pass
+						# Logic for channel map cleanup is complex with multiple connections.
+						# For now, we'll clean up channel map only if user has no connections left.
 
-			# Close WebSocket if still open (skip in test mode to avoid hangs)
-			if not self.test_mode:
-				try:
-					await connection.websocket.close()
-				except Exception as e:
-					logger.debug(f"Error closing WebSocket for user {user_id}: {e}")
+					# Close WebSocket if still open (skip in test mode to avoid hangs)
+					if not self.test_mode:
+						try:
+							await conn.websocket.close()
+						except Exception as e:
+							logger.debug(f"Error closing WebSocket for user {user_id}: {e}")
 
-			del self.active_connections[user_id]
-			logger.info(f"WebSocket disconnected for user: {user_id}. Total active connections: {len(self.active_connections)}")
+					self.active_connections[user_id].remove(conn)
+
+			if not self.active_connections[user_id]:
+				del self.active_connections[user_id]
+				# Cleanup channels
+				for channel in list(self.channels.keys()):
+					if user_id in self.channels[channel]:
+						self.channels[channel].discard(user_id)
+						if not self.channels[channel]:
+							del self.channels[channel]
+
+			logger.info(f"WebSocket disconnected for user: {user_id}. Remaining active sessions: {len(self.active_connections.get(user_id, []))}")
 
 	async def send_personal_message(self, user_id: int, message: dict):
-		"""Send a JSON message to a specific user."""
+		"""Send a JSON message to a specific user (all their active connections)."""
 		if user_id in self.active_connections:
-			connection = self.active_connections[user_id]
-			success = await connection.send_message(message)
-			if not success:
-				await self.disconnect(user_id)
+			disconnected_connections = []
+			for connection in self.active_connections[user_id]:
+				success = await connection.send_message(message)
+				if not success:
+					disconnected_connections.append(connection)
+
+			# Cleanup failed connections
+			for conn in disconnected_connections:
+				await self.disconnect(user_id, conn)
 		else:
 			logger.warning(f"Attempted to send message to disconnected user: {user_id}")
 
 	async def send_personal_text(self, user_id: int, text: str):
-		"""Send a text message to a specific user."""
+		"""Send a text message to a specific user (all their active connections)."""
 		if user_id in self.active_connections:
-			connection = self.active_connections[user_id]
-			success = await connection.send_text(text)
-			if not success:
-				await self.disconnect(user_id)
+			disconnected_connections = []
+			for connection in self.active_connections[user_id]:
+				success = await connection.send_text(text)
+				if not success:
+					disconnected_connections.append(connection)
+
+			# Cleanup failed connections
+			for conn in disconnected_connections:
+				await self.disconnect(user_id, conn)
 		else:
 			logger.warning(f"Attempted to send text to disconnected user: {user_id}")
 
 	async def broadcast_message(self, message: dict, exclude_users: Optional[Set[int]] = None):
 		"""Broadcast a JSON message to all connected users."""
 		exclude_users = exclude_users or set()
-		disconnected_users = []
 
-		for user_id, connection in self.active_connections.items():
+		for user_id in list(self.active_connections.keys()):
 			if user_id not in exclude_users:
-				success = await connection.send_message(message)
-				if not success:
-					disconnected_users.append(user_id)
-
-		# Clean up disconnected users
-		for user_id in disconnected_users:
-			await self.disconnect(user_id)
+				await self.send_personal_message(user_id, message)
 
 	async def broadcast_text(self, text: str, exclude_users: Optional[Set[int]] = None):
 		"""Broadcast a text message to all connected users."""
 		exclude_users = exclude_users or set()
-		disconnected_users = []
 
-		for user_id, connection in self.active_connections.items():
+		for user_id in list(self.active_connections.keys()):
 			if user_id not in exclude_users:
-				success = await connection.send_text(text)
-				if not success:
-					disconnected_users.append(user_id)
-
-		# Clean up disconnected users
-		for user_id in disconnected_users:
-			await self.disconnect(user_id)
+				await self.send_personal_text(user_id, text)
 
 	def subscribe_to_channel(self, user_id: int, channel: str):
-		"""Subscribe a user to a notification channel."""
+		"""Subscribe a user to a notification channel (all active connections)."""
 		if user_id in self.active_connections:
-			connection = self.active_connections[user_id]
-			connection.subscribe(channel)
+			for connection in self.active_connections[user_id]:
+				connection.subscribe(channel)
 
 			if channel not in self.channels:
 				self.channels[channel] = set()
 			self.channels[channel].add(user_id)
 
 	def unsubscribe_from_channel(self, user_id: int, channel: str):
-		"""Unsubscribe a user from a notification channel."""
+		"""Unsubscribe a user from a notification channel (all active connections)."""
 		if user_id in self.active_connections:
-			connection = self.active_connections[user_id]
-			connection.unsubscribe(channel)
+			for connection in self.active_connections[user_id]:
+				connection.unsubscribe(channel)
 
 		if channel in self.channels:
 			self.channels[channel].discard(user_id)
@@ -204,21 +222,15 @@ class WebSocketManager:
 			return
 
 		exclude_users = exclude_users or set()
-		disconnected_users = []
 
-		for user_id in self.channels[channel]:
-			if user_id not in exclude_users and user_id in self.active_connections:
-				connection = self.active_connections[user_id]
-				success = await connection.send_message(message)
-				if not success:
-					disconnected_users.append(user_id)
-
-		# Clean up disconnected users
-		for user_id in disconnected_users:
-			await self.disconnect(user_id)
+		for user_id in list(self.channels[channel]):
+			if user_id not in exclude_users:
+				# send_personal_message handles sending to all user's connections
+				# and cleaning up disconnected ones
+				await self.send_personal_message(user_id, message)
 
 	def get_connection_count(self) -> int:
-		"""Get the number of active connections."""
+		"""Get the number of active users."""
 		return len(self.active_connections)
 
 	def get_channel_subscribers(self, channel: str) -> Set[int]:
@@ -230,10 +242,12 @@ class WebSocketManager:
 		return user_id in self.active_connections
 
 	def get_user_subscriptions(self, user_id: int) -> Set[str]:
-		"""Get the channels a user is subscribed to."""
+		"""Get the channels a user is subscribed to (merges from all connections)."""
+		subscriptions = set()
 		if user_id in self.active_connections:
-			return self.active_connections[user_id].subscriptions.copy()
-		return set()
+			for conn in self.active_connections[user_id]:
+				subscriptions.update(conn.subscriptions)
+		return subscriptions
 
 	async def ping_all_connections(self):
 		"""Send ping to all connections to keep them alive."""

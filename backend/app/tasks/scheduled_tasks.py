@@ -7,14 +7,13 @@ import asyncio
 import traceback
 from datetime import datetime
 
-from apscheduler.executors.pool import ProcessPoolExecutor, ThreadPoolExecutor
+from apscheduler.executors.pool import ThreadPoolExecutor
 from apscheduler.jobstores.sqlalchemy import SQLAlchemyJobStore
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.triggers.cron import CronTrigger
+from celery import Celery
 from celery.schedules import crontab
 from pytz import utc
-
-from celery import Celery
 
 from ..core.config import get_settings
 from ..core.database import SessionLocal
@@ -136,7 +135,7 @@ def _get_sync_jobstore_url(database_url: str) -> str:
 jobstores = {"default": SQLAlchemyJobStore(url=_get_sync_jobstore_url(get_current_settings().database_url))}
 
 # Configure executors
-executors = {"default": ThreadPoolExecutor(20), "processpool": ProcessPoolExecutor(5)}
+executors = {"default": ThreadPoolExecutor(20)}
 
 # Job defaults
 job_defaults = {"coalesce": False, "max_instances": 3}

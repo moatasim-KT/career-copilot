@@ -11,7 +11,7 @@ from app.core.celery_app import celery_app
 from app.core.database import get_db
 from app.core.logging import get_logger
 from app.services.cache_service import get_cache_service
-from app.services.analytics_service import analytics_service
+from app.services.analytics_service import AnalyticsService
 
 logger = get_logger(__name__)
 cache_service = get_cache_service()
@@ -376,7 +376,7 @@ def collect_daily_analytics():
 		for user in active_users:
 			try:
 				# Create analytics service instance with database session
-				analytics_service_instance = analytics_service.__class__(db=db)
+				analytics_service_instance = AnalyticsService(db=db)
 
 				# Collect user engagement metrics
 				engagement_result = analytics_service_instance.collect_user_engagement_metrics(
@@ -437,7 +437,7 @@ def generate_weekly_analytics_reports():
 		for user in active_users:
 			try:
 				# Create analytics service instance with database session
-				analytics_service_instance = analytics_service.__class__(db=db)
+				analytics_service_instance = AnalyticsService(db=db)
 
 				# Generate comprehensive analytics report
 				report = analytics_service_instance.get_comprehensive_analytics_report(
@@ -481,7 +481,7 @@ def analyze_market_trends_global():
 		system_user_id = 0
 
 		# Create analytics service instance with database session
-		analytics_service_instance = analytics_service.__class__(db=db)
+		analytics_service_instance = AnalyticsService(db=db)
 
 		# Analyze market trends with extended period for better insights
 		market_analysis = analytics_service_instance.analyze_market_trends(system_user_id, days=30)

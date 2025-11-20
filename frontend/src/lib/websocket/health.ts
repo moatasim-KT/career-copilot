@@ -6,11 +6,11 @@ export class HealthMonitor {
   private pingTimeoutId: NodeJS.Timeout | null = null;
   private pongTimeoutId: NodeJS.Timeout | null = null;
 
-  constructor(private ws: WebSocket) {}
+  constructor(private ws: WebSocket) { }
 
   start() {
     this.pingTimeoutId = setInterval(() => {
-      this.ws.send('ping');
+      this.ws.send(JSON.stringify({ type: 'ping' }));
       this.pongTimeoutId = setTimeout(() => {
         // No pong received, connection is unhealthy
         this.ws.close();
@@ -18,11 +18,16 @@ export class HealthMonitor {
     }, PING_INTERVAL);
 
     this.ws.addEventListener('message', event => {
-      if (event.data === 'pong') {
-        if (this.pongTimeoutId) {
-          clearTimeout(this.pongTimeoutId);
-          this.pongTimeoutId = null;
+      try {
+        const data = JSON.parse(event.data);
+        if (data.type === 'pong') {
+          if (this.pongTimeoutId) {
+            clearTimeout(this.pongTimeoutId);
+            this.pongTimeoutId = null;
+          }
         }
+      } catch (e) {
+        // Ignore non-JSON messages or parse errors
       }
     });
   }
