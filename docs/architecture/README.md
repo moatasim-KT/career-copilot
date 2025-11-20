@@ -16,26 +16,15 @@ Career Copilot is built with a modern, scalable architecture using FastAPI (back
 
 ### Core System Architecture
 
-* **[[ARCHITECTURE|System Architecture Overview]]** - High-level system design, component interactions, and architectural patterns
-* **[[project-overview|Project Overview]]** - Project goals, features, and technology stack
-* **[[project-status|Project Status]]** - Current implementation status and roadmap
+* **[[ARCHITECTURE|System Architecture]]** - Comprehensive system architecture with diagrams (system overview, component interaction, data flow, deployment)
+* **[[SYSTEM_COMPONENTS|System Components]]** - Detailed component architecture (frontend, backend, API, data layer, database schema)
+* **[[AI_AND_INTEGRATIONS|AI & Integration Services]]** - AI/LLM architecture, prompt engineering, job board integrations
 
-### Component Architecture
+### Related Architecture Documentation
 
-* **[[frontend-architecture|Frontend Architecture]]** - Next.js 14 App Router, React components, state management
-* **[[backend-architecture|Backend Architecture]]** - FastAPI services, dependency injection, async patterns
-* **[[api-architecture|API Architecture]]** - REST API design, endpoints, request/response patterns
-
-### Data & Storage
-
-* **[[data-architecture|Data Architecture]]** - Data models, relationships, caching strategy
-* **[[database-schema|Database Schema]]** - PostgreSQL tables, indexes, migrations
-
-### Security & Integration
-
-* **[[security-architecture|Security Architecture]]** - Authentication, authorization, data protection
-* **[[AI_AND_INTEGRATIONS|AI & Integration Services]]** - LLM providers (Groq), job board APIs, third-party integrations
-  - Consolidates: `AI_COMPONENTS_REVIEW.md`, `PROMPT_ENGINEERING_GUIDE.md`, `job-services-architecture.md`
+* **Security**: [[/security/ARCHITECTURE|Security Architecture]] - Authentication, authorization, data protection
+* **Performance**: [[/performance/ARCHITECTURE|Performance Architecture]] - Optimization strategies, caching, scaling
+* **Project Information**: [[/project/OVERVIEW|Project Overview]] & [[/project/STATUS|Project Status]]
 
 ---
 

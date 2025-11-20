@@ -170,10 +170,18 @@ dist/
 
 # ==================== ADDITIONAL SECURITY RULES ====================
 # Environment files (CRITICAL - contains API keys and secrets)
+# Main .env file at project root
 .env
-.env.*
+.env.local
+.env.*.local
+
+# Keep examples for reference
 !.env.example
-*.env
+!.env.free-tier
+
+# Legacy locations (after migration to root)
+env/.env
+env/.env.*
 backend/.env
 backend/.env.*
 !backend/.env.example

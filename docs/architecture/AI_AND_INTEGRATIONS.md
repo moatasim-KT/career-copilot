@@ -3,7 +3,7 @@
 > **Consolidated Guide**: AI components, prompt engineering, and job board integrations.
 > - Formerly: `AI_COMPONENTS_REVIEW.md`, `PROMPT_ENGINEERING_GUIDE.md`, `job-services-architecture.md`
 
-**Quick Links**: [[/architecture/README|Architecture Hub]] | [[/GETTING_STARTED#free-api-setup-optional|Free API Setup]] | [[/integrations/README|Integrations Hub]]
+**Quick Links**: [[/architecture/README|Architecture Hub]] | [[/setup/GETTING_STARTED|Free API Setup]] | [[/integrations/README|Integrations Hub]]
 
 ---
 
@@ -26,6 +26,53 @@ Career Copilot supports multiple LLM providers with automatic fallback:
 - **Groq** (Primary, Free Tier) - 14,400 requests/day
 - **OpenAI GPT-4/GPT-3.5** (Optional, Paid)
 - **Anthropic Claude** (Optional, Paid)
+
+### AI/LLM Integration Diagram
+
+```mermaid
+graph TB
+    subgraph "Application Layer"
+        Routes[API Routes]
+        Services[Business Services]
+    end
+
+    subgraph "LLM Service Manager"
+        Manager[LLM Service<br/>Multi-Provider Manager]
+        QuotaManager[Quota Manager<br/>Track Usage]
+        FallbackChain[Fallback Logic]
+    end
+
+    subgraph "LLM Providers"
+        Groq[Groq<br/>Primary - FREE<br/>14.4K req/day]
+        OpenAI[OpenAI GPT-4<br/>Fallback - PAID]
+        Claude[Claude 3<br/>Fallback - PAID]
+    end
+
+    subgraph "Prompt Engineering"
+        Templates[Prompt Templates]
+        Optimizer[Token Optimizer]
+    end
+
+    Routes --> Services
+    Services --> Manager
+    Manager --> QuotaManager
+    Manager --> FallbackChain
+    Manager --> Templates
+    Templates --> Optimizer
+
+    FallbackChain -->|Primary| Groq
+    FallbackChain -->|Fallback 1| OpenAI
+    FallbackChain -->|Fallback 2| Claude
+
+    Groq -.->|Response| Manager
+    OpenAI -.->|Response| Manager
+    Claude -.->|Response| Manager
+
+    style Groq fill:#lightgreen
+    style OpenAI fill:#lightyellow
+    style Claude fill:#lightyellow
+```
+
 
 ### LLM Service Architecture
 
@@ -192,7 +239,7 @@ Career Copilot integrates with 12+ job boards through two methods:
 - **Coverage**: 22 countries
 - **Limit**: 1,000 calls/month (free)
 - **Data Quality**: Excellent
-- **Setup**: [[/GETTING_STARTED#free-api-setup-optional|Getting Started Guide]]
+- **Setup**: [[/setup/GETTING_STARTED|Getting Started Guide]]
 
 ```python
 # backend/app/scrapers/job_boards/adzuna.py
@@ -218,7 +265,7 @@ class AdzunaAPI:
 - **Coverage**: Aggregates Google Jobs, LinkedIn, Indeed
 - **Limit**: 1,000 requests/month (free)
 - **Data Quality**: Very good
-- **Setup**: [[/GETTING_STARTED#free-api-setup-optional|Getting Started Guide]]
+- **Setup**: [[/setup/GETTING_STARTED|Getting Started Guide]]
 
 #### 3-5. Public APIs (No Signup)
 - **The Muse**: 500/hour, curated jobs
@@ -368,7 +415,7 @@ class ParseError(JobBoardError):
 
 ## Related Documentation
 
-- **Getting Started**: [[/GETTING_STARTED#free-api-setup-optional|Free API Setup]]
+- **Getting Started**: [[/setup/GETTING_STARTED|Free API Setup]]
 - **Architecture**: [[/architecture/README|Architecture Hub]]
 - **Integrations**: [[/integrations/README|Integration Guides]]
 - **Development**: [[/DEVELOPER_GUIDE|Developer Guide]]
