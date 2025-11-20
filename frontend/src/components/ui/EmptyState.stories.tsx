@@ -1,7 +1,7 @@
 
 import { Meta, StoryObj } from '@storybook/react';
 import EmptyState from './EmptyState';
-import Button from './Button';
+import Button from './Button2';
 
 const meta: Meta<typeof EmptyState> = {
   title: 'UI/EmptyState',

@@ -11,7 +11,7 @@ export interface WidgetProps {
 
 export default function Widget({ title, children, className }: WidgetProps) {
   return (
-    <div className={cn('bg-white dark:bg-neutral-900 rounded-xl shadow-sm border border-neutral-200 dark:border-neutral-800 h-full flex flex-col transition-all duration-200 hover:shadow-md', className)}>
+    <div className={cn('bg-white/80 dark:bg-neutral-900/80 backdrop-blur-xl rounded-2xl shadow-sm border border-white/20 dark:border-neutral-800 h-full flex flex-col transition-all duration-300 hover:shadow-lg hover:shadow-indigo-500/5', className)}>
       <div className="px-6 py-4 border-b border-neutral-100 dark:border-neutral-800">
         <h2 className="text-base font-semibold text-neutral-900 dark:text-neutral-100">{title}</h2>
       </div>

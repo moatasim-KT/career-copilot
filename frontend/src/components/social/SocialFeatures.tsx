@@ -23,7 +23,7 @@ import { useState } from 'react';
 
 import { Badge } from '@/components/ui/Badge';
 import Button2 from '@/components/ui/Button2';
-import Card2, { CardHeader, CardTitle, CardContent } from '@/components/ui/Card2';
+import Card, { CardHeader, CardTitle, CardContent } from '@/components/ui/Card2';
 import apiClient from '@/lib/api/client';
 import { logger } from '@/lib/logger';
 
@@ -87,7 +87,7 @@ function ShareDialog({
 
     return (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-            <Card2 className="max-w-md w-full mx-4">
+            <Card className="max-w-md w-full mx-4">
                 <CardHeader>
                     <div className="flex items-center justify-between">
                         <CardTitle>Share Achievement</CardTitle>
@@ -138,7 +138,7 @@ function ShareDialog({
                             {copied ? 'Link Copied!' : 'Copy Link'}
                         </Button2>                    </div>
                 </CardContent>
-            </Card2>
+            </Card>
         </div>
     );
 }
@@ -154,7 +154,7 @@ function MentorCard({
     onConnect: () => void;
 }) {
     return (
-        <Card2 className="hover:shadow-md transition-shadow">
+        <Card className="hover:shadow-md transition-shadow">
             <CardContent className="p-4">
                 <div className="flex items-start gap-3">
                     {/* Avatar */}
@@ -208,7 +208,7 @@ function MentorCard({
                     </div>
                 </div>
             </CardContent>
-        </Card2>
+        </Card>
     );
 }
 
@@ -275,7 +275,7 @@ export function SocialFeatures({ userId, achievements = [] }: SocialFeaturesProp
         <div className="space-y-6">
             {/* Recent Achievements */}
             {achievements.length > 0 && (
-                <Card2>
+                <Card>
                     <CardHeader>
                         <CardTitle className="flex items-center gap-2">
                             <Award className="w-5 h-5 text-yellow-500" />
@@ -307,11 +307,11 @@ export function SocialFeatures({ userId, achievements = [] }: SocialFeaturesProp
                             ))}
                         </div>
                     </CardContent>
-                </Card2>
+                </Card>
             )}
 
             {/* Find Mentors */}
-            <Card2>
+            <Card>
                 <CardHeader>
                     <div className="flex items-center justify-between">
                         <CardTitle className="flex items-center gap-2">
@@ -350,7 +350,7 @@ export function SocialFeatures({ userId, achievements = [] }: SocialFeaturesProp
                         </div>
                     )}
                 </CardContent>
-            </Card2>
+            </Card>
 
             {/* Share Dialog */}
             {showShareDialog && selectedAchievement && (

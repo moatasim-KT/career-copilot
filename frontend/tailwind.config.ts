@@ -24,6 +24,10 @@ const config: Config = {
           900: 'rgb(var(--color-primary-900) / <alpha-value>)',
           950: 'rgb(var(--color-primary-950) / <alpha-value>)',
         },
+        secondary: {
+          500: 'rgb(var(--color-secondary-500) / <alpha-value>)',
+          600: 'rgb(var(--color-secondary-600) / <alpha-value>)',
+        },
         neutral: {
           50: 'rgb(var(--color-neutral-50) / <alpha-value>)',
           100: 'rgb(var(--color-neutral-100) / <alpha-value>)',

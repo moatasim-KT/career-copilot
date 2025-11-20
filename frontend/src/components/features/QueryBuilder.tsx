@@ -11,7 +11,7 @@ import { Plus, Trash2, Layers } from 'lucide-react';
 import { useState, useCallback } from 'react';
 
 import Button2 from '@/components/ui/Button2';
-import Card2, { CardContent } from '@/components/ui/Card2';
+import Card, { CardContent } from '@/components/ui/Card2';
 import { fadeVariants, slideVariants, springConfigs } from '@/lib/animations';
 import { m, AnimatePresence } from '@/lib/motion';
 import type { SearchGroup, SearchRule, SearchField, LogicOperator, SearchOperator } from '@/types/search';
@@ -163,7 +163,7 @@ export function QueryBuilder({
       animate="visible"
       variants={fadeVariants}
     >
-      <Card2 className={`${depth > 0 ? 'bg-neutral-50 dark:bg-neutral-900' : ''}`}>
+      <Card className={`${depth > 0 ? 'bg-neutral-50 dark:bg-neutral-900' : ''}`}>
         <CardContent className="p-4">
           {/* Group Header */}
           <div className="flex items-center justify-between mb-4">
@@ -385,7 +385,7 @@ export function QueryBuilder({
             )}
           </AnimatePresence>
         </CardContent>
-      </Card2>
+      </Card>
     </m.div>
   );
 }

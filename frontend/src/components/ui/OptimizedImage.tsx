@@ -29,26 +29,26 @@ import { cn } from '@/lib/utils';
 export const RESPONSIVE_SIZES = {
   // Full width on all screens
   full: '100vw',
-  
+
   // Full width on mobile, half on tablet, third on desktop
   hero: '(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw',
-  
+
   // Full width on mobile, 50% on larger screens
   card: '(max-width: 768px) 100vw, 50vw',
-  
+
   // Full width on mobile, 33% on tablet, 25% on desktop
   grid: '(max-width: 640px) 100vw, (max-width: 1024px) 33vw, 25vw',
-  
+
   // Fixed small sizes for thumbnails and avatars
   thumbnail: '(max-width: 640px) 96px, 128px',
   avatar: '(max-width: 640px) 40px, 48px',
-  
+
   // Banner images
   banner: '(max-width: 768px) 100vw, (max-width: 1200px) 80vw, 1200px',
-  
+
   // Sidebar images
   sidebar: '(max-width: 1024px) 100vw, 300px',
-  
+
   // Content images (in article/blog content)
   content: '(max-width: 768px) 100vw, (max-width: 1200px) 80vw, 800px',
 } as const;
@@ -205,7 +205,7 @@ export function OptimizedImage({
           onError={handleError}
           onLoad={handleLoad}
           priority={priority}
-          loading={loading}
+          loading={priority ? undefined : loading}
           quality={quality}
           sizes={responsiveSizes}
           {...props}
@@ -238,7 +238,7 @@ export function OptimizedImage({
         onError={handleError}
         onLoad={handleLoad}
         priority={priority}
-        loading={loading}
+        loading={priority ? undefined : loading}
         quality={quality}
         sizes={responsiveSizes}
         {...props}

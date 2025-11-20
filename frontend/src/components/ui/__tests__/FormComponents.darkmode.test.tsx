@@ -170,7 +170,9 @@ describe('Form Components - Dark Mode', () => {
 
         it.skip('Select2 label has dark mode text color', () => {
             const { container } = render(
-                <Select2 label="Test Label" options={[]} />
+                <Select2 label="Test Label">
+                    <option value="test">Test Option</option>
+                </Select2>
             );
             const label = container.querySelector('label');
             expect(label).toHaveClass('dark:text-neutral-300');

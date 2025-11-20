@@ -40,7 +40,7 @@ class UnifiedSettings(BaseSettings):
 	# ==================== Application Settings ====================
 	environment: str = "development"
 	api_host: str = "127.0.0.1"
-	api_port: int = 8002
+	api_port: int = 8000
 	debug: bool = True
 	app_name: str = "Career Copilot"
 	app_version: str = "1.0.0"
@@ -160,17 +160,17 @@ class UnifiedSettings(BaseSettings):
 	# Google OAuth
 	google_client_id: Optional[str] = None
 	google_client_secret: Optional[str] = None
-	google_redirect_uri: str = "http://localhost:8002/api/v1/auth/oauth/google/callback"
+	google_redirect_uri: str = "http://localhost:8000/api/v1/auth/oauth/google/callback"
 
 	# LinkedIn OAuth
 	linkedin_client_id: Optional[str] = None
 	linkedin_client_secret: Optional[str] = None
-	linkedin_redirect_uri: str = "http://localhost:8002/api/v1/auth/oauth/linkedin/callback"
+	linkedin_redirect_uri: str = "http://localhost:8000/api/v1/auth/oauth/linkedin/callback"
 
 	# GitHub OAuth
 	github_client_id: Optional[str] = None
 	github_client_secret: Optional[str] = None
-	github_redirect_uri: str = "http://localhost:8002/api/v1/auth/oauth/github/callback"
+	github_redirect_uri: str = "http://localhost:8000/api/v1/auth/oauth/github/callback"
 
 	# ==================== Job Matching Configuration ====================
 	high_match_threshold: float = 80.0

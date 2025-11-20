@@ -9,7 +9,7 @@ import { Bell, X, Check, Zap, Clock, TrendingUp } from 'lucide-react';
 import { useState, useEffect } from 'react';
 
 import Button2 from '@/components/ui/Button2';
-import Card2 from '@/components/ui/Card2';
+import Card from '@/components/ui/Card2';
 import { logger } from '@/lib/logger';
 import { m, AnimatePresence } from '@/lib/motion';
 import {
@@ -83,7 +83,7 @@ export default function PushNotificationPrompt({
         // Subscribe to push notifications
         if (vapidPublicKey) {
           const subscription = await subscribeToPushNotifications(vapidPublicKey);
-          
+
           // Send subscription to backend
           await sendSubscriptionToBackend(subscription, userId);
         }
@@ -120,7 +120,7 @@ export default function PushNotificationPrompt({
         exit={{ opacity: 0, y: 50 }}
         className="fixed bottom-4 right-4 z-50 max-w-md"
       >
-        <Card2 className="p-6 shadow-2xl border-2 border-primary-200 dark:border-primary-800">
+        <Card className="p-6 shadow-2xl border-2 border-primary-200 dark:border-primary-800">
           {/* Close Button */}
           <button
             onClick={handleDismiss}
@@ -220,7 +220,7 @@ export default function PushNotificationPrompt({
           <p className="text-xs text-neutral-500 dark:text-neutral-500 mt-3 text-center">
             You can change this anytime in settings
           </p>
-        </Card2>
+        </Card>
       </m.div>
     </AnimatePresence>
   );

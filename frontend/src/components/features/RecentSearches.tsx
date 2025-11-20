@@ -10,7 +10,7 @@ import { Clock, Search, X, ChevronDown } from 'lucide-react';
 import { useState } from 'react';
 
 import Button2 from '@/components/ui/Button2';
-import Card2, { CardContent } from '@/components/ui/Card2';
+import Card, { CardContent } from '@/components/ui/Card2';
 import { useRecentSearches } from '@/hooks/useRecentSearches';
 import { fadeVariants, slideVariants, staggerContainer, staggerItem, springConfigs } from '@/lib/animations';
 import { m, AnimatePresence } from '@/lib/motion';
@@ -104,7 +104,7 @@ export function RecentSearches({
               transition={springConfigs.smooth}
               className="absolute top-full left-0 mt-2 w-96 max-w-[calc(100vw-2rem)] z-20"
             >
-              <Card2 className="shadow-xl">
+              <Card className="shadow-xl">
                 <CardContent className="p-4">
                   {/* Header */}
                   {recentSearches.length > 0 && (
@@ -168,7 +168,7 @@ export function RecentSearches({
                               }}
                               className="cursor-pointer transition-all duration-200 rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
                             >
-                              <Card2 hover>
+                              <Card hover>
                                 <CardContent className="p-3">
                                   <div className="flex items-start justify-between">
                                     <div className="flex-1 min-w-0">
@@ -206,7 +206,7 @@ export function RecentSearches({
                                     </button>
                                   </div>
                                 </CardContent>
-                              </Card2>
+                              </Card>
                             </div>
                           </m.div>
                         ))}
@@ -214,7 +214,7 @@ export function RecentSearches({
                     </m.div>
                   )}
                 </CardContent>
-              </Card2>
+              </Card>
             </m.div>
           </>
         )}

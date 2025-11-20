@@ -31,7 +31,14 @@ def upgrade():
 	op.add_column("jobs", sa.Column("investors", postgresql.ARRAY(sa.Text()), nullable=True))
 
 	# Tech and culture
-	op.add_column("jobs", sa.Column("tech_stack", postgresql.ARRAY(sa.Text()), nullable=True))
+	# Check if tech_stack exists
+	conn = op.get_bind()
+	inspector = sa.inspect(conn)
+	columns = [c['name'] for c in inspector.get_columns('jobs')]
+	
+	if 'tech_stack' not in columns:
+		op.add_column("jobs", sa.Column("tech_stack", postgresql.ARRAY(sa.Text()), nullable=True))
+		
 	op.add_column("jobs", sa.Column("company_culture_tags", postgresql.ARRAY(sa.Text()), nullable=True))
 	op.add_column("jobs", sa.Column("perks", postgresql.ARRAY(sa.Text()), nullable=True))
 

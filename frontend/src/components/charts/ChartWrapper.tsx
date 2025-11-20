@@ -4,8 +4,8 @@ import { Maximize, Minimize, Download, FileDown, Image as ImageIcon, AlertCircle
 import { useState, ReactNode } from 'react';
 
 import Button2 from '@/components/ui/Button2';
-import { Card2 } from '@/components/ui/Card2';
-import { Modal2 } from '@/components/ui/Modal2';
+import Card from '@/components/ui/Card2';
+import Modal from '@/components/ui/Modal2';
 import Tooltip from '@/components/ui/Tooltip';
 import { m, AnimatePresence } from '@/lib/motion';
 
@@ -109,7 +109,7 @@ export const ChartWrapper: React.FC<ChartWrapperProps> = ({
   };
 
   const chartContent = (
-    <Card2 className={`${className} ${isFullScreen ? 'h-full' : ''}`}>
+    <Card className={`${className} ${isFullScreen ? 'h-full' : ''}`}>
       <div className="p-4 sm:p-6">
         {/* Header */}
         <div className="flex items-start justify-between mb-4">
@@ -207,13 +207,13 @@ export const ChartWrapper: React.FC<ChartWrapperProps> = ({
           {renderContent()}
         </div>
       </div>
-    </Card2>
+    </Card>
   );
 
   // Render in modal if full screen
   if (isFullScreen) {
     return (
-      <Modal2
+      <Modal
         open={isFullScreen}
         onClose={() => setIsFullScreen(false)}
         title={title}
@@ -221,7 +221,7 @@ export const ChartWrapper: React.FC<ChartWrapperProps> = ({
         <div className="h-full">
           {chartContent}
         </div>
-      </Modal2>
+      </Modal>
     );
   }
 

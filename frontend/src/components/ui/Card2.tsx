@@ -1,4 +1,3 @@
-
 'use client';
 
 import { ReactNode, forwardRef, HTMLAttributes } from 'react';
@@ -49,7 +48,7 @@ const glowColors = {
   error: 'shadow-error-500/50 dark:shadow-error-400/50',
 };
 
-export const Card = forwardRef<HTMLDivElement, CardProps>(
+const Card = forwardRef<HTMLDivElement, CardProps>(
   (
     {
       children,

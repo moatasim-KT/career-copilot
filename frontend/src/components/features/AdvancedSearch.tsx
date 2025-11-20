@@ -11,9 +11,9 @@ import { Search, Save, Trash2, Download, Upload, Loader2 } from 'lucide-react';
 import { useState, useEffect, useCallback } from 'react';
 
 import Button2 from '@/components/ui/Button2';
-import Card2, { CardContent } from '@/components/ui/Card2';
-import Input from '@/components/ui/Input';
-import Modal, { ModalFooter } from '@/components/ui/Modal';
+import Card, { CardContent } from '@/components/ui/Card2';
+import Input from '@/components/ui/Input2';
+import Modal, { ModalFooter } from '@/components/ui/Modal2';
 import { slideVariants, springConfigs } from '@/lib/animations';
 import { logger } from '@/lib/logger';
 import { m, AnimatePresence } from '@/lib/motion';
@@ -268,7 +268,7 @@ export function AdvancedSearch({
                     exit={{ opacity: 0, height: 0 }}
                     className="px-6 pb-4"
                   >
-                    <Card2 className="bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800">
+                    <Card className="bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800">
                       <CardContent className="p-3 flex items-center justify-between">
                         <div className="flex items-center space-x-2">
                           {isPreviewLoading ? (
@@ -295,7 +295,7 @@ export function AdvancedSearch({
                           )}
                         </div>
                       </CardContent>
-                    </Card2>
+                    </Card>
                   </m.div>
                 )}
               </div>
@@ -385,7 +385,7 @@ export function AdvancedSearch({
 
       {/* Save Search Modal */}
       <Modal
-        isOpen={showSaveModal}
+        open={showSaveModal}
         onClose={() => setShowSaveModal(false)}
         title="Save Search"
         size="md"

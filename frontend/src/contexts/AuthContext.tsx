@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation';
 import React, { createContext, useCallback, useContext, useEffect, useState } from 'react';
 
 import { fetchApi } from '@/lib/api/client';
+import { webSocketService } from '@/lib/api/websocket';
 
 interface User {
     id: number;
@@ -34,6 +35,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // Load user from token on mount
     useEffect(() => {
         const initAuth = async () => {
+            // Check for auth bypass
+            if (process.env.NEXT_PUBLIC_DISABLE_AUTH === 'true') {
+                const demoUser = {
+                    id: 1,
+                    email: 'demo@example.com',
+                    username: 'demo_user',
+                    full_name: 'Demo User',
+                    skills: ['Python', 'React', 'TypeScript'],
+                    preferred_locations: ['Remote', 'New York']
+                };
+                setUser(demoUser);
+                localStorage.setItem('access_token', 'dummy_token');
+                localStorage.setItem('user', JSON.stringify(demoUser));
+                webSocketService.connect('dummy_token');
+                setIsLoading(false);
+                return;
+            }
+
             const token = localStorage.getItem('access_token');
             const storedUser = localStorage.getItem('user');
 
@@ -83,7 +102,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             });
 
             if (response.error) {
-                throw new Error(response.error || 'Login failed');
+                throw new Error(response.error?.message || 'Login failed');
             }
 
             if (response.data) {
@@ -109,7 +128,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             });
 
             if (response.error) {
-                throw new Error(response.error || 'Registration failed');
+                throw new Error(response.error?.message || 'Registration failed');
             }
 
             if (response.data) {

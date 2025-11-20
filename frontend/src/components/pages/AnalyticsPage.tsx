@@ -18,12 +18,13 @@ import {
   LazyLineChart,
   LazyComposedChart,
   LazyChartComponents,
-} from '@/components/lazy';
+}
+ from '@/components/lazy';
 import { useWebSocket } from '@/hooks/useWebSocket';
 import { apiClient, AnalyticsSummary } from '@/lib/api';
 import { logger } from '@/lib/logger';
 
-import Card from '../ui/Card';
+import Card, { CardHeader, CardTitle, CardContent } from '../ui/Card2';
 
 interface StatusBreakdownData {
   status: string;
@@ -137,7 +138,7 @@ export default function AnalyticsPage() {
     return (
       <div className="space-y-6">
         <h1 className="text-2xl md:text-4xl font-bold text-neutral-900">Analytics Dashboard</h1>
-        <Card className="p-6">
+        <Card key={"error"} className="p-6">
           <div className="text-center">
             <div className="text-red-500 mb-2">⚠️</div>
             <p className="text-neutral-600">Error loading analytics: {error}</p>
@@ -156,7 +157,7 @@ export default function AnalyticsPage() {
     return (
       <div className="space-y-6">
         <h1 className="text-2xl md:text-4xl font-bold text-neutral-900">Analytics Dashboard</h1>
-        <Card className="p-6">
+        <Card key={"no-analytics"} className="p-6">
           <p className="text-neutral-600">No analytics data available</p>
         </Card>
       </div>
@@ -168,7 +169,7 @@ export default function AnalyticsPage() {
     .map(([status, count]) => ({
       status: STATUS_LABELS[status as keyof typeof STATUS_LABELS] || status,
       count: count as number,
-      color: STATUS_COLORS[status as keyof typeof STATUS_COLORS] || '#6B7280',
+      color: STATUS_COLORS[status as keyof typeof STATUS_LABELS] || '#6B7280',
     }));
 
   const skillsData: SkillData[] = (analytics.top_skills_in_jobs || []).map(item => ({
@@ -279,18 +280,18 @@ export default function AnalyticsPage() {
               <p className="text-sm font-medium text-neutral-600">Daily Goal Progress</p>
               <p className="text-2xl font-bold text-neutral-900">{analytics.daily_goal_progress}%</p>
             </div>
-            <BarChart3 className="w-8 h-8 text-pink-500" />
-          </div>
-          <div className="mt-2">
-            <div className="w-full bg-neutral-200 rounded-full h-2">
-              <div
-                className="bg-pink-500 h-2 rounded-full transition-all duration-300"
-                style={{ width: `${Math.min(analytics.daily_goal_progress, 100)}%` }}
-              ></div>
+            <div className="mt-2">
+              <div className="w-full bg-neutral-200 rounded-full h-2">
+                <div
+                  className="bg-pink-500 h-2 rounded-full transition-all duration-300"
+                  style={{ width: `${Math.min(analytics.daily_goal_progress, 100)}%` }}
+                ></div>
+              </div>
+              <p className="text-xs text-neutral-500 mt-1">
+                {analytics.daily_applications_today} / {analytics.daily_application_goal} applications today
+              </p>
             </div>
-            <p className="text-xs text-neutral-500 mt-1">
-              {analytics.daily_applications_today} / {analytics.daily_application_goal} applications today
-            </p>
+            <BarChart3 className="w-8 h-8 text-pink-500" />
           </div>
         </Card>
 
@@ -453,6 +454,16 @@ export default function AnalyticsPage() {
               </div>
             )}
           </Card>
+
+          <Card key={"metrics-summary"} className="p-6">
+            <h3 className="text-lg font-semibold text-neutral-900 mb-4">Metrics Summary</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <p>Total Apps: {analytics.total_applications}</p>
+              <p>Total Interviews: {analytics.interviews_scheduled}</p>
+              <p>Offers: {analytics.offers_received}</p>
+            </div>
+          </Card>
+
         </div>
       )}
 

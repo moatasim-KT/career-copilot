@@ -1,9 +1,3 @@
-
-
-
-
-
-
 /* eslint-disable @typescript-eslint/no-unused-vars */
 'use client';
 
@@ -48,11 +42,11 @@ import {
   LazyUndoToast,
 } from '@/components/lazy';
 import Button2 from '@/components/ui/Button2';
-import Card2, { CardHeader, CardTitle, CardContent } from '@/components/ui/Card2';
+import Card, { CardHeader, CardTitle, CardContent } from '@/components/ui/Card2';
 import { ExportDropdown } from '@/components/ui/ExportDropdown';
-import Input from '@/components/ui/Input';
-import Select from '@/components/ui/Select';
-import Textarea from '@/components/ui/Textarea';
+import Input from '@/components/ui/Input2';
+import Select from '@/components/ui/Select2';
+import Textarea from '@/components/ui/Textarea2';
 import { useBulkUndo } from '@/hooks/useBulkUndo';
 import { useLocalStorage } from '@/hooks/useLocalStorage';
 import { useRecentSearches } from '@/hooks/useRecentSearches';
@@ -715,16 +709,16 @@ export default function JobsPage() {
       </div>
 
       {error && (
-        <Card2 className="border-red-200 bg-red-50">
+        <Card className="border-red-200 bg-red-50">
           <CardContent className="flex items-center p-4">
             <AlertCircle className="h-5 w-5 text-red-400 flex-shrink-0" />
             <p className="text-sm text-red-800 ml-3">{error}</p>
           </CardContent>
-        </Card2>
+        </Card>
       )}
 
       {/* Search and Filters */}
-      <Card2>
+      <Card>
         <CardContent className="p-4">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div className="md:col-span-2">
@@ -744,22 +738,28 @@ export default function JobsPage() {
             <Select
               value={sourceFilter}
               onChange={(e) => setSourceFilter(e.target.value)}
-              options={[
-                { value: 'all', label: 'All Sources' },
-                ...JOB_SOURCES,
-              ]}
               disabled={hasSearchCriteria(advancedSearchQuery)}
-            />
+            >
+              <option value="all">All Sources</option>
+              {JOB_SOURCES.map((source) => (
+                <option key={source.value} value={source.value}>
+                  {source.label}
+                </option>
+              ))}
+            </Select>
 
             <Select
               value={typeFilter}
               onChange={(e) => setTypeFilter(e.target.value)}
-              options={[
-                { value: 'all', label: 'All Types' },
-                ...JOB_TYPES,
-              ]}
               disabled={hasSearchCriteria(advancedSearchQuery)}
-            />
+            >
+              <option value="all">All Types</option>
+              {JOB_TYPES.map((type) => (
+                <option key={type.value} value={type.value}>
+                  {type.label}
+                </option>
+              ))}
+            </Select>
           </div>
 
           {/* Advanced Search Controls */}
@@ -844,9 +844,14 @@ export default function JobsPage() {
               <Select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value)}
-                options={SORT_OPTIONS}
                 className="w-48"
-              />
+              >
+                {SORT_OPTIONS.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </Select>
               <div className="flex rounded-md shadow-sm">
                 <button
                   type="button"
@@ -878,7 +883,7 @@ export default function JobsPage() {
             </div>
           </div>
         </CardContent>
-      </Card2>
+      </Card>
 
       {showComparisonView && (
         <JobComparisonView
@@ -890,7 +895,7 @@ export default function JobsPage() {
 
       {/* Job Form Modal */}
       <LazyModal
-        isOpen={showJobModal}
+        open={showJobModal}
         onClose={closeModal}
         title={editingJob ? 'Edit Job' : 'Add New Job'}
         size="xl"
@@ -930,8 +935,13 @@ export default function JobsPage() {
               label="Job Type"
               value={formData.job_type}
               onChange={(e) => setFormData(prev => ({ ...prev, job_type: e.target.value }))}
-              options={JOB_TYPES}
-            />
+            >
+              {JOB_TYPES.map((type) => (
+                <option key={type.value} value={type.value}>
+                  {type.label}
+                </option>
+              ))}
+            </Select>
 
             <Input
               label="Salary Range"
@@ -1037,7 +1047,7 @@ export default function JobsPage() {
 
       {/* Import Jobs Modal */}
       <LazyModal
-        isOpen={showImportModal}
+        open={showImportModal}
         onClose={() => setShowImportModal(false)}
         title="Import Jobs from CSV"
         size="xl"
@@ -1072,13 +1082,13 @@ export default function JobsPage() {
         isLoading ? (
           <div className="space-y-4">
             {[...Array(3)].map((_, i) => (
-              <Card2 key={i} className="animate-pulse">
+              <Card key={i} className="animate-pulse">
                 <CardContent className="p-6">
                   <div className="h-4 bg-neutral-200 rounded w-1/4 mb-2"></div>
                   <div className="h-6 bg-neutral-200 rounded w-1/2 mb-4"></div>
                   <div className="h-4 bg-neutral-200 rounded w-3/4"></div>
                 </CardContent>
-              </Card2>
+              </Card>
             ))}
           </div>
         ) : (
@@ -1177,12 +1187,12 @@ export default function JobsPage() {
       {
         successMessage && (
           <div className="fixed top-4 right-4 z-50">
-            <Card2 className="border-green-200 bg-green-50">
+            <Card className="border-green-200 bg-green-50">
               <CardContent className="flex items-center p-4">
                 <CheckCircle className="h-5 w-5 text-green-400 flex-shrink-0" />
                 <p className="text-sm text-green-800 ml-3">{successMessage}</p>
               </CardContent>
-            </Card2>
+            </Card>
           </div>
         )
       }
@@ -1190,12 +1200,12 @@ export default function JobsPage() {
       {
         errorMessage && (
           <div className="fixed top-4 right-4 z-50">
-            <Card2 className="border-red-200 bg-red-50">
+            <Card className="border-red-200 bg-red-50">
               <CardContent className="flex items-center p-4">
                 <AlertCircle className="h-5 w-5 text-red-400 flex-shrink-0" />
                 <p className="text-sm text-red-800 ml-3">{errorMessage}</p>
               </CardContent>
-            </Card2>
+            </Card>
           </div>
         )
       }

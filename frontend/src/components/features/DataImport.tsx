@@ -4,7 +4,7 @@ import { Upload, FileText, AlertCircle, CheckCircle, X, Download } from 'lucide-
 import { useState, useRef } from 'react';
 
 import Button2 from '@/components/ui/Button2';
-import Card2, { CardContent } from '@/components/ui/Card2';
+import Card, { CardContent } from '@/components/ui/Card2';
 import { logger } from '@/lib/logger';
 import { m, AnimatePresence } from '@/lib/motion';
 
@@ -269,7 +269,7 @@ export function DataImport({
 
       {/* Template Download */}
       {templateUrl && (
-        <Card2>
+        <Card>
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
@@ -286,12 +286,12 @@ export function DataImport({
               </Button2>
             </div>
           </CardContent>
-        </Card2>
+        </Card>
       )}
 
       {/* File Upload */}
       {!file && (
-        <Card2>
+        <Card>
           <CardContent className="p-8">
             <div
               className="border-2 border-dashed border-neutral-300 dark:border-neutral-700 rounded-lg p-12 text-center hover:border-blue-500 dark:hover:border-blue-400 transition-colors cursor-pointer"
@@ -324,7 +324,7 @@ export function DataImport({
               />
             </div>
           </CardContent>
-        </Card2>
+        </Card>
       )}
 
       {/* File Info and Preview */}
@@ -334,7 +334,7 @@ export function DataImport({
           animate={{ opacity: 1, y: 0 }}
           className="space-y-4"
         >
-          <Card2>
+          <Card>
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-3">
@@ -353,10 +353,10 @@ export function DataImport({
                 </Button2>
               </div>
             </CardContent>
-          </Card2>
+          </Card>
 
           {/* Column Mapping */}
-          <Card2>
+          <Card>
             <CardContent className="p-4">
               <h3 className="text-sm font-medium text-neutral-900 dark:text-neutral-100 mb-4">
                 Column Mapping
@@ -388,7 +388,7 @@ export function DataImport({
                 ))}
               </div>
             </CardContent>
-          </Card2>
+          </Card>
 
           {/* Validation Results */}
           {validationResult && (
@@ -399,7 +399,7 @@ export function DataImport({
                   animate={{ opacity: 1, height: 'auto' }}
                   exit={{ opacity: 0, height: 0 }}
                 >
-                  <Card2 className="border-red-200 bg-red-50 dark:border-red-900 dark:bg-red-950">
+                  <Card className="border-red-200 bg-red-50 dark:border-red-900 dark:bg-red-950">
                     <CardContent className="p-4">
                       <div className="flex items-start space-x-3">
                         <AlertCircle className="h-5 w-5 text-red-500 flex-shrink-0 mt-0.5" />
@@ -418,7 +418,7 @@ export function DataImport({
                         </div>
                       </div>
                     </CardContent>
-                  </Card2>
+                  </Card>
                 </m.div>
               )}
 
@@ -428,7 +428,7 @@ export function DataImport({
                   animate={{ opacity: 1, height: 'auto' }}
                   exit={{ opacity: 0, height: 0 }}
                 >
-                  <Card2 className="border-yellow-200 bg-yellow-50 dark:border-yellow-900 dark:bg-yellow-950">
+                  <Card className="border-yellow-200 bg-yellow-50 dark:border-yellow-900 dark:bg-yellow-950">
                     <CardContent className="p-4">
                       <div className="flex items-start space-x-3">
                         <AlertCircle className="h-5 w-5 text-yellow-500 flex-shrink-0 mt-0.5" />
@@ -444,14 +444,14 @@ export function DataImport({
                         </div>
                       </div>
                     </CardContent>
-                  </Card2>
+                  </Card>
                 </m.div>
               )}
             </AnimatePresence>
           )}
 
           {/* Data Preview */}
-          <Card2>
+          <Card>
             <CardContent className="p-4">
               <h3 className="text-sm font-medium text-neutral-900 dark:text-neutral-100 mb-4">
                 Preview (First 5 Rows)
@@ -491,7 +491,7 @@ export function DataImport({
                 </table>
               </div>
             </CardContent>
-          </Card2>
+          </Card>
 
           {/* Import Button */}
           <div className="flex justify-end space-x-3">
@@ -516,7 +516,7 @@ export function DataImport({
           animate={{ opacity: 1, scale: 1 }}
           className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
         >
-          <Card2 className="max-w-md">
+          <Card className="max-w-md">
             <CardContent className="p-8 text-center">
               <CheckCircle className="h-16 w-16 text-green-500 mx-auto mb-4" />
               <h3 className="text-xl font-bold text-neutral-900 dark:text-neutral-100 mb-2">
@@ -526,20 +526,20 @@ export function DataImport({
                 Successfully imported {parsedData.length} rows
               </p>
             </CardContent>
-          </Card2>
+          </Card>
         </m.div>
       )}
 
       {/* Error Message */}
       {importError && (
-        <Card2 className="border-red-200 bg-red-50 dark:border-red-900 dark:bg-red-950">
+        <Card className="border-red-200 bg-red-50 dark:border-red-900 dark:bg-red-950">
           <CardContent className="p-4">
             <div className="flex items-center space-x-3">
               <AlertCircle className="h-5 w-5 text-red-500 flex-shrink-0" />
               <p className="text-sm text-red-800 dark:text-red-200">{importError}</p>
             </div>
           </CardContent>
-        </Card2>
+        </Card>
       )}
     </div>
   );

@@ -10,9 +10,9 @@ import { Save, Search, Edit, Trash2, Clock, Tag, ChevronDown } from 'lucide-reac
 import { useState, useEffect } from 'react';
 
 import Button2 from '@/components/ui/Button2';
-import Card2, { CardContent } from '@/components/ui/Card2';
-import Input from '@/components/ui/Input';
-import Modal, { ModalFooter } from '@/components/ui/Modal';
+import Card, { CardContent } from '@/components/ui/Card2';
+import Input from '@/components/ui/Input2';
+import Modal, { ModalFooter } from '@/components/ui/Modal2';
 import { useLocalStorage } from '@/hooks/useLocalStorage';
 import { fadeVariants, slideVariants, staggerContainer, staggerItem, springConfigs } from '@/lib/animations';
 import { logger } from '@/lib/logger';
@@ -134,6 +134,8 @@ export function SavedSearches({
     return (b.useCount || 0) - (a.useCount || 0);
   });
 
+  const previewCount = editingSearch?.resultCount ?? null;
+
   return (
     <>
       <div className={`relative ${className}`}>
@@ -172,7 +174,7 @@ export function SavedSearches({
                 transition={springConfigs.smooth}
                 className="absolute top-full left-0 mt-2 w-96 max-w-[calc(100vw-2rem)] z-20"
               >
-                <Card2 className="shadow-xl">
+                <Card className="shadow-xl">
                   <CardContent className="p-4">
                     {savedSearches.length === 0 ? (
                       <m.div
@@ -220,7 +222,7 @@ export function SavedSearches({
                                 }}
                                 className="cursor-pointer transition-all duration-200 rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
                               >
-                                <Card2 hover>
+                                <Card hover>
                                   <CardContent className="p-3">
                                     <div className="flex items-start justify-between">
                                       <div className="flex-1 min-w-0">
@@ -258,14 +260,13 @@ export function SavedSearches({
                                           )}
 
                                           {search.tags && search.tags.length > 0 && (
-                                            <div className="flex items-center space-x-1">
+                                            <span className="flex items-center space-x-1">
                                               <Tag className="h-3 w-3" />
                                               <span>{search.tags.join(', ')}</span>
-                                            </div>
+                                            </span>
                                           )}
                                         </div>
                                       </div>
-
                                       <div className="flex items-center space-x-1 ml-2">
                                         <button
                                           type="button"
@@ -293,7 +294,7 @@ export function SavedSearches({
                                       </div>
                                     </div>
                                   </CardContent>
-                                </Card2>
+                                </Card>
                               </div>
                             </m.div>
                           ))}
@@ -301,7 +302,7 @@ export function SavedSearches({
                       </m.div>
                     )}
                   </CardContent>
-                </Card2>
+                </Card>
               </m.div>
             </>
           )}
@@ -310,7 +311,7 @@ export function SavedSearches({
 
       {/* Edit Modal */}
       <Modal
-        isOpen={showEditModal}
+        open={showEditModal}
         onClose={() => setShowEditModal(false)}
         title="Edit Saved Search"
         size="md"
@@ -330,6 +331,12 @@ export function SavedSearches({
             onChange={(e) => setEditDescription(e.target.value)}
             placeholder="Add a description to help remember this search..."
           />
+
+          {previewCount !== null && (
+            <div className="text-sm text-neutral-600 dark:text-neutral-400">
+              This search currently returns {previewCount} result{previewCount !== 1 ? 's' : ''}.
+            </div>
+          )}
         </div>
 
         <ModalFooter>

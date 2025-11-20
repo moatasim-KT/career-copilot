@@ -64,8 +64,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/DropdownMenu';
-import Input from '@/components/ui/Input';
-import Select from '@/components/ui/Select';
+import Input from '@/components/ui/Input2';
+import Select from '@/components/ui/Select2';
 import { useDebounce } from '@/hooks/use-debounce';
 import { useMediaQuery } from '@/hooks/use-media-query';
 import { exportToCSV } from '@/lib/export';
@@ -652,16 +652,15 @@ export function VirtualDataTable<TData, TValue>({
               onChange={(e) => {
                 tableWithSelection.setPageSize(Number(e.target.value));
               }}
-              options={[
-                { value: '10', label: '10' },
-                { value: '20', label: '20' },
-                { value: '30', label: '30' },
-                { value: '40', label: '40' },
-                { value: '50', label: '50' },
-                { value: '100', label: '100' },
-                { value: '200', label: '200' },
-              ]}
-            />
+            >
+              <option value="10">10</option>
+              <option value="20">20</option>
+              <option value="30">30</option>
+              <option value="40">40</option>
+              <option value="50">50</option>
+              <option value="100">100</option>
+              <option value="200">200</option>
+            </Select>
           </div>
           <div className="flex w-[100px] items-center justify-center text-sm font-medium">
             Page {tableWithSelection.getState().pagination.pageIndex + 1} of{' '}

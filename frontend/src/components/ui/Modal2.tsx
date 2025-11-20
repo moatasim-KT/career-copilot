@@ -93,7 +93,7 @@ export const Modal2 = forwardRef<HTMLDivElement, Modal2Props>(
                         initial="hidden"
                         animate="visible"
                         exit="exit"
-                        variants={backdropVariants}
+                            variants={backdropVariants}
                         onClick={onClose}
                         aria-modal="true"
                         role="dialog"
@@ -154,3 +154,7 @@ export const Modal2 = forwardRef<HTMLDivElement, Modal2Props>(
 Modal2.displayName = 'Modal2';
 
 export default Modal2;
+
+export function ModalFooter({ children }: { children: React.ReactNode }) {
+  return <div className="mt-6 flex items-center justify-end gap-3">{children}</div>;
+}

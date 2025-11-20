@@ -55,6 +55,7 @@ class WebSocketService {
   private pongTimeout: NodeJS.Timeout | null = null;
   private lastPongTime: number = 0;
   private baseUrl: string;
+  private wsUrl: string;
   private shouldReconnect = true; // Flag to control reconnection
   private messageQueue: Record<string, unknown>[] = [];
 
@@ -67,7 +68,6 @@ class WebSocketService {
     this.wsUrl = wsUrl || apiUrl
       .replace('http://', 'ws://')
       .replace('https://', 'wss://');
-    this.connect();
   }
 
   /**

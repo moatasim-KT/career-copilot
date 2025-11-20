@@ -22,7 +22,7 @@ import React, { useState, useReducer, useEffect, useCallback } from 'react';
 import { toast } from 'sonner';
 
 import Button2 from '@/components/ui/Button2';
-import Modal2 from '@/components/ui/Modal2';
+import Modal from '@/components/ui/Modal2';
 import { ProgressBar } from '@/components/ui/ProgressBar';
 import { slideVariants } from '@/lib/animations';
 import apiClient from '@/lib/api/client';
@@ -245,7 +245,7 @@ const OnboardingWizard: React.FC<OnboardingWizardProps> = ({
       });
 
       if (response.error) {
-        throw new Error(response.error);
+        throw new Error(response.error.message);
       }
 
       dispatch({ type: 'MARK_COMPLETE', payload: stepId });
@@ -445,7 +445,7 @@ const OnboardingWizard: React.FC<OnboardingWizardProps> = ({
   const isLastStep = currentStep === steps.length - 1;
 
   return (
-    <Modal2
+    <Modal
       open={isOpen}
       onClose={handleClose}
       size="xl"
@@ -595,7 +595,7 @@ const OnboardingWizard: React.FC<OnboardingWizardProps> = ({
           </div>
         </div>
       </div>
-    </Modal2>
+    </Modal>
   );
 };
 

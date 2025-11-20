@@ -14,7 +14,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/DropdownMenu';
-import Modal2 from '@/components/ui/Modal2';
+import Modal from '@/components/ui/Modal2';
 import MultiSelect2 from '@/components/ui/MultiSelect2';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/Popover';
 import Tooltip from '@/components/ui/Tooltip';
@@ -228,7 +228,7 @@ export default function GlassMorphismTestPage() {
       </div>
 
       {/* Modal */}
-      <Modal2
+      <Modal
         open={modalOpen}
         onClose={() => setModalOpen(false)}
         title="Glass Morphism Modal"
@@ -241,7 +241,7 @@ export default function GlassMorphismTestPage() {
           </p>
           <Button2 onClick={() => setModalOpen(false)}>Close</Button2>
         </div>
-      </Modal2>
+      </Modal>
 
       {/* Drawer */}
       <Drawer2

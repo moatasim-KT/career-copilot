@@ -61,16 +61,6 @@ export function RealtimeProvider({
   return (
     <>
       {children}
-      {/* Toast notifications container */}
-      <Toaster
-        position="top-right"
-        expand={false}
-        richColors
-        closeButton
-        toastOptions={{
-          className: 'dark:bg-neutral-800 dark:text-neutral-100 dark:border-neutral-700',
-        }}
-      />
     </>
   );
 }

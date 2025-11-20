@@ -1,19 +1,28 @@
-
 'use client';
 
-import FileUpload from '@/components/ui/FileUpload';
+import { useState } from 'react';
+import FileUpload2 from '@/components/ui/FileUpload2';
 import { logger } from '@/lib/logger';
 
 function ResumePage() {
-  const handleUploadSuccess = (data: any) => {
-    logger.log('Upload successful:', data);
-    // Handle success, e.g., show a success message or update user profile
+  const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
+
+  const handleFileChange = (files: File[]) => {
+    setUploadedFiles(files);
+    logger.log('Files selected:', files);
+    // Handle file selection, e.g., upload to server
   };
 
   return (
     <div className="space-y-8">
       <h1 className="text-3xl font-bold text-gray-900">Upload Your Resume</h1>
-      <FileUpload onUploadSuccess={handleUploadSuccess} />
+      <FileUpload2
+        value={uploadedFiles}
+        onChange={handleFileChange}
+        accept=".pdf,.doc,.docx"
+        maxFiles={1}
+        helperText="Upload your resume in PDF, DOC, or DOCX format"
+      />
     </div>
   );
 }

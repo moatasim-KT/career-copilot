@@ -1,20 +1,19 @@
-
 # 🚀 Career Copilot
 
 ---
 ## 🧭 Quick Navigation
 
-- [[PLAN]] – Project Plan
-- [[TESTING_AND_UI_REFACTORING_OVERVIEW]] – Testing & UI Refactoring Overview
-- [[COMPONENT_LIBRARY_INVENTORY.md]] – Component Inventory
-- [[DESIGN_SYSTEM.md]] – Design System Guide
-- [[ERROR_HANDLING_GUIDE.md]] – Error Handling Guide
-- [[E2E_TESTING_MIGRATION.md]] – E2E Testing Migration Guide
-- [[docs/DEVELOPER_GUIDE]] – Developer Guide
-- [[TODO.md]] – Todo List
-- [[FRONTEND_QUICK_START.md]] – Frontend Quick Start
-- [[USER_GUIDE.md]] – User Guide
-- [[ENVIRONMENT_CONFIGURATION.md]] – Environment Configuration
+- [[PLAN.md|PLAN]] – Project Plan
+- [[docs/testing/TESTING_AND_UI_REFACTORING_OVERVIEW.md|Testing and UI Refactoring Overview]]
+- [[docs/COMPONENT_LIBRARY_INVENTORY.md|Component Inventory]]
+- [[docs/DESIGN_SYSTEM.md|Design System Guide]]
+- [[docs/ERROR_HANDLING_GUIDE.md|Error Handling Guide]]
+- [[docs/E2E_TESTING_MIGRATION.md|E2E Testing Migration]]
+- [[docs/DEVELOPER_GUIDE.md|Developer Guide]]
+- [[TODO.md|TODO]] – Todo List
+- [[docs/FRONTEND_QUICK_START.md|Frontend Quick Start]]
+- [[docs/USER_GUIDE.md|User Guide]]
+- [[docs/ENVIRONMENT_CONFIGURATION.md|Environment Configuration]]
 ---
 
 ## 🚀 Key Entry Points
@@ -36,16 +35,16 @@
 **💰 100% FREE to run!** No credit card required - see [[FREE_TIER_SETUP|Free Tier Setup Guide]]
 
 
-**Quick Links**: [[LOCAL_SETUP.md]] | [[FREE_TIER_SETUP.md]] | [[PROJECT_STATUS.md]] | [[docs/index.md]] | [[CONTRIBUTING.md]]
+**Quick Links**: [[LOCAL_SETUP.md|Local Setup]] | [[docs/FREE_TIER_SETUP.md|Free Tier Setup]] | [[docs/PROJECT_STATUS.md|Project Status]] | [[docs/index.md|Documentation]] | [[CONTRIBUTING.md|Contributing]]
 
 **Documentation**:
-- [[FREE_TIER_SETUP|🆓 Free Tier Setup]] - **Zero-cost deployment guide** (5 minutes!)
-- [[docs/USER_GUIDE|User Guide]] - User guide and tutorials
-- [[DEVELOPER_GUIDE|Developer Guide]] - Developer documentation
-- [[docs/architecture/ARCHITECTURE|Architecture]] - System architecture
-- [[docs/api/API|API Reference]] - API reference
-- [[backend/README|Backend Guide]] - Backend guide
-- [[frontend/README|Frontend Guide]] - Frontend guide
+- [[docs/FREE_TIER_SETUP.md|🆓 Free Tier Setup]] - **Zero-cost deployment guide** (5 minutes!)
+- [[docs/USER_GUIDE.md|User Guide]] - User guide and tutorials
+- [[docs/DEVELOPER_GUIDE.md|Developer Guide]] - Developer documentation
+- [[docs/architecture/ARCHITECTURE.md|Architecture]] - System architecture
+- [[docs/api/API.md|API Reference]] - API reference
+- [[backend/README.md|Backend Guide]] - Backend guide
+- [[frontend/README.md|Frontend Guide]] - Frontend guide
 
 [![Python](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.109+-green.svg)](https://fastapi.tiangolo.com/)
@@ -169,9 +168,9 @@ Career Copilot is a comprehensive AI-powered platform that revolutionizes the jo
 
 ### 🚀 Quick Start
 
-**For free deployment** (recommended): See [[FREE_TIER_SETUP|🆓 Free Tier Setup Guide]] - 5 minutes, $0/month
+**For free deployment** (recommended): See [[docs/FREE_TIER_SETUP.md|🆓 Free Tier Setup Guide]] - 5 minutes, $0/month
 
-**For full setup**: See [[LOCAL_SETUP|Local Setup Guide]] - Complete guide with all features
+**For full setup**: See [[LOCAL_SETUP.md|Local Setup Guide]] - Complete guide with all features
 
 #### Option 1: Free Tier (Zero Cost) ⭐
 
@@ -222,7 +221,7 @@ docker-compose exec backend alembic upgrade head
 # API Docs: http://localhost:8002/docs
 ```
 
-For detailed setup, architecture, and troubleshooting: [[LOCAL_SETUP|Local Setup Guide]]
+For detailed setup, architecture, and troubleshooting: [[LOCAL_SETUP.md|Local Setup Guide]]
 
 ---
 
@@ -278,23 +277,23 @@ For detailed setup, architecture, and troubleshooting: [[LOCAL_SETUP|Local Setup
 
 ## 📚 Documentation
 
-**Start here**: [[LOCAL_SETUP]] - Complete local development guide with code references
+**Start here**: [[LOCAL_SETUP.md|Local Setup]] - Complete local development guide with code references
 
 ### Core Documentation
-- **Local Setup**: [[LOCAL_SETUP]] - Docker, configuration, troubleshooting, architecture
-- **Testing**: [[backend/tests/TESTING_NOTES|Testing Notes]] - Test infrastructure and known issues
-- **Coding Standards**: [[.github/copilot-instructions|Copilot Instructions]] - Project conventions and patterns
+- **Local Setup**: [[LOCAL_SETUP.md|Local Setup]] - Docker, configuration, troubleshooting, architecture
+- **Testing**: [[backend/tests/TESTING_NOTES.md|Testing Notes]] - Test infrastructure and known issues
+- **Coding Standards**: [[.github/copilot-instructions.md|Copilot Instructions]] - Project conventions and patterns
 - **API Reference**: http://localhost:8000/docs (OpenAPI, when backend running)
-- **Documentation Hub**: [[docs/index|Documentation Hub]] - Central documentation index
+- **Documentation Hub**: [[docs/index.md|Documentation Hub]] - Central documentation index
 
-- **[[docs/deployment/DEPLOYMENT|Deployment Guide]]** - Production deployment instructions
+- **[[docs/deployment/DEPLOYMENT.md|Deployment Guide]]** - Production deployment instructions
   - Docker Compose deployment
   - Kubernetes deployment
   - Cloud platforms (AWS, GCP, Render, etc.)
 
 ### 🔧 Troubleshooting
 
-- **[[docs/troubleshooting/COMMON_ISSUES|Common Issues]]** - Solutions to common problems
+- **[[docs/troubleshooting/COMMON_ISSUES.md|Common Issues]]** - Solutions to common problems
   - Installation issues
   - API troubleshooting
   - Performance optimization
@@ -617,7 +616,7 @@ See [Security Best Practices](docs/deployment/DEPLOYMENT.md#security) for more d
 
 **Main branch is now unified and up to date.**
 
-See [[TODO]] for the current phase-by-phase roadmap.
+See [[TODO.md|TODO]] for the current phase-by-phase roadmap.
 
 **Other Features In Development**:
 - 🔄 Multi-user authentication system
@@ -628,7 +627,7 @@ See [[TODO]] for the current phase-by-phase roadmap.
 
 ## 🤝 Contributing
 
-We welcome contributions! Please see our [[CONTRIBUTING|Contributing Guide]] for details.
+We welcome contributions! Please see our [[CONTRIBUTING.md|Contributing Guide]] for details.
 
 ### Development Workflow
 
@@ -640,8 +639,8 @@ We welcome contributions! Please see our [[CONTRIBUTING|Contributing Guide]] for
 6. Run `make quality-check` before submitting to catch issues early
 
 **Coordination Guidelines**:
-- Review [[TODO]] before starting work to avoid duplicate efforts
-- Record decisions or progress in [[TODO]] / [[PROJECT_STATUS]] or the associated issue
+- Review [[TODO.md|TODO]] before starting work to avoid duplicate efforts
+- Record decisions or progress in [[TODO.md|TODO]] / [[docs/PROJECT_STATUS.md|PROJECT_STATUS]] or the associated issue
 - Keep changes scoped per task and link to the relevant section in PR summaries
 - Follow branching strategy: `feature/*`, `fix/*`, `docs/*`, `chore/*`
 
@@ -655,14 +654,14 @@ We welcome contributions! Please see our [[CONTRIBUTING|Contributing Guide]] for
 
 ## 🔗 Project Links
 
-- [[TODO]] - Current development tasks and progress
-- [[PLAN]] - Implementation plan and roadmap
-- [[RESEARCH]] - Research findings and analysis
-- [[CHANGELOG]] - Version history and changes
-- [[CONTRIBUTING]] - Contribution guidelines
-- [[DEVELOPER_GUIDE|Developer Guide]] - Comprehensive development documentation
-- [[docs/USER_GUIDE|User Guide]] - User documentation and tutorials
-- [[docs/FRONTEND_QUICK_START|Frontend Quick Start]] - Frontend development setup
+- [[TODO.md|TODO]] - Current development tasks and progress
+- [[PLAN.md|PLAN]] - Implementation plan and roadmap
+- [[docs/RESEARCH.md|RESEARCH]] - Research findings and analysis
+- [[CHANGELOG.md|CHANGELOG]] - Version history and changes
+- [[CONTRIBUTING.md|CONTRIBUTING]] - Contribution guidelines
+- [[docs/DEVELOPER_GUIDE.md|Developer Guide]] - Comprehensive development documentation
+- [[docs/USER_GUIDE.md|User Guide]] - User documentation and tutorials
+- [[docs/FRONTEND_QUICK_START.md|Frontend Quick Start]] - Frontend development setup
 
 ## �📄 License
 

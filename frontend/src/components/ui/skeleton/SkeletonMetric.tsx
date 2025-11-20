@@ -2,7 +2,7 @@
  * Skeleton loader for metric/stat cards
  */
 
-import { Skeleton } from './Skeleton';
+import { Skeleton2 as Skeleton } from '../Skeleton2';
 
 export function SkeletonMetric() {
   return (

@@ -3,8 +3,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 
 import Button from '@/components/ui/Button2';
-import Card2 from '@/components/ui/Card2';
-import Textarea from '@/components/ui/Textarea';
+import Card from '@/components/ui/Card2';
+import Textarea from '@/components/ui/Textarea2';
 import { apiClient, Job } from '@/lib/api';
 import { logger } from '@/lib/logger';
 
@@ -225,7 +225,7 @@ export default function InterviewPractice({ selectedJob, onSessionComplete }: In
   if (!currentSession) {
     return (
       <div className="space-y-6">
-        <Card2 className="p-6">
+        <Card className="p-6">
           <h3 className="text-lg font-semibold mb-4">Interview Practice</h3>
 
           <div className="space-y-6">
@@ -288,11 +288,11 @@ export default function InterviewPractice({ selectedJob, onSessionComplete }: In
               {loading ? 'Starting Session...' : `Start ${getSessionTypeLabel(sessionType)}`}
             </Button>
           </div>
-        </Card2>
+        </Card>
 
         {/* Session History */}
         {sessionHistory.length > 0 && (
-          <Card2 className="p-6">
+          <Card className="p-6">
             <h4 className="text-lg font-semibold mb-4">Recent Sessions</h4>
             <div className="space-y-3">
               {sessionHistory.slice(-5).reverse().map((session) => (
@@ -316,7 +316,7 @@ export default function InterviewPractice({ selectedJob, onSessionComplete }: In
                 </div>
               ))}
             </div>
-          </Card2>
+          </Card>
         )}
 
         {error && (
@@ -331,7 +331,7 @@ export default function InterviewPractice({ selectedJob, onSessionComplete }: In
   if (showFeedback && currentSession.status === 'completed') {
     return (
       <div className="space-y-6">
-        <Card2 className="p-6">
+        <Card className="p-6">
           <div className="text-center mb-6">
             <h3 className="text-2xl font-bold text-gray-900 mb-2">Interview Complete!</h3>
             <div className="flex items-center justify-center space-x-4">
@@ -426,7 +426,7 @@ export default function InterviewPractice({ selectedJob, onSessionComplete }: In
               Review Answers
             </Button>
           </div>
-        </Card2>
+        </Card>
       </div>
     );
   }
@@ -437,7 +437,7 @@ export default function InterviewPractice({ selectedJob, onSessionComplete }: In
 
   return (
     <div className="space-y-6">
-      <Card2 className="p-6">
+      <Card className="p-6">
         {/* Session Header */}
         <div className="flex items-center justify-between mb-6">
           <div>
@@ -531,7 +531,7 @@ export default function InterviewPractice({ selectedJob, onSessionComplete }: In
             </div>
           </div>
         </div>
-      </Card2>
+      </Card>
     </div>
   );
 }

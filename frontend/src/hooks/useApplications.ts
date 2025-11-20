@@ -16,7 +16,7 @@ export const useApplications = (options: UseApplicationsOptions = {}) => {
     queryFn: async () => {
       const response = await ApplicationsService.list({ skip, limit });
       if (response.error) {
-        throw new Error(response.error);
+        throw new Error(response.error.message);
       }
       return response.data || [];
     },

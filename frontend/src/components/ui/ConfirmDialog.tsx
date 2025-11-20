@@ -1,7 +1,7 @@
 import React from 'react';
 
 import { Button } from './Button2';
-import Modal from './Modal';
+import Modal from './Modal2';
 
 export interface ConfirmDialogProps {
     isOpen: boolean;
@@ -25,7 +25,7 @@ export default function ConfirmDialog({
     onCancel,
 }: ConfirmDialogProps) {
     return (
-        <Modal isOpen={isOpen} onClose={onCancel} title={title} size="sm">
+        <Modal open={isOpen} onClose={onCancel} title={title} size="sm">
             <div className="mb-6 text-gray-700">{message}</div>
             <div className="flex justify-end space-x-3">
                 <Button variant="outline" onClick={onCancel}>{cancelLabel}</Button>

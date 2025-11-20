@@ -22,54 +22,61 @@ depends_on: Union[str, Sequence[str], None] = None
 
 def upgrade() -> None:
 	"""Upgrade schema."""
-	# Create help_articles table
-	op.create_table(
-		"help_articles",
-		sa.Column("id", sa.Integer(), nullable=False),
-		sa.Column("title", sa.String(length=255), nullable=False),
-		sa.Column("slug", sa.String(length=255), nullable=False),
-		sa.Column("content", sa.Text(), nullable=False),
-		sa.Column("excerpt", sa.String(length=500), nullable=True),
-		sa.Column("category", sa.String(length=100), nullable=False),
-		sa.Column("tags", postgresql.JSON(astext_type=sa.Text()), nullable=True),
-		sa.Column("meta_description", sa.String(length=500), nullable=True),
-		sa.Column("search_keywords", postgresql.JSON(astext_type=sa.Text()), nullable=True),
-		sa.Column("is_published", sa.Boolean(), nullable=True),
-		sa.Column("published_at", sa.DateTime(), nullable=True),
-		sa.Column("view_count", sa.Integer(), nullable=True),
-		sa.Column("helpful_votes", sa.Integer(), nullable=True),
-		sa.Column("unhelpful_votes", sa.Integer(), nullable=True),
-		sa.Column("created_at", sa.DateTime(), nullable=True),
-		sa.Column("updated_at", sa.DateTime(), nullable=True),
-		sa.PrimaryKeyConstraint("id"),
-	)
-	op.create_index(op.f("ix_help_articles_category"), "help_articles", ["category"], unique=False)
-	op.create_index(op.f("ix_help_articles_created_at"), "help_articles", ["created_at"], unique=False)
-	op.create_index(op.f("ix_help_articles_id"), "help_articles", ["id"], unique=False)
-	op.create_index(op.f("ix_help_articles_is_published"), "help_articles", ["is_published"], unique=False)
-	op.create_index(op.f("ix_help_articles_slug"), "help_articles", ["slug"], unique=True)
+	# Check if tables exist before creating
+	conn = op.get_bind()
+	inspector = sa.inspect(conn)
+	existing_tables = inspector.get_table_names()
 
-	# Create help_article_votes table
-	op.create_table(
-		"help_article_votes",
-		sa.Column("id", sa.Integer(), nullable=False),
-		sa.Column("article_id", sa.Integer(), nullable=False),
-		sa.Column("user_id", sa.Integer(), nullable=False),
-		sa.Column("is_helpful", sa.Boolean(), nullable=False),
-		sa.Column("created_at", sa.DateTime(), nullable=True),
-		sa.ForeignKeyConstraint(
-			["article_id"],
-			["help_articles.id"],
-		),
-		sa.ForeignKeyConstraint(
-			["user_id"],
-			["users.id"],
-		),
-		sa.PrimaryKeyConstraint("id"),
-	)
-	op.create_index(op.f("ix_help_article_votes_article_id"), "help_article_votes", ["article_id"], unique=False)
-	op.create_index(op.f("ix_help_article_votes_id"), "help_article_votes", ["id"], unique=False)
-	op.create_index(op.f("ix_help_article_votes_user_id"), "help_article_votes", ["user_id"], unique=False)
+	if "help_articles" not in existing_tables:
+		# Create help_articles table
+		op.create_table(
+			"help_articles",
+			sa.Column("id", sa.Integer(), nullable=False),
+			sa.Column("title", sa.String(length=255), nullable=False),
+			sa.Column("slug", sa.String(length=255), nullable=False),
+			sa.Column("content", sa.Text(), nullable=False),
+			sa.Column("excerpt", sa.String(length=500), nullable=True),
+			sa.Column("category", sa.String(length=100), nullable=False),
+			sa.Column("tags", postgresql.JSON(astext_type=sa.Text()), nullable=True),
+			sa.Column("meta_description", sa.String(length=500), nullable=True),
+			sa.Column("search_keywords", postgresql.JSON(astext_type=sa.Text()), nullable=True),
+			sa.Column("is_published", sa.Boolean(), nullable=True),
+			sa.Column("published_at", sa.DateTime(), nullable=True),
+			sa.Column("view_count", sa.Integer(), nullable=True),
+			sa.Column("helpful_votes", sa.Integer(), nullable=True),
+			sa.Column("unhelpful_votes", sa.Integer(), nullable=True),
+			sa.Column("created_at", sa.DateTime(), nullable=True),
+			sa.Column("updated_at", sa.DateTime(), nullable=True),
+			sa.PrimaryKeyConstraint("id"),
+		)
+		op.create_index(op.f("ix_help_articles_category"), "help_articles", ["category"], unique=False)
+		op.create_index(op.f("ix_help_articles_created_at"), "help_articles", ["created_at"], unique=False)
+		op.create_index(op.f("ix_help_articles_id"), "help_articles", ["id"], unique=False)
+		op.create_index(op.f("ix_help_articles_is_published"), "help_articles", ["is_published"], unique=False)
+		op.create_index(op.f("ix_help_articles_slug"), "help_articles", ["slug"], unique=True)
+
+	if "help_article_votes" not in existing_tables:
+		# Create help_article_votes table
+		op.create_table(
+			"help_article_votes",
+			sa.Column("id", sa.Integer(), nullable=False),
+			sa.Column("article_id", sa.Integer(), nullable=False),
+			sa.Column("user_id", sa.Integer(), nullable=False),
+			sa.Column("is_helpful", sa.Boolean(), nullable=False),
+			sa.Column("created_at", sa.DateTime(), nullable=True),
+			sa.ForeignKeyConstraint(
+				["article_id"],
+				["help_articles.id"],
+			),
+			sa.ForeignKeyConstraint(
+				["user_id"],
+				["users.id"],
+			),
+			sa.PrimaryKeyConstraint("id"),
+		)
+		op.create_index(op.f("ix_help_article_votes_article_id"), "help_article_votes", ["article_id"], unique=False)
+		op.create_index(op.f("ix_help_article_votes_id"), "help_article_votes", ["id"], unique=False)
+		op.create_index(op.f("ix_help_article_votes_user_id"), "help_article_votes", ["user_id"], unique=False)
 
 	# Seed initial help articles
 	op.execute("""

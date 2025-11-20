@@ -26,9 +26,9 @@ import {
 } from 'lucide-react';
 import React, { useState, useEffect } from 'react';
 
-import Input2 from '@/components/ui/Input2';
+import Input from '@/components/ui/Input2';
 import MultiSelect2 from '@/components/ui/MultiSelect2';
-import Select2 from '@/components/ui/Select2';
+import Select from '@/components/ui/Select2';
 import { staggerContainer, staggerItem } from '@/lib/animations';
 import { m } from '@/lib/motion';
 import { cn } from '@/lib/utils';
@@ -178,7 +178,7 @@ const PreferencesStep: React.FC<StepProps> = ({ data, onChange }) => {
 
         {/* Preferred locations */}
         <div>
-          <Input2
+          <Input
             label="Preferred Locations"
             placeholder="e.g., Berlin, Munich, Remote"
             value={preferences.preferredLocations}
@@ -196,7 +196,7 @@ const PreferencesStep: React.FC<StepProps> = ({ data, onChange }) => {
           <div className="space-y-4">
             <div className="flex items-center gap-4">
               <div className="flex-1">
-                <Input2
+                <Input
                   type="number"
                   placeholder="Min"
                   value={preferences.salaryMin}
@@ -206,7 +206,7 @@ const PreferencesStep: React.FC<StepProps> = ({ data, onChange }) => {
               </div>
               <span className="text-neutral-500 dark:text-neutral-400">to</span>
               <div className="flex-1">
-                <Input2
+                <Input
                   type="number"
                   placeholder="Max"
                   value={preferences.salaryMax}
@@ -274,7 +274,7 @@ const PreferencesStep: React.FC<StepProps> = ({ data, onChange }) => {
 
         {/* Company size (optional) */}
         <div>
-          <Select2
+          <Select
             label="Company Size (Optional)"
             value={preferences.companySize}
             onChange={(e) => updatePreference('companySize', e.target.value)}
@@ -288,7 +288,7 @@ const PreferencesStep: React.FC<StepProps> = ({ data, onChange }) => {
                 {option.label}
               </option>
             ))}
-          </Select2>
+          </Select>
         </div>
 
         {/* Industry (optional) */}

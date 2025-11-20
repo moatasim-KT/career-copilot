@@ -5,7 +5,7 @@ import Image from 'next/image';
 import React, { useState } from 'react';
 
 import Button from '@/components/ui/Button2';
-import { Card2 } from '@/components/ui/Card2';
+import Card from '@/components/ui/Card2';
 
 
 /**
@@ -141,7 +141,7 @@ export default function ImageQualityTestPage() {
         </div>
 
         {/* Format Support */}
-        <Card2 className="p-6">
+        <Card className="p-6">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-2xl font-semibold text-neutral-900 dark:text-neutral-100">
               Format Support
@@ -176,10 +176,10 @@ export default function ImageQualityTestPage() {
               </div>
             ))}
           </div>
-        </Card2>
+        </Card>
 
         {/* Optimization Checklist */}
-        <Card2 className="p-6">
+        <Card className="p-6">
           <h2 className="text-2xl font-semibold text-neutral-900 dark:text-neutral-100 mb-4">
             Optimization Checklist
           </h2>
@@ -207,10 +207,10 @@ export default function ImageQualityTestPage() {
               </div>
             ))}
           </div>
-        </Card2>
+        </Card>
 
         {/* Quality Comparison */}
-        <Card2 className="p-6">
+        <Card className="p-6">
           <h2 className="text-2xl font-semibold text-neutral-900 dark:text-neutral-100 mb-4">
             Quality Comparison
           </h2>
@@ -276,10 +276,10 @@ export default function ImageQualityTestPage() {
               </div>
             </div>
           )}
-        </Card2>
+        </Card>
 
         {/* Testing Instructions */}
-        <Card2 className="p-6">
+        <Card className="p-6">
           <h2 className="text-2xl font-semibold text-neutral-900 dark:text-neutral-100 mb-4">
             Testing Instructions
           </h2>
@@ -343,10 +343,10 @@ export default function ImageQualityTestPage() {
               </ol>
             </div>
           </div>
-        </Card2>
+        </Card>
 
         {/* Configuration Info */}
-        <Card2 className="p-6 bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800">
+        <Card className="p-6 bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800">
           <div className="flex items-start space-x-3">
             <Info className="w-5 h-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
             <div>
@@ -372,7 +372,7 @@ export default function ImageQualityTestPage() {
               </div>
             </div>
           </div>
-        </Card2>
+        </Card>
       </div>
     </div>
   );

@@ -2,7 +2,7 @@
  * Skeleton loader for job cards
  */
 
-import { Skeleton } from './Skeleton';
+import { Skeleton2 as Skeleton } from '../Skeleton2';
 
 export function SkeletonCard() {
     return (

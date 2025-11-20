@@ -10,9 +10,9 @@ import { Trash2, AlertCircle } from 'lucide-react';
 import { useState, useEffect, useMemo } from 'react';
 
 import Button2 from '@/components/ui/Button2';
-import Card2, { CardContent } from '@/components/ui/Card2';
-import Input from '@/components/ui/Input';
-import Select from '@/components/ui/Select';
+import Card, { CardContent } from '@/components/ui/Card2';
+import Input from '@/components/ui/Input2';
+import Select from '@/components/ui/Select2';
 import { fadeVariants } from '@/lib/animations';
 import { m } from '@/lib/motion';
 import type { SearchRule, SearchField, SearchOperator, FieldType } from '@/types/search';
@@ -244,7 +244,7 @@ export function RuleEditor({
       initial="hidden"
       animate="visible"
     >
-      <Card2 className="bg-white dark:bg-neutral-800 border-neutral-200 dark:border-neutral-700">
+      <Card className="bg-white dark:bg-neutral-800 border-neutral-200 dark:border-neutral-700">
         <CardContent className="p-3">
           <div className="flex items-start space-x-2">
             {/* Field Selector */}
@@ -253,12 +253,13 @@ export function RuleEditor({
                 value={rule.field}
                 onChange={(e) => handleFieldChange(e.target.value)}
                 disabled={disabled}
-                options={fields.map(field => ({
-                  value: field.name,
-                  label: field.label,
-                }))}
-                className="text-sm"
-              />
+              >
+                {fields.map(field => (
+                  <option key={field.name} value={field.name}>
+                    {field.label}
+                  </option>
+                ))}
+              </Select>
             </div>
 
             {/* Operator Selector */}
@@ -267,12 +268,13 @@ export function RuleEditor({
                 value={rule.operator}
                 onChange={(e) => handleOperatorChange(e.target.value as SearchOperator)}
                 disabled={disabled}
-                options={availableOperators.map(op => ({
-                  value: op,
-                  label: getOperatorLabel(op),
-                }))}
-                className="text-sm"
-              />
+              >
+                {availableOperators.map(op => (
+                  <option key={op} value={op}>
+                    {getOperatorLabel(op)}
+                  </option>
+                ))}
+              </Select>
             </div>
 
             {/* Value Input(s) */}
@@ -343,7 +345,7 @@ export function RuleEditor({
             </m.div>
           )}
         </CardContent>
-      </Card2>
+      </Card>
     </m.div>
   );
 }
@@ -428,12 +430,10 @@ function ValueInput({ field, operator, value, onChange, disabled }: ValueInputPr
           value={value === true ? 'true' : value === false ? 'false' : ''}
           onChange={(e) => onChange(e.target.value === 'true')}
           disabled={disabled}
-          options={[
-            { value: 'true', label: 'True' },
-            { value: 'false', label: 'False' },
-          ]}
-          className="text-sm"
-        />
+        >
+          <option value="true">True</option>
+          <option value="false">False</option>
+        </Select>
       );
 
     case 'select':
@@ -442,9 +442,13 @@ function ValueInput({ field, operator, value, onChange, disabled }: ValueInputPr
           value={value || ''}
           onChange={(e) => onChange(e.target.value)}
           disabled={disabled}
-          options={field.options || []}
-          className="text-sm"
-        />
+        >
+          {field.options?.map((option) => (
+            <option key={option.value} value={option.value} disabled={option.disabled}>
+              {option.label}
+            </option>
+          ))}
+        </Select>
       );
 
     case 'multiselect':

@@ -39,19 +39,23 @@ export default function AppLayout({ children }: AppLayoutProps) {
     webSocketService.on('application:status_change', handleApplicationStatusChange);
     webSocketService.on('notification:new', handleNewNotification);
     webSocketService.on('reconnecting', (data) => {
-      toast.loading(`Reconnecting to WebSocket... Attempt ${data.reconnectAttempts}`, { id: 'reconnecting' });
+      toast.loading(`Reconnecting... Attempt ${data.reconnectAttempts}`, { id: 'ws-reconnecting' });
     });
     webSocketService.on('connected', () => {
-      toast.success('WebSocket reconnected!', { id: 'reconnecting' });
+      toast.success('Reconnected successfully!', { id: 'ws-reconnecting', duration: 3000 });
     });
 
     const handleOnline = () => {
-      toast.success('Network reconnected!');
+      toast.success('Network reconnected!', { id: 'network-status', duration: 3000 });
       webSocketService.reconnect();
     };
 
     const handleOffline = () => {
-      toast.error('Network disconnected. Attempting to reconnect...');
+      toast.error('Connection lost', {
+        description: 'Real-time updates are temporarily unavailable.',
+        id: 'network-status',
+        duration: Infinity
+      });
     };
 
     window.addEventListener('online', handleOnline);

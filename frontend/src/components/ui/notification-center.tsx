@@ -3,7 +3,7 @@
 import { Bell } from 'lucide-react';
 import React from 'react';
 
-import { Button } from '@/components/ui/Button';
+import Button from '@/components/ui/Button2';
 import {
     DropdownMenu,
     DropdownMenuContent,

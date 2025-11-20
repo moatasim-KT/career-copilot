@@ -219,7 +219,13 @@ export default function NotificationSystem() {
   };
 
   // Set up WebSocket connection and message handling
-  const [wsUrl] = useState('ws://localhost:8002/ws');
+  const [wsUrl] = useState(() => {
+    if (process.env.NEXT_PUBLIC_WS_URL) {
+      return process.env.NEXT_PUBLIC_WS_URL + '/ws';
+    }
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+    return apiUrl.replace(/^http/, 'ws') + '/ws';
+  });
 
   const { connectionStatus } = useWebSocket(
     wsUrl,

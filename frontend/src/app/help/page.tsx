@@ -30,7 +30,7 @@ import dynamic from 'next/dynamic';
 import { useState, useMemo } from 'react';
 
 import { useFeatureTour } from '@/components/help/FeatureTour';
-import { Card2 } from '@/components/ui/Card2';
+import Card from '@/components/ui/Card2';
 import { m, AnimatePresence } from '@/lib/motion';
 import { cn } from '@/lib/utils';
 
@@ -372,7 +372,7 @@ export default function HelpPage() {
           <div className="lg:col-span-1">
             <div className="sticky top-4 space-y-6">
               {/* Categories */}
-              <Card2 className="p-4">
+              <Card className="p-4">
                 <h2 className="text-sm font-semibold text-neutral-900 dark:text-neutral-100 mb-3">
                   Categories
                 </h2>
@@ -398,10 +398,10 @@ export default function HelpPage() {
                     );
                   })}
                 </div>
-              </Card2>
+              </Card>
 
               {/* Quick Actions */}
-              <Card2 className="p-4">
+              <Card className="p-4">
                 <h2 className="text-sm font-semibold text-neutral-900 dark:text-neutral-100 mb-3">
                   Quick Actions
                 </h2>
@@ -424,8 +424,8 @@ export default function HelpPage() {
                     className={cn(
                       'w-full flex items-center gap-3 px-3 py-2 rounded-lg',
                       'text-sm font-medium',
-                      'text-neutral-700 dark:text-neutral-300',
-                      'hover:bg-neutral-100 dark:hover:bg-neutral-800',
+                      'bg-primary-600 text-white',
+                      'hover:bg-primary-700',
                       'transition-colors',
                     )}
                   >
@@ -445,7 +445,7 @@ export default function HelpPage() {
                     Live Chat
                   </button>
                 </div>
-              </Card2>
+              </Card>
             </div>
           </div>
 
@@ -453,7 +453,7 @@ export default function HelpPage() {
           <div className="lg:col-span-3 space-y-8">
             {/* Category Description */}
             {selectedCategory && (
-              <Card2 className="p-6">
+              <Card className="p-6">
                 {(() => {
                   const category = categories.find((c) => c.id === selectedCategory);
                   if (!category) return null;
@@ -474,7 +474,7 @@ export default function HelpPage() {
                     </div>
                   );
                 })()}
-              </Card2>
+              </Card>
             )}
 
             {/* FAQ Items */}
@@ -488,7 +488,7 @@ export default function HelpPage() {
               </h2>
 
               {filteredFAQs.length === 0 ? (
-                <Card2 className="p-12 text-center">
+                <Card className="p-12 text-center">
                   <AlertCircle className="h-12 w-12 text-neutral-400 mx-auto mb-4" />
                   <h3 className="text-lg font-semibold text-neutral-900 dark:text-neutral-100 mb-2">
                     No results found
@@ -496,13 +496,13 @@ export default function HelpPage() {
                   <p className="text-neutral-600 dark:text-neutral-400">
                     Try adjusting your search or browse by category
                   </p>
-                </Card2>
+                </Card>
               ) : (
                 <div className="space-y-3">
                   {filteredFAQs.map((item) => {
                     const isExpanded = expandedItems.has(item.id);
                     return (
-                      <Card2 key={item.id} className="overflow-hidden">
+                      <Card key={item.id} className="overflow-hidden">
                         <button
                           onClick={() => toggleItem(item.id)}
                           className={cn(
@@ -539,7 +539,7 @@ export default function HelpPage() {
                             </m.div>
                           )}
                         </AnimatePresence>
-                      </Card2>
+                      </Card>
                     );
                   })}
                 </div>
@@ -554,7 +554,7 @@ export default function HelpPage() {
                 </h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {videoTutorials.map((video) => (
-                    <Card2 key={video.id} className="overflow-hidden group cursor-pointer">
+                    <Card key={video.id} className="overflow-hidden group cursor-pointer">
                       <div className="relative aspect-video bg-neutral-200 dark:bg-neutral-700">
                         <div className="absolute inset-0 flex items-center justify-center">
                           <div className="p-4 rounded-full bg-white/90 dark:bg-neutral-800/90 group-hover:scale-110 transition-transform">
@@ -570,14 +570,14 @@ export default function HelpPage() {
                           {video.duration}
                         </p>
                       </div>
-                    </Card2>
+                    </Card>
                   ))}
                 </div>
               </div>
             )}
 
             {/* Contact Support */}
-            <Card2 className="p-6 bg-primary-50 dark:bg-primary-900/20 border-primary-200 dark:border-primary-800">
+            <Card className="p-6 bg-primary-50 dark:bg-primary-900/20 border-primary-200 dark:border-primary-800">
               <h2 className="text-xl font-bold text-neutral-900 dark:text-neutral-100 mb-2">
                 Still need help?
               </h2>
@@ -613,7 +613,7 @@ export default function HelpPage() {
                   Start Live Chat
                 </button>
               </div>
-            </Card2>
+            </Card>
           </div>
         </div>
       </div>

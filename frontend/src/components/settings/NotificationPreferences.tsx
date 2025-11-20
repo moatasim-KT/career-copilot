@@ -18,7 +18,7 @@ import {
 import { useState } from 'react';
 
 import Button2 from '@/components/ui/Button2';
-import Card2 from '@/components/ui/Card2';
+import Card from '@/components/ui/Card2';
 import { Checkbox } from '@/components/ui/Checkbox';
 import Input2 from '@/components/ui/Input2';
 import Select2 from '@/components/ui/Select2';
@@ -302,7 +302,7 @@ export default function NotificationPreferences() {
 
       {/* Push Notification Status */}
       {pushSupported && (
-        <Card2 className="p-6">
+        <Card className="p-6">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-3">
               <div className="w-12 h-12 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
@@ -337,11 +337,11 @@ export default function NotificationPreferences() {
               </Button2>
             </div>
           )}
-        </Card2>
+        </Card>
       )}
 
       {/* Global Mute */}
-      <Card2 className="p-6">
+      <Card className="p-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-12 h-12 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center">
@@ -366,10 +366,10 @@ export default function NotificationPreferences() {
             onCheckedChange={(checked) => handleGlobalMuteToggle(checked as boolean)}
           />
         </div>
-      </Card2>
+      </Card>
 
       {/* Do Not Disturb */}
-      <Card2 className="p-6">
+      <Card className="p-6">
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
@@ -467,7 +467,7 @@ export default function NotificationPreferences() {
             </m.div>
           )}
         </div>
-      </Card2>
+      </Card>
 
       {/* Category Preferences */}
       <div>

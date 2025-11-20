@@ -14,8 +14,8 @@ import { Calendar, dateFnsLocalizer, View } from 'react-big-calendar';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
 
 import CreateEventDialog from '@/components/calendar/CreateEventDialog';
-import { Button } from '@/components/ui/Button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
+import Button from '@/components/ui/Button2';
+import Card, { CardContent, CardHeader, CardTitle } from '@/components/ui/Card2';
 import { useToast } from '@/components/ui/use-toast';
 import { CalendarService } from '@/lib/api/client';
 import type { CalendarEvent } from '@/types/calendar';
@@ -157,7 +157,6 @@ export default function CalendarPage() {
                                     view={view}
                                     onView={setView}
                                     date={date}
-                                    onNavigate={setDate}
                                     onSelectEvent={handleSelectEvent}
                                     eventPropGetter={eventStyleGetter}
                                     popup

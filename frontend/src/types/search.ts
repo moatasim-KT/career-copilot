@@ -43,7 +43,7 @@ export interface SearchField {
   operators: SearchOperator[];
   
   /** Options for select/multiselect fields */
-  options?: Array<{ value: string; label: string }>;
+  options?: Array<{ value: string; label: string; disabled?: boolean }>;
   
   /** Placeholder text for value input */
   placeholder?: string;

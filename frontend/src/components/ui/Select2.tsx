@@ -7,6 +7,12 @@ import { errorMessageVariants, shakeVariants } from '@/lib/animations';
 import { m, AnimatePresence } from '@/lib/motion';
 import { cn } from '@/lib/utils';
 
+export interface Select2Option {
+    value: string;
+    label: string;
+    disabled?: boolean; // Add disabled property here
+}
+
 export interface Select2Props extends Omit<SelectHTMLAttributes<HTMLSelectElement>, 'size'> {
     variant?: 'default' | 'filled' | 'outlined';
     selectSize?: 'sm' | 'md' | 'lg';

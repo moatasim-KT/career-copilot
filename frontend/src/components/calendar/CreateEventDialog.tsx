@@ -10,27 +10,20 @@
 import { Calendar } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
-import { Button } from '@/components/ui/Button';
+import Button from '@/components/ui/Button2';
 import { Checkbox } from '@/components/ui/Checkbox';
-import {
-    Dialog,
+import Dialog, {
     DialogContent,
     DialogDescription,
     DialogFooter,
     DialogHeader,
     DialogTitle,
     DialogTrigger,
-} from '@/components/ui/dialog';
-import { Input } from '@/components/ui/Input';
+} from '@/components/ui/Dialog2';
+import Input from '@/components/ui/Input2';
 import { Label } from '@/components/ui/label';
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from '@/components/ui/Select';
-import { Textarea } from '@/components/ui/Textarea';
+import Select from '@/components/ui/Select2';
+import Textarea from '@/components/ui/Textarea2';
 import { useToast } from '@/components/ui/use-toast';
 import { CalendarService } from '@/lib/api/client';
 import type { CalendarProvider } from '@/types/calendar';
@@ -74,9 +67,9 @@ export default function CreateEventDialog({
         endTime: '',
         timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
         provider: 'google' as CalendarProvider,
-        reminder15min: true,
-        reminder1hour: true,
-        reminder1day: false,
+        reminder_15min: true,
+        reminder_1hour: true,
+        reminder_1day: false,
     });
 
     const [formData, setFormData] = useState(getInitialFormData());
@@ -114,9 +107,9 @@ export default function CreateEventDialog({
                 end_time: endDateTime,
                 timezone: formData.timezone,
                 application_id: defaultValues?.applicationId || applicationId || undefined,
-                reminder_15min: formData.reminder15min,
-                reminder_1hour: formData.reminder1hour,
-                reminder_1day: formData.reminder1day,
+                reminder_15min: formData.reminder_15min,
+                reminder_1hour: formData.reminder_1hour,
+                reminder_1day: formData.reminder_1day,
                 provider: formData.provider,
             });
 
@@ -136,9 +129,9 @@ export default function CreateEventDialog({
                     endTime: '',
                     timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
                     provider: 'google',
-                    reminder15min: true,
-                    reminder1hour: true,
-                    reminder1day: false,
+                    reminder_15min: true,
+                    reminder_1hour: true,
+                    reminder_1day: false,
                 });
                 onEventCreated?.();
             }
@@ -154,8 +147,8 @@ export default function CreateEventDialog({
     };
 
     return (
-        <Dialog open={open} onOpenChange={setOpen}>
-            <DialogTrigger asChild>
+        <Dialog open={open} onClose={() => setOpen(false)}>
+            <DialogTrigger>
                 {trigger || (
                     <Button variant="outline" size="sm">
                         <Calendar className="mr-2 h-4 w-4" />
@@ -264,11 +257,10 @@ export default function CreateEventDialog({
                                 onChange={(e: React.ChangeEvent<HTMLSelectElement>) =>
                                     setFormData({ ...formData, provider: e.target.value as CalendarProvider })
                                 }
-                                options={[
-                                    { value: 'google', label: 'Google Calendar' },
-                                    { value: 'outlook', label: 'Microsoft Outlook' },
-                                ]}
-                            />
+                            >
+                                <option value="google">Google Calendar</option>
+                                <option value="outlook">Microsoft Outlook</option>
+                            </Select>
                         </div>
 
                         {/* Reminders */}
@@ -277,9 +269,9 @@ export default function CreateEventDialog({
                             <div className="flex items-center space-x-2">
                                 <Checkbox
                                     id="reminder15"
-                                    checked={formData.reminder15min}
+                                    checked={formData.reminder_15min}
                                     onCheckedChange={(checked) =>
-                                        setFormData({ ...formData, reminder15min: checked as boolean })
+                                        setFormData({ ...formData, reminder_15min: checked as boolean })
                                     }
                                 />
                                 <Label htmlFor="reminder15" className="font-normal cursor-pointer">
@@ -289,9 +281,9 @@ export default function CreateEventDialog({
                             <div className="flex items-center space-x-2">
                                 <Checkbox
                                     id="reminder1h"
-                                    checked={formData.reminder1hour}
+                                    checked={formData.reminder_1hour}
                                     onCheckedChange={(checked) =>
-                                        setFormData({ ...formData, reminder1hour: checked as boolean })
+                                        setFormData({ ...formData, reminder_1hour: checked as boolean })
                                     }
                                 />
                                 <Label htmlFor="reminder1h" className="font-normal cursor-pointer">
@@ -301,9 +293,9 @@ export default function CreateEventDialog({
                             <div className="flex items-center space-x-2">
                                 <Checkbox
                                     id="reminder1d"
-                                    checked={formData.reminder1day}
+                                    checked={formData.reminder_1day}
                                     onCheckedChange={(checked) =>
-                                        setFormData({ ...formData, reminder1day: checked as boolean })
+                                        setFormData({ ...formData, reminder_1day: checked as boolean })
                                     }
                                 />
                                 <Label htmlFor="reminder1d" className="font-normal cursor-pointer">

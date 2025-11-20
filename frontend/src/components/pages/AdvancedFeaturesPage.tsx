@@ -6,7 +6,7 @@ import ContentGeneration from '@/components/features/ContentGeneration';
 import InterviewPractice from '@/components/features/InterviewPractice';
 import ResumeUpload from '@/components/features/ResumeUpload';
 import Button2 from '@/components/ui/Button2';
-import Card2 from '@/components/ui/Card2';
+import Card from '@/components/ui/Card2';
 import { logger } from '@/lib/logger';
 
 type ActiveFeature = 'resume' | 'content' | 'interview' | null;
@@ -146,7 +146,7 @@ export default function AdvancedFeaturesPage() {
             className="cursor-pointer transition-all duration-200"
             onClick={() => setActiveFeature(feature.id)}
           >
-            <Card2
+            <Card
               className={`p-6 border-2 ${getColorClasses(feature.color, 'border')} ${getColorClasses(feature.color, 'hover')}`}
             >
               <div className="text-center space-y-4">
@@ -172,13 +172,13 @@ export default function AdvancedFeaturesPage() {
                   Get Started
                 </Button2>
               </div>
-            </Card2>
+            </Card>
           </div>
         ))}
       </div>
 
       {/* Feature Benefits */}
-      <Card2 className="p-8 bg-gradient-to-r from-blue-50 to-purple-50">
+      <Card className="p-8 bg-gradient-to-r from-blue-50 to-purple-50">
         <div className="text-center mb-8">
           <h2 className="text-xl md:text-3xl font-bold text-gray-900 mb-4">Why Use Advanced Features?</h2>
           <p className="text-gray-600 max-w-3xl mx-auto">
@@ -227,10 +227,10 @@ export default function AdvancedFeaturesPage() {
             </p>
           </div>
         </div>
-      </Card2>
+      </Card>
 
       {/* Getting Started Tips */}
-      <Card2 className="p-6">
+      <Card className="p-6">
         <h3 className="text-lg font-semibold text-gray-900 mb-4">Getting Started Tips</h3>
         <div className="space-y-4">
           <div className="flex items-start space-x-3">
@@ -269,7 +269,7 @@ export default function AdvancedFeaturesPage() {
             </div>
           </div>
         </div>
-      </Card2>
+      </Card>
     </div>
   );
 }

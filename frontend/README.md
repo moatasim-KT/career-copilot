@@ -153,7 +153,12 @@ pnpm install
 ```bash
 ## Set up environment
 cp .env.example .env.local
+
+## Validate environment configuration
+npm run validate-env
 ```
+
+**Environment validation runs automatically** when you run `npm run dev` or `npm run build`.
 
 See [[.env.example]] for complete list and [[../LOCAL_SETUP.md#frontend-setup]].
 
@@ -897,6 +902,7 @@ console.log('Component State:', state)
 | `format`          | Format code with Prettier | `npm run format`          |
 | `format:check`    | Check formatting          | `npm run format:check`    |
 | `type-check`      | TypeScript type checking  | `npm run type-check`      |
+| `validate-env`    | Validate environment vars | `npm run validate-env`    |
 | `test`            | Run all tests             | `npm test`                |
 | `test:unit`       | Run unit tests            | `npm run test:unit`       |
 | `test:watch`      | Run tests in watch mode   | `npm run test:watch`      |

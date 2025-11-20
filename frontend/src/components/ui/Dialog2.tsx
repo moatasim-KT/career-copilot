@@ -3,6 +3,8 @@
 import { X } from 'lucide-react';
 import { forwardRef, useEffect, useRef } from 'react';
 
+import { backdropVariants, modalVariants, slideVariants } from '@/lib/animations';
+import { AnimatePresence, m } from '@/lib/motion';
 import { cn } from '@/lib/utils';
 
 export interface Dialog2Props {
@@ -21,9 +23,10 @@ export interface Dialog2Props {
 }
 
 const sizes = {
-    sm: 'max-w-xs',
-    md: 'max-w-md',
-    lg: 'max-w-lg',
+    sm: 'max-w-md',
+    md: 'max-w-lg',
+    lg: 'max-w-2xl',
+    xl: 'max-w-4xl',
 };
 
 export const Dialog2 = forwardRef<HTMLDivElement, Dialog2Props>(
@@ -67,53 +70,83 @@ export const Dialog2 = forwardRef<HTMLDivElement, Dialog2Props>(
             return () => window.removeEventListener('keydown', handleKey);
         }, [open, onClose]);
 
-        if (!open) return null;
+        // Prevent background scroll
+        useEffect(() => {
+            if (!open) return;
+            document.body.style.overflow = 'hidden';
+            return () => {
+                document.body.style.overflow = '';
+            };
+        }, [open]);
+
+        // Detect if mobile device for slide-in from bottom
+        const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
 
         return (
-            <div
-                className={cn(
-                    'fixed inset-0 z-50 flex items-center justify-center bg-black/30',
-                    overlayClassName,
-                )}
-                aria-modal="true"
-                role="dialog"
-                tabIndex={-1}
-            >
-                <div
-                    ref={ref || dialogRef}
-                    className={cn(
-                        'relative w-full rounded-lg bg-white dark:bg-neutral-900 shadow-lg outline-none',
-                        'focus:outline-none',
-                        sizes[size],
-                        className,
-                    )}
-                    tabIndex={-1}
-                    aria-labelledby={ariaLabelledBy}
-                    aria-describedby={ariaDescribedBy}
-                >
-                    {showClose && (
-                        <button
-                            type="button"
-                            onClick={onClose}
-                            className="absolute right-3 top-3 text-neutral-400 hover:text-neutral-700 focus:outline-none"
-                            aria-label="Close dialog"
+            <AnimatePresence mode="wait">
+                {open && (
+                    <m.div
+                        className={cn(
+                            'fixed inset-0 z-50 flex items-center justify-center',
+                            overlayClassName,
+                        )}
+                        initial="hidden"
+                        animate="visible"
+                        exit="exit"
+                        variants={backdropVariants}
+                        onClick={onClose}
+                        aria-modal="true"
+                        role="dialog"
+                        tabIndex={-1}
+                    >
+                        {/* Backdrop with glass morphism */}
+                        <div className="absolute inset-0 glass" />
+
+                        {/* Modal content */}
+                        <m.div
+                            ref={ref || dialogRef}
+                            className={cn(
+                                'relative w-full rounded-xl bg-white dark:bg-neutral-900 shadow-xl outline-none',
+                                'focus:outline-none mx-4',
+                                sizes[size],
+                                className,
+                            )}
+                            initial="hidden"
+                            animate="visible"
+                            exit="exit"
+                            variants={isMobile ? slideVariants.up : modalVariants}
+                            onClick={(e) => e.stopPropagation()}
+                            tabIndex={-1}
+                            aria-labelledby={ariaLabelledBy}
+                            aria-describedby={ariaDescribedBy}
                         >
-                            <X className="h-5 w-5" />
-                        </button>
-                    )}
-                    {title && (
-                        <h2 id={ariaLabelledBy || 'dialog-title'} className="text-lg font-semibold text-neutral-900 dark:text-neutral-100 mb-2">
-                            {title}
-                        </h2>
-                    )}
-                    {description && (
-                        <p id={ariaDescribedBy || 'dialog-desc'} className="mb-4 text-neutral-600 dark:text-neutral-300">
-                            {description}
-                        </p>
-                    )}
-                    <div>{children}</div>
-                </div>
-            </div>
+                            {showClose && (
+                                <button
+                                    type="button"
+                                    onClick={onClose}
+                                    className="absolute right-4 top-4 text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-300 focus:outline-none transition-colors"
+                                    aria-label="Close dialog"
+                                >
+                                    <X className="h-5 w-5" />
+                                </button>
+                            )}
+                            <div className="p-6">
+                                {title && (
+                                    <h2 id={ariaLabelledBy || 'dialog-title'} className="text-xl font-semibold text-neutral-900 dark:text-neutral-100 mb-2">
+                                        {title}
+                                    </h2>
+                                )}
+                                {description && (
+                                    <p id={ariaDescribedBy || 'dialog-desc'} className="mb-4 text-neutral-600 dark:text-neutral-300">
+                                        {description}
+                                    </p>
+                                )}
+                                <div>{children}</div>
+                            </div>
+                        </m.div>
+                    </m.div>
+                )}
+            </AnimatePresence>
         );
     },
 );
@@ -121,3 +154,34 @@ export const Dialog2 = forwardRef<HTMLDivElement, Dialog2Props>(
 Dialog2.displayName = 'Dialog2';
 
 export default Dialog2;
+
+// Sub-components for Dialog2 to mimic Radix UI structure
+export const DialogTrigger = ({ children }: { children: React.ReactNode }) => <>{children}</>;
+export const DialogContent = forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
+    ({ className, children, ...props }, ref) => (
+        <div ref={ref} className={cn('p-6', className)} {...props}>
+            {children}
+        </div>
+    )
+);
+DialogContent.displayName = 'DialogContent';
+
+export const DialogHeader = ({ children, className }: { children: React.ReactNode; className?: string }) => (
+    <div className={cn('mb-4 space-y-1.5', className)}>{children}</div>
+);
+DialogHeader.displayName = 'DialogHeader';
+
+export const DialogTitle = ({ children, className }: { children: React.ReactNode; className?: string }) => (
+    <h3 className={cn('text-lg font-semibold text-neutral-900 dark:text-neutral-100', className)}>{children}</h3>
+);
+DialogTitle.displayName = 'DialogTitle';
+
+export const DialogDescription = ({ children, className }: { children: React.ReactNode; className?: string }) => (
+    <p className={cn('text-sm text-neutral-600 dark:text-neutral-400', className)}>{children}</p>
+);
+DialogDescription.displayName = 'DialogDescription';
+
+export const DialogFooter = ({ children, className }: { children: React.ReactNode; className?: string }) => (
+    <div className={cn('mt-6 flex items-center justify-end gap-3', className)}>{children}</div>
+);
+DialogFooter.displayName = 'DialogFooter';

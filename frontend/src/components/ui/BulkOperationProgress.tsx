@@ -6,7 +6,7 @@ import React from 'react';
 import { m, AnimatePresence } from '@/lib/motion';
 
 import Button2 from './Button2';
-import Modal from './Modal';
+import Modal from './Modal2';
 
 export interface BulkOperationError {
   itemId: string | number;
@@ -55,7 +55,7 @@ export function BulkOperationProgress({
 
   return (
     <Modal
-      isOpen={isOpen}
+      open={isOpen}
       onClose={isComplete ? onClose : () => { }}
       title={title}
       size="md"
@@ -76,8 +76,8 @@ export function BulkOperationProgress({
           <div className="relative h-3 bg-neutral-200 dark:bg-neutral-700 rounded-full overflow-hidden">
             <m.div
               className={`absolute inset-y-0 left-0 rounded-full ${hasErrors && isComplete
-                  ? 'bg-yellow-500 dark:bg-yellow-600'
-                  : 'bg-blue-600 dark:bg-blue-500'
+                ? 'bg-yellow-500 dark:bg-yellow-600'
+                : 'bg-blue-600 dark:bg-blue-500'
                 }`}
               initial={{ width: 0 }}
               animate={{ width: `${progress}%` }}

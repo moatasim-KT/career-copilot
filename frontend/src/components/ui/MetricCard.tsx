@@ -94,8 +94,8 @@ export default function MetricCard({
     return (
         <div
             className={cn(
-                'bg-white dark:bg-neutral-900 p-6 rounded-xl shadow-sm border border-neutral-200 dark:border-neutral-800 transition-all duration-200 group',
-                onClick && 'cursor-pointer hover:shadow-md hover:border-primary-300 dark:hover:border-primary-700',
+                'bg-white/60 dark:bg-neutral-900/60 backdrop-blur-md p-6 rounded-2xl shadow-sm border border-white/20 dark:border-neutral-800 transition-all duration-300 group',
+                onClick && 'cursor-pointer hover:shadow-lg hover:shadow-indigo-500/10 hover:border-primary-500/30 dark:hover:border-primary-500/30 hover:-translate-y-0.5',
             )}
             onClick={onClick}
             role={onClick ? 'button' : undefined}
@@ -126,9 +126,9 @@ export default function MetricCard({
                 </div>
 
                 <div className={cn(
-                    'h-12 w-12 rounded-xl flex items-center justify-center transition-colors group-hover:scale-105 duration-200',
+                    'h-12 w-12 rounded-xl flex items-center justify-center transition-all duration-300 group-hover:scale-110 group-hover:rotate-3',
                     // Use a safer way to generate background colors or default to neutral
-                    'bg-neutral-100 dark:bg-neutral-800',
+                    'bg-linear-to-br from-neutral-100 to-neutral-50 dark:from-neutral-800 dark:to-neutral-900 shadow-inner',
                 )}>
                     <Icon className={cn('h-6 w-6', iconColor)} />
                 </div>

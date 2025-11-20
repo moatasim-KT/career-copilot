@@ -62,7 +62,7 @@ export class WebSocketClient {
 
   constructor(config: WebSocketConfig) {
     this.config = {
-      url: config.url,
+      url: config.url.endsWith('/ws') ? config.url : `${config.url}/ws`,
       reconnectInterval: config.reconnectInterval ?? 1000,
       maxReconnectInterval: config.maxReconnectInterval ?? 30000,
       reconnectDecay: config.reconnectDecay ?? 1.5,

@@ -87,6 +87,7 @@ import ActivityTimeline from '@/components/ui/ActivityTimeline';
 import MetricCard from '@/components/ui/MetricCard';
 import QuickActionsPanel from '@/components/ui/QuickActionsPanel';
 import Widget from '@/components/ui/Widget';
+import EmptyState from '@/components/ui/EmptyState';
 import { useWebSocket } from '@/hooks/useWebSocket';
 import { apiClient, type AnalyticsSummary } from '@/lib/api';
 import { logger } from '@/lib/logger';
@@ -105,9 +106,8 @@ export default function EnhancedDashboard() {
         setLastUpdated(new Date());
     }, []);
 
-    // point the dashboard websocket to the local backend started on port 8002
     const { connectionStatus } = useWebSocket(
-        'ws://localhost:8002/ws',
+        process.env.NEXT_PUBLIC_WS_URL || 'ws://localhost:8000/ws',
         handleDashboardUpdate,
         () => { }, // onApplicationStatusUpdate - not needed for dashboard
         () => { },  // onAnalyticsUpdate - not needed for dashboard
@@ -240,7 +240,7 @@ export default function EnhancedDashboard() {
 
             {error && (
                 <div className="bg-error-50 dark:bg-error-900/20 border border-error-200 dark:border-error-800 rounded-xl p-4 flex items-center gap-3" role="alert">
-                    <AlertCircle className="h-5 w-5 text-error-600 dark:text-error-400 flex-shrink-0" />
+                    <AlertCircle className="h-5 w-5 text-error-600 dark:text-error-400 shrink-0" />
                     <p className="text-sm text-error-800 dark:text-error-200">{error}</p>
                 </div>
             )}
@@ -249,9 +249,8 @@ export default function EnhancedDashboard() {
             {!isLoading && !analytics && !error && (
                 <div className="py-12">
                     <EmptyState
-                        icon="📊"
                         title="No dashboard data yet"
-                        description="Start by adding jobs and applications to see your progress."
+                        message="Start by adding jobs and applications to see your progress."
                         action={<button className="bg-primary-500 text-white px-4 py-2 rounded-md" onClick={() => router.push('/jobs')}>Browse Jobs</button>}
                     />
                 </div>

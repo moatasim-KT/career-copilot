@@ -3,6 +3,16 @@
  * Manages real-time WebSocket connections for notifications and updates
  */
 
+import { logger } from '@/lib/logger';
+
+enum WebSocketStatus {
+    Connecting = 'connecting',
+    Connected = 'connected',
+    Disconnected = 'disconnected',
+    Reconnecting = 'reconnecting',
+    Error = 'error',
+}
+
 interface WebSocketMessage {
     type: string;
     [key: string]: unknown;
@@ -20,6 +30,22 @@ class WebSocketClient {
     private isConnecting = false;
     private baseUrl: string;
     private token: string | null = null;
+    private status: WebSocketStatus = WebSocketStatus.Disconnected;
+    private statusChangeCallback: ((status: WebSocketStatus) => void) | null = null;
+
+    // Expose a method to set the status change callback
+    public setStatusChangeCallback(callback: (status: WebSocketStatus) => void): void {
+        this.statusChangeCallback = callback;
+    }
+
+    private setStatus(status: WebSocketStatus): void {
+        this.status = status;
+        this.statusChangeCallback?.(status);
+    }
+
+    public getStatus(): WebSocketStatus {
+        return this.status;
+    }
 
     constructor() {
         this.baseUrl = process.env.NEXT_PUBLIC_WS_URL || process.env.NEXT_PUBLIC_WS_BASE_URL || 'ws://localhost:8000';
@@ -30,25 +56,29 @@ class WebSocketClient {
      */
     async connect(userId: number | string, token: string): Promise<void> {
         if (this.ws?.readyState === WebSocket.OPEN) {
+            this.setStatus(WebSocketStatus.Connected);
             return;
         }
 
         if (this.isConnecting && this.connectionPromise) {
+            this.setStatus(WebSocketStatus.Connecting);
             return this.connectionPromise;
         }
 
         this.isConnecting = true;
         this.token = token;
+        this.setStatus(WebSocketStatus.Connecting);
 
         this.connectionPromise = new Promise((resolve, reject) => {
             try {
-                const wsUrl = `${this.baseUrl}/ws/notifications/${userId}?token=${encodeURIComponent(token)}`;
+                const wsUrl = `${this.baseUrl}/ws?token=${encodeURIComponent(token)}`;
                 this.ws = new WebSocket(wsUrl);
 
                 this.ws.onopen = () => {
-                    console.log('WebSocket connected');
+                    logger.info('WebSocket connected');
                     this.reconnectAttempts = 0;
                     this.isConnecting = false;
+                    this.setStatus(WebSocketStatus.Connected);
                     resolve();
 
                     // Send ping every 30 seconds to keep connection alive
@@ -60,24 +90,27 @@ class WebSocketClient {
                         const message: WebSocketMessage = JSON.parse(event.data);
                         this.handleMessage(message);
                     } catch (error) {
-                        console.error('Failed to parse WebSocket message:', error);
+                        logger.error('Failed to parse WebSocket message:', error);
                     }
                 };
 
                 this.ws.onerror = (error) => {
-                    console.error('WebSocket error:', error);
+                    logger.error('WebSocket error:', error);
                     this.isConnecting = false;
+                    this.setStatus(WebSocketStatus.Error);
                     reject(error);
                 };
 
                 this.ws.onclose = () => {
-                    console.log('WebSocket disconnected');
+                    logger.info('WebSocket disconnected');
                     this.isConnecting = false;
                     this.stopPingInterval();
+                    this.setStatus(WebSocketStatus.Disconnected);
                     this.attemptReconnect(userId);
                 };
             } catch (error) {
                 this.isConnecting = false;
+                this.setStatus(WebSocketStatus.Error);
                 reject(error);
             }
         });
@@ -96,6 +129,7 @@ class WebSocketClient {
         }
         this.connectionPromise = null;
         this.reconnectAttempts = 0;
+        this.setStatus(WebSocketStatus.Disconnected);
     }
 
     /**
@@ -146,7 +180,7 @@ class WebSocketClient {
         if (this.ws?.readyState === WebSocket.OPEN) {
             this.ws.send(JSON.stringify(message));
         } else {
-            console.warn('WebSocket not connected, message not sent:', message);
+            logger.warn('WebSocket not connected, message not sent:', message);
         }
     }
 
@@ -160,7 +194,7 @@ class WebSocketClient {
                 try {
                     handler(message);
                 } catch (error) {
-                    console.error('Error in message handler:', error);
+                    logger.error('Error in message handler:', error);
                 }
             });
         }
@@ -172,7 +206,7 @@ class WebSocketClient {
                 try {
                     handler(message);
                 } catch (error) {
-                    console.error('Error in wildcard handler:', error);
+                    logger.error('Error in wildcard handler:', error);
                 }
             });
         }
@@ -183,19 +217,21 @@ class WebSocketClient {
      */
     private async attemptReconnect(userId: number | string): Promise<void> {
         if (this.reconnectAttempts >= this.maxReconnectAttempts) {
-            console.error('Max reconnection attempts reached');
+            logger.error('Max reconnection attempts reached');
+            this.setStatus(WebSocketStatus.Error);
             return;
         }
 
         this.reconnectAttempts++;
         const delay = this.reconnectDelay * Math.pow(2, this.reconnectAttempts - 1);
 
-        console.log(`Attempting to reconnect in ${delay}ms (attempt ${this.reconnectAttempts}/${this.maxReconnectAttempts})`);
+        logger.info(`Attempting to reconnect in ${delay}ms (attempt ${this.reconnectAttempts}/${this.maxReconnectAttempts})`);
+        this.setStatus(WebSocketStatus.Reconnecting);
 
         setTimeout(() => {
             if (this.token) {
                 this.connect(userId, this.token).catch((error) => {
-                    console.error('Reconnection failed:', error);
+                    logger.error('Reconnection failed:', error);
                 });
             }
         }, delay);

@@ -6,7 +6,7 @@ import React from 'react';
 import { m } from '@/lib/motion';
 
 import Button2 from './Button2';
-import Modal, { ModalFooter } from './Modal';
+import Modal, { ModalFooter } from './Modal2';
 
 export interface ConfirmBulkActionProps {
   isOpen: boolean;
@@ -65,7 +65,7 @@ export function ConfirmBulkAction({
 
   return (
     <Modal
-      isOpen={isOpen}
+      open={isOpen}
       onClose={onClose}
       title={title}
       size="md"

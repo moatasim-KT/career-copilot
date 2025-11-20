@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 
 import Button2 from '@/components/ui/Button2';
-import Card2, { CardHeader, CardTitle, CardContent } from '@/components/ui/Card2';
+import Card, { CardHeader, CardTitle, CardContent } from '@/components/ui/Card2';
 import Container from '@/components/ui/Container';
 import { apiClient, Job } from '@/lib/api';
 
@@ -87,14 +87,14 @@ export default function RecommendationsPage() {
       <Container>
         <div className="space-y-6">
           <h1 className="text-2xl md:text-4xl font-bold text-neutral-900">Job Recommendations & Skill Analysis</h1>
-          <Card2>
+          <Card>
             <CardContent>
               <div className="flex items-center justify-center py-8">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
                 <span className="ml-2 text-neutral-600">Loading recommendations...</span>
               </div>
             </CardContent>
-          </Card2>
+          </Card>
         </div>
       </Container>
     );
@@ -105,14 +105,14 @@ export default function RecommendationsPage() {
       <Container>
         <div className="space-y-6">
           <h1 className="text-2xl md:text-4xl font-bold text-neutral-900">Job Recommendations & Skill Analysis</h1>
-          <Card2>
+          <Card>
             <CardContent>
               <div className="text-center py-8">
                 <p className="text-red-600 mb-4">{error}</p>
                 <Button2 onClick={loadData}>Try Again</Button2>
               </div>
             </CardContent>
-          </Card2>
+          </Card>
         </div>
       </Container>
     );
@@ -151,7 +151,7 @@ export default function RecommendationsPage() {
         {activeTab === 'recommendations' && (
           <div className="space-y-4">
             {recommendations.length === 0 ? (
-              <Card2>
+              <Card>
                 <CardContent>
                   <div className="text-center py-8">
                     <p className="text-neutral-600 mb-4">No job recommendations available.</p>
@@ -160,10 +160,10 @@ export default function RecommendationsPage() {
                     </p>
                   </div>
                 </CardContent>
-              </Card2>
+              </Card>
             ) : (
               recommendations.map((job) => (
-                <Card2 key={job.id} hover className="transition-all duration-200">
+                <Card key={job.id} hover className="transition-all duration-200">
                   <CardContent>
                     <div className="flex justify-between items-start mb-4">
                       <div className="flex-1">
@@ -235,7 +235,7 @@ export default function RecommendationsPage() {
                       </div>
                     </div>
                   </CardContent>
-                </Card2>
+                </Card>
               ))
             )}
           </div>
@@ -245,7 +245,7 @@ export default function RecommendationsPage() {
         {activeTab === 'skill-gap' && (
           <div className="space-y-6">
             {!skillGapAnalysis ? (
-              <Card2>
+              <Card>
                 <CardContent>
                   <div className="text-center py-8">
                     <p className="text-neutral-600 mb-4">No skill gap analysis available.</p>
@@ -254,11 +254,11 @@ export default function RecommendationsPage() {
                     </p>
                   </div>
                 </CardContent>
-              </Card2>
+              </Card>
             ) : (
               <>
                 {/* Skill Coverage Overview */}
-                <Card2>
+                <Card>
                   <CardHeader>
                     <CardTitle>Skill Coverage Overview</CardTitle>
                   </CardHeader>
@@ -292,10 +292,10 @@ export default function RecommendationsPage() {
                       You have {skillGapAnalysis.user_skills.length} skills out of {skillGapAnalysis.top_market_skills.length} top market skills.
                     </p>
                   </CardContent>
-                </Card2>
+                </Card>
 
                 {/* Your Skills */}
-                <Card2>
+                <Card>
                   <CardHeader>
                     <CardTitle>Your Current Skills ({skillGapAnalysis.user_skills.length})</CardTitle>
                   </CardHeader>
@@ -315,10 +315,10 @@ export default function RecommendationsPage() {
                       </div>
                     )}
                   </CardContent>
-                </Card2>
+                </Card>
 
                 {/* Missing Skills */}
-                <Card2>
+                <Card>
                   <CardHeader>
                     <CardTitle>Skills to Learn ({skillGapAnalysis.missing_skills.length})</CardTitle>
                   </CardHeader>
@@ -338,10 +338,10 @@ export default function RecommendationsPage() {
                       </div>
                     )}
                   </CardContent>
-                </Card2>
+                </Card>
 
                 {/* Top Market Skills */}
-                <Card2>
+                <Card>
                   <CardHeader>
                     <CardTitle>Top Market Skills</CardTitle>
                   </CardHeader>
@@ -360,11 +360,11 @@ export default function RecommendationsPage() {
                       ))}
                     </div>
                   </CardContent>
-                </Card2>
+                </Card>
 
                 {/* Learning Recommendations */}
                 {skillGapAnalysis.recommendations.length > 0 && (
-                  <Card2>
+                  <Card>
                     <CardHeader>
                       <CardTitle>Learning Recommendations</CardTitle>
                     </CardHeader>
@@ -378,7 +378,7 @@ export default function RecommendationsPage() {
                         ))}
                       </ul>
                     </CardContent>
-                  </Card2>
+                  </Card>
                 )}
               </>
             )}

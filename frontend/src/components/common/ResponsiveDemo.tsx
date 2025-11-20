@@ -2,7 +2,7 @@
 
 import { CheckCircle, Monitor, Palette, Smartphone, Tablet } from 'lucide-react';
 
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
+import Card, { CardContent, CardHeader, CardTitle } from '@/components/ui/Card2';
 
 import Button2 from '../ui/Button2';
 import Container from '../ui/Container';

@@ -20,7 +20,7 @@ import { Search, Plus, X, Star, TrendingUp, Code, Database, Cloud, Palette } fro
 import React, { useState, useEffect } from 'react';
 
 import { Badge } from '@/components/ui/Badge';
-import Input2 from '@/components/ui/Input2';
+import Input from '@/components/ui/Input2';
 import { staggerContainer, staggerItem } from '@/lib/animations';
 import { m, AnimatePresence } from '@/lib/motion';
 import { cn } from '@/lib/utils';
@@ -223,7 +223,7 @@ const SkillsStep: React.FC<StepProps> = ({ data, onChange }) => {
 
       {/* Search */}
       <m.div variants={staggerItem}>
-        <Input2
+        <Input
           placeholder="Search for skills..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
@@ -431,7 +431,7 @@ const SkillsStep: React.FC<StepProps> = ({ data, onChange }) => {
           Don&apos;t see your skill? Add it manually
         </h4>
         <div className="flex gap-2">
-          <Input2
+          <Input
             placeholder="Enter skill name"
             value={customSkill}
             onChange={(e) => setCustomSkill(e.target.value)}

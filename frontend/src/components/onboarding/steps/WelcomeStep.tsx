@@ -23,8 +23,8 @@ import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import * as z from 'zod';
 
-import Input2 from '@/components/ui/Input2';
-import Select2 from '@/components/ui/Select2';
+import Input from '@/components/ui/Input2';
+import Select from '@/components/ui/Select2';
 import { staggerContainer, staggerItem } from '@/lib/animations';
 import { logger } from '@/lib/logger';
 import { m } from '@/lib/motion';
@@ -238,7 +238,7 @@ const WelcomeStep: React.FC<StepProps> = ({ data, onChange }) => {
 
       {/* Form fields */}
       <m.div variants={staggerItem} className="space-y-6">
-        <Input2
+        <Input
           label="Full Name"
           placeholder="John Doe"
           prefixIcon={<User className="h-4 w-4" />}
@@ -247,7 +247,7 @@ const WelcomeStep: React.FC<StepProps> = ({ data, onChange }) => {
           {...register('name')}
         />
 
-        <Input2
+        <Input
           label="Email Address"
           type="email"
           placeholder="john.doe@example.com"
@@ -258,7 +258,7 @@ const WelcomeStep: React.FC<StepProps> = ({ data, onChange }) => {
           {...register('email')}
         />
 
-        <Input2
+        <Input
           label="Current Job Title / Role"
           placeholder="e.g., Senior Frontend Developer"
           prefixIcon={<Briefcase className="h-4 w-4" />}
@@ -268,7 +268,7 @@ const WelcomeStep: React.FC<StepProps> = ({ data, onChange }) => {
           {...register('jobTitle')}
         />
 
-        <Select2
+        <Select
           label="Years of Experience"
           prefixIcon={<Calendar className="h-4 w-4" />}
           required
@@ -283,7 +283,7 @@ const WelcomeStep: React.FC<StepProps> = ({ data, onChange }) => {
               {option.label}
             </option>
           ))}
-        </Select2>
+        </Select>
       </m.div>
 
       {/* Value proposition */}

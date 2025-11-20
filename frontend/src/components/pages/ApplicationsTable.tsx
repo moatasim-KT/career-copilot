@@ -3,7 +3,7 @@ import { ColumnDef } from '@tanstack/react-table';
 import React from 'react';
 
 import { Badge } from '@/components/ui/Badge';
-import Button from '@/components/ui/Button';
+import Button from '@/components/ui/Button2';
 import { Checkbox } from '@/components/ui/Checkbox';
 import { DataTable } from '@/components/ui/DataTable';
 import { Application } from '@/lib/api';

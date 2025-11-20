@@ -9,7 +9,7 @@
 import { Building2, MapPin } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
-import { Button } from '@/components/ui/Button';
+import Button from '@/components/ui/Button2';
 
 interface Job {
     id: number;

@@ -11,7 +11,7 @@ import sqlalchemy as sa
 
 # revision identifiers, used by Alembic.
 revision = '004_add_calendar_tables'
-down_revision = '003_add_analytics_performance_indexes'
+down_revision = '003_analytics_indexes'
 branch_labels = None
 depends_on = None
 

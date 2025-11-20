@@ -39,7 +39,7 @@ import {
 } from 'lucide-react';
 import { useState, useEffect, useCallback } from 'react';
 
-import { Modal2 } from '@/components/ui/Modal2';
+import Modal from '@/components/ui/Modal2';
 import { logger } from '@/lib/logger';
 import { m, AnimatePresence } from '@/lib/motion';
 import { cn } from '@/lib/utils';
@@ -279,7 +279,7 @@ export function FeatureTour({
   };
 
   return (
-    <Modal2
+    <Modal
       open={isOpen}
       onClose={handleClose}
       size="lg"
@@ -484,7 +484,7 @@ export function FeatureTour({
           </div>
         </div>
       </div>
-    </Modal2>
+    </Modal>
   );
 }
 

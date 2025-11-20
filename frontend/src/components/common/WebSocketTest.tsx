@@ -8,7 +8,7 @@
 import { Send, Trash2, Wifi, WifiOff } from 'lucide-react';
 import { useState } from 'react';
 
-import Card from '@/components/ui/Card';
+import Card from '@/components/ui/Card2';
 import { useWebSocket } from '@/hooks/useWebSocket';
 import { logger } from '@/lib/logger';
 

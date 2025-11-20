@@ -30,7 +30,7 @@ import {
 } from 'lucide-react';
 import { useState, useRef } from 'react';
 
-import { Modal2 } from '@/components/ui/Modal2';
+import Modal from '@/components/ui/Modal2';
 import { logger } from '@/lib/logger';
 import { m, AnimatePresence } from '@/lib/motion';
 import { cn } from '@/lib/utils';
@@ -201,7 +201,7 @@ export function FeedbackWidget({
       </m.button>
 
       {/* Feedback Modal */}
-      <Modal2
+      <Modal
         open={isOpen}
         onClose={handleClose}
         title={isSubmitted ? 'Thank You!' : 'Send Feedback'}
@@ -434,7 +434,7 @@ export function FeedbackWidget({
             </m.form>
           )}
         </AnimatePresence>
-      </Modal2>
+      </Modal>
     </>
   );
 }
@@ -494,7 +494,7 @@ export function FeedbackLink({ children = 'Send Feedback', className, onSubmit }
         {children}
       </button>
 
-      <Modal2
+      <Modal
         open={isOpen}
         onClose={() => setIsOpen(false)}
         title="Send Feedback"
@@ -504,7 +504,7 @@ export function FeedbackLink({ children = 'Send Feedback', className, onSubmit }
           position="inline"
           onSubmit={onSubmit}
         />
-      </Modal2>
+      </Modal>
     </>
   );
 }

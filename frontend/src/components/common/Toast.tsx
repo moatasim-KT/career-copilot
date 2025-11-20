@@ -9,6 +9,7 @@
 
 'use client';
 
+import { formatDistanceToNow } from 'date-fns';
 import { X, CheckCircle, AlertCircle, Info, AlertTriangle } from 'lucide-react';
 import React, { createContext, useContext, useState, useCallback } from 'react';
 
@@ -25,6 +26,7 @@ export interface Toast {
         label: string;
         onClick: () => void;
     };
+    timestamp: number;
 }
 
 interface ToastContextValue {
@@ -80,9 +82,13 @@ export function ToastProvider({
                 id,
                 duration: 5000,
                 ...toast,
+                timestamp: Date.now(),
             };
 
             setToasts((prev) => {
+                if (prev.some((t) => t.message === newToast.message)) {
+                    return prev;
+                }
                 const updated = [...prev, newToast];
                 // Keep only the latest maxToasts
                 return updated.slice(-maxToasts);
@@ -253,6 +259,9 @@ function ToastItem({ toast, onClose }: { toast: Toast; onClose: (id: string) => 
                         <h3 className="font-semibold text-sm mb-1">{toast.title}</h3>
                     )}
                     <p className="text-sm">{toast.message}</p>
+                    <p className="text-xs text-gray-500 mt-1">
+                        {formatDistanceToNow(new Date(toast.timestamp), { addSuffix: true })}
+                    </p>
 
                     {toast.action && (
                         <button

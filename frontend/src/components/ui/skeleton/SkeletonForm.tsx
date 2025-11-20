@@ -2,7 +2,7 @@
  * Skeleton loader for forms
  */
 
-import { Skeleton } from './Skeleton';
+import { Skeleton2 as Skeleton } from '../Skeleton2';
 
 export function SkeletonForm() {
     return (

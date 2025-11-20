@@ -9,11 +9,15 @@ import WebVitalsReporter from '@/components/WebVitalsReporter';
 import Providers from './providers';
 import './globals.css';
 
+import { validateEnvironmentVariables } from '@/scripts/validate-env';
+
 const inter = Inter({
   variable: '--font-inter',
   subsets: ['latin'],
   display: 'swap',
 });
+
+validateEnvironmentVariables();
 
 export const metadata: Metadata = {
   title: 'Career Copilot - AI-Powered Job Application Tracking',
@@ -66,11 +70,11 @@ export default function RootLayout({
         </Providers>
         <Toaster
           position="top-right"
-          richColors
-          closeButton
           toastOptions={{
             className: 'bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700',
           }}
+          closeButton
+          richColors
         />
       </body>
     </html>

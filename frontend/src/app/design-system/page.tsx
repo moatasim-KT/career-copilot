@@ -1,12 +1,11 @@
-
 import Button from '@/components/ui/Button2';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card2';
+import Card, { CardHeader, CardTitle, CardContent } from '@/components/ui/Card2';
 
 export default function DesignSystemTest() {
   return (
     <div className="p-8 space-y-8">
       <h1 className="text-4xl font-bold">Design System Test</h1>
-      
+
       {/* Test Buttons */}
       <Card>
         <CardHeader>

@@ -8,7 +8,7 @@ test.describe('Application Accessibility', () => {
         expect(accessibilityScanResults).toBeTruthy();
         // Check for ARIA roles in table
         await expect(page.locator('table')).toHaveCount(1);
-        await expect(page.locator('[role="row"]')).toHaveCountGreaterThan(0);
+        await expect(page.locator('[role="row"]')).not.toHaveCount(0);
     });
 
     test('should support keyboard navigation for application table', async ({ page }) => {

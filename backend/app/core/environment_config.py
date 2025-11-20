@@ -85,7 +85,7 @@ class EnvironmentConfigManager:
 			enable_auth=False,
 			database_pool_size=5,
 			worker_count=1,
-			cors_origins=["http://localhost:8501", "http://127.0.0.1:8501", "http://localhost:3000", "http://127.0.0.1:3000"],
+			cors_origins=["http://localhost:3000", "http://127.0.0.1:3000", "http://localhost:8000", "http://127.0.0.1:8000"],
 			allowed_hosts=["localhost", "127.0.0.1"],
 			rate_limit_enabled=False,
 			file_upload_max_size=50 * 1024 * 1024,  # 50MB
@@ -121,7 +121,7 @@ class EnvironmentConfigManager:
 			enable_auth=False,
 			database_pool_size=2,
 			worker_count=1,
-			cors_origins=["http://localhost:8501"],
+			cors_origins=["http://localhost:3000"],
 			allowed_hosts=["localhost", "127.0.0.1"],
 			rate_limit_enabled=False,
 			file_upload_max_size=10 * 1024 * 1024,  # 10MB

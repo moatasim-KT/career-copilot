@@ -52,9 +52,9 @@ export function useNetworkStatus() {
 
       // Show offline toast
       toast.error('Connection Lost', {
-        description: 'You are currently offline. Some features may be unavailable.',
+        description: 'Real-time updates are temporarily unavailable.',
         duration: Infinity, // Keep showing until online
-        id: 'offline-toast',
+        id: 'network-offline',
       });
     };
 
@@ -75,7 +75,7 @@ export function useNetworkStatus() {
         });
 
         // Dismiss offline toast if it exists
-        toast.dismiss('offline-toast');
+        toast.dismiss('network-offline');
 
         // Trigger data resync
         if (typeof window !== 'undefined') {
@@ -92,8 +92,9 @@ export function useNetworkStatus() {
       } else if (status === 'disconnected' && isOnline) {
         // Disconnected but network is online - show warning
         toast.warning('Connection Issue', {
-          description: 'Having trouble connecting. Will retry automatically.',
+          description: 'Reconnecting automatically...',
           duration: 5000,
+          id: 'network-warning',
         });
       }
     });
@@ -116,7 +117,8 @@ export function useNetworkStatus() {
       if (reconnectToastId) {
         toast.dismiss(reconnectToastId);
       }
-      toast.dismiss('offline-toast');
+      toast.dismiss('network-offline');
+      toast.dismiss('network-warning');
     };
   }, [isReconnecting, isOnline]);
 

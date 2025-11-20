@@ -2,7 +2,7 @@
  * Skeleton loader for data tables
  */
 
-import { Skeleton } from './Skeleton';
+import { Skeleton2 as Skeleton } from '../Skeleton2';
 
 interface SkeletonTableProps {
     rows?: number;

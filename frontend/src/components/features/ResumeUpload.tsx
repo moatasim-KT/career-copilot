@@ -3,7 +3,7 @@
 import React, { useState, useCallback } from 'react';
 
 import Button from '@/components/ui/Button2';
-import Card2 from '@/components/ui/Card2';
+import Card from '@/components/ui/Card2';
 import { apiClient } from '@/lib/api';
 
 interface ParsedResumeData {
@@ -211,7 +211,7 @@ export default function ResumeUpload({ onUploadComplete, onProfileUpdate }: Resu
 
   return (
     <div className="space-y-6">
-      <Card2 className="p-6">
+      <Card className="p-6">
         <h3 className="text-lg font-semibold mb-4">Upload Resume</h3>
 
         {!file && !uploadResult && (
@@ -291,10 +291,10 @@ export default function ResumeUpload({ onUploadComplete, onProfileUpdate }: Resu
             <p className="text-sm text-red-600">{error}</p>
           </div>
         )}
-      </Card2>
+      </Card>
 
       {uploadResult && (
-        <Card2 className="p-6">
+        <Card className="p-6">
           <h4 className="text-lg font-semibold mb-4">Parsing Results</h4>
 
           {parsing && (
@@ -390,7 +390,7 @@ export default function ResumeUpload({ onUploadComplete, onProfileUpdate }: Resu
               Upload Another Resume
             </Button>
           </div>
-        </Card2>
+        </Card>
       )}
     </div>
   );

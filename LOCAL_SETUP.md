@@ -69,7 +69,7 @@ docker-compose exec backend alembic upgrade head
 
 # 6. Access the application
 open http://localhost:3000  # Frontend - Main application UI
-open http://localhost:8002/docs  # Backend - Interactive API documentation
+open http://localhost:8000/docs  # Backend - Interactive API documentation
 ```
 
 **💰 Total Cost: $0.00/month** - This configuration uses only free services!
@@ -98,7 +98,7 @@ docker-compose exec backend alembic upgrade head
 
 # 4. Access the application
 open http://localhost:3000
-open http://localhost:8002/docs
+open http://localhost:8000/docs
 ```
 
 ---
@@ -106,14 +106,14 @@ open http://localhost:8002/docs
 **What's happening behind the scenes:**
 - PostgreSQL database starts and creates the `career_copilot` database
 - Redis starts for caching and background job management
-- Backend API (FastAPI) starts on port 8002
+- Backend API (FastAPI) starts on port 8000
 - Frontend (Next.js) starts on port 3000
 - Celery workers start for background job scraping and AI processing
 
 **First time setup?** After starting services with the free tier config:
 1. Verify Groq API key is in `.env` (get free key from https://console.groq.com/keys)
 2. Check all services are running: `docker-compose ps`
-3. Test the setup: `curl http://localhost:8002/health`
+3. Test the setup: `curl http://localhost:8000/health`
 
 ---
 
@@ -749,7 +749,7 @@ Connect calendar services to auto-add interview dates and deadlines.
 1. Create Google Cloud project (free): https://console.cloud.google.com/
 2. Enable Google Calendar API (free)
 3. Create OAuth 2.0 credentials (no credit card required)
-4. Add redirect URI: `http://localhost:8002/api/v1/calendar/google/callback`
+4. Add redirect URI: `http://localhost:8000/api/v1/calendar/google/callback`
 5. Add to `.env`:
    ```bash
    GOOGLE_CLIENT_ID=your-client-id.apps.googleusercontent.com

@@ -14,7 +14,7 @@ from sqlalchemy.dialects import postgresql
 
 # revision identifiers, used by Alembic.
 revision: str = "add_document_content_field"
-down_revision: Union[str, Sequence[str], None] = "career_resources_001"
+down_revision: Union[str, Sequence[str], None] = "005_phase_3_3_fields"
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 

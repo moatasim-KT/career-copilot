@@ -3,17 +3,17 @@
 ---
 ## 🧭 Quick Navigation
 
-- [[PLAN]] – Project Plan
-- [[TESTING_AND_UI_REFACTORING_OVERVIEW]] – Testing & UI Refactoring Overview
-- [[COMPONENT_LIBRARY_INVENTORY.md]] – Component Inventory
-- [[DESIGN_SYSTEM.md]] – Design System Guide
-- [[ERROR_HANDLING_GUIDE.md]] – Error Handling Guide
-- [[E2E_TESTING_MIGRATION.md]] – E2E Testing Migration Guide
-- [[docs/DEVELOPER_GUIDE]] – Developer Guide
-- [[TODO.md]] – Todo List
-- [[FRONTEND_QUICK_START.md]] – Frontend Quick Start
-- [[USER_GUIDE.md]] – User Guide
-- [[ENVIRONMENT_CONFIGURATION.md]] – Environment Configuration
+- [[PLAN.md|PLAN]] – Project Plan
+- [[docs/testing/TESTING_AND_UI_REFACTORING_OVERVIEW.md|Testing and UI Refactoring Overview]]
+- [[docs/COMPONENT_LIBRARY_INVENTORY.AD.md|Component Inventory]]
+- [[docs/DESIGN_SYSTEM.md|Design System Guide]]
+- [[docs/ERROR_HANDLING_GUIDE.md|Error Handling Guide]]
+- [[docs/E2E_TESTING_MIGRATION.md|E2E Testing Migration]]
+- [[docs/DEVELOPER_GUIDE.md|Developer Guide]]
+- [[TODO.md|TODO]] – Todo List
+- [[docs/FRONTEND_QUICK_START.md|Frontend Quick Start]]
+- [[docs/USER_GUIDE.md|User Guide]]
+- [[docs/ENVIRONMENT_CONFIGURATION.md|Environment Configuration]]
 ---
 
 This directory contains all generated reports from various tools and test runs. Reports are organized by category for easy navigation.

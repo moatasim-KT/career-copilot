@@ -2,7 +2,7 @@
 
 import dynamic from 'next/dynamic';
 
-import Card2 from '@/components/ui/Card2';
+import Card from '@/components/ui/Card2';
 
 // Lazy load the InterviewPractice component
 const InterviewPractice = dynamic(() => import('@/components/features/InterviewPractice'), {
@@ -17,9 +17,9 @@ export default function InterviewPracticePage() {
   return (
     <div className="space-y-6">
       <h1 className="text-3xl font-bold text-gray-900">Interview Practice</h1>
-      <Card2>
+      <Card>
         <InterviewPractice />
-      </Card2>
+      </Card>
     </div>
   );
 }

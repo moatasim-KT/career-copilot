@@ -22,8 +22,8 @@ import RecommendationsWidget from '@/components/dashboard/widgets/Recommendation
 import SkillsProgressWidget from '@/components/dashboard/widgets/SkillsProgressWidget';
 import StatusOverviewWidget from '@/components/dashboard/widgets/StatusOverviewWidget';
 import UpcomingCalendarWidget from '@/components/dashboard/widgets/UpcomingCalendarWidget';
-import { Button } from '@/components/ui/Button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
+import Button from '@/components/ui/Button2';
+import Card, { CardContent, CardHeader, CardTitle } from '@/components/ui/Card2';
 import { useToast } from '@/components/ui/use-toast';
 import { DashboardService } from '@/lib/api/client';
 import type { CustomDashboardLayout, CustomizableWidgetType } from '@/types/dashboard';

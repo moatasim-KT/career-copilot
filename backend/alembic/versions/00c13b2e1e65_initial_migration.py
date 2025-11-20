@@ -10,6 +10,7 @@ from typing import Sequence, Union
 
 from alembic import op
 import sqlalchemy as sa
+from sqlalchemy.dialects import postgresql
 
 
 # revision identifiers, used by Alembic.
@@ -95,7 +96,7 @@ def upgrade() -> None:
 		sa.Column("username", sa.String(), nullable=False),
 		sa.Column("email", sa.String(), nullable=False),
 		sa.Column("hashed_password", sa.String(), nullable=False),
-		sa.Column("skills", sa.JSON(), nullable=True),
+		sa.Column("skills", postgresql.JSONB(astext_type=sa.Text()), nullable=True),
 		sa.Column("preferred_locations", sa.JSON(), nullable=True),
 		sa.Column("experience_level", sa.String(), nullable=True),
 		sa.Column("daily_application_goal", sa.Integer(), nullable=True),
@@ -220,7 +221,7 @@ def upgrade() -> None:
 		sa.Column("salary_max", sa.Integer(), nullable=True),
 		sa.Column("job_type", sa.String(), nullable=True),
 		sa.Column("remote_option", sa.String(), nullable=True),
-		sa.Column("tech_stack", sa.JSON(), nullable=True),
+		sa.Column("tech_stack", postgresql.JSONB(astext_type=sa.Text()), nullable=True),
 		sa.Column("responsibilities", sa.Text(), nullable=True),
 		sa.Column("documents_required", sa.JSON(), nullable=True),
 		sa.Column("application_url", sa.String(), nullable=True),
@@ -367,6 +368,25 @@ def upgrade() -> None:
 		sa.PrimaryKeyConstraint("id"),
 	)
 	op.create_index(op.f("ix_content_generations_id"), "content_generations", ["id"], unique=False)
+	op.create_table(
+		"documents",
+		sa.Column("id", sa.Integer(), nullable=False),
+		sa.Column("user_id", sa.Integer(), nullable=False),
+		sa.Column("original_filename", sa.String(length=255), nullable=False),
+		sa.Column("stored_filename", sa.String(length=255), nullable=False),
+		sa.Column("document_type", sa.String(length=50), nullable=False),
+		sa.Column("file_size", sa.Integer(), nullable=False),
+		sa.Column("mime_type", sa.String(length=100), nullable=True),
+		sa.Column("usage_count", sa.Integer(), nullable=True),
+		sa.Column("last_used", sa.DateTime(timezone=True), nullable=True),
+		sa.Column("created_at", sa.DateTime(timezone=True), nullable=False),
+		sa.Column("updated_at", sa.DateTime(timezone=True), nullable=True),
+		sa.ForeignKeyConstraint(["user_id"], ["users.id"], ondelete="CASCADE"),
+		sa.PrimaryKeyConstraint("id"),
+		sa.UniqueConstraint("stored_filename"),
+	)
+	op.create_index(op.f("ix_documents_id"), "documents", ["id"], unique=False)
+	op.create_index(op.f("ix_documents_user_id"), "documents", ["user_id"], unique=False)
 	op.create_table(
 		"feedback_votes",
 		sa.Column("id", sa.Integer(), nullable=False),

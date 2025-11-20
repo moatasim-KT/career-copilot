@@ -636,11 +636,11 @@ export default function DesignSystemTest() {
       <h1 className="text-4xl font-bold">Design System Test</h1>
       
       {/* Test Buttons */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Buttons</CardTitle>
-        </CardHeader>
-        <CardContent>
+      <Card2>
+        <Card2.Header>
+          <Card2.Title>Buttons</Card2.Title>
+        </Card2.Header>
+        <Card2.Content>
           <div className="flex flex-wrap gap-4">
             <Button variant="primary">Primary</Button>
             <Button variant="secondary">Secondary</Button>
@@ -650,43 +650,43 @@ export default function DesignSystemTest() {
             <Button variant="success">Success</Button>
             <Button loading>Loading</Button>
           </div>
-        </CardContent>
-      </Card>
+        </Card2.Content>
+      </Card2>
 
       {/* Test Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card elevation={1} hover>
-          <CardHeader>
-            <CardTitle>Card 1</CardTitle>
-          </CardHeader>
-          <CardContent>
+        <Card2 elevation={1} hover>
+          <Card2.Header>
+            <Card2.Title>Card 1</Card2.Title>
+          </Card2.Header>
+          <Card2.Content>
             <p>Elevation 1 with hover effect</p>
-          </CardContent>
-        </Card>
-        <Card elevation={2} gradient>
-          <CardHeader>
-            <CardTitle>Card 2</CardTitle>
-          </CardHeader>
-          <CardContent>
+          </Card2.Content>
+        </Card2>
+        <Card2 elevation={2} gradient>
+          <Card2.Header>
+            <Card2.Title>Card 2</Card2.Title>
+          </Card2.Header>
+          <Card2.Content>
             <p>Elevation 2 with gradient</p>
-          </CardContent>
-        </Card>
-        <Card elevation={3} interactive>
-          <CardHeader>
-            <CardTitle>Card 3</CardTitle>
-          </CardHeader>
-          <CardContent>
+          </Card2.Content>
+        </Card2>
+        <Card2 elevation={3} interactive>
+          <Card2.Header>
+            <Card2.Title>Card 3</Card2.Title>
+          </Card2.Header>
+          <Card2.Content>
             <p>Elevation 3 and interactive</p>
-          </CardContent>
-        </Card>
+          </Card2.Content>
+        </Card2>
       </div>
 
       {/* Test Colors */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Color Palette</CardTitle>
-        </CardHeader>
-        <CardContent>
+      <Card2>
+        <Card2.Header>
+          <Card2.Title>Color Palette</Card2.Title>
+        </Card2.Header>
+        <Card2.Content>
           <div className="grid grid-cols-5 gap-4">
             <div className="space-y-2">
               <div className="h-12 bg-primary-500 rounded"></div>
@@ -709,8 +709,8 @@ export default function DesignSystemTest() {
               <p className="text-xs">Neutral</p>
             </div>
           </div>
-        </CardContent>
-      </Card>
+        </Card2.Content>
+      </Card2>
     </div>
   );
 }

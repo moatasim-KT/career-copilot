@@ -3,8 +3,8 @@
 import { useEffect, useState } from 'react';
 
 import Button2 from '@/components/ui/Button2';
-import Card2 from '@/components/ui/Card2';
-import Textarea from '@/components/ui/Textarea';
+import Card from '@/components/ui/Card2';
+import Textarea from '@/components/ui/Textarea2';
 import { apiClient, Job } from '@/lib/api';
 import { logger } from '@/lib/logger';
 
@@ -191,7 +191,7 @@ export default function ContentGeneration({
 
   return (
     <div className="space-y-6">
-      <Card2 className="p-6">
+      <Card className="p-6">
         <h3 className="text-lg font-semibold mb-4">AI Content Generation</h3>
 
         {!generatedContent ? (
@@ -275,7 +275,7 @@ export default function ContentGeneration({
               <Textarea
                 value={customPrompt}
                 onChange={e => setCustomPrompt(e.target.value)}
-                placeholder="Add any specific requirements or information you'd like to include..."
+                placeholder="Add any specific requirements or information you\'d like to include..."
                 rows={3}
               />
             </div>
@@ -292,7 +292,8 @@ export default function ContentGeneration({
                   <span>Generating...</span>
                 </div>
               ) : (
-                `Generate ${getContentTypeLabel(contentType)}`
+                `Generate ${getContentTypeLabel(contentType)}
+              `
               )}
             </Button2>
           </div>
@@ -389,7 +390,7 @@ export default function ContentGeneration({
             <p className="text-sm text-red-600">{error}</p>
           </div>
         )}
-      </Card2>
+      </Card>
     </div>
   );
 }

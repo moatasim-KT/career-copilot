@@ -31,11 +31,11 @@ import {
   LazyUndoToast,
 } from '@/components/lazy';
 import Button2 from '@/components/ui/Button2';
-import Card2, { CardContent } from '@/components/ui/Card2';
+import Card, { CardContent } from '@/components/ui/Card2';
 import { ExportDropdown } from '@/components/ui/ExportDropdown';
-import Input from '@/components/ui/Input';
-import Select from '@/components/ui/Select';
-import Textarea from '@/components/ui/Textarea';
+import Input from '@/components/ui/Input2';
+import Select from '@/components/ui/Select2';
+import Textarea from '@/components/ui/Textarea2';
 import { useBulkUndo } from '@/hooks/useBulkUndo';
 import { useRecentSearches } from '@/hooks/useRecentSearches';
 import { useWebSocket } from '@/hooks/useWebSocket';
@@ -468,13 +468,13 @@ export default function ApplicationsPage() {
           <div className="h-8 bg-neutral-200 rounded w-1/4 mb-6"></div>
           <div className="space-y-4">
             {[...Array(3)].map((_, i) => (
-              <Card2 key={i}>
+              <Card key={i}>
                 <CardContent className="p-6">
                   <div className="h-4 bg-neutral-200 rounded w-3/4 mb-2"></div>
                   <div className="h-4 bg-neutral-200 rounded w-1/2 mb-4"></div>
                   <div className="h-4 bg-neutral-200 rounded w-1/4"></div>
                 </CardContent>
-              </Card2>
+              </Card>
             ))}
           </div>
         </div>
@@ -605,12 +605,12 @@ export default function ApplicationsPage() {
             exit={{ opacity: 0, y: -10, height: 0 }}
             transition={{ duration: 0.2 }}
           >
-            <Card2 className="border-red-200 bg-red-50">
+            <Card className="border-red-200 bg-red-50">
               <CardContent className="flex items-center p-4">
                 <AlertCircle className="h-5 w-5 text-red-400 flex-shrink-0" />
                 <p className="text-sm text-red-800 ml-3">{error}</p>
               </CardContent>
-            </Card2>
+            </Card>
           </m.div>
         )}
       </AnimatePresence>
@@ -621,7 +621,7 @@ export default function ApplicationsPage() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.2 }}
       >
-        <Card2>
+        <Card>
           <CardContent className="p-4">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <m.div
@@ -649,12 +649,13 @@ export default function ApplicationsPage() {
                 <Select
                   value={statusFilter}
                   onChange={(e) => setStatusFilter(e.target.value)}
-                  options={[
-                    { value: 'all', label: 'All Status' },
-                    ...STATUS_OPTIONS,
-                  ]}
                   disabled={hasSearchCriteria(advancedSearchQuery)}
-                />
+                >
+                  <option value="all">All Status</option>
+                  {STATUS_OPTIONS.map(opt => (
+                    <option key={opt.value} value={opt.value}>{opt.label}</option>
+                  ))}
+                </Select>
               </m.div>
 
               <m.div
@@ -665,8 +666,11 @@ export default function ApplicationsPage() {
                 <Select
                   value={sortBy}
                   onChange={(e) => setSortBy(e.target.value)}
-                  options={SORT_OPTIONS}
-                />
+                >
+                  {SORT_OPTIONS.map(opt => (
+                    <option key={opt.value} value={opt.value}>{opt.label}</option>
+                  ))}
+                </Select>
               </m.div>
             </div>
 
@@ -751,12 +755,12 @@ export default function ApplicationsPage() {
               </div>
             </m.div>
           </CardContent>
-        </Card2>
+        </Card>
       </m.div>
 
       {/* Application Form Modal */}
       <LazyModal
-        isOpen={showApplicationModal}
+        open={showApplicationModal}
         onClose={closeModal}
         title={editingApplication ? 'Edit Application' : 'Add New Application'}
         size="lg"
@@ -767,20 +771,20 @@ export default function ApplicationsPage() {
               label="Job *"
               value={formData.job_id.toString()}
               onChange={(e) => setFormData(prev => ({ ...prev, job_id: parseInt(e.target.value) || 0 }))}
-              options={[
-                { value: '0', label: 'Select a job...' },
-                // Note: In a real implementation, you'd fetch available jobs
-                // For now, this is a placeholder
-              ]}
               className="min-h-[44px]"
-            />
+            >
+              <option value="0">Select a job...</option>
+            </Select>
             <Select
               label="Status"
               value={formData.status}
               onChange={(e) => setFormData(prev => ({ ...prev, status: e.target.value as Application['status'] }))}
-              options={STATUS_OPTIONS}
               className="min-h-[44px]"
-            />
+            >
+              {STATUS_OPTIONS.map(opt => (
+                <option key={opt.value} value={opt.value}>{opt.label}</option>
+              ))}
+            </Select>
           </div>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-1 md:grid-cols-3">
             <Input
@@ -858,7 +862,7 @@ export default function ApplicationsPage() {
                 }}
                 transition={springConfigs.smooth}
               >
-                <Card2 hover className="transition-all duration-200">
+                <Card hover className="transition-all duration-200">
                   <CardContent className="p-6">
                     <div className="flex items-start justify-between">
                       <div className="flex items-start space-x-3 flex-1">
@@ -952,9 +956,12 @@ export default function ApplicationsPage() {
                             <Select
                               value={application.status}
                               onChange={(e) => updateApplicationStatus(application.id, e.target.value)}
-                              options={STATUS_OPTIONS}
                               className="w-32"
-                            />
+                            >
+                              {STATUS_OPTIONS.map(opt => (
+                                <option key={opt.value} value={opt.value}>{opt.label}</option>
+                              ))}
+                            </Select>
                           </m.div>
                         </div>
                       </div>
@@ -1067,7 +1074,7 @@ export default function ApplicationsPage() {
                       </m.div>
                     )}
                   </CardContent>
-                </Card2>
+                </Card>
               </m.div>
             ))}
           </AnimatePresence>
@@ -1079,7 +1086,7 @@ export default function ApplicationsPage() {
           animate="visible"
           exit="exit"
         >
-          <Card2>
+          <Card>
             <CardContent className="text-center py-12">
               <m.div
                 initial={{ scale: 0.8, opacity: 0 }}
@@ -1122,7 +1129,7 @@ export default function ApplicationsPage() {
                 </m.div>
               )}
             </CardContent>
-          </Card2>
+          </Card>
         </m.div>
       )}
 
@@ -1196,23 +1203,23 @@ export default function ApplicationsPage() {
       {/* Success/Error Messages */}
       {successMessage && (
         <div className="fixed top-4 right-4 z-50">
-          <Card2 className="border-green-200 bg-green-50">
+          <Card className="border-green-200 bg-green-50">
             <CardContent className="flex items-center p-4">
               <CheckCircle className="h-5 w-5 text-green-400 flex-shrink-0" />
               <p className="text-sm text-green-800 ml-3">{successMessage}</p>
             </CardContent>
-          </Card2>
+          </Card>
         </div>
       )}
 
       {errorMessage && (
         <div className="fixed top-4 right-4 z-50">
-          <Card2 className="border-red-200 bg-red-50">
+          <Card className="border-red-200 bg-red-50">
             <CardContent className="flex items-center p-4">
               <AlertCircle className="h-5 w-5 text-red-400 flex-shrink-0" />
               <p className="text-sm text-red-800 ml-3">{errorMessage}</p>
             </CardContent>
-          </Card2>
+          </Card>
         </div>
       )}
     </div>

@@ -88,10 +88,7 @@
 
 import { logger } from '@/lib/logger';
 
-import {
-    handleError,
-    retryWithBackoff,
-} from '../errorHandling';
+import { handleError, retryFetchApi } from '../errorHandling';
 
 import {
     type FrontendError,
@@ -231,100 +228,22 @@ async function fetchApi<T = any>(
 
     const url = buildUrl(endpoint, params);
 
-    // Wrap fetch in retry logic
-    try {
-        return await retryWithBackoff(
-            async () => {
-                try {
-                    const response = await fetch(url, {
-                        ...fetchOptions,
-                        headers,
-                    });
+    // Use centralized retry logic
+    const result = await retryFetchApi<T>(url, {
+        ...fetchOptions,
+        headers,
+    });
 
-                    let data: T | undefined;
-                    const contentType = response.headers.get('content-type');
-
-                    if (contentType?.includes('application/json')) {
-                        data = await response.json();
-                    }
-
-                    if (!response.ok) {
-                        // Parse error response
-                        const frontendError = parseBackendError(response.status, data);
-
-                        const error: any = new Error(frontendError.message);
-                        error.status = response.status;
-                        error.frontendError = frontendError;
-                        error.response = { status: response.status, data };
-
-                        // Intercept and handle specific errors
-                        // Handle authentication errors
-                        if (isAuthError(frontendError)) {
-                            handleError(error, {
-                                component: 'API Client',
-                                action: `${fetchOptions.method || 'GET'} ${endpoint}`,
-                            });
-                            // Optionally redirect to login
-                            if (typeof window !== 'undefined') {
-                                // Store current URL for redirect after login
-                                sessionStorage.setItem('redirectAfterLogin', window.location.pathname);
-                            }
-                        }
-                        // Handle other errors
-                        else {
-                            handleError(error, {
-                                component: 'API Client',
-                                action: `${fetchOptions.method || 'GET'} ${endpoint}`,
-                            });
-                        }
-
-                        // Throw error to trigger retry if applicable
-                        throw error;
-                    }
-
-                    return {
-                        data,
-                        status: response.status,
-                    };
-                } catch (error: any) {
-                    // Handle network errors
-                    if (error instanceof TypeError || error.message === 'Failed to fetch') {
-                        const networkError: any = new Error('Network error');
-                        networkError.status = 0;
-                        networkError.originalError = error;
-
-                        handleError(networkError, {
-                            component: 'API Client',
-                            action: `${fetchOptions.method || 'GET'} ${endpoint}`,
-                        });
-
-                        throw networkError;
-                    }
-
-                    // Re-throw other errors
-                    throw error;
-                }
-            },
-            undefined, // Use default retry config
-            (attemptNumber, error) => {
-                // Log retry attempts in development
-                if (process.env.NODE_ENV === 'development') {
-                    logger.info(`Retry attempt ${attemptNumber} for ${endpoint}`, error);
-                }
-            },
-        );
-    } catch (error: any) {
-        // Final error after all retries
-        const frontendError = error.frontendError || parseBackendError(
-            error.status || 0,
-            error.response?.data
-        );
-
-        return {
-            error: frontendError,
-            status: error.status || 0,
-        };
+    // Handle authentication errors specially
+    if (result.error && isAuthError(result.error)) {
+        // Optionally redirect to login
+        if (typeof window !== 'undefined') {
+            // Store current URL for redirect after login
+            sessionStorage.setItem('redirectAfterLogin', window.location.pathname);
+        }
     }
+
+    return result;
 }
 
 /**

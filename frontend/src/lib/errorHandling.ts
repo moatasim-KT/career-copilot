@@ -11,6 +11,9 @@ import { toast } from 'sonner';
 
 import { logger } from '@/lib/logger';
 
+// Track active toast notifications to prevent duplicates
+const activeToasts = new Set<string>();
+
 /**
  * Error types for classification
  */
@@ -238,6 +241,110 @@ export async function retryWithBackoff<T>(
 }
 
 /**
+ * Enhanced fetchApi with centralized retry logic and single toast notifications
+ *
+ * This function wraps the standard fetch with retry logic that:
+ * - Only shows one error toast after all retries are exhausted
+ * - Provides a functional retry button in the toast
+ * - Prevents duplicate toast notifications during retries
+ *
+ * @template T - Expected response data type
+ * @param url - Full API URL
+ * @param options - Fetch options
+ * @param retryConfig - Optional retry configuration override
+ * @returns Promise resolving to ApiResponse<T>
+ */
+export async function retryFetchApi<T = any>(
+  url: string,
+  options: RequestInit = {},
+  retryConfig?: Partial<RetryConfig>,
+): Promise<any> {
+  let lastError: any;
+  let retryCallback: (() => void) | undefined;
+
+  try {
+    return await retryWithBackoff(
+      async () => {
+        try {
+          const response = await fetch(url, options);
+
+          let data: T | undefined;
+          const contentType = response.headers.get('content-type');
+
+          if (contentType?.includes('application/json')) {
+            data = await response.json();
+          }
+
+          if (!response.ok) {
+            // Import parseBackendError dynamically to avoid circular imports
+            const { parseBackendError } = await import('./api/types/errors');
+
+            // Parse error response
+            const frontendError = parseBackendError(response.status, data);
+
+            const error: any = new Error(frontendError.message);
+            error.status = response.status;
+            error.frontendError = frontendError;
+            error.response = { status: response.status, data };
+
+            throw error;
+          }
+
+          return {
+            data,
+            status: response.status,
+          };
+        } catch (error: any) {
+          // Handle network errors (fetch throwing)
+          if (error instanceof TypeError || error.message === 'Failed to fetch') {
+            const { parseBackendError } = await import('./api/types/errors');
+
+            const networkError: any = new Error('Network error');
+            networkError.status = 0;
+            networkError.frontendError = parseBackendError(0, undefined);
+            networkError.originalError = error;
+
+            throw networkError;
+          }
+
+          // Re-throw other errors
+          throw error;
+        }
+      },
+      { ...defaultRetryConfig, ...retryConfig },
+      (attemptNumber, error) => {
+        lastError = error;
+        // Log retry attempts in development
+        if (process.env.NODE_ENV === 'development') {
+          logger.info(`Retry attempt ${attemptNumber} for ${url}`, error);
+        }
+      },
+    );
+  } catch (error: any) {
+    // All retries exhausted, show final error with retry option
+    retryCallback = () => {
+      // Re-run the entire retryFetchApi call
+      retryFetchApi<T>(url, options, retryConfig).catch(() => {
+        // If retry also fails, it will show another toast
+      });
+    };
+
+    handleError(error, {
+      component: 'API Client',
+      action: `Request to ${url}`,
+    }, {
+      retryCallback,
+    });
+
+    // Return the error response
+    return {
+      error: error.frontendError || error,
+      status: error.status || 0,
+    };
+  }
+}
+
+/**
  * Handle error with appropriate user notification
  */
 export function handleError(
@@ -247,12 +354,14 @@ export function handleError(
     showToast?: boolean;
     logToConsole?: boolean;
     logToSentry?: boolean;
+    retryCallback?: () => void | Promise<void>;
   },
 ): void {
   const {
     showToast = true,
     logToConsole = true,
     logToSentry = true,
+    retryCallback,
   } = options || {};
 
   const errorType = classifyError(error);
@@ -303,17 +412,28 @@ export function handleError(
 
   // Show toast notification
   if (showToast) {
+    const errorKey = `${errorType}:${errorMessage}`;
+
+    // Prevent duplicate toast notifications
+    if (activeToasts.has(errorKey)) {
+      return;
+    }
+
+    activeToasts.add(errorKey);
+
     const toastOptions: any = {
       duration: 5000,
+      onDismiss: () => {
+        activeToasts.delete(errorKey);
+      },
     };
 
     // Add action button for retryable errors
-    if (shouldRetry(error)) {
+    if (shouldRetry(error) && retryCallback) {
       toastOptions.action = {
         label: 'Retry',
         onClick: () => {
-          // The calling code should handle retry logic
-          logger.info('Retry clicked');
+          retryCallback();
         },
       };
     }

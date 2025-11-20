@@ -1,4 +1,3 @@
-
 import {
   DndContext,
   closestCenter,
@@ -47,8 +46,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/DropdownMenu';
-import Input from '@/components/ui/Input';
-import Select from '@/components/ui/Select';
+import Input2 from '@/components/ui/Input2';
+import Select2 from '@/components/ui/Select2';
 import { useDebounce } from '@/hooks/use-debounce';
 import { useMediaQuery } from '@/hooks/use-media-query';
 import { exportToCSV } from '@/lib/export';
@@ -288,7 +287,7 @@ export function DataTable<TData, TValue>({
         <div className="flex items-center justify-between py-4">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
+            <Input2
               placeholder="Filter all columns..."
               value={globalFilter}
               onChange={(event) =>
@@ -431,19 +430,18 @@ export function DataTable<TData, TValue>({
           </div>
           <div className="flex items-center space-x-2">
             <p className="text-sm font-medium">Rows per page</p>
-            <Select
+            <Select2
               value={`${tableWithSelection.getState().pagination.pageSize}`}
               onChange={(e) => {
                 tableWithSelection.setPageSize(Number(e.target.value));
               }}
-              options={[
-                { value: '10', label: '10' },
-                { value: '20', label: '20' },
-                { value: '30', label: '30' },
-                { value: '40', label: '40' },
-                { value: '50', label: '50' },
-              ]}
-            />
+            >
+              <option value="10">10</option>
+              <option value="20">20</option>
+              <option value="30">30</option>
+              <option value="40">40</option>
+              <option value="50">50</option>
+            </Select2>
           </div>
           <div className="flex w-[100px] items-center justify-center text-sm font-medium">
             Page {tableWithSelection.getState().pagination.pageIndex + 1} of{' '}

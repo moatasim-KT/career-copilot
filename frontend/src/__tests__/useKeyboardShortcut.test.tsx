@@ -20,7 +20,7 @@ const keyboardShortcutsLib = require('@/lib/keyboardShortcuts');
 describe('useKeyboardShortcut', () => {
     it('does not crash when navigator is undefined (SSR-safe)', () => {
         const originalNavigator = (global as any).navigator;
-        // @ts-expect-error - simulate SSR environment
+        // simulate SSR environment - navigator may be undefined
         delete (global as any).navigator;
 
         const callback = jest.fn();

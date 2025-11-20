@@ -16,7 +16,7 @@ export const useJobs = (options: UseJobsOptions = {}) => {
     queryFn: async () => {
       const response = await JobsService.list({ skip, limit });
       if (response.error) {
-        throw new Error(response.error);
+        throw new Error(response.error.message);
       }
       return response.data || [];
     },

@@ -1,5 +1,5 @@
 
-import Skeleton from './Skeleton';
+import Skeleton from './Skeleton2';
 
 export default function FilterPanelSkeleton() {
   return (

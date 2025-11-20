@@ -11,8 +11,8 @@ import { Calendar, CheckCircle2, Loader2, XCircle } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
 import { Badge } from '@/components/ui/Badge';
-import { Button } from '@/components/ui/Button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card';
+import Button from '@/components/ui/Button2';
+import { Card2, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card2';
 import { useToast } from '@/components/ui/use-toast';
 import { CalendarService } from '@/lib/api/client';
 import type { CalendarCredential, CalendarProvider } from '@/types/calendar';
@@ -112,7 +112,7 @@ export default function CalendarSettingsPage() {
 
                 <div className="grid gap-6 md:grid-cols-2">
                     {/* Google Calendar */}
-                    <Card>
+                    <Card2>
                         <CardHeader>
                             <div className="flex items-center justify-between">
                                 <div className="flex items-center space-x-3">
@@ -177,10 +177,10 @@ export default function CalendarSettingsPage() {
                                 )}
                             </div>
                         </CardContent>
-                    </Card>
+                    </Card2>
 
                     {/* Microsoft Outlook */}
-                    <Card>
+                    <Card2>
                         <CardHeader>
                             <div className="flex items-center justify-between">
                                 <div className="flex items-center space-x-3">
@@ -245,11 +245,11 @@ export default function CalendarSettingsPage() {
                                 )}
                             </div>
                         </CardContent>
-                    </Card>
+                    </Card2>
                 </div>
 
                 {/* Features Info */}
-                <Card className="mt-6">
+                <Card2 className="mt-6">
                     <CardHeader>
                         <CardTitle>Calendar Integration Features</CardTitle>
                     </CardHeader>
@@ -277,7 +277,7 @@ export default function CalendarSettingsPage() {
                             </li>
                         </ul>
                     </CardContent>
-                </Card>
+                </Card2>
             </div>
         </div>
     );

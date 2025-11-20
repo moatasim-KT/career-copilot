@@ -11,8 +11,8 @@ import dynamic from 'next/dynamic';
 import React from 'react';
 
 // Lazy load Modal
-const Modal = dynamic(
-  () => import('@/components/ui/Modal').then((mod) => ({ default: mod.default })),
+const Modal2 = dynamic(
+  () => import('@/components/ui/Modal2').then((mod) => ({ default: mod.Modal2 })),
   {
     loading: () => <ModalSkeleton />,
     ssr: false,
@@ -21,7 +21,7 @@ const Modal = dynamic(
 
 // Lazy load ModalFooter
 export const LazyModalFooter = dynamic(
-  () => import('@/components/ui/Modal').then((mod) => ({ default: mod.ModalFooter })),
+  () => import('@/components/ui/Modal2').then((mod) => ({ default: mod.ModalFooter })),
   {
     ssr: false,
   },
@@ -56,4 +56,4 @@ function ModalSkeleton() {
   );
 }
 
-export default Modal;
+export default Modal2;

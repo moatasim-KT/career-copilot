@@ -19,8 +19,8 @@ import {
 import { useState, useMemo } from 'react';
 
 import { Badge } from '@/components/ui/Badge';
-import Button from '@/components/ui/Button';
-import Card from '@/components/ui/Card';
+import Button from '@/components/ui/Button2';
+import Card from '@/components/ui/Card2';
 import { Checkbox } from '@/components/ui/Checkbox';
 import Input2 from '@/components/ui/Input2';
 import { m, AnimatePresence } from '@/lib/motion';
@@ -268,7 +268,7 @@ export default function NotificationsPage() {
   };
 
   const handleMarkAllAsRead = () => {
-    setNotifications(prev => prev.map(n => ({ ...n, read: true })));
+    setNotifications(prev => prev.map(n => ({ ...n, read: true })))
   };
 
   const handleCategoryFilter = (category: NotificationCategory) => {
