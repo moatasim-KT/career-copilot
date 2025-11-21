@@ -1,10 +1,4 @@
 """
-def None  # get_authentication_service(): return None
-from .authentication_service import get_authentication_service
-
-def None  # get_authentication_service(): return None
-
-
 WebSocket service for real-time notifications and updates.
 """
 
@@ -17,12 +11,12 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..core.config import get_settings
 from ..core.logging import get_logger
+from ..core.security import InvalidTokenError, decode_access_token
 from ..core.websocket_manager import websocket_manager
 from ..repositories.user_repository import UserRepository
 
 try:
-	from ..services.firebase_auth_service import \
-	    get_firebase_auth_service  # type: ignore
+	from ..services.firebase_auth_service import get_firebase_auth_service  # type: ignore
 except ImportError:  # Optional service may not be available in test environment
 
 	def get_firebase_auth_service() -> None:  # type: ignore[override]
@@ -64,21 +58,22 @@ class WebSocketService:
 				logger.warning("WebSocket connection missing authentication token")
 				return None
 
-			# Authentication service is optional in this environment; if unavailable we cannot verify.
-			auth_service = None  # get_authentication_service()
-			if not auth_service:
-				logger.error("Authentication service not configured for WebSocket connections")
-				return None
-
-			# Validate token
-			token_data = auth_service.verify_access_token(token)
-			if not token_data:
+			# Validate token directly using core security
+			try:
+				token_data = decode_access_token(token)
+			except InvalidTokenError:
 				logger.warning("WebSocket token validation failed")
 				return None
 
+			if not token_data or not token_data.sub:
+				logger.warning("WebSocket token missing subject")
+				return None
+
+			user_id = int(token_data.sub)
+
 			# Get user from database
 			user_repo = UserRepository(session)
-			db_user = await user_repo.get_by_id(token_data.user_id)
+			db_user = await user_repo.get_by_id(user_id)
 			if not db_user or not getattr(db_user, "is_active", True):
 				logger.warning("WebSocket user not found or inactive")
 				return None

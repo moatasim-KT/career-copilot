@@ -1,15 +1,11 @@
 'use client';
 
-import { useEffect } from 'react';
-import { Toaster } from 'sonner';
-
 import { useDataResync } from '@/hooks/useDataResync';
 import { useNetworkStatus } from '@/hooks/useNetworkStatus';
 import { useRealtimeApplications } from '@/hooks/useRealtimeApplications';
 import { useRealtimeJobs } from '@/hooks/useRealtimeJobs';
 import { useRealtimeNotifications } from '@/hooks/useRealtimeNotifications';
 import { logger } from '@/lib/logger';
-import { initializeWebSocket, destroyWebSocket } from '@/lib/websocket';
 
 /**
  * RealtimeProvider Component
@@ -40,23 +36,9 @@ export function RealtimeProvider({
   useNetworkStatus();
   useDataResync();
 
-  useEffect(() => {
-    if (!enableWebSocket) {
-      logger.info('[RealtimeProvider] WebSocket disabled');
-      return;
-    }
+  // WebSocket connection is managed by AuthContext and WebSocketService singleton
+  // We just initialize the hooks here to set up event listeners
 
-    logger.info('[RealtimeProvider] Initializing WebSocket connection');
-
-    // Initialize WebSocket connection
-    initializeWebSocket();
-
-    // Cleanup on unmount
-    return () => {
-      logger.info('[RealtimeProvider] Cleaning up WebSocket connection');
-      destroyWebSocket();
-    };
-  }, [enableWebSocket]);
 
   return (
     <>

@@ -23,11 +23,6 @@ jest.mock('framer-motion', () => {
   };
 });
 
-// Mock the WebSocket hook
-jest.mock('@/hooks/useWebSocket', () => ({
-  useWebSocket: jest.fn(() => ({})),
-}));
-
 // Mock the logger
 jest.mock('@/lib/logger', () => ({
   logger: {
@@ -36,9 +31,15 @@ jest.mock('@/lib/logger', () => ({
   },
 }));
 
-// Mock the websocket handlers
-jest.mock('@/lib/websocket/applications', () => ({
-  handleApplicationStatusUpdate: jest.fn(),
+// Mock the WebSocket service
+jest.mock('@/lib/api/websocket', () => ({
+  webSocketService: {
+    on: jest.fn(),
+    off: jest.fn(),
+    connect: jest.fn(),
+    disconnect: jest.fn(),
+    getStatus: jest.fn().mockReturnValue('connected'),
+  },
 }));
 
 // Mock the API module

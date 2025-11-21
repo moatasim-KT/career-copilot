@@ -91,7 +91,7 @@ class WebSocketService {
 
       try {
         // Create WebSocket connection with token in header (if supported) or as query param
-        const wsUrl = `${this.baseUrl}/ws`;
+        const wsUrl = `${this.baseUrl}/ws?token=${this.token}`;
         this.socket = new WebSocket(wsUrl);
 
         // Send token after connection opens
@@ -201,6 +201,24 @@ class WebSocketService {
 
     return this.connect(this.token);
   }
+
+  /**
+   * Get current connection status
+   */
+  getStatus(): 'connected' | 'connecting' | 'reconnecting' | 'disconnected' {
+    if (this.socket?.readyState === WebSocket.OPEN) {
+      return 'connected';
+    }
+    if (this.isConnecting) {
+      return 'connecting';
+    }
+    if (this.shouldReconnect && this.reconnectAttempts > 0) {
+      return 'reconnecting';
+    }
+    return 'disconnected';
+  }
+
+
 
   /**
    * Check if WebSocket is connected

@@ -1,0 +1,53 @@
+- [x] **Phase 1: Initial Diagnosis and Environment Check**
+  - [x] Verify WebSocket Endpoint [frontend] [backend]
+    - [x] Double-check frontend WebSocket URL (protocol, hostname, port).
+    - [x] Examine backend WebSocket configuration files.
+  - [x] Basic Connectivity Test (Client-Side) [frontend]
+    - [x] Use browser developer tools (Network -> WS) to observe handshake.
+    - [x] Look for connection attempts, 101 status code, and immediate errors.
+  - [x] Basic Connectivity Test (Server-Side) [backend]
+    - [x] Use WebSocket testing tool (Postman, websocat, script) to connect directly to backend.
+    - [x] Confirm backend establishes connection and echoes messages.
+  - [x] Review Backend Logs for Handshake Errors [backend]
+    - [x] Check backend application logs for WebSocket errors/warnings during handshake.
+    - [x] Look for HTTP 400, 502, or specific WebSocket upgrade failure messages.
+
+- [x] **Phase 2: Network & Infrastructure Investigation**
+  - [x] Check Firewall/Proxy Configuration [network]
+    - [x] Verify network firewalls/proxies are not blocking WebSocket traffic.
+    - [x] Ensure ports 80/443 are open for `ws://`/`wss://`.
+    - [x] Confirm proxy configurations handle WebSocket `Upgrade` headers.
+  - [x] Load Balancer/Reverse Proxy Configuration Review [network]
+    - [x] Check load balancer/reverse proxy config for WebSocket support.
+    - [x] Ensure `Upgrade` and `Connection` headers are passed to backend.
+    - [x] Consider sticky sessions or pub/sub if multiple backend instances.
+
+- [x] **Phase 3: Deep Dive into Application Logic**
+  - [x] Frontend WebSocket Implementation Review [frontend]
+    - [x] Examine frontend JavaScript for robust reconnection logic (exponential backoff).
+    - [x] Verify correct `onopen`, `onmessage`, `onerror`, `onclose` event listeners.
+    - [x] Ensure proper message parsing on the frontend.
+  - [x] Backend WebSocket Implementation Review [backend]
+    - [x] Examine backend code for WebSocket connection handling and message broadcasting.
+    - [x] Focus on server-side event handling, message distribution, resource management.
+    - [x] Identify application-level bugs preventing messages from being sent.
+  - [x] CORS Policy Verification [frontend] [backend]
+    - [x] Confirm backend's CORS policy allows frontend's origin for handshakes.
+    - [x] Check `Access-Control-Allow-Origin` headers.
+  - [x] Heartbeat Mechanism Implementation/Verification [frontend] [backend]
+    - [x] Implement or verify existing heartbeat (ping/pong) mechanisms if idle connections are dropped.
+    - [x] Ensure regular transmission of small messages to prevent timeouts.
+
+- [x] **Phase 4: Real-time Update Flow Verification**
+  - [x] Message Flow Trace (End-to-End) [frontend] [backend]
+    - [x] Trigger an event and trace message from backend origin to frontend display.
+    - [x] Verify backend sends, network traverses, and frontend receives/renders message.
+  - [x] Test with Varying Data Volume/Frequency [test]
+    - [x] Simulate different loads to identify bottlenecks or race conditions.
+    - [x] Monitor for performance degradation or message loss.
+
+- [x] **General Considerations**
+  - [x] Documentation [documentation]
+    - [x] Document all findings, configuration changes, and solutions.
+  - [x] Version Control [devops]
+    - [x] Ensure all code changes are managed through version control (Git).

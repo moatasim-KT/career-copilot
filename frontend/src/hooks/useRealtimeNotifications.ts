@@ -5,7 +5,7 @@ import { useEffect, useCallback } from 'react';
 import { toast } from 'sonner';
 
 import { logger } from '@/lib/logger';
-import { getWebSocketClient } from '@/lib/websocket';
+import { webSocketService } from '@/lib/api/websocket';
 
 /**
  * Hook for real-time notifications via WebSocket
@@ -126,16 +126,15 @@ export function useRealtimeNotifications() {
   }, [queryClient]);
 
   useEffect(() => {
-    const wsClient = getWebSocketClient();
-
     // Subscribe to new notification events
-    const unsubscribe = wsClient.subscribe<NotificationEvent>(
-      'notification:new',
-      handleNewNotification,
-    );
+    const onNewNotification = (data: any) => {
+      handleNewNotification(data as NotificationEvent);
+    };
+
+    webSocketService.on('notification:new', onNewNotification);
 
     return () => {
-      unsubscribe();
+      webSocketService.off('notification:new', onNewNotification);
     };
   }, [handleNewNotification]);
 

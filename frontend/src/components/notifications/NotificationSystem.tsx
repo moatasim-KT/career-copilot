@@ -16,7 +16,7 @@ import {
 } from 'lucide-react';
 import { useState, useEffect, useCallback } from 'react';
 
-import { useWebSocket } from '@/hooks/useWebSocket';
+import { webSocketService } from '@/lib/api/websocket';
 import { logger } from '@/lib/logger';
 
 export interface Notification {
@@ -94,7 +94,7 @@ function NotificationItem({ notification, onClose }: NotificationItemProps) {
     >
       <div className="p-4">
         <div className="flex items-start">
-          <div className="flex-shrink-0">
+          <div className="shrink-0">
             {getIcon()}
           </div>
           <div className="ml-3 w-0 flex-1">
@@ -114,7 +114,7 @@ function NotificationItem({ notification, onClose }: NotificationItemProps) {
               {notification.timestamp.toLocaleTimeString()}
             </p>
           </div>
-          <div className="ml-4 flex-shrink-0 flex">
+          <div className="ml-4 shrink-0 flex">
             <button
               className="bg-white rounded-md inline-flex text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
               onClick={() => onClose(notification.id)}
@@ -131,6 +131,13 @@ function NotificationItem({ notification, onClose }: NotificationItemProps) {
 
 export default function NotificationSystem() {
   const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [statusBarDismissed, setStatusBarDismissed] = useState(() => {
+    // Check if status bar was permanently dismissed
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('connection-status-dismissed') === 'true';
+    }
+    return false;
+  });
 
   const addNotification = useCallback((notification: Omit<Notification, 'id' | 'timestamp'>) => {
     const newNotification: Notification = {
@@ -144,6 +151,13 @@ export default function NotificationSystem() {
 
   const removeNotification = (id: string) => {
     setNotifications(prev => prev.filter(n => n.id !== id));
+  };
+
+  const handleDismissStatusBar = () => {
+    setStatusBarDismissed(true);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('connection-status-dismissed', 'true');
+    }
   };
 
   const handleWebSocketMessage = (message: { type?: string;[key: string]: any }) => {
@@ -195,14 +209,7 @@ export default function NotificationSystem() {
         });
         break;
 
-      case 'connection_established':
-        addNotification({
-          type: 'success',
-          title: 'Connected',
-          message: 'Real-time updates are now active',
-          duration: 2000,
-        });
-        break;
+      // Removed connection_established - it's a state not an event
 
       default:
         // Handle unknown message types
@@ -218,33 +225,56 @@ export default function NotificationSystem() {
     }
   };
 
-  // Set up WebSocket connection and message handling
-  const [wsUrl] = useState(() => {
-    if (process.env.NEXT_PUBLIC_WS_URL) {
-      return process.env.NEXT_PUBLIC_WS_URL + '/ws';
-    }
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
-    return apiUrl.replace(/^http/, 'ws') + '/ws';
-  });
+  // Use singleton webSocketService instead of creating a new connection
+  const [connectionStatus, setConnectionStatus] = useState('closed');
 
-  const { connectionStatus } = useWebSocket(
-    wsUrl,
-    (data) => {
-      // Handle dashboard updates if needed
-      handleWebSocketMessage({ type: 'dashboard-update', ...data });
-    },
-    (data) => {
-      // Handle application status updates
-      handleWebSocketMessage({ type: 'application-status-update', ...data });
-    },
-    (data) => {
-      // Handle analytics updates
-      handleWebSocketMessage({ type: 'analytics-update', ...data });
-    },
-  );
+  useEffect(() => {
+    const handleStatusChange = (status: string) => {
+      setConnectionStatus(status);
+    };
+
+    const handleNotificationEvent = (data: any) => {
+      handleWebSocketMessage(data);
+    };
+
+    // Initial status
+    // @ts-ignore - accessing private property for initial state if needed, or just assume closed/connecting
+    // Better to rely on events
+
+    // Subscribe to service events
+    const onConnected = () => handleStatusChange('open');
+    const onDisconnected = () => handleStatusChange('closed');
+    const onReconnecting = () => handleStatusChange('connecting');
+
+    const onNotificationNew = (data: any) => handleNotificationEvent({ type: 'system_notification', ...data });
+    const onJobMatch = (data: any) => handleNotificationEvent({ type: 'job_match', ...data });
+    const onApplicationStatus = (data: any) => handleNotificationEvent({ type: 'application_status_update', ...data });
+    const onAnalyticsUpdate = (data: any) => handleNotificationEvent({ type: 'analytics_update', ...data });
+
+    webSocketService.on('connected', onConnected);
+    webSocketService.on('disconnected', onDisconnected);
+    webSocketService.on('reconnecting', onReconnecting);
+
+    webSocketService.on('notification:new', onNotificationNew);
+    webSocketService.on('job:match', onJobMatch);
+    webSocketService.on('application:status', onApplicationStatus);
+    webSocketService.on('analytics:update', onAnalyticsUpdate);
+
+    return () => {
+      webSocketService.off('connected', onConnected);
+      webSocketService.off('disconnected', onDisconnected);
+      webSocketService.off('reconnecting', onReconnecting);
+
+      webSocketService.off('notification:new', onNotificationNew);
+      webSocketService.off('job:match', onJobMatch);
+      webSocketService.off('application:status', onApplicationStatus);
+      webSocketService.off('analytics:update', onAnalyticsUpdate);
+    };
+  }, []);
 
   const connected = connectionStatus === 'open';
   const connecting = connectionStatus === 'connecting';
+  const disconnected = connectionStatus === 'closed' && !connecting;
 
   // Show connection status in development
   useEffect(() => {
@@ -253,51 +283,46 @@ export default function NotificationSystem() {
     }
   }, [connected, connecting, connectionStatus]);
 
-  // Show connection status when it changes
-  useEffect(() => {
-    if (connected) {
-      addNotification({
-        type: 'success',
-        title: 'Connected',
-        message: 'Real-time updates are now active',
-        duration: 2000,
-      });
-    } else if (connectionStatus === 'closed' && !connecting) {
-      addNotification({
-        type: 'warning',
-        title: 'Disconnected',
-        message: 'Real-time updates are temporarily unavailable',
-        autoHide: false,
-      });
-    }
-  }, [connectionStatus, connected, connecting, addNotification]);
+  // Automatic reconnection is handled by useWebSocket hook
+  // No need for explicit toasts for connection state changes
 
   return (
     <>
-      {/* Connection Status Indicator (only show when there are issues) */}
-      {connecting && (
-        <div className="fixed top-4 left-4 z-50">
-          <div className="flex items-center space-x-2 px-3 py-2 rounded-lg text-sm font-medium bg-yellow-100 text-yellow-800">
-            <Bell className="h-4 w-4" />
-            <span>Connecting...</span>
+      {/* Connection Status Bar - Only show when disconnected and not dismissed */}
+      {disconnected && !statusBarDismissed && (
+        <div className="fixed top-0 left-0 right-0 z-40 bg-amber-50 border-b border-amber-200">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex items-center justify-between h-12">
+              <div className="flex items-center space-x-3">
+                <AlertCircle className="h-5 w-5 text-amber-600" />
+                <span className="text-sm font-medium text-amber-900">
+                  Real-time updates are temporarily unavailable. Reconnecting automatically...
+                </span>
+              </div>
+              <button
+                onClick={handleDismissStatusBar}
+                className="inline-flex items-center text-amber-900 hover:text-amber-700 focus:outline-none focus:ring-2 focus:ring-amber-500 rounded-md p-1"
+                aria-label="Dismiss status bar"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
           </div>
         </div>
       )}
 
-      {/* Notification Container */}
+      {/* Notification Container - Bottom Right */}
       <div
         aria-live="assertive"
-        className="fixed inset-0 flex items-end px-4 py-6 pointer-events-none sm:p-6 sm:items-start z-50"
+        className="fixed bottom-0 right-0 flex flex-col-reverse items-end px-4 py-6 pointer-events-none sm:p-6 z-50 space-y-4 space-y-reverse"
       >
-        <div className="w-full flex flex-col items-center space-y-4 sm:items-end">
-          {notifications.map((notification) => (
-            <NotificationItem
-              key={notification.id}
-              notification={notification}
-              onClose={removeNotification}
-            />
-          ))}
-        </div>
+        {notifications.map((notification) => (
+          <NotificationItem
+            key={notification.id}
+            notification={notification}
+            onClose={removeNotification}
+          />
+        ))}
       </div>
     </>
   );

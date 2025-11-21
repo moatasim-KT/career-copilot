@@ -35,23 +35,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // Load user from token on mount
     useEffect(() => {
         const initAuth = async () => {
-            // Check for auth bypass
-            if (process.env.NEXT_PUBLIC_DISABLE_AUTH === 'true') {
-                const demoUser = {
-                    id: 1,
-                    email: 'demo@example.com',
-                    username: 'demo_user',
-                    full_name: 'Demo User',
-                    skills: ['Python', 'React', 'TypeScript'],
-                    preferred_locations: ['Remote', 'New York']
-                };
-                setUser(demoUser);
-                localStorage.setItem('access_token', 'dummy_token');
-                localStorage.setItem('user', JSON.stringify(demoUser));
-                webSocketService.connect('dummy_token');
-                setIsLoading(false);
-                return;
-            }
+            // Auth bypass is disabled - always require real authentication
 
             const token = localStorage.getItem('access_token');
             const storedUser = localStorage.getItem('user');
@@ -65,6 +49,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
                     if (response.data) {
                         setUser(response.data);
+                        // Connect WebSocket with validated token
+                        webSocketService.connect(token);
                     } else {
                         // Token invalid, clear storage
                         localStorage.removeItem('access_token');
@@ -109,6 +95,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 localStorage.setItem('access_token', response.data.access_token);
                 localStorage.setItem('user', JSON.stringify(response.data.user));
                 setUser(response.data.user);
+                // Connect WebSocket with the new token
+                webSocketService.connect(response.data.access_token);
                 router.push('/dashboard');
             }
         },
@@ -135,6 +123,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 localStorage.setItem('access_token', response.data.access_token);
                 localStorage.setItem('user', JSON.stringify(response.data.user));
                 setUser(response.data.user);
+                // Connect WebSocket with the new token
+                webSocketService.connect(response.data.access_token);
                 router.push('/dashboard');
             }
         },
@@ -155,6 +145,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             localStorage.removeItem('access_token');
             localStorage.removeItem('user');
             setUser(null);
+            webSocketService.disconnect();
             router.push('/login');
         }
     }, [router]);

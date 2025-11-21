@@ -256,7 +256,7 @@ async def google_oauth_callback(code: str, db: SessionType = Depends(get_db)):
 
 		# Check if user exists
 		result = await _db_execute(
-			select(User).where((User.email == user_info["email"]) | ((User.oauth_provider == "google") & (User.oauth_id == user_info["id"])))
+			db, select(User).where((User.email == user_info["email"]) | ((User.oauth_provider == "google") & (User.oauth_id == user_info["id"])))
 		)
 		existing_user = result.scalar_one_or_none()
 

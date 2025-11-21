@@ -20,8 +20,8 @@ import {
   LazyChartComponents,
 }
   from '@/components/lazy';
-import { useWebSocket } from '@/hooks/useWebSocket';
 import { apiClient, AnalyticsSummary } from '@/lib/api';
+import { webSocketService } from '@/lib/api/websocket';
 import { logger } from '@/lib/logger';
 
 import Card, { CardHeader, CardTitle, CardContent } from '../ui/Card2';
@@ -82,8 +82,17 @@ export default function AnalyticsPage() {
     setLoading(false);
   }, []);
 
-  const wsUrl = process.env.NEXT_PUBLIC_WS_URL || 'ws://localhost:8000/ws';
-  useWebSocket(wsUrl, () => { }, () => { }, handleUpdate);
+  useEffect(() => {
+    const onAnalyticsUpdate = (data: any) => {
+      handleUpdate(data);
+    };
+
+    webSocketService.on('analytics:update', onAnalyticsUpdate);
+
+    return () => {
+      webSocketService.off('analytics:update', onAnalyticsUpdate);
+    };
+  }, [handleUpdate]);
 
   const loadAnalyticsData = useCallback(async () => {
     setLoading(true);

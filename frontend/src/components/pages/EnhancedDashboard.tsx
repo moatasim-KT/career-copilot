@@ -88,8 +88,8 @@ import MetricCard from '@/components/ui/MetricCard';
 import QuickActionsPanel from '@/components/ui/QuickActionsPanel';
 import Widget from '@/components/ui/Widget';
 import EmptyState from '@/components/ui/EmptyState';
-import { useWebSocket } from '@/hooks/useWebSocket';
 import { apiClient, type AnalyticsSummary } from '@/lib/api';
+import { webSocketService } from '@/lib/api/websocket';
 import { logger } from '@/lib/logger';
 
 export default function EnhancedDashboard() {
@@ -106,12 +106,28 @@ export default function EnhancedDashboard() {
         setLastUpdated(new Date());
     }, []);
 
-    const { connectionStatus } = useWebSocket(
-        process.env.NEXT_PUBLIC_WS_URL || 'ws://localhost:8000/ws',
-        handleDashboardUpdate,
-        () => { }, // onApplicationStatusUpdate - not needed for dashboard
-        () => { },  // onAnalyticsUpdate - not needed for dashboard
-    );
+    const [connectionStatus, setConnectionStatus] = useState(webSocketService.getStatus());
+
+    useEffect(() => {
+        const updateStatus = () => setConnectionStatus(webSocketService.getStatus());
+
+        webSocketService.on('connected', updateStatus);
+        webSocketService.on('disconnected', updateStatus);
+        webSocketService.on('reconnecting', updateStatus);
+
+        const onAnalyticsUpdate = (data: any) => {
+            handleDashboardUpdate(data);
+        };
+
+        webSocketService.on('analytics:update', onAnalyticsUpdate);
+
+        return () => {
+            webSocketService.off('connected', updateStatus);
+            webSocketService.off('disconnected', updateStatus);
+            webSocketService.off('reconnecting', updateStatus);
+            webSocketService.off('analytics:update', onAnalyticsUpdate);
+        };
+    }, [handleDashboardUpdate]);
 
     const loadAnalytics = useCallback(async () => {
         try {
@@ -193,7 +209,7 @@ export default function EnhancedDashboard() {
                 <div className="flex items-center gap-3 bg-background dark:bg-background p-2 rounded-xl border border-border dark:border-border shadow-sm">
                     {/* Connection Status */}
                     <div className="flex items-center px-3 py-1.5 rounded-lg bg-muted dark:bg-muted">
-                        {connectionStatus === 'open' ? (
+                        {connectionStatus === 'connected' ? (
                             <div className="flex items-center gap-2 text-success-600 dark:text-success-400">
                                 <div className="relative flex h-2.5 w-2.5">
                                     <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-success-400 opacity-75"></span>

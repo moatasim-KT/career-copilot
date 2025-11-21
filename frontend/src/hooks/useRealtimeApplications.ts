@@ -5,7 +5,7 @@ import { useEffect, useCallback } from 'react';
 import { toast } from 'sonner';
 
 import { logger } from '@/lib/logger';
-import { getWebSocketClient } from '@/lib/websocket';
+import { webSocketService } from '@/lib/api/websocket';
 import type { Application } from '@/types/application';
 
 /**
@@ -92,16 +92,15 @@ export function useRealtimeApplications() {
   }, [queryClient]);
 
   useEffect(() => {
-    const wsClient = getWebSocketClient();
-
     // Subscribe to application status change events
-    const unsubscribe = wsClient.subscribe<ApplicationStatusChangeEvent>(
-      'application:status_change',
-      handleStatusChange,
-    );
+    const onStatusChange = (data: any) => {
+      handleStatusChange(data as ApplicationStatusChangeEvent);
+    };
+
+    webSocketService.on('application:status', onStatusChange);
 
     return () => {
-      unsubscribe();
+      webSocketService.off('application:status', onStatusChange);
     };
   }, [handleStatusChange]);
 

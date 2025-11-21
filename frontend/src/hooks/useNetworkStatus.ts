@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 
 import { logger } from '@/lib/logger';
-import { getWebSocketClient } from '@/lib/websocket';
+import { webSocketService } from '@/lib/api/websocket';
 
 /**
  * Hook to monitor network status and handle reconnection
@@ -22,9 +22,7 @@ export function useNetworkStatus() {
     typeof window !== 'undefined' ? navigator.onLine : true,
   );
   const [isReconnecting, setIsReconnecting] = useState(false);
-
   useEffect(() => {
-    const wsClient = getWebSocketClient();
     let reconnectToastId: string | number | undefined;
 
     // Handle online event
@@ -39,8 +37,10 @@ export function useNetworkStatus() {
       });
 
       // Attempt to reconnect WebSocket
-      if (!wsClient.isConnected()) {
-        wsClient.connect();
+      if (webSocketService.getStatus() !== 'connected') {
+        webSocketService.reconnect().catch(err => {
+          logger.error('Reconnection failed:', err);
+        });
       }
     };
 
@@ -59,8 +59,8 @@ export function useNetworkStatus() {
     };
 
     // Listen for WebSocket status changes
-    const unsubscribeStatus = wsClient.onStatusChange((status) => {
-      if (status === 'connected' && isReconnecting) {
+    const handleConnected = () => {
+      if (isReconnecting) {
         setIsReconnecting(false);
 
         // Dismiss reconnecting toast
@@ -81,15 +81,21 @@ export function useNetworkStatus() {
         if (typeof window !== 'undefined') {
           window.dispatchEvent(new CustomEvent('websocket:reconnected'));
         }
-      } else if (status === 'reconnecting') {
-        setIsReconnecting(true);
+      }
+    };
 
-        if (!reconnectToastId) {
-          reconnectToastId = toast.loading('Reconnecting...', {
-            description: 'Attempting to restore connection',
-          });
-        }
-      } else if (status === 'disconnected' && isOnline) {
+    const handleReconnecting = () => {
+      setIsReconnecting(true);
+
+      if (!reconnectToastId) {
+        reconnectToastId = toast.loading('Reconnecting...', {
+          description: 'Attempting to restore connection',
+        });
+      }
+    };
+
+    const handleDisconnected = () => {
+      if (isOnline) {
         // Disconnected but network is online - show warning
         toast.warning('Connection Issue', {
           description: 'Reconnecting automatically...',
@@ -97,7 +103,11 @@ export function useNetworkStatus() {
           id: 'network-warning',
         });
       }
-    });
+    };
+
+    webSocketService.on('connected', handleConnected);
+    webSocketService.on('reconnecting', handleReconnecting);
+    webSocketService.on('disconnected', handleDisconnected);
 
     // Add event listeners
     window.addEventListener('online', handleOnline);
@@ -111,7 +121,10 @@ export function useNetworkStatus() {
     return () => {
       window.removeEventListener('online', handleOnline);
       window.removeEventListener('offline', handleOffline);
-      unsubscribeStatus();
+
+      webSocketService.off('connected', handleConnected);
+      webSocketService.off('reconnecting', handleReconnecting);
+      webSocketService.off('disconnected', handleDisconnected);
 
       // Clean up toasts
       if (reconnectToastId) {

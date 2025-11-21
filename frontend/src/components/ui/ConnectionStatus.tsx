@@ -3,9 +3,10 @@
 import { Wifi, WifiOff, RefreshCw } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
+import { useAuth } from '@/contexts/AuthContext';
+import { webSocketService } from '@/lib/api/websocket';
 import { m, AnimatePresence } from '@/lib/motion';
 import { cn } from '@/lib/utils';
-import { getWebSocketClient, type ConnectionStatus as WSConnectionStatus } from '@/lib/websocket';
 
 /**
  * ConnectionStatus Component
@@ -28,35 +29,45 @@ interface ConnectionStatusProps {
 }
 
 export function ConnectionStatus({ className, showLabel = false }: ConnectionStatusProps) {
-  const [status, setStatus] = useState<WSConnectionStatus>('disconnected');
+  const [status, setStatus] = useState<'connected' | 'connecting' | 'reconnecting' | 'disconnected'>('disconnected');
   const [isTooltipVisible, setIsTooltipVisible] = useState(false);
   const [isReconnecting, setIsReconnecting] = useState(false);
 
   useEffect(() => {
-    const wsClient = getWebSocketClient();
-
     // Set initial status
-    setStatus(wsClient.getStatus());
+    setStatus(webSocketService.getStatus());
 
     // Subscribe to status changes
-    const unsubscribe = wsClient.onStatusChange((newStatus) => {
-      setStatus(newStatus);
-    });
+    const handleConnected = () => setStatus('connected');
+    const handleDisconnected = () => setStatus('disconnected');
+    const handleReconnecting = () => setStatus('reconnecting');
+    const handleError = () => setStatus('disconnected');
+
+    webSocketService.on('connected', handleConnected);
+    webSocketService.on('disconnected', handleDisconnected);
+    webSocketService.on('reconnecting', handleReconnecting);
+    webSocketService.on('error', handleError);
 
     return () => {
-      unsubscribe();
+      webSocketService.off('connected', handleConnected);
+      webSocketService.off('disconnected', handleDisconnected);
+      webSocketService.off('reconnecting', handleReconnecting);
+      webSocketService.off('error', handleError);
     };
   }, []);
 
-  const handleReconnect = () => {
+  const handleReconnect = async () => {
     setIsReconnecting(true);
-    const wsClient = getWebSocketClient();
-    wsClient.connect();
-
-    // Reset reconnecting state after 2 seconds
-    setTimeout(() => {
-      setIsReconnecting(false);
-    }, 2000);
+    try {
+      await webSocketService.reconnect();
+    } catch (error) {
+      console.error('Manual reconnection failed:', error);
+    } finally {
+      // Reset reconnecting state after 2 seconds
+      setTimeout(() => {
+        setIsReconnecting(false);
+      }, 2000);
+    }
   };
 
   const getStatusConfig = () => {
@@ -192,7 +203,7 @@ export function ConnectionStatus({ className, showLabel = false }: ConnectionSta
 
             {/* Content */}
             <div className="relative flex items-start gap-2">
-              <Icon className="h-4 w-4 text-neutral-400 flex-shrink-0 mt-0.5" />
+              <Icon className="h-4 w-4 text-neutral-400 shrink-0 mt-0.5" />
               <div className="flex-1">
                 <div className="text-sm font-medium text-white">
                   {config.label}
@@ -226,6 +237,13 @@ export function ConnectionStatus({ className, showLabel = false }: ConnectionSta
  * Compact version for mobile or space-constrained layouts
  */
 export function ConnectionStatusCompact({ className }: { className?: string }) {
+  const { isAuthenticated } = useAuth();
+
+  // Don't show connection status on login/public pages
+  if (!isAuthenticated) {
+    return null;
+  }
+
   return <ConnectionStatus className={className} showLabel={false} />;
 }
 

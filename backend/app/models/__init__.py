@@ -1,6 +1,7 @@
 from ..core.database import Base
 from .analytics import Analytics
 from .application import Application
+from .calendar import CalendarCredential, CalendarEvent
 from .career_resources import (
 	CareerResourceModel,
 	LearningPath,
@@ -35,6 +36,8 @@ __all__ = [
 	"Analytics",
 	"Application",
 	"Base",
+	"CalendarCredential",
+	"CalendarEvent",
 	"CareerResourceModel",
 	"ContentGeneration",
 	"ContentVersion",

@@ -50,9 +50,9 @@ export default function LoginPage() {
     };
 
     return (
-        <div className="min-h-screen flex justify-center bg-slate-50 dark:bg-slate-950">
+        <div className="min-h-screen flex flex-row bg-slate-50 dark:bg-slate-950">
             {/* Hero Section (Left Side) */}
-            <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden bg-slate-900">
+            <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden bg-slate-900 min-h-screen">
                 <div className="absolute inset-0 bg-gradient-brand opacity-90 z-10"></div>
                 <div className="absolute inset-0 bg-[url('/grid.svg')] bg-center mask-[linear-gradient(180deg,white,rgba(255,255,255,0))] z-0"></div>
 
@@ -91,13 +91,13 @@ export default function LoginPage() {
                     </div>
 
                     <div className="text-sm text-indigo-200">
-                        © 2024 Career Copilot. All rights reserved.
+                        © {new Date().getFullYear()} Career Copilot. All rights reserved.
                     </div>
                 </div>
             </div>
 
             {/* Login Form (Right Side) */}
-            <div className="w-full lg:w-1/2 flex items-center justify-center p-8">
+            <div className="w-full lg:w-1/2 flex items-center justify-center p-8 relative z-30 min-h-screen">
                 <div className="w-full max-w-md space-y-8">
                     <div className="text-center lg:text-left">
                         <div className="lg:hidden flex justify-center mb-6">
@@ -113,6 +113,7 @@ export default function LoginPage() {
                         </p>
                     </div>
 
+
                     <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
                         {error && (
                             <div className="p-4 rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-800 text-red-600 dark:text-red-400 text-sm font-medium animate-fade-in">
@@ -120,9 +121,9 @@ export default function LoginPage() {
                             </div>
                         )}
 
-                        <div className="space-y-5">
+                        <div className="space-y-6">
                             <div>
-                                <label htmlFor="identifier" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
+                                <label htmlFor="identifier" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
                                     Email or Username
                                 </label>
                                 <input
@@ -138,7 +139,7 @@ export default function LoginPage() {
                             </div>
 
                             <div>
-                                <div className="flex items-center justify-between mb-1.5">
+                                <div className="flex items-center justify-between mb-2">
                                     <label htmlFor="password" className="block text-sm font-medium text-slate-700 dark:text-slate-300">
                                         Password
                                     </label>
@@ -162,7 +163,7 @@ export default function LoginPage() {
                             </div>
                         </div>
 
-                        <div className="flex items-center">
+                        <div className="flex items-center pt-2">
                             <input
                                 id="remember-me"
                                 name="remember-me"
@@ -177,7 +178,7 @@ export default function LoginPage() {
                         <button
                             type="submit"
                             disabled={isLoading}
-                            className="w-full btn-primary flex items-center justify-center space-x-2"
+                            className="w-full btn-primary flex items-center justify-center space-x-2 mt-6"
                         >
                             {isLoading ? (
                                 <div className="h-5 w-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
@@ -189,23 +190,23 @@ export default function LoginPage() {
                             )}
                         </button>
 
-                        <div className="relative my-8">
+                        <div className="relative my-10">
                             <div className="absolute inset-0 flex items-center">
                                 <div className="w-full border-t border-slate-200 dark:border-slate-700" />
                             </div>
                             <div className="relative flex justify-center text-sm">
-                                <span className="px-4 bg-slate-50 dark:bg-slate-950 text-slate-500">
+                                <span className="px-4 bg-slate-50 dark:bg-slate-950 text-slate-600 dark:text-slate-400">
                                     Or continue with
                                 </span>
                             </div>
                         </div>
 
 
-                        <div className="grid grid-cols-2 gap-3 max-w-sm mx-auto">
+                        <div className="grid grid-cols-2 gap-4 max-w-sm mx-auto">
                             <button
                                 type="button"
                                 onClick={() => handleOAuthLogin('github')}
-                                className="btn-secondary flex items-center justify-center space-x-2"
+                                className="btn-secondary flex items-center justify-center space-x-2 py-3"
                             >
                                 <img src="/images/github.svg" alt="GitHub" className="w-5 h-5 object-contain" />
                                 <span>GitHub</span>
@@ -213,14 +214,14 @@ export default function LoginPage() {
                             <button
                                 type="button"
                                 onClick={() => handleOAuthLogin('google')}
-                                className="btn-secondary flex items-center justify-center space-x-2"
+                                className="btn-secondary flex items-center justify-center space-x-2 py-3"
                             >
                                 <img src="/images/google.svg" alt="Google" className="w-5 h-5 object-contain" />
                                 <span>Google</span>
                             </button>
                         </div>
 
-                        <p className="text-center text-sm text-slate-600 dark:text-slate-400 mt-8">
+                        <p className="text-center text-sm text-slate-600 dark:text-slate-400 mt-10">
                             Don't have an account?{' '}
                             <Link href="/register" className="font-medium text-indigo-600 hover:text-indigo-500 dark:text-indigo-400 transition-colors">
                                 Sign up for free

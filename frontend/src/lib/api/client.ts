@@ -14,7 +14,7 @@
  * 
  * **Authentication**:
  * Auth is disabled by default (`requiresAuth: false`). When enabled:
- * - Reads JWT token from `localStorage.getItem('auth_token')`
+ * - Reads JWT token from `localStorage.getItem('access_token')`
  * - Automatically adds `Authorization: Bearer <token>` header
  * - Redirects to login on 401 errors
  * 
@@ -75,7 +75,7 @@
  * **Configuration**:
  * - Base URL: `process.env.NEXT_PUBLIC_API_URL` (default: http://localhost:8002)
  * - API Version: `/api/v1`
- * - Auth token key: `auth_token` in localStorage
+ * - Auth token key: `access_token` in localStorage
  * 
  * **Related Documentation**:
  * - [[backend/app/api/v1/|Backend API Routes]]
@@ -143,7 +143,7 @@ interface ApiResponse<T = any> {
  */
 function getAuthToken(): string | null {
     if (typeof window === 'undefined') return null;
-    return localStorage.getItem('auth_token');
+    return localStorage.getItem('access_token');
 }
 
 /**

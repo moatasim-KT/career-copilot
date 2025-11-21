@@ -6,10 +6,10 @@
 'use client';
 
 import { Send, Trash2, Wifi, WifiOff } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 import Card from '@/components/ui/Card2';
-import { useWebSocket } from '@/hooks/useWebSocket';
+import { webSocketService } from '@/lib/api/websocket';
 import { logger } from '@/lib/logger';
 
 import Button2 from '../ui/Button2';
@@ -26,23 +26,47 @@ export default function WebSocketTest() {
   const [testMessage, setTestMessage] = useState('');
   const [wsUrl] = useState('ws://localhost:8002/ws');
 
-  const { ws, connectionStatus } = useWebSocket(
-    wsUrl,
-    (data) => {
+  const [connectionStatus, setConnectionStatus] = useState(webSocketService.getStatus());
+
+  useEffect(() => {
+    const updateStatus = () => setConnectionStatus(webSocketService.getStatus());
+
+    webSocketService.on('connected', updateStatus);
+    webSocketService.on('disconnected', updateStatus);
+    webSocketService.on('reconnecting', updateStatus);
+
+    const onDashboardUpdate = (data: any) => {
       logger.log('WebSocket Test: Dashboard update', data);
       addMessage('dashboard-update', data);
-    },
-    (data) => {
+    };
+
+    const onApplicationStatus = (data: any) => {
       logger.log('WebSocket Test: Application status update', data);
       addMessage('application-status-update', data);
-    },
-    (data) => {
+    };
+
+    const onAnalyticsUpdate = (data: any) => {
       logger.log('WebSocket Test: Analytics update', data);
       addMessage('analytics-update', data);
-    },
-  );
+    };
 
-  const connected = connectionStatus === 'open';
+    // Assuming 'dashboard:update' exists, or maybe it's just analytics
+    webSocketService.on('dashboard:update', onDashboardUpdate);
+    webSocketService.on('application:status', onApplicationStatus);
+    webSocketService.on('analytics:update', onAnalyticsUpdate);
+
+    return () => {
+      webSocketService.off('connected', updateStatus);
+      webSocketService.off('disconnected', updateStatus);
+      webSocketService.off('reconnecting', updateStatus);
+
+      webSocketService.off('dashboard:update', onDashboardUpdate);
+      webSocketService.off('application:status', onApplicationStatus);
+      webSocketService.off('analytics:update', onAnalyticsUpdate);
+    };
+  }, []);
+
+  const connected = connectionStatus === 'connected';
   const connecting = connectionStatus === 'connecting';
 
   const addMessage = (type: string, data: unknown) => {
@@ -156,7 +180,7 @@ export default function WebSocketTest() {
             <div className="space-y-2">
               <h3 className="text-sm font-medium text-neutral-700">Connection Control</h3>
               <div className="flex space-x-2">
-                <Button2 onClick={() => ws?.close()} disabled={!connected} variant="outline" size="sm">
+                <Button2 onClick={() => webSocketService.disconnect()} disabled={!connected} variant="outline" size="sm">
                   Disconnect
                 </Button2>
               </div>

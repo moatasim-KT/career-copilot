@@ -38,15 +38,14 @@ import Select from '@/components/ui/Select2';
 import Textarea from '@/components/ui/Textarea2';
 import { useBulkUndo } from '@/hooks/useBulkUndo';
 import { useRecentSearches } from '@/hooks/useRecentSearches';
-import { useWebSocket } from '@/hooks/useWebSocket';
 import { staggerContainer, staggerItem, fadeVariants, springConfigs } from '@/lib/animations';
 import { apiClient, type Application } from '@/lib/api';
+import { webSocketService } from '@/lib/api/websocket';
 import { createApplicationBulkActions } from '@/lib/bulkActions/applicationActions';
 import { logger } from '@/lib/logger';
 import { m, AnimatePresence } from '@/lib/motion';
 import { APPLICATION_SEARCH_FIELDS } from '@/lib/searchFields';
 import { applySearchQuery, countSearchResults, createEmptyQuery, hasSearchCriteria, queryToSearchParams } from '@/lib/searchUtils';
-import { handleApplicationStatusUpdate } from '@/lib/websocket/applications';
 import type { SearchGroup, SavedSearch } from '@/types/search';
 
 const STATUS_OPTIONS = [
@@ -138,16 +137,17 @@ export default function ApplicationsPage() {
     }
   }, []);
 
-  const wsUrl = process.env.NEXT_PUBLIC_WS_URL || 'ws://localhost:8000/ws';
-  useWebSocket(
-    wsUrl,
-    // onDashboardUpdate (not needed here)
-    () => { },
-    // onApplicationStatusUpdate
-    (data) => handleApplicationStatusUpdate(data, handleApplicationUpdate),
-    // onAnalyticsUpdate (not needed)
-    () => { },
-  );
+  useEffect(() => {
+    const onApplicationStatus = (data: any) => {
+      handleApplicationUpdate(data);
+    };
+
+    webSocketService.on('application:status', onApplicationStatus);
+
+    return () => {
+      webSocketService.off('application:status', onApplicationStatus);
+    };
+  }, [handleApplicationUpdate]);
 
   const [formData, setFormData] = useState({
     job_id: 0,
@@ -608,7 +608,7 @@ export default function ApplicationsPage() {
           >
             <Card className="border-red-200 bg-red-50">
               <CardContent className="flex items-center p-4">
-                <AlertCircle className="h-5 w-5 text-red-400 flex-shrink-0" />
+                <AlertCircle className="h-5 w-5 text-red-400 shrink-0" />
                 <p className="text-sm text-red-800 ml-3">{error}</p>
               </CardContent>
             </Card>
@@ -1206,7 +1206,7 @@ export default function ApplicationsPage() {
         <div className="fixed top-4 right-4 z-50">
           <Card className="border-green-200 bg-green-50">
             <CardContent className="flex items-center p-4">
-              <CheckCircle className="h-5 w-5 text-green-400 flex-shrink-0" />
+              <CheckCircle className="h-5 w-5 text-green-400 shrink-0" />
               <p className="text-sm text-green-800 ml-3">{successMessage}</p>
             </CardContent>
           </Card>
@@ -1217,7 +1217,7 @@ export default function ApplicationsPage() {
         <div className="fixed top-4 right-4 z-50">
           <Card className="border-red-200 bg-red-50">
             <CardContent className="flex items-center p-4">
-              <AlertCircle className="h-5 w-5 text-red-400 flex-shrink-0" />
+              <AlertCircle className="h-5 w-5 text-red-400 shrink-0" />
               <p className="text-sm text-red-800 ml-3">{errorMessage}</p>
             </CardContent>
           </Card>

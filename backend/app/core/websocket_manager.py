@@ -29,6 +29,13 @@ class WebSocketConnection:
 			return True
 
 		try:
+			# Check if WebSocket is in connected state before sending
+			from starlette.websockets import WebSocketState
+
+			if self.websocket.client_state != WebSocketState.CONNECTED:
+				logger.warning(f"WebSocket for user {self.user_id} not in CONNECTED state (state: {self.websocket.client_state})")
+				return False
+
 			await self.websocket.send_text(json.dumps(message))
 			return True
 		except Exception as e:
@@ -43,6 +50,13 @@ class WebSocketConnection:
 			return True
 
 		try:
+			# Check if WebSocket is in connected state before sending
+			from starlette.websockets import WebSocketState
+
+			if self.websocket.client_state != WebSocketState.CONNECTED:
+				logger.warning(f"WebSocket for user {self.user_id} not in CONNECTED state (state: {self.websocket.client_state})")
+				return False
+
 			await self.websocket.send_text(text)
 			return True
 		except Exception as e:
@@ -80,8 +94,7 @@ class WebSocketManager:
 	async def connect(self, user_id: int, websocket: WebSocket) -> WebSocketConnection:
 		"""Connect a user's WebSocket.
 
-		The FastAPI endpoint is responsible for accepting the connection. We avoid
-		calling `websocket.accept()` here because doing so after the endpoint already
+		This method should only be called AFTER websocket.accept() has been invoked; if not
 		accepted the socket raises a runtime error. This helper simply records the
 		connection and sends the welcome payload.
 		"""
@@ -94,15 +107,19 @@ class WebSocketManager:
 
 		logger.info(f"WebSocket connected for user: {user_id}. Active sessions: {len(self.active_connections[user_id])}")
 
-		# Send welcome message
-		await connection.send_message(
-			{
-				"type": "connection_established",
-				"user_id": user_id,
-				"timestamp": datetime.now().isoformat(),
-				"message": "WebSocket connection established successfully",
-			}
-		)
+		# Send welcome message (wrap in try-except to prevent connection failures)
+		try:
+			await connection.send_message(
+				{
+					"type": "connection_established",
+					"user_id": user_id,
+					"timestamp": datetime.now().isoformat(),
+					"message": "WebSocket connection established successfully",
+				}
+			)
+		except Exception as e:
+			logger.warning(f"Failed to send welcome message to user {user_id}: {e}")
+			# Don't fail the connection just because welcome message failed
 
 		return connection
 
